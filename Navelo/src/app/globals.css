@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Light theme variables */
+:root {
+  /* Backgrounds */
+  --background: 255 255 255; /* white */
+  --surface: 248 248 248; /* gray-50 */
+  --surface-raised: 255 255 255; /* white */
+  --surface-sunken: 245 245 245; /* gray-100 */
+  --border: 229 229 229; /* gray-200 */
+
+  /* Foreground */
+  --foreground: 17 24 39; /* gray-900 */
+  --text-primary: 17 24 39; /* gray-900 */
+  --text-secondary: 55 65 80; /* gray-600 */
+  --text-muted: 107 114 128; /* gray-400 */
+  --text-dim: 156 163 175; /* gray-300 */
+
+  /* Brand */
+  --brand-primary: 255 126 0; /* orange-500 */
+  --brand-secondary: 59 130 246; /* blue-500 */
+  --accent: var(--brand-secondary);
+
+  /* States */
+  --success: 34 197 94; /* green-500 */
+  --warning: 251 191 36; /* yellow-500 */
+  --error: 239 68 68; /* red-500 */
+
+  /* Dynamic primary (used by registry-context until Phase 3) */
+  --primary-dynamic: var(--brand-primary);
+
+  /* Fonts */
+  --font-sans: "Inter var", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+/* Whitelabel theme scope placeholders (to be implemented in Phase 3) */
+[data-theme-scope="master"] {
+  /* Override --brand-primary and --brand-secondary for Master context */
+}
+[data-theme-scope="tenant"] {
+  /* Override --brand-primary and --brand-secondary for Tenant context */
+}
+
+/* NProgress styles */
+#nprogress {
+  pointer-events: none;
+}
+#nprogress .bar {
+  background: var(--brand-primary);
+  position: fixed;
+  z-index: 1030;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+}
+#nprogress .peg {
+  display: block;
+  position: absolute;
+  right: 0px;
+  width: 100px;
+  height: 2px;
+  box-shadow: 0 0 10px var(--brand-primary), 0 0 5px var(--brand-primary);
+  opacity: 1.0;
+}
+#nprogress .spinner {
+  display: block;
+  position: fixed;
+  z-index: 1030;
+  top: 15px;
+  right: 15px;
+}
+#nprogress .spinner-icon {
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  border: solid 2px transparent;
+  border-top-color: var(--brand-primary);
+  border-left-color: var(--brand-primary);
+  border-radius: 50%;
+  animation: nprogress-spinner 400ms linear infinite;
+}
+@keyframes nprogress-spinner {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Shine effect for Button */
+.shine-container {
+  overflow: hidden;
+  position: relative;
+}
+.shine-line {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transform: skewX(-25deg);
+}
+
+/* Apply background and foreground to body */
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+}
