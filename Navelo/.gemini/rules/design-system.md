@@ -1,4 +1,4 @@
-# RepTrail Design System — Single Source of Truth
+#Design System — Single Source of Truth
 
 > **PRIORIDADE MÁXIMA.** Todas as skills, agentes e tasks devem obedecer este documento.
 > Em caso de conflito entre uma task e estas regras, **as regras vencem**.
@@ -174,7 +174,7 @@ Hierarquia baseada em variantes semânticas do componente `Font`:
 
 Componentes que devem seguir rigorosamente os padrões da `store`:
 
-`StatCard` · `ListRow` · `Badge` · `InputField` · `CustomSelect` · `NumberPicker` · `DigitalTicket` · `MiniChart` · `DrawTimer` · `Horizontal Scroll Badges` · `Ergonomic Action Bar` · `Grid & Row Actions` · `Close Action`
+`StatCard` · `ListRow` · `Badge` · `InputField` · `CustomSelect` · `NumberPicker` · `DigitalTicket` · `DrawTimer` · `Horizontal Scroll Badges` · `Ergonomic Action Bar` · `Grid & Row Actions` · `Close Action`
 
 ---
 
@@ -194,7 +194,7 @@ Componentes que devem seguir rigorosamente os padrões da `store`:
 - **NUNCA** usar `p-6` ou `p-8`. Padrão é `padding={5}`.
 - **NUNCA** definir cores arbitrárias via prop `color` ou `bg` fora da camada `base`.
 - **NUNCA** usar `self-align` ou `absolute` para corrigir falhas de layout do pai.
-- **NUNCA** usar `bg-black` absoluto. Use `bg-zinc-950` ou `bg-zinc-900`.
+- **NUNCA** usar cores arbitrárias/hex. O uso de cores é exclusivo via tokens CSS variables (`var(...)`) restrito à camada `base`.
 - **NUNCA** usar componentes fora de `src/components/store`.
 - **NUNCA** usar um componente que não tenha sido previamente catalogado em `/design-system`.
 
@@ -333,9 +333,9 @@ Exceto exceções explicitamente documentadas neste arquivo.
 
 ## Cores
 
-- Cores arbitrárias em componentes não-`base`
-- `bg-black` absoluto
-- Fundos fora da família `zinc`
+- Cores arbitrárias/hex fora dos tokens do sistema
+- Utilização de classes de cor fora da camada `base`
+- Falta de uso de tokens semânticos via CSS variables
 
 ---
 
@@ -394,14 +394,28 @@ full · screen · auto · fit-content · 1/2 · 2/3 · 1/4 · % · vw
 full · screen · flex-1 · altura natural por conteúdo · altura natural por padding
 ```
 
-## Background Permitido
+## Cores Permitidas (Tokens Semânticos via CSS Variables)
 
 ```
-bg-zinc-950  ← containers principais / fundos de página
-bg-zinc-900  ← cards e painéis
-bg-zinc-800  ← elementos elevados
-demais tons zinc conforme hierarquia visual
+bg-background       ← containers principais / fundos de página
+bg-surface          ← cards e painéis
+bg-surface-raised   ← elementos elevados / dropdowns / popovers
+bg-surface-sunken   ← áreas de fallback / fundos de dropzone
+border-border       ← bordas padrão e separadores
+
+text-foreground         ← textos principais
+text-text-secondary     ← textos secundários
+text-text-muted         ← textos inativos ou de menor peso
+text-text-dim           ← textos descritivos sutis
+
+brand-primary       ← cor principal da marca (default: laranja)
+brand-secondary     ← cor de acento / destaque (default: azul, alias: accent)
 ```
+
+## Mandato Whitelabel
+
+O sistema utiliza arquitetura whitelabel suportada exclusivamente por variáveis CSS escopadas. A marca é customizável por contexto (Painel Master vs. Painel Assinante).
+O laranja atua como primária (brand-primary) e o azul como secundária (brand-secondary/accent) como defaults, mas devem sempre ser referenciados pelos tokens dinâmicos para suportar trocas em tempo de execução.
 
 ---
 
