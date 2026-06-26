@@ -1,0 +1,101 @@
+# ASDD State Machine
+
+## Estados e Transições
+
+BOOTSTRAP
+  Condição de entrada: .asdd/ inválido ou inexistente, ou re-bootstrap
+  Agente: Bootstrap Wizard
+  Saída possível: ANALYZING (artefato válido gerado)
+  Saída de bloqueio: permanece em BOOTSTRAP (dev não aprovou)
+
+ANALYZING
+  Condição de entrada: início de ciclo (pós NEXT_CYCLE ou BOOTSTRAP)
+  Agentes: Governor + Analyzer
+  Saídas possíveis:
+    → PLANNING (governor authorized + analyzer completo)
+    → QUESTIONING (governor ambiguous)
+    → BLOCKED (governor blocked — fora do fluxo normal)
+
+QUESTIONING
+  Condição de entrada: ambiguidade detectada pelo Governor
+  Ação: perguntas apresentadas ao desenvolvedor
+  Saída: ANALYZING (com contexto atualizado)
+
+PLANNING
+  Condição de entrada: Documento de Intenção do Analyzer aprovado
+  Agente: Planner
+  Saídas possíveis:
+    → BUILDING (dev aprovou o plano)
+    → ANALYZING (dev rejeitou — volta com feedback)
+    → BLOCKED (conflito arquitetural detectado)
+
+BUILDING
+  Condição de entrada: Plano aprovado pelo desenvolvedor
+  Agente: Builder
+  Saídas possíveis:
+    → REVIEWING (relatório de execução completo)
+    → PAUSED (step bloqueado — aguarda dev)
+
+REVIEWING
+  Condição de entrada: Relatório de Execução do Builder
+  Agente: Reviewer
+  Saídas possíveis:
+    → UPDATING_MEMORY (approved ou approved_with_warnings)
+    → CORRECTING (rejected + tentativas < 2)
+    → ESCALATED (rejected + tentativas = 2)
+
+CORRECTING
+  Condição de entrada: REJECTED do Reviewer
+  Agente: Corrector
+  Saída: REVIEWING (nova rodada)
+  Contador: Harness incrementa a cada entrada em CORRECTING
+
+UPDATING_MEMORY
+  Condição de entrada: Reviewer aprovou
+  Agente: Updating Memory skill
+  Saída: APPROVING
+
+APPROVING
+  Condição de entrada: artefato atualizado
+  Ação: Harness apresenta resumo do ciclo ao desenvolvedor
+  Saída: NEXT_CYCLE (após confirmação do dev)
+
+NEXT_CYCLE
+  Condição de entrada: dev confirmou o ciclo
+  Ação: Harness prepara estado para próximo ciclo
+  Saída: ANALYZING (ao receber próximo prompt)
+
+## Estados Especiais
+
+BLOCKED
+  Entrada: Governor, Planner ou Analyzer identificou bloqueio
+  Ação: desenvolvedor deve resolver o bloqueio manualmente
+  Saída: ANALYZING (após resolução)
+
+PAUSED
+  Entrada: Builder encontrou step bloqueado
+  Ação: desenvolvedor decide como proceder
+  Saída: BUILDING (se dev fornece solução) ou
+         PLANNING (se plano precisa ser revisto)
+
+INTERRUPTED
+  Entrada: falha de sistema durante qualquer estado
+  Ação: Harness registra ponto de interrupção
+  Saída: retoma do ponto de interrupção quando dev reinicia
+
+ESCALATED
+  Entrada: 2 tentativas do Corrector esgotadas
+  Ação: dev recebe relatório completo e decide próximos passos
+  Saída: ANALYZING (com novo entendimento) ou
+         PLANNING (com escopo revisado) ou
+         BLOCKED (se decisão arquitetural necessária)
+
+## Invariantes (sempre verdadeiros em qualquer estado)
+
+INVARIANTE-01: Nenhum agente escreve código sem Plano aprovado pelo dev.
+INVARIANTE-02: truth/ só é modificado em ciclos truth-revision.
+INVARIANTE-03: Todo ciclo tem entrada em cycle-log.md (completo ou não).
+INVARIANTE-04: Builder nunca toca arquivo fora da whitelist.
+INVARIANTE-05: Todo ciclo tem dois pontos de aprovação humana obrigatória:
+               PLANNING (aprovação do plano) e APPROVING (confirmação).
+INVARIANTE-06: CORRECTING nunca executa mais de 2 vezes por ciclo.
