@@ -15,7 +15,7 @@ export const AuthSection: React.FC = () => {
       icon={Keyboard}
     >
       <Grid cols={3} gap={5}>
-        <Box padding={5} bg="bg-surface" border borderColor="border-border" radius="default">
+        <Box padding={5} bg="bg-surface" radius="default">
           <Form label="Entrar no Painel" description="Insira suas credenciais">
             <Input label="E-mail" placeholder="admin@navelo.com" icon={Mail} />
             <Input label="Senha" type="password" placeholder="••••••••" icon={Lock} />
@@ -23,7 +23,7 @@ export const AuthSection: React.FC = () => {
           </Form>
         </Box>
 
-        <Box padding={5} bg="bg-surface" border borderColor="border-border" radius="default">
+        <Box padding={5} bg="bg-surface" radius="default">
           <Form label="Criar sua Conta" description="Registre seu estabelecimento">
             <Input label="Nome Fantasia" placeholder="Meu Restaurante" />
             <Input label="E-mail" placeholder="contato@empresa.com" icon={Mail} />
@@ -31,7 +31,7 @@ export const AuthSection: React.FC = () => {
           </Form>
         </Box>
 
-        <Box padding={5} bg="bg-surface" border borderColor="border-border" radius="default">
+        <Box padding={5} bg="bg-surface" radius="default">
           <Form label="Recuperar Senha" description="Enviaremos um link de acesso">
             <Input label="E-mail" placeholder="admin@navelo.com" icon={Mail} />
             <Button variant="primary" label="Enviar link" fullWidth />

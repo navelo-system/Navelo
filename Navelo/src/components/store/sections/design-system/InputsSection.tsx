@@ -15,7 +15,7 @@ export const InputsSection: React.FC = () => {
       icon={Keyboard}
     >
       <Stack gap={5}>
-        <Box padding={5} bg="bg-surface-sunken" border borderColor="border-border" radius="default">
+        <Box padding={5} bg="bg-surface" radius="default">
           <Stack gap={5}>
             <Font variant="h3" text="Demonstração de Tipos (Input)" />
             <Form columns={2}>
@@ -33,7 +33,7 @@ export const InputsSection: React.FC = () => {
           </Stack>
         </Box>
 
-        <Box padding={5} bg="bg-surface" border borderColor="border-border" radius="default">
+        <Box padding={5} bg="bg-surface" radius="default">
           <Form label="Cadastro de Cliente (Form Inteligente)" description="Exemplo de 2 colunas com número ímpar de campos. O último ocupa 100% da largura." columns={2}>
             <Input label="Nome Completo" placeholder="Ex: Maria Souza" />
             <Input label="CPF" variant="cpf" placeholder="000.000.000-00" />

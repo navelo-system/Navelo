@@ -37,11 +37,11 @@ export const BillSplitter: React.FC<BillSplitterProps> = ({
   const handleDecrease = () => setPeopleCount((prev) => Math.max(1, prev - 1))
 
   return (
-    <Box padding={5} bg="bg-surface" border borderColor="border-border" radius="default">
+    <Box padding={5} bg="bg-surface" radius="default">
       <Stack gap={5}>
         {/* Header */}
         <Stack direction="row" align="center" gap={2.5}>
-          <CircularIcon icon={Users2} variant="neutral" />
+          <CircularIcon icon={Users2} />
           <Stack gap={0}>
             <Font variant="body-bold" text="Divisão de Conta" />
             <Font variant="description" text="Divida o consumo de mesas e comandas de forma rápida." />
@@ -51,7 +51,7 @@ export const BillSplitter: React.FC<BillSplitterProps> = ({
         <div className="h-[2px] bg-border w-full" />
 
         {/* Calculations display */}
-        <Box padding={5} bg="bg-surface-sunken" radius="default" border borderColor="border-border">
+        <Box padding={0}>
           <Stack gap={2.5}>
             <Stack direction="row" justify="between" align="center">
               <Font variant="body" text="Consumo Subtotal" />

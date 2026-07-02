@@ -40,11 +40,11 @@ export const PeripheralStatusList: React.FC<PeripheralStatusListProps> = ({
   }
 
   return (
-    <Box padding={5} bg="bg-surface" border borderColor="border-border" radius="default">
+    <Box padding={0}>
       <Stack gap={5}>
         {/* Header */}
         <Stack direction="row" align="center" gap={2.5}>
-          <CircularIcon icon={Cpu} variant="neutral" />
+          <CircularIcon icon={Cpu} />
           <Stack gap={0}>
             <Font variant="body-bold" text="Status de Periféricos" />
             <Font variant="description" text="Monitore conexões de impressoras, balanças e leitores locais." />

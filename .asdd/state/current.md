@@ -1,20 +1,58 @@
 # Current State
 
 ## Última atualização
-Ciclo #066 — Refactor: Criação do componente CircularIcon e refatoração geral do sistema — 2026-06-26
+Ciclo #097 — Feature: Remoção do botão de fechar (X) redundante no Modal — 2026-07-02
 
 ## Status do ciclo ativo
-BUILDING
+PLANNING
 
 ## Ciclo em andamento
-#067
+#098
 
 ## Estado do artefato
 COMPLETO — Truth estabelecido
 
 ## Implementado
-- Criado o novo componente intermediário CircularIcon.tsx na camada intermediary, encapsulando o layout circular Box + Icon com suporte a variantes (primary, secondary, neutral, brand-light, success, danger) e tamanhos parametrizados.
-- Refatorados 9 componentes (RegistrySection, Sidebar, ChangeCalculator, PeripheralStatusList, ProductScanner, FiscalStatusIndicator, CashSessionManager, BranchSwitcher, BillSplitter) para utilizar o novo CircularIcon, removendo lógica repetitiva de Box circular e erradicando classNames inválidos em ícones do Lucide.
+- Adicionado o parâmetro `hideCloseButton?: boolean` em `Modal.tsx` para permitir ocultar o botão de fechar (X) e evitar redundâncias.
+- Aplicado `hideCloseButton={true}` no modal de configurações de Whitelabel do `Header.tsx`.
+- Adicionado o botão de engrenagem (`Settings`) no lado direito do cabeçalho em `Header.tsx` para abrir o modal de preferências.
+- Integrado o modal de configurações completo de whitelabel (alteração das cores primária e secundária, upload de logotipo customizado com visualização de preview e persistência de dados no `localStorage`) em `Header.tsx`.
+- Aumentado o padding vertical e horizontal do cabeçalho para `py-6 px-8` e o espaçamento dos botões à direita para `gap={8}`.
+- Ajustado o background do cabeçalho em `Header.tsx` para usar a cor primária oficial da marca (`bg-brand-primary`).
+- Alinhados o logotipo ("Navelo - sistema PDV") e o atalho de logout ("Administrador") inteiramente à esquerda, logo abaixo um do outro.
+- Aumentado o espaçamento para `gap={6}` entre os ícones de ação à direita (`Eye` e `Cloud`) em `Header.tsx`.
+- Criado o componente `Header.tsx` no diretório de componentes avançados (`src/components/store/advanced`), exibindo título centralizado, identificação do Administrador e ícones de atalho na cor secundária (`brand-secondary`) sob fundo escuro (`bg-slate-955`).
+- Adaptado o `DashboardShell.tsx` para acomodar o cabeçalho no topo da página de forma verticalmente empilhada caso seja fornecido.
+- Modificado o arquivo `app/design-system/layout.tsx` para renderizar o `Header` no `DashboardShell` em substituição da `Sidebar` vertical lateral.
+- Removido o contêiner Box cinza (`bg-surface-sunken` com padding e borda) ao redor das teclas no componente de teclado numérico (`Numpad.tsx`), de modo que as teclas flutuem diretamente sobre o plano de fundo do contêiner pai.
+- Alterados os fundos do painel de pagamento (`CheckoutPayment.tsx`) e do cabeçalho/rodapé do carrinho (`CartList.tsx`) para branco (`bg-surface`), incluindo divisores de borda sutil entre seções no carrinho.
+- Implementadas imagens de produto circulares (`h-10 w-10 rounded-full`) na lista de itens do carrinho (`CartList.tsx`), com iniciais dinâmicas como fallback e mock de imagens reais do Unsplash integrados a `PosSection.tsx`.
+- Alterada a cor de plano de fundo do Switch desligado/desmarcado de `bg-zinc-200` para `bg-zinc-400` em `Switch.tsx` para proporcionar excelente contraste visual contra o fundo claro da tela.
+- Removido o anel de contorno de foco (`focus-visible:ring-2`, `focus-within:ring-2`) em `Input.tsx` e `Select.tsx` em favor de uma mudança de cor suave diretamente na borda do componente (`focus:border-brand-primary`).
+- Reestilizado o contêiner de dropzone de upload de imagem em `Input.tsx` (`variant === "image-upload"`) para usar a paleta de cor primária da marca (borda pontilhada azul `border-brand-primary/30`, fundo azul suave `bg-brand-primary/10`, ícone e texto azuis `text-brand-primary`).
+- Envolvido o grid superior de botões do catálogo de botões (`ButtonsSection.tsx`) em uma caixa branca (`Box bg="bg-surface" radius="default" padding={5}`) para unificar visualmente todas as seções do design system.
+- Alterados os botões de teste e reconexão em `PeripheralRow.tsx` para usarem as variantes corretas do design system (`primary-xs` para reconectar e `outline-primary-xs` para testar).
+- Alterados os badges do Módulo Fiscal (`FiscalStatusIndicator.tsx`) para utilizarem as variantes coloridas soft condicionalmente de acordo com o status (`success` para online/produção/sem pendências, `secondary` para contingência, `primary` para homologação e `danger` para offline/com pendências).
+- Refatorado o componente `Alert.tsx` para suporte a propriedades `icon`, `title` e `description` customizadas, aplicando herança de cor da variante (`color="inherit"`) nas fontes e ícones de acordo com `variantStyles` de forma similar a `Button.tsx`.
+- Modificados os Badges e o alerta de contingência em `FiscalStatusIndicator.tsx` para usarem a variante `outline` e o componente oficial `Alert` com variante `warning`, respectivamente.
+- Alterada a variante do Badge de status dos cartões de pedido (`OrderCard.tsx`) para `outline`, e removido o plano de fundo cinza (`bg-surface-sunken`) dos itens da lista de pedido, adicionando contorno de borda (`border border-border`) para melhor limpeza e uniformidade visual.
+- Alterado o plano de fundo do cabeçalho da tabela (`TableHeader`) para a cor primária da marca (`bg-brand-primary`) e as células do cabeçalho (`TableHead`) para text branco (`text-white`) em `Table.tsx`.
+- Corrigido o background dos cartões de filiais inativas (`BranchRow.tsx`) de `bg-surface-sunken` para `bg-surface` (branco), exibindo todas as filiais como cartões brancos com o mesmo nível de destaque e contraste contra o fundo geral cinza.ste contra o fundo geral cinza. geral cinza.ste contra o fundo geral cinza.inza.ste contra o fundo geral cinza.ntra o fundo geral cinza.inza.ste contra o fundo geral cinza.a o fundo geral cinza.ntra o fundo geral cinza.inza.ste contra o fundo geral cinza.
+- Removido o contêiner de caixa externa (fundo cinza-claro, bordas e padding) de cada coluna do Kanban (`KanbanColumn.tsx`), permitindo que os cards de pedidos do KDS flutuem diretamente sobre o plano de fundo cinza global.
+- Removido o contêiner de caixa externa (fundo cinza, padding e bordas) de `TabsList` e aplicadas as estilizações da variante outline cinza (fundo branco, borda `--border` e hover `bg-surface-sunken`) nas abas desativadas do `TabsTrigger` em `Tabs.tsx`. Também padronizamos o arredondamento dos triggers para `rounded-[5px]`.
+- Adicionados estilos específicos em globals.css para as classes `.border-border` e `.bg-border` com `!important` apontando para a variável `--border` (`#e2e8f0`). Isso evita o cache estático do Tailwind v4 / PostCSS no Next.js e força as divisórias e contornos a adotarem o tom cinza-slate do background.
+- Alterado o background dos contêineres de agrupamento de botões, inputs, ações semânticas e impressor fiscal de `bg-surface-sunken` para `bg-surface` (branco) nas seções do catálogo (`ButtonsSection.tsx`, `InputsSection.tsx`, `SemanticActionsSection.tsx`, `OperationalModulesSection.tsx`).
+- Restaurada a classe `border-border` nos componentes base (`Button.tsx`, `Input.tsx`, `Select.tsx`, `Table.tsx`, `Modal.tsx`) e intermediários (`TableCard.tsx`), fazendo com que o tom de borda explícito `--border` (`#e2e8f0`) seja devidamente aplicado e eliminando as bordas pretas causadas pelo fallback de `currentColor` no Tailwind v4.
+- Removidas as classes `border-border` redundantes nos componentes base (`Button.tsx`, `Input.tsx`, `Select.tsx`, `Table.tsx`, `Modal.tsx`) e intermediários (`TableCard.tsx`), permitindo que a largura de borda padrão herde o tom `--color-border` (`#e2e8f0`) definido no Tailwind v4.
+- Ajustada a variável de cor de divisor `--border` para `#e2e8f0` (mesma cor que `--background`) em globals.css, fazendo com que todas as bordas e divisores internos herdem o tom de fundo da página.
+- Removido o cabeçalho superior azul (`Box bg="bg-brand-primary"`) e o sub-header de perfil (`Box bg="bg-surface"`) de MobileBentoDashboard.tsx, iniciando a visualização mobile diretamente nos KPIs e atalhos rápidos.
+- Removido o contêiner Box cinza (`bg-surface-sunken` com padding 5) em MobileBentoDashboard.tsx, permitindo que os cards brancos e componentes internos do painel móvel assentem diretamente sobre o fundo global do catálogo.
+- Escurecido o background padrão da aplicação (`--background`) para `#e2e8f0` (slate-200) and `--surface-sunken` para `#cbd5e1` (slate-300) em globals.css para destacar os cards brancos por contraste.
+- Removido o contorno de borda (`border` e `borderColor`) de todas as linhas de filiais (BranchRow.tsx) e do contêiner externo do simulador mobile (MobileBentoDashboard.tsx).
+- Removidos o fundo `bg-surface` e o padding global `5` dos componentes de agrupamento BranchSwitcher.tsx e PeripheralStatusList.tsx, permitindo que seus cartões internos flutuem de forma limpa diretamente sobre o fundo cinza claro geral.
+- Alterado o background padrão de PeripheralRow.tsx de `bg-surface-sunken` para `bg-surface` (branco) para atuar como cartões individuais.
+- Removidos os fundos cinzas (`bg-surface-sunken` com padding) das caixas internas de CashSessionManager.tsx, BillSplitter.tsx, ChangeCalculator.tsx, NumpadTerminal.tsx e do modal de Whitelabel em Sidebar.tsx.
+- Removido o contorno de borda (`border` e `borderColor`) de todas as seções do catálogo em design-system/ (TabsSection.tsx, SemanticActionsSection.tsx, OperationalModulesSection.tsx, InputsSection.tsx, ColorsSection.tsx, ButtonsSection.tsx, AuthSection.tsx).
 - Adicionada a classe flex-1 ao componente base TabsTrigger (Tabs.tsx) para que as abas se estiquem e ocupem simetricamente todo o espaço disponível em sua linha correspondente, evitando espaços vazios indesejados.
 - Corrigido o transbordamento horizontal da lista de abas (TabsList) no Whitelabel do modal de configurações da Sidebar, atualizando o componente base TabsList (Tabs.tsx) para usar flex flex-wrap w-full e gap-2.5.
 - Removido o atributo className do TabsList em Sidebar.tsx (camada advanced) para respeitar a restrição arquitetural do design system que proíbe o uso de classes de estilo fora da camada base.

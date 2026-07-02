@@ -24,7 +24,7 @@ export const SemanticActionsSection: React.FC = () => {
         </Stack>
       </Grid>
 
-      <Box padding={5} bg="bg-surface-sunken" border borderColor="border-border" radius="default" className="mt-5">
+      <Box padding={5} bg="bg-surface" radius="default" className="mt-5">
         <Stack gap={5}>
           <Stack direction="row" gap={5} wrap>
             <Button variant="outline-success" label="Salvar" icon={Check} />

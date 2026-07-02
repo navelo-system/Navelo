@@ -8,9 +8,10 @@ export interface ModalProps extends React.HTMLAttributes<HTMLDivElement> {
   isOpen: boolean
   onClose: () => void
   children: React.ReactNode
+  hideCloseButton?: boolean
 }
 
-export function Modal({ isOpen, onClose, className, children, ...props }: ModalProps) {
+export function Modal({ isOpen, onClose, className, children, hideCloseButton, ...props }: ModalProps) {
   React.useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden"
@@ -40,14 +41,16 @@ export function Modal({ isOpen, onClose, className, children, ...props }: ModalP
         )}
         {...props}
       >
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-brand-primary"
-        >
-          <X className="h-5 w-5 text-text-muted hover:text-foreground" />
-          <span className="sr-only">Fechar</span>
-        </button>
+        {!hideCloseButton && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-brand-primary"
+          >
+            <X className="h-5 w-5 text-text-muted hover:text-foreground" />
+            <span className="sr-only">Fechar</span>
+          </button>
+        )}
         {children}
       </div>
     </div>

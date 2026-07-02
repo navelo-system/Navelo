@@ -29,9 +29,7 @@ export const BranchRow: React.FC<BranchRowProps> = ({
   return (
     <Box 
       padding={5} 
-      bg={isActive ? "bg-surface" : "bg-surface-sunken"} 
-      border 
-      borderColor={isActive ? "border-brand-primary" : "border-border"} 
+      bg="bg-surface" 
       radius="default"
     >
       <Stack direction="row" align="center" justify="between" gap={5}>

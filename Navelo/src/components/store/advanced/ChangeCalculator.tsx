@@ -34,11 +34,11 @@ export const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({
   }
 
   return (
-    <Box padding={5} bg="bg-surface" border borderColor="border-border" radius="default">
+    <Box padding={5} bg="bg-surface" radius="default">
       <Stack gap={5}>
         {/* Header */}
         <Stack direction="row" align="center" gap={2.5}>
-          <CircularIcon icon={DollarSign} variant="neutral" />
+          <CircularIcon icon={DollarSign} />
           <Stack gap={0}>
             <Font variant="body-bold" text="Calculadora de Troco" />
             <Font variant="description" text="Calcule o troco a ser entregue ao cliente." />
@@ -49,13 +49,13 @@ export const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({
 
         {/* Total & Received Info */}
         <Grid cols={2} gap={5}>
-          <Box padding={5} bg="bg-surface-sunken" radius="default" border borderColor="border-border">
+          <Box padding={0}>
             <Stack gap={1} align="center">
               <Font variant="auxiliary" text="Total a Pagar" />
               <Font variant="h2" text={formatPrice(totalAmount)} className="text-brand-primary" />
             </Stack>
           </Box>
-          <Box padding={5} bg="bg-surface-sunken" radius="default" border borderColor="border-border">
+          <Box padding={0}>
             <Stack gap={1} align="center">
               <Font variant="auxiliary" text="Troco do Cliente" />
               <Font 

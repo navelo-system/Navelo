@@ -37,12 +37,12 @@ export const ProductScanner: React.FC<ProductScannerProps> = ({
   }
 
   return (
-    <Box padding={5} bg="bg-surface" border borderColor="border-border" radius="default">
+    <Box padding={5} bg="bg-surface" radius="default">
       <Stack gap={5}>
         {/* Header */}
         <Stack direction="row" align="center" justify="between" gap={2.5}>
           <Stack direction="row" align="center" gap={2.5}>
-            <CircularIcon icon={ScanBarcode} variant="neutral" />
+            <CircularIcon icon={ScanBarcode} />
             <Stack gap={0}>
               <Font variant="body-bold" text="Leitor de Código de Barras" />
               <Font variant="description" text="Busque produtos digitando ou simule a leitura de código de barras." />

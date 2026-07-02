@@ -61,12 +61,12 @@ export const CashSessionManager: React.FC<CashSessionManagerProps> = ({
   }
 
   return (
-    <Box padding={5} bg="bg-surface" border borderColor="border-border" radius="default">
+    <Box padding={5} bg="bg-surface" radius="default">
       <Stack gap={5}>
         {/* Header */}
         <Stack direction="row" align="center" justify="between" gap={5}>
           <Stack direction="row" align="center" gap={2.5}>
-            <CircularIcon icon={isOpen ? Unlock : Lock} variant={isOpen ? "success" : "danger"} />
+            <CircularIcon icon={isOpen ? Unlock : Lock} />
             <Stack gap={0}>
               <Font variant="body-bold" text="Sessão de Caixa" />
               <Font variant="description" text={`Operador: ${operatorName}`} />
@@ -99,7 +99,7 @@ export const CashSessionManager: React.FC<CashSessionManagerProps> = ({
         ) : (
           /* Open State Dashboard */
           <Stack gap={5}>
-            <Box padding={5} bg="bg-surface-sunken" radius="default" border borderColor="border-border">
+            <Box padding={0}>
               <Stack gap={1} align="center">
                 <Font variant="auxiliary" text="Saldo Estimado em Dinheiro" />
                 <Font variant="h2" text={formatPrice(currentCash)} className="text-emerald-600" />

@@ -21,6 +21,7 @@ import { PosSection } from "@/components/store/sections/design-system/PosSection
 import { KanbanSection } from "@/components/store/sections/design-system/KanbanSection"
 import { OperationalModulesSection } from "@/components/store/sections/design-system/OperationalModulesSection"
 import { AdvancedCheckoutSection } from "@/components/store/sections/design-system/AdvancedCheckoutSection"
+import { MobileDashboardSection } from "@/components/store/sections/design-system/MobileDashboardSection"
 
 export default function DesignSystemPage() {
   return (
@@ -46,6 +47,7 @@ export default function DesignSystemPage() {
       <KanbanSection />
       <OperationalModulesSection />
       <AdvancedCheckoutSection />
+      <MobileDashboardSection />
     </RegistryMain>
   )
 }

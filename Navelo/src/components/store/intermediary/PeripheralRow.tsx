@@ -41,15 +41,13 @@ export const PeripheralRow: React.FC<PeripheralRowProps> = ({
   return (
     <Box
       padding={5}
-      bg="bg-surface-sunken"
-      border
-      borderColor="border-border"
+      bg="bg-surface"
       radius="default"
     >
       <Stack direction="row" align="center" justify="between" gap={5}>
         {/* Left info */}
         <Stack direction="row" align="center" gap={5}>
-          <Box padding={2.5} bg="bg-surface" radius="default" border borderColor="border-border">
+          <Box padding={2.5} bg="bg-surface" radius="default">
             <Icon icon={IconComponent} size={18} color="primary" />
           </Box>
           <Stack gap={1}>
@@ -66,7 +64,7 @@ export const PeripheralRow: React.FC<PeripheralRowProps> = ({
 
         {/* Right test button */}
         <Button
-          variant="outline-xs"
+          variant={peripheral.type === "smartpos" && !isOnline ? "primary-xs" : "outline-primary-xs"}
           label={isTesting ? "Testando..." : peripheral.type === "smartpos" && !isOnline ? "Reconectar" : "Testar"}
           icon={isTesting ? RefreshCw : undefined}
           onClick={() => onTest(peripheral)}

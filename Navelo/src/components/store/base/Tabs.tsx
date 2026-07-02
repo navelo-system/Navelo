@@ -54,7 +54,7 @@ export const TabsList = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HT
     <div
       ref={ref}
       className={cn(
-        "flex flex-wrap w-full items-center justify-start rounded-[5px] bg-surface-sunken p-2.5 text-text-muted border-2 border-border gap-2.5",
+        "flex flex-wrap w-full items-center justify-start gap-2.5",
         className
       )}
       {...props}
@@ -81,7 +81,7 @@ export const TabsTrigger = React.forwardRef<
       data-state={isActive ? "active" : "inactive"}
       onClick={() => context.onValueChange(value)}
       className={cn(
-        "flex-1 inline-flex items-center justify-center whitespace-nowrap rounded-[3px] px-4 py-1.5 text-sm font-semibold ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-brand-primary/20 data-[state=active]:text-brand-primary data-[state=active]:border-2 data-[state=active]:border-brand-primary/80 border-2 border-transparent hover:text-foreground",
+        "flex-1 inline-flex items-center justify-center whitespace-nowrap rounded-[5px] px-4 py-1.5 text-sm font-semibold ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-brand-primary/20 data-[state=active]:text-brand-primary data-[state=active]:border-2 data-[state=active]:border-brand-primary/80 data-[state=inactive]:bg-surface data-[state=inactive]:text-text-secondary data-[state=inactive]:border-2 data-[state=inactive]:border-border data-[state=inactive]:hover:bg-surface-sunken data-[state=inactive]:hover:text-foreground",
         className
       )}
       {...props}

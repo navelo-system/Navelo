@@ -13,41 +13,43 @@ export const ButtonsSection: React.FC = () => {
       description="Variantes de botões com controle restrito de borda e tamanho fluído."
       icon={MousePointerClick}
     >
-      <Grid cols={6} gap={5}>
-        <Stack gap={5}>
-          <Button variant="primary" label="Primary Action" />
-          <Button variant="primary-pill" label="Pill Primary" />
-        </Stack>
-        <Stack gap={5}>
-          <Button variant="secondary" label="Secondary Action" />
-          <Button variant="secondary-pill" label="Pill Secondary" />
-        </Stack>
-        <Stack gap={5}>
-          <Button variant="outline-primary" label="Soft Primary" />
-          <Button variant="outline-primary-pill" label="Pill Soft Primary" />
-        </Stack>
-        <Stack gap={5}>
-          <Button variant="outline-secondary" label="Soft Secondary" />
-          <Button variant="outline-secondary-pill" label="Pill Soft Secondary" />
-        </Stack>
-        <Stack gap={5}>
-          <Button variant="outline" label="Outline Action" />
-          <Button variant="outline-pill" label="Pill Outline" />
-        </Stack>
-        <Stack gap={5}>
-          <Stack direction="row" gap={2.5} wrap>
-            <Button variant="primary-pill-icon" icon={MousePointerClick} />
-            <Button variant="secondary-pill-icon" icon={Zap} />
-            <Button variant="outline-pill-icon" icon={Settings} />
-            <Button variant="outline-primary-pill-icon" icon={Info} />
-            <Button variant="outline-secondary-pill-icon" icon={Tags} />
-            <Button variant="outline-success-pill-icon" icon={Check} />
-            <Button variant="outline-danger-pill-icon" icon={Trash} />
+      <Box padding={5} bg="bg-surface" radius="default">
+        <Grid cols={6} gap={5}>
+          <Stack gap={5}>
+            <Button variant="primary" label="Primary Action" />
+            <Button variant="primary-pill" label="Pill Primary" />
           </Stack>
-        </Stack>
-      </Grid>
+          <Stack gap={5}>
+            <Button variant="secondary" label="Secondary Action" />
+            <Button variant="secondary-pill" label="Pill Secondary" />
+          </Stack>
+          <Stack gap={5}>
+            <Button variant="outline-primary" label="Soft Primary" />
+            <Button variant="outline-primary-pill" label="Pill Soft Primary" />
+          </Stack>
+          <Stack gap={5}>
+            <Button variant="outline-secondary" label="Soft Secondary" />
+            <Button variant="outline-secondary-pill" label="Pill Soft Secondary" />
+          </Stack>
+          <Stack gap={5}>
+            <Button variant="outline" label="Outline Action" />
+            <Button variant="outline-pill" label="Pill Outline" />
+          </Stack>
+          <Stack gap={5}>
+            <Stack direction="row" gap={2.5} wrap>
+              <Button variant="primary-pill-icon" icon={MousePointerClick} />
+              <Button variant="secondary-pill-icon" icon={Zap} />
+              <Button variant="outline-pill-icon" icon={Settings} />
+              <Button variant="outline-primary-pill-icon" icon={Info} />
+              <Button variant="outline-secondary-pill-icon" icon={Tags} />
+              <Button variant="outline-success-pill-icon" icon={Check} />
+              <Button variant="outline-danger-pill-icon" icon={Trash} />
+            </Stack>
+          </Stack>
+        </Grid>
+      </Box>
 
-      <Box padding={5} bg="bg-surface-sunken" border borderColor="border-border" radius="default" className="mt-5">
+      <Box padding={5} bg="bg-surface" radius="default" className="mt-5">
         <Stack gap={5}>
           <Stack direction="row" gap={5} wrap>
             <Button variant="outline" label="Botão com Ícone" icon={Bot} />

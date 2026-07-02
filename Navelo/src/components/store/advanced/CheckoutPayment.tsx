@@ -16,7 +16,7 @@ export const CheckoutPayment: React.FC<CheckoutPaymentProps> = ({
   onCheckout,
 }) => {
   return (
-    <Box padding={5} bg="bg-surface-sunken" border borderColor="border-border" radius="default" display="flex" direction="col" justify="end">
+    <Box padding={5} bg="bg-surface" radius="default" display="flex" direction="col" justify="end">
       <Stack gap={5}>
         <Font variant="h4" text="Formas de Pagamento" />
         <Grid cols={2} gap={2.5}>

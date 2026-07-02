@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Sidebar } from "@/src/components/store/advanced/Sidebar"
+import { Header } from "@/components/store/advanced/Header"
 import { DashboardShell } from "@/components/store/advanced/DashboardShell"
 
 export default function DesignSystemLayout({
@@ -8,7 +8,7 @@ export default function DesignSystemLayout({
   children: React.ReactNode
 }) {
   return (
-    <DashboardShell sidebar={<Sidebar />}>
+    <DashboardShell header={<Header />}>
       {children}
     </DashboardShell>
   )

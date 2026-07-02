@@ -31,7 +31,7 @@ export function OrderCard({ orderId, tableNumber, status, time, items, onAction 
   const config = statusConfig[status]
 
   return (
-    <Box padding={5} bg="bg-surface" border borderColor="border-border" radius="default">
+    <Box padding={5} bg="bg-surface" radius="default">
       <Stack gap={5}>
         {/* Header */}
         <Stack direction="row" align="center" justify="between" gap={2.5}>
@@ -40,7 +40,7 @@ export function OrderCard({ orderId, tableNumber, status, time, items, onAction 
             {tableNumber && <Font variant="description" text={`Mesa ${tableNumber}`} />}
           </Stack>
           <Stack align="end" gap={2.5}>
-            <Badge variant={config.color} label={config.label} />
+            <Badge variant="outline" label={config.label} />
             <Stack direction="row" align="center" gap={1} className={status === "queue" && parseInt(time.split(":")[0]) > 10 ? "text-red-500 animate-pulse" : "text-text-muted"}>
               <Clock size={14} />
               <Font variant="body-bold" text={time} />
@@ -54,7 +54,7 @@ export function OrderCard({ orderId, tableNumber, status, time, items, onAction 
         {/* Items */}
         <Stack gap={2.5}>
           {items.map((item) => (
-            <Box key={item.id} padding={2.5} bg="bg-surface-sunken" radius="default" border borderColor="border-border">
+            <Box key={item.id} padding={2.5} border borderColor="border-border" radius="default">
               <Stack direction="row" gap={2.5}>
                 <Font variant="body-bold" text={`${item.quantity}x`} className="text-brand-primary" />
                 <Stack gap={1} className="flex-1">

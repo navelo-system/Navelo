@@ -10,6 +10,7 @@ export interface CartListItemType {
   name: string
   quantity: number
   unitPrice: number
+  image?: string
 }
 
 export interface CartListProps {
@@ -35,9 +36,9 @@ export const CartList: React.FC<CartListProps> = ({
   }
 
   return (
-    <Box padding={0} bg="bg-surface" border borderColor="border-border" radius="default" className="flex flex-col h-full max-h-[600px]">
+    <Box padding={0} bg="bg-surface" radius="default" className="flex flex-col h-full max-h-[600px]">
       {/* Header */}
-      <Box padding={5} borderBottom borderColor="border-border" bg="bg-surface-sunken">
+      <Box padding={5} bg="bg-surface" borderBottom borderColor="border-border">
         <Font variant="h4" text="Carrinho" />
       </Box>
 
@@ -51,11 +52,22 @@ export const CartList: React.FC<CartListProps> = ({
           items.map((item) => (
             <Stack key={item.id} direction="row" align="center" justify="between" gap={5} className="group">
               {/* Product Info */}
-              <Stack gap={1} className="flex-1">
-                <Font variant="body-bold" text={item.name} className="truncate" />
-                <Font variant="description" text={formatPrice(item.unitPrice)} />
+              <Stack direction="row" align="center" gap={2.5} className="flex-1 min-w-0">
+                <div className="h-10 w-10 rounded-full bg-surface-sunken flex-shrink-0 flex items-center justify-center overflow-hidden border border-border">
+                  {item.image ? (
+                    <img src={item.image} alt={item.name} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="text-brand-primary font-bold text-xs uppercase">
+                      {item.name.substring(0, 2)}
+                    </div>
+                  )}
+                </div>
+                <Stack gap={1} className="flex-1 min-w-0">
+                  <Font variant="body-bold" text={item.name} className="truncate" />
+                  <Font variant="description" text={formatPrice(item.unitPrice)} />
+                </Stack>
               </Stack>
-              
+
               {/* Controls */}
               <Stack direction="row" align="center" gap={2.5}>
                 {item.quantity === 1 ? (
@@ -79,7 +91,7 @@ export const CartList: React.FC<CartListProps> = ({
       </div>
 
       {/* Footer / Total */}
-      <Box padding={5} borderTop borderColor="border-border" bg="bg-surface-sunken">
+      <Box padding={5} bg="bg-surface" borderTop borderColor="border-border">
         <Stack direction="row" align="center" justify="between" gap={5}>
           <Font variant="body-bold" text="Total" />
           <Font variant="h3" text={formatPrice(total)} className="text-brand-primary" />

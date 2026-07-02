@@ -16,7 +16,7 @@ export const TabsSection: React.FC = () => {
       icon={Layers}
     >
       <Stack gap={5}>
-        <Box padding={5} bg="bg-surface" border borderColor="border-border" radius="default">
+        <Box padding={5} bg="bg-surface" radius="default">
           <Tabs defaultValue="geral">
             <TabsList>
               <TabsTrigger value="geral">Geral</TabsTrigger>

@@ -24,7 +24,7 @@ export const RegistrySection: React.FC<RegistrySectionProps> = ({
       {/* Section Header */}
       <Stack direction="row" align="center" gap={5}>
         {icon && (
-          <CircularIcon icon={icon} variant="primary" size={24} />
+          <CircularIcon icon={icon} size={24} />
         )}
         <Stack gap={1}>
           <Font variant="body-semibold" text={title} />
@@ -33,11 +33,10 @@ export const RegistrySection: React.FC<RegistrySectionProps> = ({
       </Stack>
 
       {/* Section Content */}
-      <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
-        <Stack gap={5}>
-          {children}
-        </Stack>
-      </Box>
+
+      <Stack gap={5}>
+        {children}
+      </Stack>
     </Stack>
   )
 }

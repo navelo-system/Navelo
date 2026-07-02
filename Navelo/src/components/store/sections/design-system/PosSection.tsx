@@ -14,8 +14,8 @@ import { MonitorSmartphone } from "lucide-react"
 
 export const PosSection: React.FC = () => {
   const [cartItems, setCartItems] = React.useState<CartListItemType[]>([
-    { id: "1", name: "Hambúrguer Clássico", quantity: 2, unitPrice: 25.5 },
-    { id: "2", name: "Refrigerante Cola Lata", quantity: 1, unitPrice: 6.0 },
+    { id: "1", name: "Hambúrguer Clássico", quantity: 2, unitPrice: 25.5, image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=80&auto=format&fit=crop&q=60" },
+    { id: "2", name: "Refrigerante Cola Lata", quantity: 1, unitPrice: 6.0, image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=80&auto=format&fit=crop&q=60" },
   ])
 
   const handleIncrease = (id: string) => {

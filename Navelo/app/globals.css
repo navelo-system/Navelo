@@ -1,25 +1,30 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #e2e8f0;
   --surface: #ffffff;
   --surface-raised: #ffffff;
-  --surface-sunken: #f8fafc;
+  --surface-sunken: #cbd5e1;
   --border: #e2e8f0;
-  
+
   --foreground: #0f172a;
   --text-secondary: #475569;
   --text-muted: #64748b;
   --text-dim: #94a3b8;
 
-  --brand-primary: #3b82f6; /* Blue default */
-  --brand-secondary: #f97316; /* Orange default */
+  --brand-primary: #16315e;
+  /* Blue default */
+  --brand-secondary: #f97316;
+  /* Orange default */
   --brand-accent: var(--brand-secondary);
 
   /* Alerts/States */
-  --brand-success: #10b981; /* Emerald default */
-  --brand-warning: #f59e0b; /* Amber default */
-  --brand-danger: #ef4444; /* Red default */
+  --brand-success: #10b981;
+  /* Emerald default */
+  --brand-warning: #f59e0b;
+  /* Amber default */
+  --brand-danger: #ef4444;
+  /* Red default */
 }
 
 
@@ -30,7 +35,7 @@
   --color-surface-raised: var(--surface-raised);
   --color-surface-sunken: var(--surface-sunken);
   --color-border: var(--border);
-  
+
   --color-foreground: var(--foreground);
   --color-text-secondary: var(--text-secondary);
   --color-text-muted: var(--text-muted);
@@ -49,4 +54,15 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Force border classes to respect the CSS custom variable */
+.border-border,
+[class*="border-border"] {
+  border-color: var(--border) !important;
+}
+
+.bg-border,
+[class*="bg-border"] {
+  background-color: var(--border) !important;
 }

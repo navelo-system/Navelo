@@ -43,12 +43,12 @@ export const BranchSwitcher: React.FC<BranchSwitcherProps> = ({
   }
 
   return (
-    <Box padding={5} bg="bg-surface" border borderColor="border-border" radius="default">
+    <Box padding={0}>
       <Stack gap={5}>
         {/* Header */}
         <Stack direction="row" align="center" justify="between" gap={5}>
           <Stack direction="row" align="center" gap={2.5}>
-            <CircularIcon icon={Building} variant="neutral" />
+            <CircularIcon icon={Building} />
             <Stack gap={0}>
               <Font variant="body-bold" text="Seletor de Filiais (Multiempresa)" />
               <Font variant="description" text="Monitore conexões, sincronização local e selecione o terminal ativo." />

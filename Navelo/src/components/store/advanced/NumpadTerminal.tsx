@@ -26,17 +26,13 @@ export const NumpadTerminal: React.FC<NumpadTerminalProps> = ({
   }
 
   return (
-    <Box padding={5} bg="bg-surface" border borderColor="border-border" radius="default">
+    <Box padding={5} bg="bg-surface" radius="default">
       <Stack gap={5} align="center">
         {/* Numpad Display - using padding to establish natural height */}
         <Box 
           w="full" 
           paddingX={5} 
-          paddingY={5}
-          border 
-          borderColor="border-border" 
-          radius="default" 
-          bg="bg-surface-sunken"
+          paddingY={2.5}
         >
           <Stack direction="row" justify="end" align="center">
             <Font variant="h3" text={value || "0,00"} />

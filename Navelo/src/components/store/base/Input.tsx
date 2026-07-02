@@ -34,14 +34,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     if (variant === "image-upload") {
       const dropzoneElement = (
         <label className={cn(
-          "relative flex flex-col items-center justify-center w-full min-h-[120px] rounded-[5px] border-2 border-dashed border-border bg-surface-sunken hover:bg-surface transition-colors cursor-pointer focus-within:ring-2 focus-within:ring-brand-primary focus-within:border-brand-primary",
-          (hasError || error) && "border-red-500 focus-within:ring-red-500 focus-within:border-red-500",
+          "relative flex flex-col items-center justify-center w-full min-h-[120px] rounded-[5px] border-2 border-dashed border-brand-primary/30 bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 transition-colors cursor-pointer focus-within:outline-none focus-within:border-brand-primary",
+          (hasError || error) && "border-red-500 text-red-500 focus-within:border-red-500",
           className
         )}>
           <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer outline-none" onChange={onChange} ref={ref} {...props} />
           <Stack gap={2.5} align="center">
-            {IconComponent && <IconComponent size={24} className="text-text-muted" />}
-            {placeholder && <Font variant="description" text={placeholder} />}
+            {IconComponent && <IconComponent size={24} className="text-brand-primary" />}
+            {placeholder && <Font variant="description" color="inherit" text={placeholder} />}
           </Stack>
         </label>
       )
@@ -76,10 +76,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           placeholder={placeholder}
           onChange={handleChange}
           className={cn(
-            "flex h-10 w-full rounded-[5px] border-2 border-border bg-surface px-5 py-2.5 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:border-brand-primary disabled:cursor-not-allowed disabled:opacity-50 transition-colors",
+            "flex h-10 w-full rounded-[5px] border-2 border-border bg-surface px-5 py-2.5 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-text-muted focus:outline-none focus:border-brand-primary disabled:cursor-not-allowed disabled:opacity-50 transition-colors",
             IconComponent && "pl-10",
             IconRightComponent && "pr-10",
-            (hasError || error) && "border-red-500 focus-visible:ring-red-500 focus-visible:border-red-500",
+            (hasError || error) && "border-red-500 focus:border-red-500",
             className
           )}
           ref={ref}

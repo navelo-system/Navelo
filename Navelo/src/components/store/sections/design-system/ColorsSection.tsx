@@ -28,7 +28,7 @@ export const ColorsSection: React.FC = () => {
         <Box padding={5} bg="bg-zinc-100" radius="default">
           <Font variant="body-semibold" color="foreground" text="Surface Muted" />
         </Box>
-        <Box padding={5} bg="bg-white" border borderColor="border-zinc-200" radius="default">
+        <Box padding={5} bg="bg-surface" radius="default">
           <Font variant="body-semibold" color="foreground" text="Surface Background" />
         </Box>
       </Grid>

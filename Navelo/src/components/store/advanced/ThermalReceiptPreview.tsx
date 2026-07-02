@@ -39,7 +39,7 @@ export const ThermalReceiptPreview: React.FC<ThermalReceiptPreviewProps> = ({
   const taxValue = subtotal * 0.12 // Mock tax 12%
 
   return (
-    <Box padding={5} bg="bg-surface" border borderColor="border-border" radius="default">
+    <Box padding={5} bg="bg-surface" radius="default">
       <Stack gap={5}>
         {/* Header */}
         <Stack direction="row" align="center" justify="between" gap={5}>
@@ -56,8 +56,6 @@ export const ThermalReceiptPreview: React.FC<ThermalReceiptPreviewProps> = ({
         <Box 
           padding={5} 
           bg="bg-white" 
-          border 
-          borderColor="border-border" 
           radius="none" 
           className="shadow-inner font-mono max-w-[320px] mx-auto text-black border-dashed border-t-2"
         >

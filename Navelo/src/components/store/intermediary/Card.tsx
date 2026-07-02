@@ -12,7 +12,7 @@ export interface CardProps {
 
 export function Card({ title, subtitle, children, footer }: CardProps) {
   return (
-    <Box padding={5} radius="default" border borderColor="border-border" bg="bg-surface">
+    <Box padding={5} radius="default" bg="bg-surface">
       <Stack gap={5}>
         {(title || subtitle) && (
           <Stack gap={2.5}>

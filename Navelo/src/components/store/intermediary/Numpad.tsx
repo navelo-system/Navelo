@@ -20,7 +20,7 @@ export const Numpad: React.FC<NumpadProps> = ({
   const numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
 
   return (
-    <Box padding={2.5} bg="bg-surface-sunken" border borderColor="border-border" radius="default">
+    <div className="w-full">
       <Grid cols={3} gap={2.5}>
         {numbers.map((num) => (
           <Button
@@ -56,6 +56,6 @@ export const Numpad: React.FC<NumpadProps> = ({
           variant="outline-danger-icon"
         />
       </Grid>
-    </Box>
+    </div>
   )
 }

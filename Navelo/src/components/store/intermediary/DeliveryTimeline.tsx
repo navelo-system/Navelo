@@ -42,7 +42,7 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
   const activeIndex = getStatusIndex(status)
 
   return (
-    <Box padding={5} bg="bg-surface" border borderColor="border-border" radius="default">
+    <Box padding={5} bg="bg-surface" radius="default">
       <Stack gap={5}>
         {/* Timeline Header */}
         <Stack direction="row" align="center" justify="between" gap={5}>
