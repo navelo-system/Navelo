@@ -1,18 +1,20 @@
 # Current State
 
 ## Última atualização
-Ciclo #097 — Feature: Remoção do botão de fechar (X) redundante no Modal — 2026-07-02
+Ciclo #098 — Refactor: Remoção de ícones de seção dentro do Modal de configurações — 2026-07-02
 
 ## Status do ciclo ativo
-PLANNING
+IDLE
 
 ## Ciclo em andamento
-#098
+None
 
 ## Estado do artefato
 COMPLETO — Truth estabelecido
 
 ## Implementado
+- Removido o `CircularIcon` apenas da seção interna de Whitelabel no `ModalBody` em `Header.tsx`; o título principal do Modal (`ModalHeader`) manteve seu `CircularIcon` com ícone de engrenagem.
+- Limpado o import não utilizado `Palette` (Lucide).
 - Adicionado o parâmetro `hideCloseButton?: boolean` em `Modal.tsx` para permitir ocultar o botão de fechar (X) e evitar redundâncias.
 - Aplicado `hideCloseButton={true}` no modal de configurações de Whitelabel do `Header.tsx`.
 - Adicionado o botão de engrenagem (`Settings`) no lado direito do cabeçalho em `Header.tsx` para abrir o modal de preferências.
