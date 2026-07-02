@@ -9,6 +9,7 @@ import { Input } from "../base/Input"
 import { Grid } from "../base/Grid"
 import { Button } from "../base/Button"
 import { Modal, ModalHeader, ModalBody, ModalFooter } from "../base/Modal"
+import { CircularIcon } from "../intermediary/CircularIcon"
 import { Eye, Cloud, LogOut, Settings, Upload } from "lucide-react"
 
 const isValidHex = (color: string | null): color is string => {
@@ -117,9 +118,12 @@ export const Header: React.FC = () => {
       {/* Settings Modal */}
       <Modal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} hideCloseButton={true}>
         <ModalHeader>
-          <Stack gap={1}>
-            <Font variant="body-semibold" text="Configurações do Sistema" />
-            <Font variant="description" text="Gerencie suas preferências e recursos do terminal." />
+          <Stack direction="row" align="center" gap={5}>
+            <CircularIcon icon={Settings} size={24} />
+            <Stack gap={1}>
+              <Font variant="body-semibold" text="Configurações do Sistema" />
+              <Font variant="description" text="Gerencie suas preferências e recursos do terminal." />
+            </Stack>
           </Stack>
         </ModalHeader>
         <ModalBody>
