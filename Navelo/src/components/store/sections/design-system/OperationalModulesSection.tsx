@@ -19,7 +19,7 @@ export const OperationalModulesSection: React.FC = () => {
       id="operational-modules-section"
     >
       <Stack gap={12.5}>
-        <Grid cols={2} gap={12.5}>
+        <Grid cols={2} gap={5}>
           {/* Column 1: Restaurant and Checkout */}
           <Stack gap={5}>
             <BillSplitter totalAmount={218.40} />
@@ -35,7 +35,7 @@ export const OperationalModulesSection: React.FC = () => {
         {/* Fiscal Bobina Preview Area */}
         <Stack gap={5}>
           <Font variant="h3" text="Visualizador Fiscal (Thermal Receipt)" />
-          <Grid cols={2} gap={12.5}>
+          <Grid cols={2} gap={5}>
             <ThermalReceiptPreview />
             <Box padding={5} bg="bg-surface" radius="default" display="flex" direction="col" justify="center">
               <Stack gap={5}>

@@ -16,7 +16,7 @@ export const SwitchesSection: React.FC = () => {
       description="Controles rápidos de formulários e painéis de configuração."
       icon={ToggleLeft}
     >
-      <Grid cols={2} gap={12.5}>
+      <Grid cols={2} gap={5}>
         <Stack gap={5}>
           <Stack direction="row" gap={5} align="center" justify="between">
             <Stack gap={1}>

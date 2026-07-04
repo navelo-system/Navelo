@@ -18,21 +18,21 @@ const statusConfig = {
   free: {
     bg: "bg-emerald-500/10",
     border: "border-emerald-500/30",
-    text: "text-emerald-600",
+    textColor: "success" as const,
     label: "Livre",
     accent: "bg-emerald-500",
   },
   occupied: {
     bg: "bg-brand-primary/10",
     border: "border-brand-primary/30",
-    text: "text-brand-primary",
+    textColor: "primary" as const,
     label: "Ocupada",
     accent: "bg-brand-primary",
   },
   closing: {
     bg: "bg-brand-secondary/10",
     border: "border-brand-secondary/30",
-    text: "text-brand-secondary",
+    textColor: "brand-secondary" as const,
     label: "Fechando",
     accent: "bg-brand-secondary",
   },
@@ -48,38 +48,49 @@ export const TableCard: React.FC<TableCardProps> = ({
   const config = statusConfig[status]
 
   return (
-    <button
+    <Box
+      as="button"
       type="button"
       onClick={onClick}
-      className={`relative w-full text-left transition-all hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-brand-primary rounded-[5px] border-2 ${config.border} ${config.bg} overflow-hidden`}
+      position="relative"
+      w="full"
+      radius="default"
+      border
+      borderColor={config.border}
+      bg={config.bg}
+      overflow="hidden"
+      cursor="pointer"
+      className="text-left transition-all hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-brand-primary"
     >
       {/* Top Accent Line */}
-      <Box className={`absolute top-0 left-0 right-0 h-1 ${config.accent}`} />
+      <Box position="absolute" top={0} left={0} right={0} h="h-1" bg={config.accent} />
 
       <Box padding={5}>
-        <Stack direction="row" align="start" justify="between" gap={2.5}>
-          <Stack gap={0}>
-            <Font variant="h3" text={String(tableNumber)} className={config.text} />
-            <Font variant="body-bold" text={config.label} className={config.text} />
+        <Stack gap={2.5}>
+          <Stack direction="row" align="start" justify="between" gap={2.5}>
+            <Stack gap={0}>
+              <Font variant="h3" text={String(tableNumber)} color={config.textColor} />
+              <Font variant="body-bold" text={config.label} color={config.textColor} />
+            </Stack>
+
+            {capacity && (
+              <Stack direction="row" align="center" gap={1}>
+                <Users size={14} color="var(--text-muted)" />
+                <Font variant="description" text={String(capacity)} />
+              </Stack>
+            )}
           </Stack>
 
-          {capacity && (
-            <Stack direction="row" align="center" gap={1}>
-              <Users size={14} color="var(--text-muted)" />
-              <Font variant="description" text={String(capacity)} />
-            </Stack>
+          {time && status !== "free" && (
+            <Box borderTop borderColor={config.border} paddingY={2.5}>
+              <Stack direction="row" align="center" gap={1}>
+                <Clock size={14} color="var(--text-muted)" />
+                <Font variant="description" text={time} />
+              </Stack>
+            </Box>
           )}
         </Stack>
-
-        {time && status !== "free" && (
-          <Box borderTop borderColor="border-border">
-            <Stack direction="row" align="center" gap={1}>
-              <Clock size={14} color="var(--text-muted)" />
-              <Font variant="description" text={time} />
-            </Stack>
-          </Box>
-        )}
       </Box>
-    </button>
+    </Box>
   )
 }

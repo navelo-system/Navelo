@@ -54,8 +54,8 @@ const eslintConfig = defineConfig([
         },
         // 7. Prohibit primitive HTML tags outside base/
         {
-          selector: "JSXOpeningElement[name.name=/^(div|span|p|h1|h2|h3|h4|h5|h6|br|strong|em|b|i|ul|li|ol|dl|dt|dd|table|thead|tbody|tfoot|tr|td|th|aside|article|nav|header|footer|main|section|blockquote|pre|code|small|sub|sup|mark|hr|input|label|select|textarea|img)$/]",
-          message: "Primitive HTML tag is prohibited outside 'src/components/store/base/'. Replace with design system components: div/section -> Box, span/p/h1-h6 -> Font, img -> Avatar, etc."
+          selector: "JSXOpeningElement[name.name=/^[a-z]/]",
+          message: "Primitive HTML tags are strictly prohibited outside 'src/components/store/base/'. Replace with design system components: div/section/button -> Box, span/p/h1-h6 -> Font, img -> Avatar, etc."
         }
       ]
     }

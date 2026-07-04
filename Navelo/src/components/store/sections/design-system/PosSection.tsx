@@ -39,7 +39,7 @@ export const PosSection: React.FC = () => {
       <Stack gap={12.5}>
         
         {/* Numpad & Cards */}
-        <Grid cols={2} gap={12.5}>
+        <Grid cols={2} gap={5}>
           <Stack gap={5}>
             <Font variant="h4" text="Numpad Virtual" />
             <NumpadTerminal />
