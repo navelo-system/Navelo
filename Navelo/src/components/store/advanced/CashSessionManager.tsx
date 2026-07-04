@@ -5,14 +5,83 @@ import { Font } from "../base/Font"
 import { Button } from "../base/Button"
 import { Input } from "../base/Input"
 import { Badge } from "../base/Badge"
-import { CircularIcon } from "../intermediary/CircularIcon"
-import { KeyRound, Lock, Unlock, DollarSign, ArrowDownRight, ArrowUpLeft } from "lucide-react"
+import { SectionHeader } from "../intermediary/SectionHeader"
+import { Lock, Unlock, ArrowDownRight, ArrowUpLeft } from "lucide-react"
 
 export interface CashSessionManagerProps {
   initialOpenState?: boolean
   operatorName?: string
   onStateChange?: (isOpen: boolean) => void
 }
+
+interface ClosedProps {
+  openingBalance: string
+  setOpeningBalance: (val: string) => void
+  handleOpen: () => void
+}
+
+const CashSessionClosed: React.FC<ClosedProps> = ({ openingBalance, setOpeningBalance, handleOpen }) => (
+  <Stack gap={5}>
+    <Font variant="description" text="O caixa está atualmente fechado. Digite o valor de fundo de troco para iniciar as vendas." />
+    <Input 
+      label="Fundo de Abertura (Suprimento Inicial)"
+      placeholder="0,00"
+      value={openingBalance}
+      onChange={(e) => setOpeningBalance(e.target.value)}
+      variant="default"
+    />
+    <Button 
+      variant="outline-success" 
+      fullWidth 
+      label="Abrir turno de vendas" 
+      icon={Unlock}
+      onClick={handleOpen}
+    />
+  </Stack>
+)
+
+interface OpenProps {
+  currentCash: number
+  formatPrice: (val: number) => string
+  handleSangria: () => void
+  handleSuprimento: () => void
+  handleClose: () => void
+  sangriaAmount: string
+  setSangriaAmount: (v: string) => void
+  sangriaMsg: string
+  suprimentoAmount: string
+  setSuprimentoAmount: (v: string) => void
+  suprimentoMsg: string
+}
+
+const CashSessionOpen: React.FC<OpenProps> = ({ currentCash, formatPrice, handleSangria, handleSuprimento, handleClose, sangriaAmount, setSangriaAmount, sangriaMsg, suprimentoAmount, setSuprimentoAmount, suprimentoMsg }) => (
+  <Stack gap={5}>
+    <Box padding={0}>
+      <Stack gap={1} align="center">
+        <Font variant="auxiliary" text="Saldo Estimado em Dinheiro" />
+        <Font variant="h2" text={formatPrice(currentCash)} color="success" />
+      </Stack>
+    </Box>
+    <Stack gap={2.5}>
+      <Font variant="body-bold" text="Sangria (Retirada)" />
+      <Stack direction="row" gap={2.5}>
+        <Input placeholder="Valor..." value={sangriaAmount} onChange={(e) => setSangriaAmount(e.target.value)} />
+        <Button variant="outline" label="Registrar" icon={ArrowDownRight} onClick={handleSangria} />
+      </Stack>
+      {sangriaMsg && <Font variant="description" text={sangriaMsg} color="success" />}
+    </Stack>
+    <Stack gap={2.5}>
+      <Font variant="body-bold" text="Suprimento (Aporte)" />
+      <Stack direction="row" gap={2.5}>
+        <Input placeholder="Valor..." value={suprimentoAmount} onChange={(e) => setSuprimentoAmount(e.target.value)} />
+        <Button variant="outline" label="Registrar" icon={ArrowUpLeft} onClick={handleSuprimento} />
+      </Stack>
+      {suprimentoMsg && <Font variant="description" text={suprimentoMsg} color="success" />}
+    </Stack>
+    <Box borderBottom borderColor="border-border" w="full" />
+    <Button variant="outline-danger" fullWidth label="Fechar turno e imprimir resumo" icon={Lock} onClick={handleClose} />
+  </Stack>
+)
 
 export const CashSessionManager: React.FC<CashSessionManagerProps> = ({
   initialOpenState = false,
@@ -22,6 +91,10 @@ export const CashSessionManager: React.FC<CashSessionManagerProps> = ({
   const [isOpen, setIsOpen] = React.useState(initialOpenState)
   const [openingBalance, setOpeningBalance] = React.useState("100,00")
   const [currentCash, setCurrentCash] = React.useState(100.0)
+  const [sangriaAmount, setSangriaAmount] = React.useState("")
+  const [suprimentoAmount, setSuprimentoAmount] = React.useState("")
+  const [sangriaMsg, setSangriaMsg] = React.useState("")
+  const [suprimentoMsg, setSuprimentoMsg] = React.useState("")
 
   const handleOpen = () => {
     const val = parseFloat(openingBalance.replace(",", ".")) || 0
@@ -36,108 +109,41 @@ export const CashSessionManager: React.FC<CashSessionManagerProps> = ({
   }
 
   const handleSangria = () => {
-    const amount = prompt("Digite o valor da Sangria (Retirada):")
-    if (amount) {
-      const val = parseFloat(amount.replace(",", ".")) || 0
+    const val = parseFloat(sangriaAmount.replace(",", ".")) || 0
+    if (val > 0) {
       setCurrentCash(prev => Math.max(0, prev - val))
-      alert(`Sangria de R$ ${val.toFixed(2)} registrada!`)
+      setSangriaMsg(`Sangria de R$ ${val.toFixed(2)} registrada!`)
+      setSangriaAmount("")
     }
   }
 
   const handleSuprimento = () => {
-    const amount = prompt("Digite o valor do Suprimento (Aporte):")
-    if (amount) {
-      const val = parseFloat(amount.replace(",", ".")) || 0
+    const val = parseFloat(suprimentoAmount.replace(",", ".")) || 0
+    if (val > 0) {
       setCurrentCash(prev => prev + val)
-      alert(`Suprimento de R$ ${val.toFixed(2)} registrado!`)
+      setSuprimentoMsg(`Suprimento de R$ ${val.toFixed(2)} registrado!`)
+      setSuprimentoAmount("")
     }
   }
 
   const formatPrice = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value)
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value)
   }
 
   return (
     <Box padding={5} bg="bg-surface" radius="default">
       <Stack gap={5}>
-        {/* Header */}
-        <Stack direction="row" align="center" justify="between" gap={5}>
-          <Stack direction="row" align="center" gap={2.5}>
-            <CircularIcon icon={isOpen ? Unlock : Lock} />
-            <Stack gap={0}>
-              <Font variant="body-bold" text="Sessão de Caixa" />
-              <Font variant="description" text={`Operador: ${operatorName}`} />
-            </Stack>
-          </Stack>
-          <Badge variant={isOpen ? "success" : "danger"} label={isOpen ? "Aberto" : "Fechado"} />
-        </Stack>
-
-        <div className="h-[2px] bg-border w-full" />
-
+        <SectionHeader
+          icon={isOpen ? Unlock : Lock}
+          title="Sessão de Caixa"
+          subtitle={`Operador: ${operatorName}`}
+          action={<Badge variant={isOpen ? "success" : "danger"} label={isOpen ? "Aberto" : "Fechado"} />}
+        />
+        <Box borderBottom borderColor="border-border" w="full" />
         {!isOpen ? (
-          /* Closed State Form */
-          <Stack gap={5}>
-            <Font variant="description" text="O caixa está atualmente fechado. Digite o valor de fundo de troco para iniciar as vendas." />
-            <Input 
-              label="Fundo de Abertura (Suprimento Inicial)"
-              placeholder="0,00"
-              value={openingBalance}
-              onChange={(e) => setOpeningBalance(e.target.value)}
-              variant="default"
-            />
-            <Button 
-              variant="outline-success" 
-              fullWidth 
-              label="Abrir turno de vendas" 
-              icon={Unlock}
-              onClick={handleOpen}
-            />
-          </Stack>
+          <CashSessionClosed openingBalance={openingBalance} setOpeningBalance={setOpeningBalance} handleOpen={handleOpen} />
         ) : (
-          /* Open State Dashboard */
-          <Stack gap={5}>
-            <Box padding={0}>
-              <Stack gap={1} align="center">
-                <Font variant="auxiliary" text="Saldo Estimado em Dinheiro" />
-                <Font variant="h2" text={formatPrice(currentCash)} className="text-emerald-600" />
-              </Stack>
-            </Box>
-
-            {/* Quick Actions */}
-            <Stack gap={2.5}>
-              <Font variant="body-bold" text="Movimentações de Caixa" />
-              <Stack direction="row" gap={2.5}>
-                <Button 
-                  variant="outline" 
-                  fullWidth 
-                  label="Sangria" 
-                  icon={ArrowDownRight}
-                  onClick={handleSangria}
-                />
-                <Button 
-                  variant="outline" 
-                  fullWidth 
-                  label="Suprimento" 
-                  icon={ArrowUpLeft}
-                  onClick={handleSuprimento}
-                />
-              </Stack>
-            </Stack>
-
-            <div className="h-[2px] bg-border w-full" />
-
-            {/* Close Button */}
-            <Button 
-              variant="outline-danger" 
-              fullWidth 
-              label="Fechar turno e imprimir resumo" 
-              icon={Lock}
-              onClick={handleClose}
-            />
-          </Stack>
+          <CashSessionOpen currentCash={currentCash} formatPrice={formatPrice} handleSangria={handleSangria} handleSuprimento={handleSuprimento} handleClose={handleClose} sangriaAmount={sangriaAmount} setSangriaAmount={setSangriaAmount} sangriaMsg={sangriaMsg} suprimentoAmount={suprimentoAmount} setSuprimentoAmount={setSuprimentoAmount} suprimentoMsg={suprimentoMsg} />
         )}
       </Stack>
     </Box>

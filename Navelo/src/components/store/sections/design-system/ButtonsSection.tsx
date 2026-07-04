@@ -49,7 +49,8 @@ export const ButtonsSection: React.FC = () => {
         </Grid>
       </Box>
 
-      <Box padding={5} bg="bg-surface" radius="default" className="mt-5">
+      <Stack gap={5}>
+        <Box padding={5} bg="bg-surface" radius="default">
         <Stack gap={5}>
           <Stack direction="row" gap={5} wrap>
             <Button variant="outline" label="Botão com Ícone" icon={Bot} />
@@ -79,6 +80,7 @@ export const ButtonsSection: React.FC = () => {
           </Stack>
         </Stack>
       </Box>
+      </Stack>
     </RegistrySection>
   )
 }

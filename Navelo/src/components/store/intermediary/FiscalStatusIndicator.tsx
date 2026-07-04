@@ -3,8 +3,7 @@ import { Box } from "../base/Box"
 import { Stack } from "../base/Stack"
 import { Font } from "../base/Font"
 import { Badge } from "../base/Badge"
-import { Icon } from "../base/Icon"
-import { CircularIcon } from "./CircularIcon"
+import { SectionHeader } from "./SectionHeader"
 import { Alert } from "./Alert"
 import { ShieldCheck, AlertCircle, Wifi, WifiOff } from "lucide-react"
 
@@ -34,23 +33,19 @@ export const FiscalStatusIndicator: React.FC<FiscalStatusIndicatorProps> = ({
     <Box padding={5} bg="bg-surface" radius="default">
       <Stack gap={5}>
         {/* Header */}
-        <Stack direction="row" align="center" justify="between" gap={2.5}>
-          <Stack direction="row" align="center" gap={2.5}>
-            <CircularIcon icon={ShieldCheck} />
-            <Stack gap={0}>
-              <Font variant="body-bold" text="Módulo Fiscal (NFC-e)" />
-              <Font variant="description" text="Monitore a comunicação tributária com a SEFAZ." />
-            </Stack>
-          </Stack>
-          {getStatusBadge()}
-        </Stack>
+        <SectionHeader
+          icon={ShieldCheck}
+          title="Módulo Fiscal (NFC-e)"
+          subtitle="Monitore a comunicação tributária com a SEFAZ."
+          action={getStatusBadge()}
+        />
 
-        <div className="h-[2px] bg-border w-full" />
+        <Box borderBottom borderColor="border-border" w="full" />
 
         {/* Info Grid */}
         <Stack gap={2.5}>
           <Stack direction="row" align="center" justify="between" gap={5}>
-            <Font variant="body" text="Ambiente Fiscal" />
+            <Font variant="body-sm-medium" text="Ambiente Fiscal" />
             <Badge 
               variant={environment === "producao" ? "success" : "primary"} 
               label={environment === "producao" ? "Produção" : "Homologação"} 
@@ -58,7 +53,7 @@ export const FiscalStatusIndicator: React.FC<FiscalStatusIndicatorProps> = ({
           </Stack>
 
           <Stack direction="row" align="center" justify="between" gap={5}>
-            <Font variant="body" text="Notas Pendentes de Sincronização" />
+            <Font variant="body-sm-medium" text="Notas Pendentes de Sincronização" />
             <Badge 
               variant={pendingInvoicesCount > 0 ? "danger" : "success"} 
               label={pendingInvoicesCount > 0 ? `${pendingInvoicesCount} pendentes` : "Tudo em dia"} 

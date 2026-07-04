@@ -5,7 +5,7 @@ import { Grid } from "../base/Grid"
 import { Font } from "../base/Font"
 import { Button } from "../base/Button"
 import { Input } from "../base/Input"
-import { CircularIcon } from "../intermediary/CircularIcon"
+import { SectionHeader } from "../intermediary/SectionHeader"
 import { DollarSign } from "lucide-react"
 
 export interface ChangeCalculatorProps {
@@ -37,22 +37,20 @@ export const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({
     <Box padding={5} bg="bg-surface" radius="default">
       <Stack gap={5}>
         {/* Header */}
-        <Stack direction="row" align="center" gap={2.5}>
-          <CircularIcon icon={DollarSign} />
-          <Stack gap={0}>
-            <Font variant="body-bold" text="Calculadora de Troco" />
-            <Font variant="description" text="Calcule o troco a ser entregue ao cliente." />
-          </Stack>
-        </Stack>
+        <SectionHeader
+          icon={DollarSign}
+          title="Calculadora de Troco"
+          subtitle="Calcule o troco a ser entregue ao cliente."
+        />
 
-        <div className="h-[2px] bg-border w-full" />
+        <Box borderBottom borderColor="border-border" w="full" />
 
         {/* Total & Received Info */}
         <Grid cols={2} gap={5}>
           <Box padding={0}>
             <Stack gap={1} align="center">
               <Font variant="auxiliary" text="Total a Pagar" />
-              <Font variant="h2" text={formatPrice(totalAmount)} className="text-brand-primary" />
+              <Font variant="h2" text={formatPrice(totalAmount)} color="primary" />
             </Stack>
           </Box>
           <Box padding={0}>
@@ -61,7 +59,7 @@ export const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({
               <Font 
                 variant="h2" 
                 text={isInsufficient ? "Pagar restante" : formatPrice(change)} 
-                className={isInsufficient ? "text-red-500" : change > 0 ? "text-emerald-600" : "text-text-secondary"}
+                color={isInsufficient ? "danger" : change > 0 ? "success" : "secondary"}
               />
             </Stack>
           </Box>

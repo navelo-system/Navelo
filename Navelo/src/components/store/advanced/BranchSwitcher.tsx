@@ -1,10 +1,8 @@
 import * as React from "react"
 import { Box } from "../base/Box"
 import { Stack } from "../base/Stack"
-import { Font } from "../base/Font"
 import { Button } from "../base/Button"
-import { Icon } from "../base/Icon"
-import { CircularIcon } from "../intermediary/CircularIcon"
+import { SectionHeader } from "../intermediary/SectionHeader"
 import { BranchRow, Branch } from "../intermediary/BranchRow"
 import { Building, RefreshCw } from "lucide-react"
 
@@ -38,7 +36,7 @@ export const BranchSwitcher: React.FC<BranchSwitcherProps> = ({
     setTimeout(() => {
       setSyncing(false)
       if (onSyncAll) onSyncAll()
-      alert("Sincronização concluída com o servidor central!")
+      console.warn("Sincronização concluída com o servidor central!")
     }, 1500)
   }
 
@@ -46,23 +44,21 @@ export const BranchSwitcher: React.FC<BranchSwitcherProps> = ({
     <Box padding={0}>
       <Stack gap={5}>
         {/* Header */}
-        <Stack direction="row" align="center" justify="between" gap={5}>
-          <Stack direction="row" align="center" gap={2.5}>
-            <CircularIcon icon={Building} />
-            <Stack gap={0}>
-              <Font variant="body-bold" text="Seletor de Filiais (Multiempresa)" />
-              <Font variant="description" text="Monitore conexões, sincronização local e selecione o terminal ativo." />
-            </Stack>
-          </Stack>
-          <Button 
-            variant="outline-icon-xs" 
-            icon={RefreshCw} 
-            onClick={handleSync}
-            disabled={syncing}
-          />
-        </Stack>
+        <SectionHeader
+          icon={Building}
+          title="Seletor de Filiais (Multiempresa)"
+          subtitle="Monitore conexões, sincronização local e selecione o terminal ativo."
+          action={
+            <Button
+              variant="outline-icon-xs"
+              icon={RefreshCw}
+              onClick={handleSync}
+              disabled={syncing}
+            />
+          }
+        />
 
-        <div className="h-[2px] bg-border w-full" />
+        <Box borderBottom borderColor="border-border" w="full" />
 
         {/* Branch Grid */}
         <Stack gap={2.5}>

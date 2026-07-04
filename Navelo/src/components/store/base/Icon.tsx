@@ -25,7 +25,7 @@ export const Icon = React.forwardRef<SVGSVGElement, IconProps>(
   ({ className, icon: IconComponent, size = 20, color = "inherit", ...props }, ref) => {
     return (
       <IconComponent
-        ref={ref as any}
+        ref={ref as React.Ref<SVGSVGElement>}
         size={size}
         className={cn(
           colorStyles[color],

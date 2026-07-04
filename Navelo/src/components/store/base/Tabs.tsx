@@ -26,6 +26,7 @@ export function Tabs({
 
   React.useEffect(() => {
     if (value !== undefined) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTabValue(value)
     }
   }, [value])

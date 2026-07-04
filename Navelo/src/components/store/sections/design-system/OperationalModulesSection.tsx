@@ -41,9 +41,9 @@ export const OperationalModulesSection: React.FC = () => {
           <Font variant="h3" text="Visualizador Fiscal (Thermal Receipt)" />
           <Grid cols={2} gap={12.5}>
             <ThermalReceiptPreview />
-            <Box padding={5} bg="bg-surface" radius="default" className="flex flex-col justify-center">
+            <Box padding={5} bg="bg-surface" radius="default" display="flex" direction="col" justify="center">
               <Stack gap={5}>
-                <Font variant="h4" text="Simulação de Impressão" />
+                <Font variant="h3" text="Simulação de Impressão" />
                 <Font variant="description" text="O pré-visualizador simula o layout de impressão térmica física (bobina de 80mm de largura). Ideal para testar a disposição de produtos, rateios de impostos, formatação de descontos, posicionamento do QR Code da NFC-e e do código de barras de contingência." />
                 <Font variant="description" text="Garante que a visualização na tela do PDV do operador seja idêntica ao papel térmico emitido pela impressora do terminal." />
               </Stack>

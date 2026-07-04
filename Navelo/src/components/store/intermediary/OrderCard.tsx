@@ -6,11 +6,25 @@ import { Badge } from "../base/Badge"
 import { Button } from "../base/Button"
 import { Clock, ChefHat, CheckCircle2 } from "lucide-react"
 
-export interface OrderItem {
+export interface OrderItemType {
   id: string
   name: string
   quantity: number
   notes?: string
+}
+
+export function OrderItemCard({ item }: { item: OrderItemType }) {
+  return (
+    <Box padding={2.5} border borderColor="border-border" radius="default">
+      <Stack direction="row" gap={2.5}>
+        <Font variant="body-bold" text={`${item.quantity}x`} color="primary" />
+        <Stack gap={1} flex="1">
+          <Font variant="body-medium" text={item.name} />
+          {item.notes && <Font variant="description" text={item.notes} color="brand-secondary" />}
+        </Stack>
+      </Stack>
+    </Box>
+  )
 }
 
 export interface OrderCardProps {
@@ -18,7 +32,7 @@ export interface OrderCardProps {
   tableNumber?: string | number
   status: "queue" | "preparing" | "done"
   time: string
-  items: OrderItem[]
+  items: OrderItemType[]
   onAction?: (action: string) => void
 }
 
@@ -49,20 +63,11 @@ export function OrderCard({ orderId, tableNumber, status, time, items, onAction 
         </Stack>
 
         {/* Divider */}
-        <div className="h-[2px] bg-border w-full" />
+        <Box borderBottom borderColor="border-border" w="full" />
 
-        {/* Items */}
         <Stack gap={2.5}>
           {items.map((item) => (
-            <Box key={item.id} padding={2.5} border borderColor="border-border" radius="default">
-              <Stack direction="row" gap={2.5}>
-                <Font variant="body-bold" text={`${item.quantity}x`} className="text-brand-primary" />
-                <Stack gap={1} className="flex-1">
-                  <Font variant="body-medium" text={item.name} />
-                  {item.notes && <Font variant="description" text={item.notes} color="brand-secondary" />}
-                </Stack>
-              </Stack>
-            </Box>
+            <OrderItemCard key={item.id} item={item} />
           ))}
         </Stack>
 

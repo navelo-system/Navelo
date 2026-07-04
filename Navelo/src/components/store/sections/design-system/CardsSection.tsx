@@ -16,13 +16,13 @@ export const CardsSection: React.FC = () => {
       <Grid cols={2} gap={5}>
         <Card title="Receita do Dia" subtitle="Total apurado no caixa 1">
           <Box paddingY={5}>
-            <Font variant="h2" className="text-4xl text-brand-primary" text="R$ 2.450,00" />
+            <Font variant="h2" text="R$ 2.450,00" />
           </Box>
         </Card>
 
         <Card title="Pedidos Pendentes" subtitle="Cozinha e Delivery">
           <Box paddingY={5}>
-            <Font variant="h2" className="text-4xl text-brand-secondary" text="14" />
+            <Font variant="h2" text="14" />
           </Box>
         </Card>
       </Grid>

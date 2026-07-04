@@ -32,10 +32,10 @@ export const BranchRow: React.FC<BranchRowProps> = ({
       bg="bg-surface" 
       radius="default"
     >
-      <Stack direction="row" align="center" justify="between" gap={5}>
+      <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" gap={5}>
         <Box flex="1">
           <Stack gap={1}>
-            <Stack direction="row" align="center" gap={2.5}>
+            <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" gap={2.5}>
               <Font variant="body-bold" text={branch.name} />
               <Badge 
                 variant={branch.isOnline ? "success" : "danger"} 

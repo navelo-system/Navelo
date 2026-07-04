@@ -1,22 +1,21 @@
-import * as React from "react"
 import { RegistrySection } from "../../advanced/RegistrySection"
 import { Grid } from "../../base/Grid"
-import { OrderCard, OrderItem } from "../../intermediary/OrderCard"
+import { OrderCard, OrderItemType } from "../../intermediary/OrderCard"
 import { KanbanColumn } from "../../intermediary/KanbanColumn"
 import { ChefHat } from "lucide-react"
 
 export function KanbanSection() {
-  const queueItems: OrderItem[] = [
+  const queueItems: OrderItemType[] = [
     { id: "1", name: "Hambúrguer Clássico", quantity: 2, notes: "Sem cebola, bem passado" },
     { id: "2", name: "Batata Frita M", quantity: 1 }
   ]
 
-  const preparingItems: OrderItem[] = [
+  const preparingItems: OrderItemType[] = [
     { id: "3", name: "Pizza Calabresa", quantity: 1, notes: "Borda recheada" },
     { id: "4", name: "Coca-Cola 2L", quantity: 1 }
   ]
 
-  const doneItems: OrderItem[] = [
+  const doneItems: OrderItemType[] = [
     { id: "5", name: "Combo Executivo", quantity: 3 }
   ]
 

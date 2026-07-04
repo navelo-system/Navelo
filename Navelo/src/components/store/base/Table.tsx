@@ -64,12 +64,15 @@ TableRow.displayName = "TableRow"
 
 const TableHead = React.forwardRef<
   HTMLTableCellElement,
-  React.ThHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
+  React.ThHTMLAttributes<HTMLTableCellElement> & { align?: "left" | "center" | "right", w?: string }
+>(({ className, align, w, ...props }, ref) => (
   <th
     ref={ref}
     className={cn(
-      "h-12 px-4 text-left align-middle font-medium text-white [&:has([role=checkbox])]:pr-0",
+      "h-12 px-4 text-left align-middle font-medium text-white whitespace-nowrap [&:has([role=checkbox])]:pr-0",
+      align === "center" && "text-center",
+      align === "right" && "text-right",
+      w,
       className
     )}
     {...props}
@@ -79,11 +82,19 @@ TableHead.displayName = "TableHead"
 
 const TableCell = React.forwardRef<
   HTMLTableCellElement,
-  React.TdHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
+  React.TdHTMLAttributes<HTMLTableCellElement> & { align?: "left" | "center" | "right", w?: string, fontWeight?: "medium" | "bold" }
+>(({ className, align, w, fontWeight, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
+    className={cn(
+      "p-4 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0", 
+      align === "center" && "text-center",
+      align === "right" && "text-right",
+      fontWeight === "medium" && "font-medium",
+      fontWeight === "bold" && "font-bold",
+      w,
+      className
+    )}
     {...props}
   />
 ))

@@ -1,6 +1,5 @@
 import * as React from "react"
 import { Box } from "../base/Box"
-import { Stack } from "../base/Stack"
 
 export interface DashboardShellProps extends React.HTMLAttributes<HTMLDivElement> {
   sidebar?: React.ReactNode
@@ -23,7 +22,7 @@ export const DashboardShell: React.FC<DashboardShellProps> = ({
           <Box w="w-[2px]" h="full" bg="bg-border" />
         </>
       )}
-      <Box w="full" h="full" display="flex" overflow="x-hidden y-auto" direction="col" flex="1">
+      <Box id="main-scroll-container" w="full" h="full" display="flex" overflow="x-hidden y-auto" direction="col" flex="1">
         {children}
       </Box>
     </Box>

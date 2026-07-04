@@ -1,5 +1,4 @@
 import * as React from "react"
-import { Box } from "../base/Box"
 import { Font } from "../base/Font"
 import { Input, InputProps } from "../base/Input"
 import { Stack } from "../base/Stack"

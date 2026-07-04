@@ -5,9 +5,13 @@ import { Box } from "@/components/store/base/Box"
 import { Font } from "@/components/store/base/Font"
 import { Form } from "@/src/components/store/advanced/Form"
 import { Input } from "@/components/store/base/Input"
-import { Keyboard, Mail, Lock, Search, Phone, Calendar, Image as ImageIcon } from "lucide-react"
+import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
+import { EmptyState } from "@/components/store/intermediary/EmptyState"
+import { Keyboard, Mail, Lock, Search, Phone, Calendar, Image as ImageIcon, ShoppingCart, Package, QrCode, Coins, CreditCard, Wallet } from "lucide-react"
 
 export const InputsSection: React.FC = () => {
+  const [selectedPayment, setSelectedPayment] = React.useState("")
+
   return (
     <RegistrySection
       title="Inputs & Forms"
@@ -42,7 +46,47 @@ export const InputsSection: React.FC = () => {
             <Input label="Observações Adicionais" placeholder="Descreva particularidades do cliente..." />
           </Form>
         </Box>
+
+        {/* CustomSelect Showcase */}
+        <Box padding={5} bg="bg-surface" radius="default">
+          <Stack gap={5}>
+            <Font variant="h3" text="Custom Select Dropdown" />
+            <Font variant="description" text="Dropdown totalmente customizado (não nativo) com animação de chevron e seleção visual de item ativo." />
+            <CustomSelect
+              value={selectedPayment}
+              onChange={setSelectedPayment}
+              placeholder="Selecione a forma de pagamento..."
+            >
+              <CustomSelectItem value="pix" text="PIX" icon={QrCode} />
+              <CustomSelectItem value="dinheiro" text="Dinheiro" icon={Coins} />
+              <CustomSelectItem value="debito" text="Cartão de Débito" icon={CreditCard} />
+              <CustomSelectItem value="credito" text="Cartão de Crédito" icon={CreditCard} />
+              <CustomSelectItem value="vale" text="Vale Alimentação" icon={Wallet} />
+            </CustomSelect>
+          </Stack>
+        </Box>
+
+        {/* EmptyState Showcase */}
+        <Box padding={5} bg="bg-surface" radius="default">
+          <Stack gap={5}>
+            <Font variant="h3" text="Empty State" />
+            <Font variant="description" text="Componente de estado vazio reutilizável. Recebe ícone, título e subtítulo como props." />
+            <Stack gap={5}>
+              <EmptyState
+                icon={ShoppingCart}
+                title="Carrinho vazio"
+                subtitle="Adicione produtos ao carrinho para iniciar uma venda."
+              />
+              <EmptyState
+                icon={Package}
+                title="Nenhum produto encontrado"
+                subtitle="Tente ajustar os filtros ou buscar por outro termo."
+              />
+            </Stack>
+          </Stack>
+        </Box>
       </Stack>
     </RegistrySection>
   )
 }
+

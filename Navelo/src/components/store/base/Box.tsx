@@ -5,7 +5,8 @@ type PaddingToken = 5 | 12 | 2.5 | 1 | 0
 type WidthToken = "full" | "screen" | "auto" | "fit-content" | "1/2" | "2/3" | "1/4"
 type HeightToken = "full" | "screen" | "auto" | "fit-content"
 
-export interface BoxProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as"> {
+  as?: React.ElementType
   padding?: PaddingToken
   paddingX?: PaddingToken
   paddingY?: PaddingToken
@@ -26,6 +27,16 @@ export interface BoxProps extends React.HTMLAttributes<HTMLDivElement> {
   hoverBg?: "surface-sunken" | "primary/10"
   cursor?: "pointer"
   flex?: "1" | "auto" | "none"
+  position?: "relative" | "absolute" | "fixed" | "sticky"
+  top?: string | number
+  left?: string | number
+  right?: string | number
+  bottom?: string | number
+  zIndex?: "0" | "10" | "20" | "30" | "40" | "50" | "auto"
+  minW?: string
+  objectFit?: "contain" | "cover" | "fill" | "none" | "scale-down"
+  borderStyle?: "solid" | "dashed"
+  shadow?: "default" | "inner" | "none"
 }
 
 const paddingMap: Record<string, string> = {
@@ -112,15 +123,26 @@ const flexMap = {
   "none": "flex-none",
 }
 
-export const Box = React.forwardRef<HTMLDivElement, BoxProps>(
+const zIndexMap = {
+  "0": "z-0",
+  "10": "z-10",
+  "20": "z-20",
+  "30": "z-30",
+  "40": "z-40",
+  "50": "z-50",
+  "auto": "z-auto",
+}
+
+export const Box = React.forwardRef<HTMLElement, BoxProps>(
   ({ 
+    as: Component = "div",
     className, padding, paddingX, paddingY, bg, w, h, 
     display, direction, justify, radius, border, borderColor, 
-    borderTop, borderBottom, borderLeft, borderRight,
-    overflow, hoverBg, cursor, flex, ...props 
+    borderTop, borderBottom, borderLeft, borderRight, borderStyle, shadow,
+    overflow, hoverBg, cursor, flex, position, top, left, right, bottom, zIndex, minW, objectFit, ...props 
   }, ref) => {
     return (
-      <div
+      <Component
         ref={ref}
         className={cn(
           padding !== undefined && paddingMap[String(padding)],
@@ -137,14 +159,29 @@ export const Box = React.forwardRef<HTMLDivElement, BoxProps>(
           borderBottom && "border-b-2",
           borderLeft && "border-l-2",
           borderRight && "border-r-2",
+          borderStyle === "dashed" && "border-dashed",
+          borderStyle === "solid" && "border-solid",
+          shadow === "default" && "shadow-md",
+          shadow === "inner" && "shadow-inner",
           borderColor,
           overflow && overflowMap[overflow],
           hoverBg && hoverBgMap[hoverBg],
           cursor === "pointer" && "cursor-pointer",
           flex && flexMap[flex],
+          position,
+          zIndex && zIndexMap[zIndex],
+          minW,
+          objectFit && `object-${objectFit}`,
           bg,
           className
         )}
+        style={{
+          top: top !== undefined ? top : undefined,
+          left: left !== undefined ? left : undefined,
+          right: right !== undefined ? right : undefined,
+          bottom: bottom !== undefined ? bottom : undefined,
+          ...(props.style || {})
+        }}
         {...props}
       />
     )

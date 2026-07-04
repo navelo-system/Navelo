@@ -13,18 +13,20 @@ export const SemanticActionsSection: React.FC = () => {
       description="Botões de estado (sucesso e perigo) com estilo outline e cores inalteráveis."
       icon={MousePointerClick}
     >
-      <Grid cols={2} gap={5}>
-        <Stack gap={5}>
-          <Button variant="outline-success" label="Soft Success" />
-          <Button variant="outline-success-pill" label="Pill Success" />
-        </Stack>
-        <Stack gap={5}>
-          <Button variant="outline-danger" label="Soft Danger" />
-          <Button variant="outline-danger-pill" label="Pill Danger" />
-        </Stack>
-      </Grid>
+      <Box padding={5} bg="bg-surface" radius="default">
+        <Grid cols={2} gap={5}>
+          <Stack gap={5}>
+            <Button variant="outline-success" label="Soft Success" />
+            <Button variant="outline-success-pill" label="Pill Success" />
+          </Stack>
+          <Stack gap={5}>
+            <Button variant="outline-danger" label="Soft Danger" />
+            <Button variant="outline-danger-pill" label="Pill Danger" />
+          </Stack>
+        </Grid>
+      </Box>
 
-      <Box padding={5} bg="bg-surface" radius="default" className="mt-5">
+      <Box padding={5} bg="bg-surface" radius="default">
         <Stack gap={5}>
           <Stack direction="row" gap={5} wrap>
             <Button variant="outline-success" label="Salvar" icon={Check} />

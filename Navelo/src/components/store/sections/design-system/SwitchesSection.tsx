@@ -4,10 +4,12 @@ import { Grid } from "@/components/store/base/Grid"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Switch } from "@/components/store/base/Switch"
-import { Select } from "@/components/store/base/Select"
-import { ToggleLeft } from "lucide-react"
+import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
+import { ToggleLeft, Monitor, Tablet, Smartphone } from "lucide-react"
 
 export const SwitchesSection: React.FC = () => {
+  const [selectedTerminal, setSelectedTerminal] = React.useState("1")
+
   return (
     <RegistrySection
       title="Seletores e Switches"
@@ -36,11 +38,15 @@ export const SwitchesSection: React.FC = () => {
         <Stack gap={5}>
           <Stack gap={2.5}>
             <Font variant="sub-tiny" text="Ponto de Venda" />
-            <Select>
-              <option value="1">Caixa Principal (Frente)</option>
-              <option value="2">Terminal Autoatendimento 1</option>
-              <option value="3">Mobile Garçom</option>
-            </Select>
+            <CustomSelect
+              value={selectedTerminal}
+              onChange={setSelectedTerminal}
+              placeholder="Selecione o terminal..."
+            >
+              <CustomSelectItem value="1" text="Caixa Principal (Frente)" icon={Monitor} />
+              <CustomSelectItem value="2" text="Terminal Autoatendimento 1" icon={Tablet} />
+              <CustomSelectItem value="3" text="Mobile Garçom" icon={Smartphone} />
+            </CustomSelect>
           </Stack>
         </Stack>
       </Grid>

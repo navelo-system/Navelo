@@ -48,10 +48,10 @@ export const PosSection: React.FC = () => {
           <Stack gap={5}>
             <Font variant="h4" text="Mapeamento (TableCards)" />
             <Grid cols={2} gap={5}>
-              <TableCard tableNumber={1} status="free" capacity={4} onClick={() => alert("Mesa 1")} />
-              <TableCard tableNumber={2} status="occupied" time="01:25" capacity={2} onClick={() => alert("Mesa 2")} />
-              <TableCard tableNumber="Balcão" status="occupied" time="00:15" onClick={() => alert("Balcão")} />
-              <TableCard tableNumber={4} status="closing" capacity={6} onClick={() => alert("Mesa 4")} />
+              <TableCard tableNumber={1} status="free" capacity={4} onClick={() => console.warn("Mesa 1")} />
+              <TableCard tableNumber={2} status="occupied" time="01:25" capacity={2} onClick={() => console.warn("Mesa 2")} />
+              <TableCard tableNumber="Balcão" status="occupied" time="00:15" onClick={() => console.warn("Balcão")} />
+              <TableCard tableNumber={4} status="closing" capacity={6} onClick={() => console.warn("Mesa 4")} />
             </Grid>
           </Stack>
         </Grid>
@@ -70,8 +70,8 @@ export const PosSection: React.FC = () => {
             </Box>
             
             <CheckoutPayment 
-              onCheckout={() => alert("Venda finalizada com sucesso!")} 
-              onSelectPayment={(method) => alert(`Pagamento selecionado: ${method}`)} 
+              onCheckout={() => console.warn("Venda finalizada com sucesso!")} 
+              onSelectPayment={(method) => console.warn(`Pagamento selecionado: ${method}`)} 
             />
           </Grid>
         </Stack>

@@ -1,9 +1,7 @@
 import * as React from "react"
 import { Box } from "../base/Box"
 import { Stack } from "../base/Stack"
-import { Font } from "../base/Font"
-import { Icon } from "../base/Icon"
-import { CircularIcon } from "../intermediary/CircularIcon"
+import { SectionHeader } from "../intermediary/SectionHeader"
 import { PeripheralRow, Peripheral } from "../intermediary/PeripheralRow"
 import { Cpu } from "lucide-react"
 
@@ -35,7 +33,7 @@ export const PeripheralStatusList: React.FC<PeripheralStatusListProps> = ({
         )
       }
       if (onTestPeripheral) onTestPeripheral(peripheral.id)
-      alert(`Teste de comunicação concluído com sucesso para: ${peripheral.name}`)
+      console.warn(`Teste de comunicação concluído com sucesso para: ${peripheral.name}`)
     }, 1200)
   }
 
@@ -43,15 +41,13 @@ export const PeripheralStatusList: React.FC<PeripheralStatusListProps> = ({
     <Box padding={0}>
       <Stack gap={5}>
         {/* Header */}
-        <Stack direction="row" align="center" gap={2.5}>
-          <CircularIcon icon={Cpu} />
-          <Stack gap={0}>
-            <Font variant="body-bold" text="Status de Periféricos" />
-            <Font variant="description" text="Monitore conexões de impressoras, balanças e leitores locais." />
-          </Stack>
-        </Stack>
+        <SectionHeader
+          icon={Cpu}
+          title="Status de Periféricos"
+          subtitle="Monitore conexões de impressoras, balanças e leitores locais."
+        />
 
-        <div className="h-[2px] bg-border w-full" />
+        <Box borderBottom borderColor="border-border" w="full" />
 
         {/* Peripheral Rows */}
         <Stack gap={2.5}>

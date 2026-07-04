@@ -26,30 +26,30 @@ export const TableSection: React.FC = () => {
               <TableHead>Nome do Cliente</TableHead>
               <TableHead>Contato</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Última Compra</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
+              <TableHead align="right">Última Compra</TableHead>
+              <TableHead w="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell className="font-medium">João da Silva</TableCell>
+              <TableCell fontWeight="medium">João da Silva</TableCell>
               <TableCell>(11) 98888-8888</TableCell>
               <TableCell><Badge variant="success" label="Ativo" /></TableCell>
-              <TableCell className="text-right">R$ 150,00</TableCell>
+              <TableCell align="right">R$ 150,00</TableCell>
               <TableCell><Button variant="outline-icon-xs" icon={MoreHorizontal} /></TableCell>
             </TableRow>
             <TableRow>
-              <TableCell className="font-medium">Maria Souza</TableCell>
+              <TableCell fontWeight="medium">Maria Souza</TableCell>
               <TableCell>(11) 97777-7777</TableCell>
               <TableCell><Badge variant="danger" label="Bloqueado" /></TableCell>
-              <TableCell className="text-right">R$ 800,00</TableCell>
+              <TableCell align="right">R$ 800,00</TableCell>
               <TableCell><Button variant="outline-icon-xs" icon={MoreHorizontal} /></TableCell>
             </TableRow>
             <TableRow>
-              <TableCell className="font-medium">Padaria Central</TableCell>
+              <TableCell fontWeight="medium">Padaria Central</TableCell>
               <TableCell>(11) 3333-3333</TableCell>
               <TableCell><Badge variant="outline" label="Pendente" /></TableCell>
-              <TableCell className="text-right">R$ 0,00</TableCell>
+              <TableCell align="right">R$ 0,00</TableCell>
               <TableCell><Button variant="outline-icon-xs" icon={MoreHorizontal} /></TableCell>
             </TableRow>
           </TableBody>

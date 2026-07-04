@@ -1,10 +1,10 @@
 import * as React from "react"
-import { Box } from "../base/Box"
 import { Stack } from "../base/Stack"
 import { Font } from "../base/Font"
 import { Badge } from "../base/Badge"
 import { Button } from "../base/Button"
-import { Icon } from "../base/Icon"
+import { CircularIcon } from "./CircularIcon"
+import { Box } from "../base/Box"
 import { Printer, Scale, Scan, CreditCard, RefreshCw } from "lucide-react"
 
 export interface Peripheral {
@@ -44,32 +44,31 @@ export const PeripheralRow: React.FC<PeripheralRowProps> = ({
       bg="bg-surface"
       radius="default"
     >
-      <Stack direction="row" align="center" justify="between" gap={5}>
-        {/* Left info */}
-        <Stack direction="row" align="center" gap={5}>
-          <Box padding={2.5} bg="bg-surface" radius="default">
-            <Icon icon={IconComponent} size={18} color="primary" />
-          </Box>
-          <Stack gap={1}>
-            <Stack direction="row" align="center" gap={2.5}>
-              <Font variant="body-bold" text={peripheral.name} />
-              <Badge
-                variant={isOnline ? "success" : "danger"}
-                label={isOnline ? "Conectado" : "Desconectado"}
-              />
-            </Stack>
+      {/* Mobile: col stack. Desktop: row with button on the right */}
+      <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" gap={5}>
+
+        {/* Left: icon + info */}
+        <Stack direction="col" mobileDirection="row" align="start" gap={5} w="full">
+          <CircularIcon icon={IconComponent} size={20} />
+          <Stack gap={1} align="start">
+            {/* Badge acima do nome */}
+            <Badge
+              variant={isOnline ? "success" : "danger"}
+              label={isOnline ? "Conectado" : "Desconectado"}
+            />
+            <Font variant="body-bold" text={peripheral.name} />
             <Font variant="description" text={peripheral.description} />
           </Stack>
         </Stack>
 
-        {/* Right test button */}
         <Button
-          variant={peripheral.type === "smartpos" && !isOnline ? "primary-xs" : "outline-primary-xs"}
+          variant={peripheral.type === "smartpos" && !isOnline ? "primary" : "outline-primary"}
           label={isTesting ? "Testando..." : peripheral.type === "smartpos" && !isOnline ? "Reconectar" : "Testar"}
           icon={isTesting ? RefreshCw : undefined}
           onClick={() => onTest(peripheral)}
           disabled={isTesting}
         />
+
       </Stack>
     </Box>
   )

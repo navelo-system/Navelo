@@ -38,12 +38,12 @@ const justifyStyles = {
 }
 
 const sizeStyles = {
-  default: "h-10 px-5 py-2.5",
-  sm: "h-8 px-3 py-1",
-  xs: "h-7 px-3 py-1",
-  lg: "h-12 px-6",
-  icon: "h-10 w-10 p-2.5 flex items-center justify-center",
-  "icon-xs": "h-7 w-7 p-1 flex items-center justify-center",
+  default: "min-h-10 px-5 py-2.5",
+  sm: "min-h-8 px-3 py-1.5",
+  xs: "min-h-7 px-3 py-1",
+  lg: "min-h-12 px-6 py-3",
+  icon: "h-10 w-10 p-0 flex items-center justify-center",
+  "icon-xs": "h-7 w-7 p-0 flex items-center justify-center",
 }
 
 const roundedStyles = {
@@ -70,11 +70,12 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     })
 
     const classes = cn(
-      "inline-flex items-center gap-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary disabled:pointer-events-none disabled:opacity-50",
+      "btn-shimmer inline-flex flex-wrap text-center items-center gap-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary disabled:pointer-events-none disabled:opacity-50",
       justifyStyles[justify],
       variantStyles[baseColor] || variantStyles.primary,
       sizeStyles[logicalSize],
       roundedStyles[isPill ? "full" : "default"],
+      !logicalSize.includes("icon") && !fullWidth && "w-full md:w-auto",
       fullWidth && "w-full"
     )
 
@@ -93,7 +94,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const content = (
       <>
         {IconComponent && <BaseIcon icon={IconComponent} size={getIconSize()} color="inherit" />}
-        {label && <Font variant={getFontVariant()} color="inherit" text={label} />}
+        {label && <Font variant={getFontVariant()} color="inherit" text={label} align="center" />}
         {IconRightComponent && <BaseIcon icon={IconRightComponent} size={getIconSize()} color="inherit" />}
       </>
     )

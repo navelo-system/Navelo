@@ -5,10 +5,9 @@ import { Box } from "../base/Box"
 import { Stack } from "../base/Stack"
 import { Grid } from "../base/Grid"
 import { Font } from "../base/Font"
-import { Button } from "../base/Button"
-import { Icon } from "../base/Icon"
 import { CircularIcon } from "../intermediary/CircularIcon"
 import { Alert } from "../intermediary/Alert"
+import { KpiCard } from "../intermediary/KpiCard"
 import { 
   ShoppingBag, 
   LayoutGrid, 
@@ -17,28 +16,13 @@ import {
   Tag, 
   Users, 
   TrendingUp, 
-  Settings, 
-  Eye, 
-  EyeOff, 
-  LogOut, 
-  WifiOff,
-  CloudLightning
+  Settings 
 } from "lucide-react"
 
 export const MobileBentoDashboard: React.FC = () => {
   const [hideValues, setHideValues] = React.useState<boolean>(true)
-  const [isSyncing, setIsSyncing] = React.useState<boolean>(false)
-
   const toggleHideValues = () => {
     setHideValues(prev => !prev)
-  }
-
-  const handleSyncClick = () => {
-    setIsSyncing(true)
-    setTimeout(() => {
-      setIsSyncing(false)
-      alert("Terminal sincronizado com a nuvem!")
-    }, 1200)
   }
 
   const menuItems = [
@@ -57,41 +41,20 @@ export const MobileBentoDashboard: React.FC = () => {
       <Stack gap={5}>
         {/* KPI Cards com Máscara de Privacidade */}
         <Grid cols={2} gap={2.5}>
-          <Box padding={2.5} bg="bg-surface" radius="default">
-            <Stack gap={2.5}>
-              <Stack direction="row" align="center" justify="between" gap={1}>
-                <Font variant="description" text="Vendas" />
-                <Button 
-                  variant="outline-icon-xs" 
-                  icon={hideValues ? EyeOff : Eye} 
-                  onClick={toggleHideValues} 
-                />
-              </Stack>
-              <Font 
-                variant="body-bold" 
-                text={hideValues ? "R$ *****" : "R$ 1.250,00"} 
-              />
-              <Font variant="sub-tiny" text="Hoje — 0 vendas realizadas" />
-            </Stack>
-          </Box>
-
-          <Box padding={2.5} bg="bg-surface" radius="default">
-            <Stack gap={2.5}>
-              <Stack direction="row" align="center" justify="between" gap={1}>
-                <Font variant="description" text="Totais em caixa" />
-                <Button 
-                  variant="outline-icon-xs" 
-                  icon={hideValues ? EyeOff : Eye} 
-                  onClick={toggleHideValues} 
-                />
-              </Stack>
-              <Font 
-                variant="body-bold" 
-                text={hideValues ? "R$ *****" : "R$ 450,00"} 
-              />
-              <Font variant="sub-tiny" text="02/05/26 13:59" />
-            </Stack>
-          </Box>
+          <KpiCard 
+            title="Vendas"
+            value="R$ 1.250,00"
+            subtitle="Hoje — 0 vendas realizadas"
+            hideValues={hideValues}
+            onToggleHide={toggleHideValues}
+          />
+          <KpiCard 
+            title="Totais em caixa"
+            value="R$ 450,00"
+            subtitle="02/05/26 13:59"
+            hideValues={hideValues}
+            onToggleHide={toggleHideValues}
+          />
         </Grid>
 
         {/* Banner de Sincronização */}

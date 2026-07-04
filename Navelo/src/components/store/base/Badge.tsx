@@ -30,7 +30,7 @@ export const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
       <div
         ref={ref}
         className={cn(
-          "inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2",
+          "inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase whitespace-nowrap flex-shrink-0 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2",
           variantStyles[variant],
           roundedStyles[rounded],
           className

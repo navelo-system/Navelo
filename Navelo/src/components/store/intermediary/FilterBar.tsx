@@ -24,8 +24,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 }) => {
   return (
     <Box padding={5} bg="bg-surface" radius="default">
-      <Stack direction="row" align="center" justify="between" gap={5}>
-        <Stack direction="row" align="center" gap={2.5} className="flex-1 max-w-md">
+      <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" gap={5}>
+        <Stack direction="row" align="center" gap={2.5} flex="1" w="max-w-md">
           <Input
             icon={Search}
             placeholder={searchPlaceholder}
@@ -46,7 +46,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         </Stack>
 
         {actions && (
-          <Stack direction="row" align="center" gap={2.5}>
+          <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" gap={2.5}>
             {actions}
           </Stack>
         )}

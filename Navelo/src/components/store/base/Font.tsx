@@ -5,7 +5,11 @@ export interface FontProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, "
   text: React.ReactNode
   variant?: "h1" | "h2" | "h3" | "h4" | "h5" | "body" | "body-medium" | "body-semibold" | "body-bold" | "body-sm-medium" | "body-sm-semibold" | "body-xs" | "body-xs-medium" | "body-xs-semibold" | "body-xs-bold" | "description" | "auxiliary" | "sub-tiny" | "sub-tiny-bold"
   color?: "foreground" | "secondary" | "muted" | "dim" | "primary" | "brand-secondary" | "white" | "danger" | "success" | "warning" | "inherit"
+  align?: "left" | "center" | "right"
+  mobileAlign?: "left" | "center" | "right"
   as?: "span" | "p" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "div"
+  truncate?: boolean
+  mono?: boolean
 }
 
 const variantStyles = {
@@ -43,16 +47,31 @@ const colorStyles = {
   "warning": "text-brand-warning",
   "inherit": "text-inherit",
 }
+const alignStyles = {
+  "left": "text-left",
+  "center": "text-center",
+  "right": "text-right",
+}
+
+const mobileAlignStyles = {
+  "left": "md:text-left",
+  "center": "md:text-center",
+  "right": "md:text-right",
+}
 
 export const Font = React.forwardRef<HTMLElement, FontProps>(
-  ({ className, text, variant = "body", color, as = "span", ...props }, ref) => {
-    const Comp = as as any
+  ({ className, text, variant = "body", color, align, mobileAlign, as = "span", truncate, mono, ...props }, ref) => {
+    const Comp = as as React.ElementType
     return (
       <Comp
         ref={ref}
         className={cn(
           variantStyles[variant],
           color && colorStyles[color],
+          align && alignStyles[align],
+          mobileAlign && mobileAlignStyles[mobileAlign],
+          mono && "font-mono",
+          truncate && "truncate",
           className
         )}
         {...props}

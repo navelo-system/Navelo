@@ -5,14 +5,18 @@ type GapToken = "section" | "title-content" | 12.5 | 12 | 5 | 2.5 | 1 | 0
 
 export interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
   direction?: "row" | "col"
+  mobileDirection?: "row" | "col"
   gap?: GapToken
   align?: "start" | "center" | "end" | "stretch" | "baseline"
+  mobileAlign?: "start" | "center" | "end"
   justify?: "start" | "center" | "end" | "between" | "around" | "evenly"
   wrap?: boolean
   w?: "full" | "auto" | "fit-content" | string
   h?: "full" | "screen" | "auto" | "fit-content" | string
   maxWidth?: "5xl" | "full" | "none"
   paddingX?: "5" | "12" | "2.5" | "0"
+  flex?: "1" | "auto" | "none"
+  minW?: "0"
 }
 
 const gapMap: Record<string, string> = {
@@ -32,6 +36,12 @@ const alignMap = {
   end: "items-end",
   stretch: "items-stretch",
   baseline: "items-baseline",
+}
+
+const mobileAlignMap = {
+  start: "md:items-start",
+  center: "md:items-center",
+  end: "md:items-end",
 }
 
 const justifyMap = {
@@ -69,22 +79,37 @@ const paddingXMap = {
   "0": "px-0",
 }
 
+const flexMap = {
+  "1": "flex-1",
+  "auto": "flex-auto",
+  "none": "flex-none",
+}
+
+const minWMap = {
+  "0": "min-w-0",
+}
+
 export const Stack = React.forwardRef<HTMLDivElement, StackProps>(
-  ({ className, direction = "col", gap = 5, align, justify, wrap, w, h, maxWidth, paddingX, ...props }, ref) => {
+  ({ className, direction = "col", mobileDirection, gap = 5, align, mobileAlign, justify, wrap, w, h, maxWidth, paddingX, flex, minW, ...props }, ref) => {
+    const mobileDirectionClass = mobileDirection === "row" ? "md:flex-row" : mobileDirection === "col" ? "md:flex-col" : undefined
     return (
       <div
         ref={ref}
         className={cn(
           "flex",
           direction === "col" ? "flex-col" : "flex-row",
+          mobileDirectionClass,
           gapMap[String(gap)],
           align && alignMap[align],
+          mobileAlign && mobileAlignMap[mobileAlign],
           justify && justifyMap[justify],
           wrap && "flex-wrap",
           w && (widthMap[w] || w),
           h && (heightMap[h] || h),
           maxWidth && maxWidthMap[maxWidth],
           paddingX && paddingXMap[paddingX],
+          flex && flexMap[flex],
+          minW && minWMap[minW],
           className
         )}
         {...props}

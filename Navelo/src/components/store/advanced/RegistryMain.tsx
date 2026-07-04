@@ -23,7 +23,7 @@ export const RegistryMain: React.FC<RegistryMainProps> = ({
 }) => {
   return (
     <Box padding={5} w="full" h="full" bg="bg-background" overflow="auto" {...props}>
-      <Stack gap="section" w="full">
+      <Stack gap={'section'} w="full">
         {/* Header */}
         <Stack gap={2.5}>
           {superiorTitle && (
@@ -37,7 +37,7 @@ export const RegistryMain: React.FC<RegistryMainProps> = ({
         </Stack>
 
         {/* Content (RegistrySections) */}
-        <Stack gap="section" w="full">
+        <Stack gap={'section'} w="full">
           {children}
         </Stack>
       </Stack>

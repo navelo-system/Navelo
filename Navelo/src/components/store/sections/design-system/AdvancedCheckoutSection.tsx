@@ -9,12 +9,12 @@ import { PeripheralStatusList } from "../../advanced/PeripheralStatusList"
 import { Cpu } from "lucide-react"
 
 export const AdvancedCheckoutSection: React.FC = () => {
-  const handleScan = (barcode: string) => {
-    console.log("Scanned barcode:", barcode)
+  const handleScan: (barcode: string) => void = () => {
+    //
   }
 
-  const handleSearch = (query: string) => {
-    console.log("Search query:", query)
+  const handleSearch: (query: string) => void = () => {
+    //
   }
 
   return (

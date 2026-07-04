@@ -1,11 +1,10 @@
 import * as React from "react"
 import { Box } from "../base/Box"
 import { Stack } from "../base/Stack"
-import { Font } from "../base/Font"
 import { Button } from "../base/Button"
 import { Input } from "../base/Input"
 import { Badge } from "../base/Badge"
-import { CircularIcon } from "./CircularIcon"
+import { SectionHeader } from "./SectionHeader"
 import { ScanBarcode, Search } from "lucide-react"
 
 export interface ProductScannerProps {
@@ -18,7 +17,7 @@ export const ProductScanner: React.FC<ProductScannerProps> = ({
   onSearch,
 }) => {
   const [query, setQuery] = React.useState("")
-  const [scannerActive, setScannerActive] = React.useState(true)
+  const [scannerActive] = React.useState(true)
 
   const handleSimulateScan = () => {
     const mockBarcodes = ["7891000312012", "7892000413025", "7893000514038"]
@@ -40,24 +39,22 @@ export const ProductScanner: React.FC<ProductScannerProps> = ({
     <Box padding={5} bg="bg-surface" radius="default">
       <Stack gap={5}>
         {/* Header */}
-        <Stack direction="row" align="center" justify="between" gap={2.5}>
-          <Stack direction="row" align="center" gap={2.5}>
-            <CircularIcon icon={ScanBarcode} />
-            <Stack gap={0}>
-              <Font variant="body-bold" text="Leitor de Código de Barras" />
-              <Font variant="description" text="Busque produtos digitando ou simule a leitura de código de barras." />
-            </Stack>
-          </Stack>
-          <Badge 
-            variant={scannerActive ? "success" : "default"} 
-            label={scannerActive ? "Scanner ativo" : "Scanner inativo"} 
-          />
-        </Stack>
+        <SectionHeader
+          icon={ScanBarcode}
+          title="Leitor de Código de Barras"
+          subtitle="Busque produtos digitando ou simule a leitura de código de barras."
+          action={
+            <Badge 
+              variant={scannerActive ? "success" : "default"} 
+              label={scannerActive ? "Scanner ativo" : "Scanner inativo"} 
+            />
+          }
+        />
 
-        <div className="h-[2px] bg-border w-full" />
+        <Box borderBottom borderColor="border-border" w="full" />
 
         {/* Input Form */}
-        <form onSubmit={handleSearchSubmit} className="w-full">
+        <Box as="form" onSubmit={handleSearchSubmit} w="full">
           <Stack gap={2.5}>
             <Input 
               label="Buscar por Nome ou Código"
@@ -67,7 +64,7 @@ export const ProductScanner: React.FC<ProductScannerProps> = ({
               variant="default"
             />
             
-            <Stack direction="row" gap={2.5}>
+            <Stack direction="col" mobileDirection="row" gap={2.5}>
               <Button 
                 type="submit"
                 variant="primary" 
@@ -85,7 +82,7 @@ export const ProductScanner: React.FC<ProductScannerProps> = ({
               />
             </Stack>
           </Stack>
-        </form>
+        </Box>
       </Stack>
     </Box>
   )
