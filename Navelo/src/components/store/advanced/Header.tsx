@@ -23,19 +23,17 @@ const useHeaderScroll = () => {
 
   React.useEffect(() => {
     if (isDesktop) return
-    let lastScrollY = 0
     const handleScroll = (e: Event) => {
       const target = e.target as HTMLElement | Document
       const currentScrollY = target === document ? window.scrollY : (target as HTMLElement).scrollTop
       
       if (currentScrollY === undefined) return
 
-      if (currentScrollY > lastScrollY && currentScrollY > 50) {
+      if (currentScrollY > 50) {
         setIsMobileButtonsVisible(false)
-      } else if (currentScrollY < lastScrollY) {
+      } else if (currentScrollY <= 10) {
         setIsMobileButtonsVisible(true)
       }
-      lastScrollY = currentScrollY
     }
 
     window.addEventListener("scroll", handleScroll, { passive: true, capture: true })
