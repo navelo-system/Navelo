@@ -115,7 +115,9 @@ const eslintConfig = defineConfig([
   {
     files: ["**/src/**/*.{ts,tsx}"],
     ignores: [
-      "**/components/store/base/CustomSelect.tsx"
+      "**/components/store/base/CustomSelect.tsx",
+      "**/components/store/intermediary/EmptyState.tsx",
+      "**/components/store/sections/design-system/**"
     ],
     rules: {
       "no-restricted-syntax": [
@@ -127,6 +129,10 @@ const eslintConfig = defineConfig([
         {
           selector: "JSXOpeningElement[name.name='Select']",
           message: "Proibido: o componente <Select> (wrapper nativo) foi descontinuado. Use <CustomSelect> do Design System."
+        },
+        {
+          selector: "JSXOpeningElement[name.name='Font'] > JSXAttribute[name.name='text'][value.type='Literal'][value.value=/\\b(vazio|vazia|nenhum|nenhuma|empty|sem itens|sem registros|sem cadastros)\\b/i]",
+          message: "Proibido: Se você está criando um estado vazio (empty state), use o componente <EmptyState> do Design System (src/components/store/intermediary/EmptyState.tsx) para manter a padronização."
         }
       ],
       "no-restricted-globals": [

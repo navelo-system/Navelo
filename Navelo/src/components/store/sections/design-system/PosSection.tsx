@@ -60,7 +60,7 @@ export const PosSection: React.FC = () => {
         <Stack gap={5}>
           <Font variant="h4" text="CartList (Lista de Carrinho)" />
           <Grid cols={2} gap={5}>
-            <Box h="h-[400px]">
+            <Box h="h-[400px]" display="flex" direction="col" overflow="hidden">
               <CartList 
                 items={cartItems}
                 onIncrease={handleIncrease}

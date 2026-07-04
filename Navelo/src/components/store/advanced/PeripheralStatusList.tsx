@@ -1,9 +1,7 @@
 import * as React from "react"
 import { Box } from "../base/Box"
 import { Stack } from "../base/Stack"
-import { SectionHeader } from "../intermediary/SectionHeader"
 import { PeripheralRow, Peripheral } from "../intermediary/PeripheralRow"
-import { Cpu } from "lucide-react"
 
 export interface PeripheralStatusListProps {
   initialPeripherals?: Peripheral[]
@@ -39,27 +37,15 @@ export const PeripheralStatusList: React.FC<PeripheralStatusListProps> = ({
 
   return (
     <Box padding={0}>
-      <Stack gap={5}>
-        {/* Header */}
-        <SectionHeader
-          icon={Cpu}
-          title="Status de Periféricos"
-          subtitle="Monitore conexões de impressoras, balanças e leitores locais."
-        />
-
-        <Box borderBottom borderColor="border-border" w="full" />
-
-        {/* Peripheral Rows */}
-        <Stack gap={2.5}>
-          {peripherals.map((item) => (
-            <PeripheralRow 
-              key={item.id}
-              peripheral={item}
-              isTesting={testingId === item.id}
-              onTest={handleTest}
-            />
-          ))}
-        </Stack>
+      <Stack gap={2.5}>
+        {peripherals.map((item) => (
+          <PeripheralRow 
+            key={item.id}
+            peripheral={item}
+            isTesting={testingId === item.id}
+            onTest={handleTest}
+          />
+        ))}
       </Stack>
     </Box>
   )

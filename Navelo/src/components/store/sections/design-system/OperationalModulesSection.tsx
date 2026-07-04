@@ -8,7 +8,6 @@ import { DeliveryTimeline } from "../../intermediary/DeliveryTimeline"
 import { BillSplitter } from "../../../store/advanced/BillSplitter"
 import { CashSessionManager } from "../../../store/advanced/CashSessionManager"
 import { ThermalReceiptPreview } from "../../../store/advanced/ThermalReceiptPreview"
-import { BranchSwitcher } from "../../../store/advanced/BranchSwitcher"
 import { Cpu } from "lucide-react"
 
 export const OperationalModulesSection: React.FC = () => {
@@ -23,15 +22,12 @@ export const OperationalModulesSection: React.FC = () => {
         <Grid cols={2} gap={12.5}>
           {/* Column 1: Restaurant and Checkout */}
           <Stack gap={5}>
-            <Font variant="h3" text="Salão & Checkout" />
             <BillSplitter totalAmount={218.40} />
             <CashSessionManager initialOpenState={false} />
           </Stack>
 
           {/* Column 2: Logistics and Branch Management */}
           <Stack gap={5}>
-            <Font variant="h3" text="Logística & Filiais" />
-            <BranchSwitcher activeBranchId="1" />
             <DeliveryTimeline status="dispatched" />
           </Stack>
         </Grid>
