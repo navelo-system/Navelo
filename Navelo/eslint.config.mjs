@@ -142,6 +142,36 @@ const eslintConfig = defineConfig([
         { name: "prompt",  message: "Proibido: use <Modal> do Design System em vez de prompt() nativo." }
       ]
     }
+  },
+
+  // BLOCO 5 — Arquitetura Local-First (Bloqueio do Supabase na UI)
+  {
+    files: ["**/src/**/*.{ts,tsx}"],
+    ignores: [
+      "**/src/lib/dal/**", // A camada DAL (Data Abstraction Layer) é a única que pode importar o Supabase
+      "**/src/lib/supabase/**"
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "@supabase/supabase-js",
+              message: "Comunicação direta com Supabase proibida na UI. Use a camada DAL (IndexedDB)."
+            },
+            {
+              name: "@/lib/supabase",
+              message: "Não importe o cliente Supabase na UI. Leia e escreva apenas do IndexedDB."
+            },
+            {
+              name: "../lib/supabase",
+              message: "Não importe o cliente Supabase na UI. Leia e escreva apenas do IndexedDB."
+            }
+          ]
+        }
+      ]
+    }
   }
 ]);
 
