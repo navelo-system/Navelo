@@ -139,7 +139,7 @@ export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
 
               <Stack direction="row" align="center" gap={2.5}>
                  <Button
-                  variant="outline-secondary-pill-icon"
+                  variant={hideValues ? "outline-danger-pill-icon" : "outline-success-pill-icon"}
                   icon={hideValues ? EyeOff : Eye}
                   onClick={() => {
                     const next = !hideValues
@@ -152,7 +152,7 @@ export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
                   title="Ocultar/Mostrar Valores"
                 />
                 <Button
-                  variant="outline-secondary-pill-icon"
+                  variant="outline-danger-pill-icon"
                   icon={LogOut}
                   onClick={onLogout}
                   title="Sair"

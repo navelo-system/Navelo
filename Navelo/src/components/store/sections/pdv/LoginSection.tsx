@@ -4,12 +4,11 @@ import * as React from "react"
 import { Box } from "../../base/Box"
 import { Stack } from "../../base/Stack"
 import { Font } from "../../base/Font"
-import { Icon } from "../../base/Icon"
 import { Input } from "../../base/Input"
 import { Button } from "../../base/Button"
 import { CustomSelect, CustomSelectItem } from "../../base/CustomSelect"
 import { RegistrySection } from "../../advanced/RegistrySection"
-import { User, Lock, Shield } from "lucide-react"
+import { User, Lock } from "lucide-react"
 
 interface LoginSectionProps {
   onLoginSuccess: (operatorName: string) => void
@@ -27,15 +26,9 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ onLoginSuccess }) =>
 
   return (
     <Box w="full" h="screen" bg="bg-slate-900">
-      <Stack w="full" h="full" align="center" justify="center" gap={5}>
-        <Box w="1/4">
+      <Stack w="full" h="full" align="center" justify="center" gap={5} paddingX="5">
+        <Box w="w-full md:w-1/4 max-w-[450px]">
           <Stack gap={5} w="full" align="stretch">
-            {/* Nome do Aplicativo / Cabeçalho do PDV */}
-            <Stack direction="row" align="center" justify="center" gap={2.5}>
-              <Icon icon={Shield} size={24} color="brand-secondary" />
-              <Font variant="h3" color="brand-secondary" text="PDV+ 19.1.1" />
-            </Stack>
-
             <RegistrySection
               variant="card"
               title="Olá!"
