@@ -86,8 +86,8 @@ export const HorarioAtendimentoSection: React.FC<HorarioAtendimentoSectionProps>
           {schedule.map((item, idx) => (
             <React.Fragment key={item.day}>
               {idx > 0 && <Box h="h-[1px]" w="full" bg="bg-border" />}
-              <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-                <Stack direction="row" align="center" gap={5} flex="1">
+              <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full" gap={2.5}>
+                <Stack direction="row" align="center" gap={5} flex="1" w="full">
                   <Switch
                     checked={item.enabled}
                     onChange={() => toggleDay(idx)}
@@ -96,13 +96,13 @@ export const HorarioAtendimentoSection: React.FC<HorarioAtendimentoSectionProps>
                 </Stack>
 
                 {item.enabled ? (
-                  <Stack direction="row" align="center" gap={2.5}>
+                  <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" gap={2.5} w="w-full md:w-auto" justify="center" mobileJustify="end">
                     <Input
                       type="time"
                       value={item.start}
                       onChange={(e) => updateTime(idx, "start", e.target.value)}
                     />
-                    <Font variant="body" text="às" color="muted" />
+                    <Font variant="body" text="às" color="muted" align="center" />
                     <Input
                       type="time"
                       value={item.end}
@@ -110,7 +110,9 @@ export const HorarioAtendimentoSection: React.FC<HorarioAtendimentoSectionProps>
                     />
                   </Stack>
                 ) : (
-                  <Font variant="description" text="Fechado" color="muted" />
+                  <Box className="w-full md:w-auto md:justify-end" display="flex" justify="start">
+                    <Font variant="description" text="Fechado" color="muted" />
+                  </Box>
                 )}
               </Stack>
             </React.Fragment>
@@ -120,7 +122,7 @@ export const HorarioAtendimentoSection: React.FC<HorarioAtendimentoSectionProps>
 
       {/* Botões de Ação */}
       <Box paddingY={2.5} w="full">
-        <Stack direction="row" justify="end" gap={2.5} w="full">
+        <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full">
           <Button variant="outline" label="Cancelar" onClick={onCancel} />
           <Button type="button" variant="primary" label="Salvar alterações" onClick={handleSave} />
         </Stack>

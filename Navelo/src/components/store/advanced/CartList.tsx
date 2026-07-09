@@ -27,15 +27,6 @@ export const CartList: React.FC<CartListProps> = ({
   onDecrease,
   onRemove,
 }) => {
-  const total = items.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0)
-
-  const formatPrice = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value)
-  }
-
   return (
     <Box padding={0} bg="bg-surface" radius="default" flex="1" display="flex" direction="col" overflow="hidden">
       {/* Header */}

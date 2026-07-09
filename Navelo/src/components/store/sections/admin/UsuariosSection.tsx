@@ -7,7 +7,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Input } from "@/components/store/base/Input"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/store/base/Table"
 import { Badge } from "@/components/store/base/Badge"
-import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/store/base/Modal"
+import { Modal } from "@/components/store/base/Modal"
 import { Form } from "@/components/store/advanced/Form"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { FilterBar } from "@/components/store/intermediary/FilterBar"
@@ -150,54 +150,50 @@ export function UsuariosSection() {
 
       {isModalOpen && (
         <Form onSubmit={handleCreateUser}>
-          <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-            <ModalHeader
-              title="Novo Usuário"
-              subtitle="Cadastre uma credencial e associe a uma empresa."
-              icon={Users}
-            />
-            <ModalBody>
-              <Stack gap={5}>
-                <Input
-                  label="Nome Completo"
-                  placeholder="Nome do colaborador"
-                  value={newName}
-                  onChange={e => setNewName(e.target.value)}
-                  required
-                />
-                <Input
-                  label="Endereço de E-mail"
-                  placeholder="exemplo@empresa.com"
-                  icon={Mail}
-                  value={newEmail}
-                  onChange={e => setNewEmail(e.target.value)}
-                  required
-                />
-                <Stack gap={2.5}>
-                  <Badge variant="outline" label="Empresa Inquilina" />
-                  <CustomSelect value={newTenantId} onChange={setNewTenantId}>
-                    {tenantsList.map(t => (
-                      <CustomSelectItem key={t.id} value={t.id} text={t.name} icon={UserIcon} />
-                    ))}
-                  </CustomSelect>
-                </Stack>
-
-                <Stack gap={2.5}>
-                  <Badge variant="outline" label="Cargo / Nível de Acesso" />
-                  <CustomSelect value={newRole} onChange={(v) => setNewRole(v as UserRole)}>
-                    <CustomSelectItem value={UserRole.CASHIER} text="Caixa" icon={UserIcon} />
-                    <CustomSelectItem value={UserRole.ATTENDANT} text="Atendente" icon={UserIcon} />
-                    <CustomSelectItem value={UserRole.MANAGER} text="Gerente" icon={Shield} />
-                    <CustomSelectItem value={UserRole.ADMIN} text="Administrador" icon={Shield} />
-                  </CustomSelect>
-                </Stack>
+          <Modal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            title="Novo Usuário"
+            subtitle="Cadastre uma credencial e associe a uma empresa."
+            icon={Users}
+            successText="Salvar Usuário"
+            isSubmit
+          >
+            <Stack gap={5}>
+              <Input
+                label="Nome Completo"
+                placeholder="Nome do colaborador"
+                value={newName}
+                onChange={e => setNewName(e.target.value)}
+                required
+              />
+              <Input
+                label="Endereço de E-mail"
+                placeholder="exemplo@empresa.com"
+                icon={Mail}
+                value={newEmail}
+                onChange={e => setNewEmail(e.target.value)}
+                required
+              />
+              <Stack gap={2.5}>
+                <Badge variant="outline" label="Empresa Inquilina" />
+                <CustomSelect value={newTenantId} onChange={setNewTenantId}>
+                  {tenantsList.map(t => (
+                    <CustomSelectItem key={t.id} value={t.id} text={t.name} icon={UserIcon} />
+                  ))}
+                </CustomSelect>
               </Stack>
-            </ModalBody>
-            <ModalFooter
-              onCancel={() => setIsModalOpen(false)}
-              confirmLabel="Salvar Usuário"
-              isSubmit
-            />
+
+              <Stack gap={2.5}>
+                <Badge variant="outline" label="Cargo / Nível de Acesso" />
+                <CustomSelect value={newRole} onChange={(v) => setNewRole(v as UserRole)}>
+                  <CustomSelectItem value={UserRole.CASHIER} text="Caixa" icon={UserIcon} />
+                  <CustomSelectItem value={UserRole.ATTENDANT} text="Atendente" icon={UserIcon} />
+                  <CustomSelectItem value={UserRole.MANAGER} text="Gerente" icon={Shield} />
+                  <CustomSelectItem value={UserRole.ADMIN} text="Administrador" icon={Shield} />
+                </CustomSelect>
+              </Stack>
+            </Stack>
           </Modal>
         </Form>
       )}

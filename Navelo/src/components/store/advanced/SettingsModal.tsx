@@ -5,7 +5,7 @@ import { Box } from "../base/Box"
 import { Stack } from "../base/Stack"
 import { Grid } from "../base/Grid"
 import { Button } from "../base/Button"
-import { Modal, ModalHeader, ModalBody, ModalFooter } from "../base/Modal"
+import { Modal } from "../base/Modal"
 import { Input } from "../base/Input"
 import { SectionHeader } from "../intermediary/SectionHeader"
 import { Settings, Upload, Palette } from "lucide-react"
@@ -117,28 +117,23 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleCancel}>
-      <ModalHeader
-        title="Configurações do Sistema"
-        subtitle="Gerencie suas preferências e recursos do terminal."
-        icon={Settings}
-      />
-      <ModalBody>
-        <SettingsForm
-          tempPrimary={tempPrimary}
-          setTempPrimary={setTempPrimary}
-          tempSecondary={tempSecondary}
-          setTempSecondary={setTempSecondary}
-          tempLogo={tempLogo}
-          setTempLogo={setTempLogo}
-          handleLogoChange={handleLogoChange}
-        />
-      </ModalBody>
-      <ModalFooter
-        cancelLabel="Cancelar"
-        onCancel={handleCancel}
-        confirmLabel="Salvar preferências"
-        onConfirm={handleSave}
+    <Modal
+      isOpen={isOpen}
+      onClose={handleCancel}
+      title="Configurações do Sistema"
+      subtitle="Gerencie suas preferências e recursos do terminal."
+      icon={Settings}
+      successText="Salvar preferências"
+      onSuccess={handleSave}
+    >
+      <SettingsForm
+        tempPrimary={tempPrimary}
+        setTempPrimary={setTempPrimary}
+        tempSecondary={tempSecondary}
+        setTempSecondary={setTempSecondary}
+        tempLogo={tempLogo}
+        setTempLogo={setTempLogo}
+        handleLogoChange={handleLogoChange}
       />
     </Modal>
   )

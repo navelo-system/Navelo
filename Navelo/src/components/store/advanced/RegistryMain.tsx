@@ -48,7 +48,7 @@ export const RegistryMain: React.FC<RegistryMainProps> = ({
           <Stack direction="row" align="center" justify="between" w="full" gap={5}>
             <Stack gap={2.5}>
               {onBack && (
-                <Box className="block md:hidden">
+                <Box display="block md:hidden">
                   <Button
                     variant="ghost-secondary"
                     label="Voltar"
@@ -71,7 +71,7 @@ export const RegistryMain: React.FC<RegistryMainProps> = ({
               <Stack direction="row" align="center" gap={2.5} flex="none">
                 {customActions}
                 {onBack && (
-                  <Box className="hidden md:block">
+                  <Box display="hidden md:block">
                     <Button
                       variant="outline-secondary"
                       label="Voltar"

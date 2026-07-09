@@ -77,34 +77,36 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
     >
       <Stack gap={5} w="full">
         {/* Logo / Upload */}
-        <Stack align="center" justify="center" w="full" className="py-5">
-          {logo ? (
-            <Stack gap={2.5} align="center">
-              <Box
-                as="img"
-                src={logo}
-                alt="Logo da empresa"
-                w="h-16"
-                h="h-16"
-                objectFit="contain"
-              />
-              <Button
-                variant="outline-danger-sm"
-                label="Remover logo"
-                onClick={() => setLogo(null)}
-              />
-            </Stack>
-          ) : (
-            <Box w="full">
-              <Input
-                variant="image-upload"
-                placeholder="Clique ou arraste para enviar o logotipo"
-                icon={Upload}
-                onChange={handleLogoChange}
-              />
-            </Box>
-          )}
-        </Stack>
+        <Box padding={5} w="full">
+          <Stack align="center" justify="center" w="full">
+            {logo ? (
+              <Stack gap={2.5} align="center">
+                <Box
+                  as="img"
+                  src={logo}
+                  alt="Logo da empresa"
+                  w="h-16"
+                  h="h-16"
+                  objectFit="contain"
+                />
+                <Button
+                  variant="outline-danger-sm"
+                  label="Remover logo"
+                  onClick={() => setLogo(null)}
+                />
+              </Stack>
+            ) : (
+              <Box w="full">
+                <Input
+                  variant="image-upload"
+                  placeholder="Clique ou arraste para enviar o logotipo"
+                  icon={Upload}
+                  onChange={handleLogoChange}
+                />
+              </Box>
+            )}
+          </Stack>
+        </Box>
 
         {/* Dados Gerais */}
         <Stack gap={5} w="full">
@@ -139,7 +141,7 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
         <Stack gap={5} w="full">
           <Font variant="body-bold" text="Endereço" />
           <Stack direction="row" gap={5} w="full">
-            <Box w="full" className="md:w-1/3">
+            <Box w="w-full md:w-1/3">
               <Input
                 label="* CEP"
                 variant="cep"
@@ -207,10 +209,12 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
         </Stack>
 
         {/* Ações */}
-        <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full" className="py-2.5 md:w-auto">
-          <Button variant="outline" label="Cancelar" onClick={onCancel} fullWidth />
-          <Button type="submit" variant="primary" label="Salvar alterações" fullWidth />
-        </Stack>
+        <Box padding={2.5} w="w-full md:w-auto">
+          <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full">
+            <Button variant="outline" label="Cancelar" onClick={onCancel} fullWidth />
+            <Button type="submit" variant="primary" label="Salvar alterações" fullWidth />
+          </Stack>
+        </Box>
       </Stack>
     </Box>
   )

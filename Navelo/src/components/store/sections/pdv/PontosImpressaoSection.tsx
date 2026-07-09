@@ -169,8 +169,8 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
       {mode === "list" ? (
         <Stack gap={5} w="full">
           {/* Barra de Busca e Botão de Adição no topo */}
-          <Stack direction="row" align="center" gap={5} w="full">
-            <Box flex="1">
+          <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" gap={2.5} w="full">
+            <Box flex="1" w="full">
               <Input
                 placeholder="Buscar ponto de impressão..."
                 value={searchQuery}
@@ -204,9 +204,9 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
                     hoverBg="primary/10"
                     w="full"
                   >
-                    <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-                      <Stack direction="row" align="center" gap={5} flex="1">
-                        <Box w="w-10" h="h-10" bg="bg-brand-primary/10" radius="full">
+                    <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
+                      <Stack direction="row" align="center" gap={5} flex="1" minW="0">
+                        <Box w="w-10" h="h-10" bg="bg-brand-primary/10" radius="full" shrink="0">
                           <Stack w="full" h="full" align="center" justify="center">
                             <Font
                               variant="body-bold"
@@ -215,19 +215,29 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
                             />
                           </Stack>
                         </Box>
-                        <Stack gap={1}>
-                          <Font variant="body-bold" text={point.name} />
+                        <Stack gap={1} flex="1" minW="0">
+                          <Font variant="body-bold" text={point.name} align="left" />
                           <Font
                             variant="description"
                             text={`Servidor: ${point.serverIp}:${point.port}`}
                             color="muted"
+                            align="left"
                           />
+                          {point.enabled && (
+                            <Box display="block md:hidden" w="full">
+                              <Stack direction="row" justify="start" gap={0} w="full">
+                                <Badge variant="success" label="habilitado" icon={Check} />
+                              </Stack>
+                            </Box>
+                          )}
                         </Stack>
                       </Stack>
 
-                      <Stack direction="row" align="center" gap={5} justify="end">
+                      <Stack direction="row" align="center" gap={5} justify="between" mobileJustify="end" w="w-full md:w-auto">
                         {point.enabled && (
-                          <Badge variant="success" label="habilitado" icon={Check} />
+                          <Box display="hidden md:block">
+                            <Badge variant="success" label="habilitado" icon={Check} />
+                          </Box>
                         )}
 
                         {/* Ações de Edição/Deleção */}
@@ -439,19 +449,21 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
 
             {/* Ações de Formulário */}
             <Box paddingY={2.5} w="full">
-              <Stack direction="row" justify="between" align="center" w="full">
+              <Stack direction="col" mobileDirection="row" justify="between" align="stretch" mobileAlign="center" w="full" gap={2.5}>
                 {editingPoint ? (
-                  <Button
-                    type="button"
-                    variant="outline-danger"
-                    label="Excluir Ponto"
-                    icon={Trash2}
-                    onClick={() => handleDelete(editingPoint.id)}
-                  />
+                  <Box w="w-full md:w-auto" order="2" mdOrder="1" display="flex">
+                    <Button
+                      type="button"
+                      variant="outline-danger"
+                      label="Excluir Ponto"
+                      icon={Trash2}
+                      onClick={() => handleDelete(editingPoint.id)}
+                    />
+                  </Box>
                 ) : (
-                  <Box />
+                  <Box display="hidden md:block" mdOrder="1" />
                 )}
-                <Stack direction="row" gap={2.5}>
+                <Stack direction="col" mobileDirection="row" gap={2.5} w="w-full md:w-auto" order="1" mdOrder="2">
                   <Button
                     type="button"
                     variant="outline"

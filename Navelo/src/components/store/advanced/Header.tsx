@@ -7,7 +7,7 @@ import { Font } from "../base/Font"
 import { Icon } from "../base/Icon"
 import { Button } from "../base/Button"
 import { SettingsModal } from "./SettingsModal"
-import { Eye, Cloud, LogOut, Settings, Store } from "lucide-react"
+import { Eye, LogOut, Settings, Store } from "lucide-react"
 
 
 const useHeaderScroll = () => {

@@ -112,11 +112,12 @@ export const IdentificacaoSection: React.FC<IdentificacaoSectionProps> = ({
               value={subdomain}
               onChange={(e) => setSubdomain(e.target.value)}
             />
-            <Stack direction="row" align="center" justify="between" w="full" gap={2.5}>
+            <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full" gap={2.5}>
               <Font
                 variant="description"
                 text={`https://${subdomain || "basenavelo"}.menudigital.net.br`}
                 color="muted"
+                align="left"
               />
               <Badge variant="success" label="Disponível" />
             </Stack>

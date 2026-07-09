@@ -215,19 +215,20 @@ export const CatalogoOnlineSection: React.FC<CatalogoOnlineSectionProps> = ({
         onClick={() => onNavigate("whatsapp")}
         w="full"
       >
-        <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-          <Stack direction="row" align="center" gap={5}>
+        <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
+          <Stack direction="row" align="center" gap={5} flex="1">
             <Icon icon={MessageSquare} size={20} color="primary" />
-            <Stack gap={1}>
-              <Font variant="body-bold" text="WhatsApp" />
+            <Stack gap={1} flex="1">
+              <Font variant="body-bold" text="WhatsApp" align="left" />
               <Font
                 variant="description"
                 text="Ative esta opção para enviar notificações automáticas para os clientes."
                 color="muted"
+                align="left"
               />
             </Stack>
           </Stack>
-          <Stack direction="row" align="center" gap={2.5}>
+          <Stack direction="row" align="center" justify="end" mobileJustify="end" gap={2.5} className="w-full md:w-auto">
             <Badge variant="success" label="habilitado" icon={Check} />
             <Icon icon={ChevronRight} size={16} color="muted" />
           </Stack>

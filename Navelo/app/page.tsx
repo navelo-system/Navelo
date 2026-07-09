@@ -14,33 +14,10 @@ import { ProdutosSection } from "@/components/store/sections/pdv/ProdutosSection
 import { ClientesSection } from "@/components/store/sections/pdv/ClientesSection"
 import { RelatoriosSection } from "@/components/store/sections/pdv/RelatoriosSection"
 import { ConfiguracoesSection } from "@/components/store/sections/pdv/ConfiguracoesSection"
-import {
-  Terminal,
-  ShoppingBag,
-  Receipt,
-  Bike,
-  Package,
-  Layers,
-  Users,
-  BarChart3,
-  Settings,
-  LayoutDashboard
-} from "lucide-react"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
+import { Terminal } from "lucide-react"
 
 const PDV_VIEWS = ["dashboard", "caixa", "comandas", "delivery", "estoque", "produtos", "clientes", "relatorios", "configuracoes"]
-
-const viewIconMap: Record<string, typeof Terminal> = {
-  dashboard: LayoutDashboard,
-  caixa: ShoppingBag,
-  comandas: Receipt,
-  delivery: Bike,
-  estoque: Package,
-  produtos: Layers,
-  clientes: Users,
-  relatorios: BarChart3,
-  configuracoes: Settings,
-}
 
 export default function Home() {
   const [isMounted, setIsMounted] = React.useState(false)

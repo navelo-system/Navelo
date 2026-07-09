@@ -146,7 +146,6 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
                 label="Novo Usuário"
                 icon={Plus}
                 onClick={handleCreateNew}
-                fullWidth
               />
             </Stack>
 

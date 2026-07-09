@@ -14,11 +14,11 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
     <Stack 
       gap={2.5}
       onClick={() => onClick?.(product)}
-      className="cursor-pointer"
+      cursor="pointer"
       w="full"
       align="stretch"
     >
-      <Box className="w-full aspect-square" bg="bg-surface-sunken" radius="default" overflow="hidden">
+      <Box w="full" h="aspect-square" bg="bg-surface-sunken" radius="default" overflow="hidden">
         {product.mainImage ? (
           <Box 
             as="img" 
@@ -29,7 +29,7 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
             objectFit="cover" 
           />
         ) : (
-          <Stack align="center" justify="center" w="full" h="full" className="aspect-square">
+          <Stack align="center" justify="center" w="full" h="aspect-square">
             <Font variant="auxiliary" color="muted" text="Sem Foto" />
           </Stack>
         )}

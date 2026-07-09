@@ -8,9 +8,8 @@ import { Stack } from "../../base/Stack"
 import { Font } from "../../base/Font"
 import { Input } from "../../base/Input"
 import { Button } from "../../base/Button"
-import { Icon } from "../../base/Icon"
 import { Switch } from "../../base/Switch"
-import { X, CheckCircle, Search } from "lucide-react"
+import { X, Search } from "lucide-react"
 import { EmptyState } from "../../intermediary/EmptyState"
 
 export interface AutorizacoesSectionProps {
@@ -20,11 +19,11 @@ export interface AutorizacoesSectionProps {
 }
 
 const CustomCheckbox = ({ checked, onChange, label }: { checked: boolean, onChange: () => void, label: string }) => (
-  <Stack direction="col" mobileDirection="row" gap={2.5} className="md:gap-5" align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
-    <Box className="order-2 md:order-1">
+  <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
+    <Box order="2" mdOrder="1">
       <Font variant="body-sm-medium" text={label} align="left" />
     </Box>
-    <Box className="order-1 md:order-2">
+    <Box order="1" mdOrder="2">
       <Switch checked={checked} onChange={onChange} />
     </Box>
   </Stack>
@@ -53,7 +52,7 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
   }, [setCustomBack, setCustomTitle, onCancel])
 
   return (
-    <Stack direction="col" className="lg:flex-row" gap={5} w="full" align="stretch">
+    <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch">
       {/* Painel Principal (Esquerda) */}
       <Box
         flex="1"
@@ -72,8 +71,7 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
 
       {/* Painel de Filtros (Direita) */}
       <Box
-        w="full"
-        className="lg:w-80"
+        w="w-full lg:w-80"
         bg="bg-white"
         border={true}
         borderColor="border-border"

@@ -289,6 +289,7 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
               <Stack gap={2.5} w="full">
                 {authorizedCpfCnpj.length === 0 ? (
                   <EmptyState
+                    icon={User}
                     title="Nenhum documento autorizado"
                     subtitle="Adicione um CPF ou CNPJ para permitir download do XML"
                   />
@@ -439,7 +440,7 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
 
         {/* Botões de Ações na Base do Formulário */}
         <Box paddingY={2.5} w="full">
-          <Stack direction="row" justify="end" gap={2.5} w="full">
+          <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full">
             <Button variant="outline" label="Cancelar" onClick={onCancel} />
             <Button type="button" variant="primary" label="Salvar alterações" onClick={handleSave} />
           </Stack>

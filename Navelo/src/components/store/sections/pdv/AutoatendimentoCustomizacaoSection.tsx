@@ -8,7 +8,8 @@ import { Stack } from "../../base/Stack"
 import { Font } from "../../base/Font"
 import { Switch } from "../../base/Switch"
 import { Button } from "../../base/Button"
-import { CustomSelect } from "../../base/CustomSelect"
+import { CustomSelect, CustomSelectItem } from "../../base/CustomSelect"
+import { Package, ClipboardList } from "lucide-react"
 
 export interface AutoatendimentoCustomizacaoSectionProps {
   onCancel: () => void
@@ -96,11 +97,10 @@ export const AutoatendimentoCustomizacaoSection: React.FC<AutoatendimentoCustomi
           <CustomSelect
             value={paginaPrincipal}
             onChange={(val) => setPaginaPrincipal(val as "produtos" | "resumo")}
-            options={[
-              { value: "produtos", label: "Página de produtos (ideal para escolha do produto em tela)" },
-              { value: "resumo", label: "Página de resumo (ideal para adição de produto por código de barras)" }
-            ]}
-          />
+          >
+            <CustomSelectItem value="produtos" text="Página de produtos (ideal para escolha do produto em tela)" icon={Package} />
+            <CustomSelectItem value="resumo" text="Página de resumo (ideal para adição de produto por código de barras)" icon={ClipboardList} />
+          </CustomSelect>
         </Stack>
       </Box>
 

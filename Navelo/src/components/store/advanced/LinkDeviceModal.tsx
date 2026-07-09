@@ -4,8 +4,8 @@ import * as React from "react"
 import { Stack } from "../base/Stack"
 import { Font } from "../base/Font"
 import { Input } from "../base/Input"
-import { Modal, ModalHeader, ModalBody, ModalFooter } from "../base/Modal"
-import { Barcode, Link2, LucideIcon } from "lucide-react"
+import { Modal } from "../base/Modal"
+import { Barcode, LucideIcon } from "lucide-react"
 
 export interface LinkDeviceModalProps {
   isOpen: boolean
@@ -39,42 +39,36 @@ export const LinkDeviceModal: React.FC<LinkDeviceModalProps> = ({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose}>
-      <ModalHeader
-        title={appName}
-        subtitle="Vincule um dispositivo ao aplicativo"
-        icon={appIcon}
-      />
-      <ModalBody>
-        <Stack gap={5} w="full">
-          <Stack gap={2.5} w="full">
-            <Input
-              label="* Código de vinculação"
-              placeholder="Código de vinculação"
-              value={linkCode}
-              onChange={(e) => setLinkCode(e.target.value)}
-            />
-            <Font
-              variant="description"
-              text="Informe o código apresentado no aplicativo"
-            />
-          </Stack>
-
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={appName}
+      subtitle="Vincule um dispositivo ao aplicativo"
+      icon={appIcon}
+      successText="VINCULAR"
+      onSuccess={handleConfirm}
+    >
+      <Stack gap={5} w="full">
+        <Stack gap={2.5} w="full">
           <Input
-            label="* Nome do dispositivo"
-            placeholder="Nome do dispositivo"
-            value={deviceName}
-            onChange={(e) => setDeviceName(e.target.value)}
+            label="* Código de vinculação"
+            placeholder="Código de vinculação"
+            value={linkCode}
+            onChange={(e) => setLinkCode(e.target.value)}
+          />
+          <Font
+            variant="description"
+            text="Informe o código apresentado no aplicativo"
           />
         </Stack>
-      </ModalBody>
-      <ModalFooter
-        cancelLabel="CANCELAR"
-        confirmLabel="VINCULAR"
-        confirmIcon={Link2}
-        onCancel={handleClose}
-        onConfirm={handleConfirm}
-      />
+
+        <Input
+          label="* Nome do dispositivo"
+          placeholder="Nome do dispositivo"
+          value={deviceName}
+          onChange={(e) => setDeviceName(e.target.value)}
+        />
+      </Stack>
     </Modal>
   )
 }

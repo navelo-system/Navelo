@@ -10,7 +10,7 @@ import { Button } from "../../base/Button"
 import { Switch } from "../../base/Switch"
 import { Checkbox } from "../../base/Checkbox"
 import { Input } from "../../base/Input"
-import { Modal, ModalHeader, ModalBody, ModalFooter } from "../../base/Modal"
+import { Modal } from "../../base/Modal"
 import { Icon } from "../../base/Icon"
 import { Ban, BookOpen, RefreshCw, Trash2, ChevronRight, Copy, ShoppingBag } from "lucide-react"
 
@@ -256,82 +256,77 @@ export const IFoodSection: React.FC<IFoodSectionProps> = ({
 
       {/* Botões de Ações na Base do Formulário */}
       <Box paddingY={2.5} w="full">
-        <Stack direction="row" justify="end" gap={2.5} w="full">
+        <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full">
           <Button variant="outline" label="Cancelar" onClick={onCancel} />
           <Button type="button" variant="primary" label="Salvar alterações" onClick={handleSave} />
         </Stack>
       </Box>
 
       {/* Modal de Ativação do iFood */}
-      <Modal isOpen={isActivationModalOpen} onClose={handleCancelActivation}>
-        <ModalHeader
-          title="Ativar aplicativo"
-          subtitle="Vincule sua conta iFood com o Navelo PDV"
-          icon={ShoppingBag}
-        />
-        <ModalBody>
-          <Stack gap={5} w="full">
-            {/* Card do código de ativação */}
-            <Box
-              bg="bg-surface-sunken"
-              border={true}
-              borderColor="border-border"
-              radius="default"
-              padding={5}
-              w="full"
-            >
-              <Stack align="center" gap={2.5} w="full">
-                <Font variant="description" text="Código de ativação" />
-                <Font variant="h1" text="PDDD-FPSG" />
-                
-                {/* Botão Copiar */}
-                <Button
-                  variant="outline-primary"
-                  label="COPIAR"
-                  icon={Copy}
-                  onClick={handleCopyCode}
-                />
-              </Stack>
-            </Box>
+      <Modal
+        isOpen={isActivationModalOpen}
+        onClose={handleCancelActivation}
+        title="Ativar aplicativo"
+        subtitle="Vincule sua conta iFood com o Navelo PDV"
+        icon={ShoppingBag}
+        successText="CONCLUIR"
+        onSuccess={handleConfirmActivation}
+      >
+        <Stack gap={5} w="full">
+          {/* Card do código de ativação */}
+          <Box
+            bg="bg-surface-sunken"
+            border={true}
+            borderColor="border-border"
+            radius="default"
+            padding={5}
+            w="full"
+          >
+            <Stack align="center" gap={2.5} w="full">
+              <Font variant="description" text="Código de ativação" />
+              <Font variant="h1" text="PDDD-FPSG" />
+              
+              {/* Botão Copiar */}
+              <Button
+                variant="outline-primary"
+                label="COPIAR"
+                icon={Copy}
+                onClick={handleCopyCode}
+              />
+            </Stack>
+          </Box>
 
-            {/* Passo 1 instrução */}
-            <Font
-              variant="body"
-              text="Acesse a URL abaixo e cole o código de ativação na plataforma do iFood para ativar o aplicativo."
-              align="center"
-            />
-            
-            <Box
-              as="a"
-              href="https://portal.ifood.com.br/apps/code"
-              target="_blank"
-              display="block"
-            >
-              <Font variant="body-bold" color="primary" align="center" text="https://portal.ifood.com.br/apps/code" />
-            </Box>
+          {/* Passo 1 instrução */}
+          <Font
+            variant="body"
+            text="Acesse a URL abaixo e cole o código de ativação na plataforma do iFood para ativar o aplicativo."
+            align="center"
+          />
+          
+          <Box
+            as="a"
+            href="https://portal.ifood.com.br/apps/code"
+            target="_blank"
+            display="block"
+          >
+            <Font variant="body-bold" color="primary" align="center" text="https://portal.ifood.com.br/apps/code" />
+          </Box>
 
-            {/* Passo 2 instrução */}
-            <Font
-              variant="body"
-              text="Para concluir a ativação do aplicativo, informe o código de ativação gerado pelo iFood."
-              align="center"
-            />
+          {/* Passo 2 instrução */}
+          <Font
+            variant="body"
+            text="Para concluir a ativação do aplicativo, informe o código de ativação gerado pelo iFood."
+            align="center"
+          />
 
-            {/* Input do código gerado */}
-            <Input
-              label="* Código de ativação"
-              value={activationCode}
-              onChange={(e) => setActivationCode(e.target.value)}
-              placeholder="Cole o código retornado pelo iFood"
-            />
-          </Stack>
-        </ModalBody>
-        <ModalFooter
-          cancelLabel="CANCELAR"
-          confirmLabel="CONCLUIR"
-          onCancel={handleCancelActivation}
-          onConfirm={handleConfirmActivation}
-        />
+          {/* Input do código gerado */}
+          <Input
+            label="* Código de ativação"
+            value={activationCode}
+            onChange={(e) => setActivationCode(e.target.value)}
+            placeholder="Cole o código retornado pelo iFood"
+          />
+        </Stack>
       </Modal>
     </Stack>
   )

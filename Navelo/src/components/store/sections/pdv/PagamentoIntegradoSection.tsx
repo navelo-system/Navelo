@@ -68,8 +68,8 @@ export const PagamentoIntegradoSection: React.FC<PagamentoIntegradoSectionProps>
 
   const posContent = (
     <Stack gap={5} w="full">
-      <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-        <Font variant="body-bold" text={type === "integrated" ? "POS's vinculados" : "POS's vinculados:"} />
+      <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="start" mobileJustify="between" w="full" gap={2.5}>
+        <Font variant="body-bold" text={type === "integrated" ? "POS's vinculados" : "POS's vinculados:"} align="left" />
         <Button
           variant="primary"
           label="Vincular POS"
@@ -127,8 +127,8 @@ export const PagamentoIntegradoSection: React.FC<PagamentoIntegradoSectionProps>
           padding={5}
           w="full"
         >
-          <Stack direction="row" align="center" gap={5} w="full">
-            <Box flex="1">
+          <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" gap={5} w="full">
+            <Box flex="1" w="full">
               <Input
                 label="Nome deste dispositivo"
                 value={isEditingName ? tempDeviceName : deviceName}
@@ -140,10 +140,11 @@ export const PagamentoIntegradoSection: React.FC<PagamentoIntegradoSectionProps>
                 <Font
                   variant="description"
                   text='Nome que será exibido no aplicativo "Pagamento Integrado".'
+                  align="left"
                 />
               </Box>
             </Box>
-            <Box shrink="0">
+            <Box shrink="0" className="w-full md:w-auto" display="flex">
               <Button
                 variant="outline"
                 label={isEditingName ? "SALVAR" : "EDITAR"}

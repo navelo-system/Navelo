@@ -1,22 +1,21 @@
 # Identity
-<!-- Preenchido pelo Bootstrap Wizard. Não editar manualmente. -->
 
 ## O que este projeto é
-[PENDENTE — Bootstrap Wizard]
+Um sistema de Ponto de Venda (PDV) online e SaaS para pequenos e médios varejos.
 
 ## O que este projeto não é
-[PENDENTE — Bootstrap Wizard]
+Um ERP complexo de grande porte ou e-commerce B2C genérico.
 
 ## Por que existe
-[PENDENTE — Bootstrap Wizard]
+Facilitar a operação de frente de caixa de forma simples, integrada e rápida.
 
 ## Usuários primários
-[PENDENTE — Bootstrap Wizard]
+Operadores de caixa, gerentes de loja e administradores de estabelecimentos.
 
 ## Critérios de sucesso
-[PENDENTE — Bootstrap Wizard]
+Operação ágil, sem travamentos, com sincronização offline/online robusta e interface intuitiva em qualquer dispositivo.
 
 ## Metadados
 - Criado em: 2026-07-06
-- Última revisão: 2026-07-06
-- Status: PENDENTE_BOOTSTRAP
+- Última revisão: 2026-07-09
+- Status: ATIVO

@@ -441,12 +441,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 {isMultissaborOpen && (
                   <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
                     <Stack gap={5} w="full">
-                      <Stack direction="col" mobileDirection="row" gap={2.5} className="md:gap-5" align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
-                        <Stack gap={1} className="order-2 md:order-1">
+                      <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
+                        <Stack gap={1} order="2" mdOrder="1">
                           <Font variant="body-semibold" text="Habilitar Multissabor" align="left" />
                           <Font variant="description" text="Permite que o produto seja fracionado em diferentes sabores" align="left" />
                         </Stack>
-                        <Box className="order-1 md:order-2">
+                        <Box order="1" mdOrder="2">
                           <Switch checked={multissaborEnabled} onChange={(e) => setMultissaborEnabled(e.target.checked)} />
                         </Box>
                       </Stack>
@@ -495,12 +495,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 {isComplementosOpen && (
                   <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
                     <Stack gap={5} w="full">
-                      <Stack direction="col" mobileDirection="row" gap={2.5} className="md:gap-5" align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
-                        <Stack gap={1} className="order-2 md:order-1">
+                      <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
+                        <Stack gap={1} order="2" mdOrder="1">
                           <Font variant="body-semibold" text="Vincular Complementos" align="left" />
                           <Font variant="description" text="Vincular opcionais e acompanhamentos cadastrados no subgrupo" align="left" />
                         </Stack>
-                        <Box className="order-1 md:order-2">
+                        <Box order="1" mdOrder="2">
                           <Switch checked={complementosEnabled} onChange={(e) => setComplementosEnabled(e.target.checked)} />
                         </Box>
                       </Stack>
@@ -532,12 +532,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 {isPlataformasOpen && (
                   <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
                     <Stack gap={5} w="full">
-                      <Stack direction="col" mobileDirection="row" gap={2.5} className="md:gap-5" align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
-                        <Stack gap={1} className="order-2 md:order-1">
+                      <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
+                        <Stack gap={1} order="2" mdOrder="1">
                           <Font variant="body-semibold" text="Exibir no Catálogo Online" align="left" />
                           <Font variant="description" text="Habilita a exibição do produto em vendas digitais" align="left" />
                         </Stack>
-                        <Box className="order-1 md:order-2">
+                        <Box order="1" mdOrder="2">
                           <Switch checked={plataformasEnabled} onChange={(e) => setPlataformasEnabled(e.target.checked)} />
                         </Box>
                       </Stack>
@@ -594,7 +594,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                           icon={Plus}
                           onClick={handleAddBarcode}
                           type="button"
-                          fullWidth
                         />
                       </Stack>
                       {barcodes.length > 0 && (
@@ -680,12 +679,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 {isProducaoOpen && (
                   <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
                     <Stack gap={5} w="full">
-                      <Stack direction="col" mobileDirection="row" gap={2.5} className="md:gap-5" align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
-                        <Stack gap={1} className="order-2 md:order-1">
+                      <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
+                        <Stack gap={1} order="2" mdOrder="1">
                           <Font variant="body-semibold" text="Produção Própria" align="left" />
                           <Font variant="description" text="Habilite se o item for de fabricação interna (KDS)" align="left" />
                         </Stack>
-                        <Box className="order-1 md:order-2">
+                        <Box order="1" mdOrder="2">
                           <Switch checked={producaoPropria} onChange={(e) => setProducaoPropria(e.target.checked)} />
                         </Box>
                       </Stack>
@@ -765,12 +764,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
                       {/* Configurações de ICMS */}
                       <Stack gap={5} w="full">
-                        <Stack direction="col" mobileDirection="row" gap={2.5} className="md:gap-5" align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
-                          <Stack gap={1} className="order-2 md:order-1">
+                        <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
+                          <Stack gap={1} order="2" mdOrder="1">
                             <Font variant="body-semibold" text="Utilizar ICMS Padrão" align="left" />
                             <Font variant="description" text="Herda as definições fiscais padrão da filial" align="left" />
                           </Stack>
-                          <Box className="order-1 md:order-2">
+                          <Box order="1" mdOrder="2">
                             <Switch checked={icmsDefault} onChange={(e) => setIcmsDefault(e.target.checked)} />
                           </Box>
                         </Stack>
@@ -804,12 +803,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
                       {/* Configurações de PIS/COFINS */}
                       <Stack gap={5} w="full">
-                        <Stack direction="col" mobileDirection="row" gap={2.5} className="md:gap-5" align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
-                          <Stack gap={1} className="order-2 md:order-1">
+                        <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
+                          <Stack gap={1} order="2" mdOrder="1">
                             <Font variant="body-semibold" text="Utilizar PIS/COFINS Padrão" align="left" />
                             <Font variant="description" text="Herda as definições de PIS/COFINS padrão da filial" align="left" />
                           </Stack>
-                          <Box className="order-1 md:order-2">
+                          <Box order="1" mdOrder="2">
                             <Switch checked={pisCofinsDefault} onChange={(e) => setPisCofinsDefault(e.target.checked)} />
                           </Box>
                         </Stack>
@@ -845,7 +844,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         </Tabs>
 
         {/* Ações do Formulário */}
-        <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full" className="md:w-auto">
+        <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="w-full md:w-auto">
           <Button variant="outline" label="Cancelar" onClick={onCancel} type="button" fullWidth />
           <Button variant="primary" label="Salvar Produto" type="submit" fullWidth />
         </Stack>

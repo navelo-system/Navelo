@@ -93,20 +93,23 @@ export const FormasPagamentoSection: React.FC<FormasPagamentoSectionProps> = ({
               onClick={() => setPixEnabled(!pixEnabled)}
               w="full"
             >
-              <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-                <Stack direction="row" align="center" gap={2.5}>
+              <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
+                <Stack direction="row" align="center" gap={2.5} flex="1">
                   <Icon icon={QrCode} size={20} color="primary" />
-                  <Stack gap={1}>
-                    <Font variant="body-bold" text="Pix" />
+                  <Stack gap={1} flex="1">
+                    <Font variant="body-bold" text="Pix" align="left" />
                     <Font
                       variant="description"
                       text="Necessária conferência na instituição bancária"
                       color="muted"
+                      align="left"
                     />
                   </Stack>
                 </Stack>
                 {pixEnabled && (
-                  <Badge variant="success" label="habilitado" icon={Check} />
+                  <Box display="flex" justify="end" className="w-full md:w-auto">
+                    <Badge variant="success" label="habilitado" icon={Check} />
+                  </Box>
                 )}
               </Stack>
             </Box>
@@ -170,7 +173,7 @@ export const FormasPagamentoSection: React.FC<FormasPagamentoSectionProps> = ({
 
       {/* Botões de Ação */}
       <Box paddingY={2.5} w="full">
-        <Stack direction="row" justify="end" gap={2.5} w="full">
+        <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full">
           <Button variant="outline" label="Cancelar" onClick={onCancel} />
           <Button type="button" variant="primary" label="Salvar alterações" onClick={handleSave} />
         </Stack>

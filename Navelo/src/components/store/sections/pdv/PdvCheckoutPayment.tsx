@@ -91,7 +91,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                     </Stack>
 
                     {/* Lado Direito: Preço Total + Botão Lixeira */}
-                    <Stack direction="row" align="center" gap={5} justify="end" className="w-full md:w-auto">
+                    <Stack direction="row" align="center" gap={5} justify="end" w="w-full md:w-auto">
                       <Font variant="body-bold" text={formatPrice(item.quantity * item.unitPrice)} />
                       <Button
                         variant="outline-danger-icon"
@@ -171,7 +171,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                 payments.map((p, idx) => (
                   <Box key={idx} padding={2.5} radius="default" border={true} borderColor="border-border">
                     {/* Visualização Mobile: Ícone e Lixeira em cima, Método e Valor embaixo */}
-                    <Box className="block md:hidden" w="full">
+                    <Box display="block md:hidden" w="full">
                       <Stack gap={2.5} w="full">
                         <Stack direction="row" justify="between" align="center" w="full">
                           <Icon icon={DollarSign} variant="circular-success" />
@@ -189,7 +189,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                     </Box>
 
                     {/* Visualização Desktop: Lado a lado tradicional */}
-                    <Box className="hidden md:block" w="full">
+                    <Box display="hidden md:block" w="full">
                       <Stack direction="row" justify="between" align="center" w="full">
                         <Stack direction="row" align="center" gap={2.5}>
                           <Icon icon={DollarSign} variant="circular-success" />

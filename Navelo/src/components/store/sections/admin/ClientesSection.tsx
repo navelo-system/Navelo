@@ -7,7 +7,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Input } from "@/components/store/base/Input"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/store/base/Table"
 import { Badge } from "@/components/store/base/Badge"
-import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/store/base/Modal"
+import { Modal } from "@/components/store/base/Modal"
 import { Switch } from "@/components/store/base/Switch"
 import { FilterBar } from "@/components/store/intermediary/FilterBar"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
@@ -158,60 +158,56 @@ export function ClientesSection() {
       {/* New Client Modal */}
       {isModalOpen && (
         <Form onSubmit={handleCreateTenant}>
-          <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-            <ModalHeader
-              title="Novo Cliente Locatário"
-              subtitle="Cadastre manualmente uma empresa cliente do SaaS."
-              icon={Users}
-            />
-            <ModalBody>
-              <Stack gap={5}>
-                <Input
-                  label="Nome da Empresa"
-                  placeholder="Nome fantasia ou Razão Social"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  required
-                />
-                <Input
-                  label="CNPJ / Documento"
-                  placeholder="Ex: 00.000.000/0000-00"
-                  value={document}
-                  onChange={e => setDocument(e.target.value)}
-                  required
-                />
-                
-                <Stack gap={2.5}>
-                  <Badge variant="outline" label="Plano de Cobrança" />
-                  <CustomSelect
-                    value={selectedPlan}
-                    onChange={setSelectedPlan}
-                  >
-                    {plans.map(p => (
-                      <CustomSelectItem
-                        key={p.name}
-                        value={p.name}
-                        text={`${p.name} (${p.fee === 0 ? "Grátis" : `R$ ${p.fee.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês`})`}
-                        icon={CreditCard}
-                      />
-                    ))}
-                  </CustomSelect>
-                </Stack>
-
-                <Stack direction="row" align="center" justify="between">
-                  <Badge variant="outline" label="Status Inicial Ativo" />
-                  <Switch
-                    checked={status === "active"}
-                    onChange={(e) => setStatus(e.target.checked ? "active" : "inactive")}
-                  />
-                </Stack>
+          <Modal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            title="Novo Cliente Locatário"
+            subtitle="Cadastre manualmente uma empresa cliente do SaaS."
+            icon={Users}
+            successText="Salvar Inquilino"
+            isSubmit
+          >
+            <Stack gap={5}>
+              <Input
+                label="Nome da Empresa"
+                placeholder="Nome fantasia ou Razão Social"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                required
+              />
+              <Input
+                label="CNPJ / Documento"
+                placeholder="Ex: 00.000.000/0000-00"
+                value={document}
+                onChange={e => setDocument(e.target.value)}
+                required
+              />
+              
+              <Stack gap={2.5}>
+                <Badge variant="outline" label="Plano de Cobrança" />
+                <CustomSelect
+                  value={selectedPlan}
+                  onChange={setSelectedPlan}
+                >
+                  {plans.map(p => (
+                    <CustomSelectItem
+                      key={p.name}
+                      value={p.name}
+                      text={`${p.name} (${p.fee === 0 ? "Grátis" : `R$ ${p.fee.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês`})`}
+                      icon={CreditCard}
+                    />
+                  ))}
+                </CustomSelect>
               </Stack>
-            </ModalBody>
-            <ModalFooter
-              onCancel={() => setIsModalOpen(false)}
-              confirmLabel="Salvar Inquilino"
-              isSubmit
-            />
+
+              <Stack direction="row" align="center" justify="between">
+                <Badge variant="outline" label="Status Inicial Ativo" />
+                <Switch
+                  checked={status === "active"}
+                  onChange={(e) => setStatus(e.target.checked ? "active" : "inactive")}
+                />
+              </Stack>
+            </Stack>
           </Modal>
         </Form>
       )}

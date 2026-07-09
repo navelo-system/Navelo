@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Modal, ModalHeader, ModalBody, ModalFooter } from "@/components/store/base/Modal"
+import { Modal } from "@/components/store/base/Modal"
 import { Form } from "@/components/store/advanced/Form"
 import { Stack } from "@/components/store/base/Stack"
 import { Box } from "@/components/store/base/Box"
@@ -45,62 +45,57 @@ export const PlanFormModal: React.FC<PlanFormModalProps> = ({ isOpen, onClose, p
 
   return (
     <Form onSubmit={handleSave}>
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalHeader
-          title={plan ? "Editar Plano" : "Criar Novo Plano"}
-          subtitle="Preencha os dados e escolha os recursos liberados para esta assinatura."
-          icon={CreditCard}
-        />
-        <ModalBody>
-          <Stack gap={5}>
-            <Input 
-              label="Nome do Plano" 
-              placeholder="Ex: Plano Intermediário" 
-              value={name} 
-              onChange={(e) => setName(e.target.value)} 
-              required 
-            />
-            <Input 
-              type="number" 
-              label="Preço Mensal (R$)" 
-              placeholder="Ex: 99.90" 
-              value={price} 
-              onChange={(e) => setPrice(e.target.value)} 
-              required 
-            />
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={plan ? "Editar Plano" : "Criar Novo Plano"}
+        subtitle="Preencha os dados e escolha os recursos liberados para esta assinatura."
+        icon={CreditCard}
+        successText={plan ? "Salvar Alterações" : "Salvar Plano"}
+        isSubmit={true}
+      >
+        <Stack gap={5}>
+          <Input 
+            label="Nome do Plano" 
+            placeholder="Ex: Plano Intermediário" 
+            value={name} 
+            onChange={(e) => setName(e.target.value)} 
+            required 
+          />
+          <Input 
+            type="number" 
+            label="Preço Mensal (R$)" 
+            placeholder="Ex: 99.90" 
+            value={price} 
+            onChange={(e) => setPrice(e.target.value)} 
+            required 
+          />
 
-            <Stack gap={2.5}>
-              <Font variant="body-sm-semibold" text="Módulos Inclusos" />
-              <Box padding={2.5} bg="bg-background" radius="default">
-                <Stack gap={2.5}>
-                  {APP_FEATURES.map(feat => {
-                    const isChecked = selectedFeatures.includes(feat.id)
-                    return (
-                      <Box key={feat.id} padding={2.5} bg="bg-surface" radius="default">
-                        <Stack direction="row" align="center" justify="between" gap={2.5}>
-                          <Stack gap={1}>
-                            <Font variant="body-sm-semibold" text={feat.name} />
-                            <Font variant="sub-tiny" text={feat.description} />
-                          </Stack>
-                          <Switch 
-                            checked={isChecked} 
-                            onChange={() => handleToggleFeature(feat.id)} 
-                          />
+          <Stack gap={2.5}>
+            <Font variant="body-sm-semibold" text="Módulos Inclusos" />
+            <Box padding={2.5} bg="bg-background" radius="default">
+              <Stack gap={2.5}>
+                {APP_FEATURES.map(feat => {
+                  const isChecked = selectedFeatures.includes(feat.id)
+                  return (
+                    <Box key={feat.id} padding={2.5} bg="bg-surface" radius="default">
+                      <Stack direction="row" align="center" justify="between" gap={2.5}>
+                        <Stack gap={1}>
+                          <Font variant="body-sm-semibold" text={feat.name} />
+                          <Font variant="sub-tiny" text={feat.description} />
                         </Stack>
-                      </Box>
-                    )
-                  })}
-                </Stack>
-              </Box>
-            </Stack>
+                        <Switch 
+                          checked={isChecked} 
+                          onChange={() => handleToggleFeature(feat.id)} 
+                        />
+                      </Stack>
+                    </Box>
+                  )
+                })}
+              </Stack>
+            </Box>
           </Stack>
-        </ModalBody>
-        <ModalFooter 
-          cancelLabel="Cancelar"
-          onCancel={onClose}
-          confirmLabel={plan ? "Salvar Alterações" : "Salvar Plano"}
-          isSubmit={true}
-        />
+        </Stack>
       </Modal>
     </Form>
   )

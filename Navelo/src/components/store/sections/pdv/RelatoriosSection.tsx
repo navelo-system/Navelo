@@ -380,7 +380,7 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
           </Stack>
 
           {/* Layout Principal com Painel de Filtros Lateral */}
-          <Stack direction="col" className="lg:flex-row" gap={5} w="full" align="start">
+          <Stack direction="col" mobileDirection="row" gap={5} w="full" align="start">
             {/* Painel Principal (Tabela / Resumos) */}
             <Box flex="1" w="full">
               {reportDetails && (
@@ -458,7 +458,7 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
             </Box>
  
             {/* Painel Lateral de Filtros (Fidelidade ao Print) */}
-            <Box bg="bg-surface" padding={5} radius="default" border={true} borderColor="border-border" w="full" className="lg:w-80" shrink="0">
+            <Box bg="bg-surface" padding={5} radius="default" border={true} borderColor="border-border" w="w-full lg:w-80" shrink="0">
               <Stack gap={5} w="full">
                 <Font variant="body-semibold" text="Filtros" />
 

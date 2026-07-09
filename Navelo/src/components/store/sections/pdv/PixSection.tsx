@@ -188,7 +188,7 @@ export const PixSection: React.FC<PixSectionProps> = ({
 
       {/* Botões de Ações na Base do Formulário */}
       <Box paddingY={2.5} w="full">
-        <Stack direction="row" justify="end" gap={2.5} w="full">
+        <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full">
           <Button variant="outline" label="Cancelar" onClick={onCancel} />
           <Button type="button" variant="primary" label="Salvar alterações" onClick={handleSave} />
         </Stack>

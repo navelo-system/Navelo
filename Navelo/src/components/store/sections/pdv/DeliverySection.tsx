@@ -53,7 +53,7 @@ export const DeliverySection: React.FC = () => {
       <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch">
         
         {/* Painel Esquerdo (1/3 no PC, 100% no mobile) */}
-        <Box w="full" className="md:w-1/3">
+        <Box w="w-full md:w-1/3">
           <Stack gap={5}>
             {/* Novo Pedido */}
             <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">

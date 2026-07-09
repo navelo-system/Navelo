@@ -18,6 +18,9 @@ export interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
   paddingX?: "5" | "12" | "2.5" | "0"
   flex?: "1" | "auto" | "none"
   minW?: "0"
+  order?: "1" | "2"
+  mdOrder?: "1" | "2"
+  cursor?: "pointer"
 }
 
 const gapMap: Record<string, string> = {
@@ -99,8 +102,18 @@ const minWMap = {
   "0": "min-w-0",
 }
 
+const orderMap = {
+  "1": "order-1",
+  "2": "order-2",
+}
+
+const mdOrderMap = {
+  "1": "md:order-1",
+  "2": "md:order-2",
+}
+
 export const Stack = React.forwardRef<HTMLDivElement, StackProps>(
-  ({ className, direction = "col", mobileDirection, gap = 5, align, mobileAlign, justify, mobileJustify, wrap, w, h, maxWidth, paddingX, flex, minW, ...props }, ref) => {
+  ({ className, direction = "col", mobileDirection, gap = 5, align, mobileAlign, justify, mobileJustify, wrap, w, h, maxWidth, paddingX, flex, minW, order, mdOrder, cursor, ...props }, ref) => {
     const mobileDirectionClass = mobileDirection === "row" ? "md:flex-row" : mobileDirection === "col" ? "md:flex-col" : undefined
     return (
       <div
@@ -121,6 +134,9 @@ export const Stack = React.forwardRef<HTMLDivElement, StackProps>(
           paddingX && paddingXMap[paddingX],
           flex && flexMap[flex],
           minW && minWMap[minW],
+          order && orderMap[order],
+          mdOrder && mdOrderMap[mdOrder],
+          cursor === "pointer" && "cursor-pointer",
           className
         )}
         {...props}

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client"
 
 import * as React from "react"
@@ -172,7 +173,7 @@ export function Modal(props: ModalProps) {
       <div
         role="dialog"
         aria-modal="true"
-        style={animStyle}
+        style={dialogStyle}
         className="relative z-[101] w-full max-w-lg rounded-[5px] border-2 border-border bg-surface shadow-lg sm:rounded-[8px]"
       >
         {renderedChildren}

@@ -13,7 +13,7 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   bg?: string
   w?: WidthToken | string
   h?: HeightToken | string
-  display?: "hidden lg:flex" | "flex" | "block" | "inline-flex" | "hidden"
+  display?: "hidden lg:flex" | "flex" | "block" | "inline-flex" | "hidden" | "block md:hidden" | "hidden md:block"
   direction?: "col" | "row"
   justify?: "between" | "center" | "start" | "end"
   radius?: "default" | "full" | "none"
@@ -43,6 +43,8 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   maxH?: "0" | "96" | "full" | "screen" | "fit-content"
   shrink?: "0" | "1"
   animation?: "slide-in-right" | "slide-out-right"
+  order?: "1" | "2"
+  mdOrder?: "1" | "2"
 }
 
 const paddingMap: Record<string, string> = {
@@ -91,7 +93,9 @@ const displayMap = {
   "flex": "flex",
   "block": "block",
   "inline-flex": "inline-flex",
-  "hidden": "hidden"
+  "hidden": "hidden",
+  "block md:hidden": "block md:hidden",
+  "hidden md:block": "hidden md:block",
 }
 
 const directionMap = {
@@ -110,6 +114,16 @@ const radiusMap = {
   "default": "rounded-[5px]",
   "full": "rounded-full",
   "none": "rounded-none",
+}
+
+const orderMap = {
+  "1": "order-1",
+  "2": "order-2",
+}
+
+const mdOrderMap = {
+  "1": "md:order-1",
+  "2": "md:order-2",
 }
 
 const overflowMap = {
@@ -148,7 +162,8 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
     borderTop, borderBottom, borderLeft, borderRight,
     borderColor, 
     borderStyle, shadow, transition, opacity, maxH, animation,
-    overflow, hoverBg, cursor, flex, position, top, left, right, bottom, zIndex, minW, objectFit, shrink, ...props 
+    overflow, hoverBg, cursor, flex, position, top, left, right, bottom, zIndex, minW, objectFit, shrink,
+    order, mdOrder, ...props 
   }, ref) => {
     return (
       <Component
@@ -168,6 +183,8 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
           borderBottom && "border-b-2",
           borderLeft && "border-l-2",
           borderRight && "border-r-2",
+          order && orderMap[order],
+          mdOrder && mdOrderMap[mdOrder],
 
           borderStyle === "dashed" && "border-dashed",
           borderStyle === "solid" && "border-solid",

@@ -187,7 +187,7 @@ export const TaxaEntregaSection: React.FC<TaxaEntregaSectionProps> = ({
       ) : (
         <Stack gap={5} w="full">
           {/* Cabeçalho de Controle */}
-          <Stack direction="row" align="center" justify="between" w="full">
+          <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
             <Font variant="body-bold" text="Taxas de entrega" />
             <Button
               variant="primary"

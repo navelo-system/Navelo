@@ -893,7 +893,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
                       }
                     }}
                   >
-                    <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5} className="md:gap-5">
+                    <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={5}>
                       <Stack direction="row" align="center" gap={5} flex="1">
                         <Icon icon={item.icon} variant="circular-secondary" />
                         <Stack gap={1} align="start">
@@ -905,7 +905,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
                       </Stack>
 
                       {item.badge && (
-                        <Box display="flex" justify="end" className="w-full md:w-auto">
+                        <Box display="flex" justify="end" w="w-full md:w-auto">
                           <Badge variant="success" label={item.badge} icon={Check} />
                         </Box>
                       )}

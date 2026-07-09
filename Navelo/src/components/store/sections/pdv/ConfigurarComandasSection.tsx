@@ -213,7 +213,7 @@ export const ConfigurarComandasSection: React.FC<ConfigurarComandasSectionProps>
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant={comanda.status === "available" ? "success" : "warning"}
+                        variant={comanda.status === "available" ? "success" : "secondary"}
                         label={comanda.status === "available" ? "Disponível" : "Em uso"}
                       />
                     </TableCell>

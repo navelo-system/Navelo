@@ -217,7 +217,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
                   icon={Search}
                 />
               </Box>
-              <Stack direction="row" gap={2.5} align="center" justify="between" mobileJustify="end" w="full" className="md:w-auto">
+              <Stack direction="row" gap={2.5} align="center" justify="between" mobileJustify="end" w="w-full md:w-auto">
                 {/* Segmented View Toggle */}
                 <ViewModeToggle value={viewMode} onChange={setViewMode} />
                 
@@ -254,7 +254,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
               </Box>
 
               {/* Lado Direito - Carrinho e Totais */}
-              <Box w="full" className="md:w-1/4">
+              <Box w="w-full md:w-1/4">
                 <PdvCheckoutSidebar
                   cartItems={cartItems}
                   discount={discount}

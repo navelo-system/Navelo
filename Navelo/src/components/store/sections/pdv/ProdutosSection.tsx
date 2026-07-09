@@ -179,7 +179,6 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
                 label="Novo Produto"
                 icon={Plus}
                 onClick={handleCreateNew}
-                fullWidth
               />
             </Stack>
 

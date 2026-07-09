@@ -106,7 +106,7 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
                   hoverBg="surface-sunken"
                   onClick={() => onAddProduct(prod)}
                 >
-                  <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" gap={2} className="md:gap-5 w-full">
+                  <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" gap={2.5} w="full">
                     {/* Thumbnail + Nome */}
                     <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
                       <Box w="w-10" h="h-10" bg="bg-surface-sunken" radius="default" overflow="hidden" shrink="0">
@@ -121,7 +121,7 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
                       <Font variant="body-sm-semibold" text={prod.name.toUpperCase()} align="left" />
                     </Stack>
                     {/* Preço + Unidade */}
-                    <Stack direction="row" align="baseline" gap={1} justify="end" className="w-full md:w-auto">
+                    <Stack direction="row" align="baseline" gap={1} justify="end" w="w-full md:w-auto">
                       <Font
                         variant="body-sm-semibold"
                         text={new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(prod.unitPrice)}

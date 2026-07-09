@@ -222,7 +222,6 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
                 label="Novo Cliente"
                 icon={Plus}
                 onClick={handleCreateNew}
-                fullWidth
               />
             </Stack>
 
