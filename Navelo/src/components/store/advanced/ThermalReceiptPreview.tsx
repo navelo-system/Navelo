@@ -111,7 +111,7 @@ export const ThermalReceiptPreview: React.FC<ThermalReceiptPreviewProps> = ({
           <Font variant="auxiliary" text="Bobina 80mm" />
         </Stack>
 
-        <Box borderBottom borderColor="border-border" w="full" />
+        <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
 
         {/* Flex parent container handles centering instead of mx-auto */}
         <Box display="flex" justify="center" w="full">
@@ -120,12 +120,12 @@ export const ThermalReceiptPreview: React.FC<ThermalReceiptPreviewProps> = ({
               <Font variant="body-bold" text={companyName} align="center" mono />
               <Font variant="auxiliary" text={`CNPJ: ${cnpj}`} mono />
               <Font variant="auxiliary" text="RUA DAS FLORES, 123 - CENTRO - SP" mono />
-              <Box borderTop borderStyle="dashed" borderColor="border-border" w="full" />
+              <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" borderStyle="dashed" />
               <Font variant="body-bold" text="CUPOM FISCAL ELETRÔNICO (NFC-e)" align="center" mono />
-              <Box borderTop borderStyle="dashed" borderColor="border-border" w="full" />
+              <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" borderStyle="dashed" />
             </Stack>
 
-            <Box borderBottom borderColor="border-border" paddingY={1} />
+            <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
 
             <Box display="flex" direction="row" justify="between" paddingY={2.5}>
               <Box w="1/2">

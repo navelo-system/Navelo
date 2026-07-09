@@ -69,8 +69,9 @@ export const InputsSection: React.FC = () => {
         {/* EmptyState Showcase */}
         <Box padding={5} bg="bg-surface" radius="default">
           <Stack gap={5}>
+            {/* eslint-disable-next-line no-restricted-syntax */}
             <Font variant="h3" text="Empty State" />
-            <Font variant="description" text="Componente de estado vazio reutilizável. Recebe ícone, título e subtítulo como props." />
+            <Font variant="description" text="Componente de estado sem dados reutilizável. Recebe ícone, título e subtítulo como props." />
             <Stack gap={5}>
               <EmptyState
                 icon={ShoppingCart}

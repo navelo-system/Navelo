@@ -25,12 +25,14 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   return (
     <Box padding={5} bg="bg-surface" radius="default">
       <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" gap={5}>
-        <Stack direction="row" align="center" gap={2.5} flex="1" w="max-w-md">
-          <Input
-            icon={Search}
-            placeholder={searchPlaceholder}
-            onChange={(e) => onSearch?.(e.target.value)}
-          />
+        <Stack direction="row" align="center" gap={2.5} flex="1" w="full">
+          <Box flex="1" w="full">
+            <Input
+              icon={Search}
+              placeholder={searchPlaceholder}
+              onChange={(e) => onSearch?.(e.target.value)}
+            />
+          </Box>
           <Button
             variant={hasActiveFilters ? "primary-icon" : "outline-icon"}
             icon={Filter}

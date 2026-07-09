@@ -3,7 +3,8 @@ import { Box } from "../base/Box"
 import { Stack } from "../base/Stack"
 import { Font } from "../base/Font"
 import { Button } from "../base/Button"
-import { Eye, EyeOff } from "lucide-react"
+import { Icon } from "../base/Icon"
+import { Eye, EyeOff, LucideIcon } from "lucide-react"
 
 export interface KpiCardProps {
   title: string
@@ -11,6 +12,7 @@ export interface KpiCardProps {
   subtitle: string
   hideValues?: boolean
   onToggleHide?: () => void
+  icon?: LucideIcon
 }
 
 export const KpiCard: React.FC<KpiCardProps> = ({
@@ -19,19 +21,22 @@ export const KpiCard: React.FC<KpiCardProps> = ({
   subtitle,
   hideValues = false,
   onToggleHide,
+  icon
 }) => {
   return (
     <Box padding={2.5} bg="bg-surface" radius="default">
       <Stack gap={2.5}>
         <Stack direction="row" align="center" justify="between" gap={1}>
           <Font variant="description" text={title} />
-          {onToggleHide && (
+          {icon ? (
+            <Icon icon={icon} color="muted" size={16} />
+          ) : onToggleHide ? (
             <Button 
               variant="outline-icon-xs" 
               icon={hideValues ? EyeOff : Eye} 
               onClick={onToggleHide} 
             />
-          )}
+          ) : null}
         </Stack>
         <Font 
           variant="body-bold" 

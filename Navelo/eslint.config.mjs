@@ -2,6 +2,77 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
+const designSystemSyntax = [
+  // 1. Prohibit className Usage
+  {
+    selector: "JSXAttribute[name.name='className'][value.type='Literal']:not([value.value=/scrollbar|py-20|py-25|z-\\[|grid\\.svg|ambient-light|blur|animate-|min-h-|overflow-hidden|shrink-0|font-mono|ml-auto|border-white\\/10|bg-center|mask-image|bg-transparent|border-0|w-4|h-4|w-5|h-5|w-3\\.5|h-3\\.5|w-full|h-full|active:scale-|outline-none|ring-0|pointer-events-none|bg-gradient-|from-|via-|to-|inset-|group|object-cover|object-contain|-translate-/])",
+    message: "className is strictly prohibited outside of 'src/components/store/base/'. Use composition with base components instead."
+  },
+  // 2. Prohibit Margins
+  {
+    selector: "JSXAttribute[name.name=/^(margin|marginX|marginY|marginTop|marginBottom|marginLeft|marginRight|m|mx|my|mt|mb|ml|mr)$/]",
+    message: "Manual margins are prohibited. Use <Stack gap={...}> or <Grid gap={...}> for spacing between elements."
+  },
+  // 3. Prohibit Style Props on non-base components
+  {
+    selector: "JSXOpeningElement[name.name!=/[a-z]/]:not(:matches([name.name='Box'], [name.name='Stack'], [name.name='Grid'], [name.name='Font'], [name.name='Button'], [name.name='Input'], [name.name='Icon'], [name.name='Badge'], [name.name='Table'], [name.name='Tabs'], [name.name='Switch'], [name.name='CustomSelect'], [name.name='Modal'], [name.name='Logo'], [name.name='Avatar'])) > JSXAttribute[name.name=/^(padding|paddingX|paddingY|width|height|minWidth|minHeight|rounded|bg|bgOpacity|hoverBg|hoverBgOpacity|color|border|borderColor|borderWidth|borderTop|borderBottom|borderLeft|borderRight|shadow|inset|top|right|bottom|left|scale|alignSelf|breakAll)$/]",
+    message: "Style props (padding, bg, color, width, height, etc.) are only allowed in 'base' components. Non-base components must use semantic variants or composition."
+  },
+  // 4. Prohibit directional padding/margin in layouts
+  {
+    selector: "JSXAttribute[name.name=/^(paddingTop|paddingBottom|paddingLeft|paddingRight|px|py|pt|pb|pl|pr)$/]:not([value.type='JSXExpressionContainer']):not([value.value=/sidebar|sidebar-wide/])",
+    message: "Directional padding (paddingLeft, paddingTop, etc.) is prohibited in layouts. Use uniform padding={5} or authorized paddingY/paddingX in base components only."
+  },
+  // 5. Strict Tokens Enforcement (Gaps e Paddings válidos)
+  {
+    selector: "JSXAttribute[name.name=/^(gap|padding|paddingX|paddingY)$/] Literal:not([raw=/^(12\\.5|12|5|2\\.5|1|0|'section'|'title-content')$/])",
+    message: "Raw string or number literals for gap/padding must follow the Design System tokens (5, 12, 2.5, 1, 0, 'section', 'title-content')."
+  },
+  // 6. Prohibit inline style Attribute
+  {
+    selector: "JSXAttribute[name.name='style']",
+    message: "Inline styles (style prop) are strictly prohibited outside of 'src/components/store/base/'. Use base design system components (Box, Stack, Grid) with standard props for layout and styling."
+  },
+  // 7. Prohibit primitive HTML tags outside base/
+  {
+    selector: "JSXOpeningElement[name.name=/^[a-z]/]",
+    message: "Primitive HTML tags are strictly prohibited fora da pasta BASE. Substitua por componentes do Design System: div/section/button -> Box, span/p/h1-h6 -> Font, img -> Avatar, etc."
+  }
+];
+
+const nativeGlobalsSyntax = [
+  {
+    selector: "JSXOpeningElement[name.name='dialog']",
+    message: "Proibido: <dialog> nativo. Use <Modal> do Design System (src/components/store/base/Modal.tsx)."
+  },
+  {
+    selector: "JSXOpeningElement[name.name='Select']",
+    message: "Proibido: o componente <Select> (wrapper nativo) foi descontinuado. Use <CustomSelect> do Design System."
+  },
+  {
+    selector: "JSXOpeningElement[name.name='Font'] > JSXAttribute[name.name='text'][value.type='Literal'][value.value=/\\b(vazio|vazia|nenhum|nenhuma|empty|sem itens|sem registros|sem cadastros)\\b/i]",
+    message: "Proibido: Se você está criando um estado vazio (empty state), use o componente <EmptyState> do Design System (src/components/store/intermediary/EmptyState.tsx) para manter a padronização."
+  }
+];
+
+const domainSyntax = [
+  {
+    selector: "TSInterfaceDeclaration[id.name=/^(Customer|Product|Category|Order|OrderItem|Invoice|Tab|KitchenTicket|StockMovement|PaymentTransaction|AuditLog|Tenant|User|CashRegisterSession|DeliveryDispatch|TaxRule|RecipeItem)$/]",
+    message: "Interfaces de entidade de domínio não podem ser redefinidas em componentes. Importe de '@/src/types/domain' e use como está."
+  },
+  {
+    selector: "TSTypeAliasDeclaration[id.name=/^(Customer|Product|Category|Order|OrderItem|Invoice|Tab|KitchenTicket|StockMovement|PaymentTransaction|AuditLog|Tenant|User|CashRegisterSession|DeliveryDispatch|TaxRule|RecipeItem)$/]",
+    message: "Type aliases de entidade de domínio não podem ser redefinidos em componentes. Importe de '@/src/types/domain' e use como está."
+  }
+];
+
+const pageSpecificSyntax = [
+  {
+    selector: "JSXOpeningElement[name.name=/^(Box|Stack|Font|Grid|Icon|Button|Input|Badge|Avatar|Table|Tabs|Switch|CustomSelect|Modal|Logo)$/]",
+    message: "Base components (Box, Stack, Font, etc) are prohibited directly in page.tsx. The page must only render RegistryMain and delegate content to *Section components."
+  }
+];
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -12,56 +83,38 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
 
-  // BLOCO 1 — Design System: regras de composição e tokens
-  // Cobre: todo o projeto exceto base/ onde className e tags HTML são permitidos
+  // BLOCO 1 — src components fora da pasta base (Todas as restrições + globals + domain)
   {
-    files: ["**/src/**/*.{ts,tsx}"],
+    files: ["**/src/components/**/*.{ts,tsx}"],
     ignores: [
       "**/components/store/base/**"
     ],
     rules: {
       "no-restricted-syntax": [
         "error",
-        // 1. Prohibit className Usage
-        {
-          selector: "JSXAttribute[name.name='className'][value.type='Literal']:not([value.value=/scrollbar|py-20|py-25|z-\\[|grid\\.svg|ambient-light|blur|animate-|min-h-|overflow-hidden|shrink-0|font-mono|ml-auto|border-white\\/10|bg-center|mask-image|bg-transparent|border-0|w-4|h-4|w-5|h-5|w-3\\.5|h-3\\.5|w-full|h-full|active:scale-|outline-none|ring-0|pointer-events-none|bg-gradient-|from-|via-|to-|inset-|group|object-cover|object-contain|-translate-/])",
-          message: "className is strictly prohibited outside of 'src/components/store/base/'. Use composition with base components instead."
-        },
-        // 2. Prohibit Margins
-        {
-          selector: "JSXAttribute[name.name=/^(margin|marginX|marginY|marginTop|marginBottom|marginLeft|marginRight|m|mx|my|mt|mb|ml|mr)$/]",
-          message: "Manual margins are prohibited. Use <Stack gap={...}> or <Grid gap={...}> for spacing between elements."
-        },
-        // 3. Prohibit Style Props on non-base components
-        {
-          selector: "JSXOpeningElement[name.name!=/[a-z]/]:not(:matches([name.name='Box'], [name.name='Stack'], [name.name='Grid'], [name.name='Font'], [name.name='Button'], [name.name='Input'], [name.name='Icon'], [name.name='Badge'], [name.name='Table'], [name.name='Tabs'], [name.name='Switch'], [name.name='CustomSelect'], [name.name='Modal'], [name.name='Logo'], [name.name='Avatar'])) > JSXAttribute[name.name=/^(padding|paddingX|paddingY|width|height|minWidth|minHeight|rounded|bg|bgOpacity|hoverBg|hoverBgOpacity|color|border|borderColor|borderWidth|borderTop|borderBottom|borderLeft|borderRight|shadow|inset|top|right|bottom|left|scale|alignSelf|breakAll)$/]",
-          message: "Style props (padding, bg, color, width, height, etc.) are only allowed in 'base' components. Non-base components must use semantic variants or composition."
-        },
-        // 4. Prohibit directional padding/margin in layouts
-        {
-          selector: "JSXAttribute[name.name=/^(paddingTop|paddingBottom|paddingLeft|paddingRight|px|py|pt|pb|pl|pr)$/]:not([value.type='JSXExpressionContainer']):not([value.value=/sidebar|sidebar-wide/])",
-          message: "Directional padding (paddingLeft, paddingTop, etc.) is prohibited in layouts. Use uniform padding={5} or authorized paddingY/paddingX in base components only."
-        },
-        // 5. Strict Tokens Enforcement (Gaps e Paddings válidos)
-        {
-          selector: "JSXAttribute[name.name=/^(gap|padding|paddingX|paddingY)$/] Literal:not([raw=/^(12\\.5|12|5|2\\.5|1|0|'section'|'title-content')$/])",
-          message: "Raw string or number literals for gap/padding must follow the Design System tokens (5, 12, 2.5, 1, 0, 'section', 'title-content')."
-        },
-        // 6. Prohibit inline style Attribute
-        {
-          selector: "JSXAttribute[name.name='style']",
-          message: "Inline styles (style prop) are strictly prohibited outside of 'src/components/store/base/'. Use base design system components (Box, Stack, Grid) with standard props for layout and styling."
-        },
-        // 7. Prohibit primitive HTML tags outside base/
-        {
-          selector: "JSXOpeningElement[name.name=/^[a-z]/]",
-          message: "Primitive HTML tags are strictly prohibited outside 'src/components/store/base/'. Replace with design system components: div/section/button -> Box, span/p/h1-h6 -> Font, img -> Avatar, etc."
-        }
+        ...designSystemSyntax,
+        ...nativeGlobalsSyntax,
+        ...domainSyntax
       ]
     }
   },
 
-  // BLOCO 2 — page.tsx: só pode renderizar RegistryMain e delegar para Sections
+  // BLOCO 2 — src components dentro da pasta base (Apenas globals + domain, sem restrição de className e div nativa)
+  {
+    files: ["**/src/components/store/base/**/*.{ts,tsx}"],
+    ignores: [
+      "**/components/store/base/CustomSelect.tsx" // Exceção documentada do wrapper Select nativo
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        ...nativeGlobalsSyntax,
+        ...domainSyntax
+      ]
+    }
+  },
+
+  // BLOCO 3 — page.tsx (Todas as restrições + page specific + globals + domain)
   {
     files: ["**/app/**/page.tsx"],
     ignores: [
@@ -71,10 +124,10 @@ const eslintConfig = defineConfig([
     rules: {
       "no-restricted-syntax": [
         "error",
-        {
-          selector: "JSXOpeningElement[name.name=/^(Box|Stack|Font|Grid|Icon|Button|Input|Badge|Avatar|Table|Tabs|Switch|CustomSelect|Modal|Logo)$/]",
-          message: "Base components (Box, Stack, Font, etc) are prohibited directly in page.tsx. The page must only render RegistryMain and delegate content to *Section components."
-        }
+        ...pageSpecificSyntax,
+        ...designSystemSyntax,
+        ...nativeGlobalsSyntax,
+        ...domainSyntax
       ],
       "no-restricted-imports": [
         "error",
@@ -90,7 +143,22 @@ const eslintConfig = defineConfig([
     }
   },
 
-  // BLOCO 3 — Qualidade de código e complexidade
+  // BLOCO 4 — Geral src (Arquivos que não são componentes nem pages, ex: utilitários, hooks). Aplica globals.
+  {
+    files: ["**/src/**/*.{ts,tsx}"],
+    ignores: [
+      "**/src/components/**",
+      "**/app/**"
+    ],
+    rules: {
+      "no-restricted-syntax": [
+        "error",
+        ...nativeGlobalsSyntax
+      ]
+    }
+  },
+
+  // BLOCO 5 — Qualidade de código e complexidade
   {
     files: ["**/src/**/*.{ts,tsx}"],
     ignores: [
@@ -110,31 +178,10 @@ const eslintConfig = defineConfig([
     }
   },
 
-  // BLOCO 4 — Design System: proibições de elementos nativos globais (inclui base/)
-  // Garante que <dialog> e popup nativos nunca sejam usados; base/Select.tsx é exceção documentada para <select>
+  // BLOCO 6 — Globais Restritos (alert, confirm, prompt)
   {
     files: ["**/src/**/*.{ts,tsx}"],
-    ignores: [
-      "**/components/store/base/CustomSelect.tsx",
-      "**/components/store/intermediary/EmptyState.tsx",
-      "**/components/store/sections/design-system/**"
-    ],
     rules: {
-      "no-restricted-syntax": [
-        "error",
-        {
-          selector: "JSXOpeningElement[name.name='dialog']",
-          message: "Proibido: <dialog> nativo. Use <Modal> do Design System (src/components/store/base/Modal.tsx)."
-        },
-        {
-          selector: "JSXOpeningElement[name.name='Select']",
-          message: "Proibido: o componente <Select> (wrapper nativo) foi descontinuado. Use <CustomSelect> do Design System."
-        },
-        {
-          selector: "JSXOpeningElement[name.name='Font'] > JSXAttribute[name.name='text'][value.type='Literal'][value.value=/\\b(vazio|vazia|nenhum|nenhuma|empty|sem itens|sem registros|sem cadastros)\\b/i]",
-          message: "Proibido: Se você está criando um estado vazio (empty state), use o componente <EmptyState> do Design System (src/components/store/intermediary/EmptyState.tsx) para manter a padronização."
-        }
-      ],
       "no-restricted-globals": [
         "error",
         { name: "alert",   message: "Proibido: use <Modal> do Design System em vez de alert() nativo." },
@@ -144,7 +191,7 @@ const eslintConfig = defineConfig([
     }
   },
 
-  // BLOCO 5 — Arquitetura Local-First (Bloqueio do Supabase na UI)
+  // BLOCO 7 — Arquitetura Local-First (Bloqueio do Supabase na UI)
   {
     files: ["**/src/**/*.{ts,tsx}"],
     ignores: [
@@ -167,6 +214,39 @@ const eslintConfig = defineConfig([
             {
               name: "../lib/supabase",
               message: "Não importe o cliente Supabase na UI. Leia e escreva apenas do IndexedDB."
+            }
+          ]
+        }
+      ]
+    }
+  },
+
+  // BLOCO 8 — Imports Restritos do domain.ts
+  {
+    files: ["**/src/components/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/types/domain", "*/types/domain", "../../types/domain", "../types/domain"],
+              message: "Caminho de import incorreto para o domain.ts. Use '@/src/types/domain' (conforme tsconfig paths)."
+            }
+          ],
+          paths: [
+            {
+              name: "@/src/types/domain",
+              importNames: [
+                "CustomerType",
+                "Address",
+                "OrderType",
+                "ProductStatus",
+                "SubscriptionStatus",
+                "DeliveryType",
+                "KitchenPriority",
+              ],
+              message: "Este tipo não existe no domain.ts. Verifique a Fonte de Verdade em 'src/types/domain.ts' e use apenas os tipos exportados ali."
             }
           ]
         }

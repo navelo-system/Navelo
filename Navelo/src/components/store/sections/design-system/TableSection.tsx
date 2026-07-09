@@ -23,11 +23,11 @@ export const TableSection: React.FC = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome do Cliente</TableHead>
-              <TableHead>Contato</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead align="right">Última Compra</TableHead>
-              <TableHead w="w-[50px]"></TableHead>
+              <TableHead text="Nome do Cliente" />
+              <TableHead text="Contato" />
+              <TableHead text="Status" />
+              <TableHead align="right" text="Última Compra" />
+              <TableHead w="w-[50px]" text="" />
             </TableRow>
           </TableHeader>
           <TableBody>

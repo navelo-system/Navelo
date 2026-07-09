@@ -40,7 +40,7 @@ export const FiscalStatusIndicator: React.FC<FiscalStatusIndicatorProps> = ({
           action={getStatusBadge()}
         />
 
-        <Box borderBottom borderColor="border-border" w="full" />
+        <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
 
         {/* Info Grid */}
         <Stack gap={2.5}>

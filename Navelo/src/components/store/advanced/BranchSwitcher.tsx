@@ -58,7 +58,7 @@ export const BranchSwitcher: React.FC<BranchSwitcherProps> = ({
           }
         />
 
-        <Box borderBottom borderColor="border-border" w="full" />
+        <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
 
         {/* Branch Grid */}
         <Stack gap={2.5}>

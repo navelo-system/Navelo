@@ -60,7 +60,6 @@ export const TableCard: React.FC<TableCardProps> = ({
       bg={config.bg}
       overflow="hidden"
       cursor="pointer"
-      className="text-left transition-all hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-brand-primary"
     >
       {/* Top Accent Line */}
       <Box position="absolute" top={0} left={0} right={0} h="h-1" bg={config.accent} />
@@ -82,12 +81,15 @@ export const TableCard: React.FC<TableCardProps> = ({
           </Stack>
 
           {time && status !== "free" && (
-            <Box borderTop borderColor={config.border} paddingY={2.5}>
-              <Stack direction="row" align="center" gap={1}>
-                <Clock size={14} color="var(--text-muted)" />
-                <Font variant="description" text={time} />
-              </Stack>
-            </Box>
+            <>
+              <Box h="h-[2px]" w="full" bg={config.border} />
+              <Box paddingY={2.5}>
+                <Stack direction="row" align="center" gap={1}>
+                  <Clock size={14} color="var(--text-muted)" />
+                  <Font variant="description" text={time} />
+                </Stack>
+              </Box>
+            </>
           )}
         </Stack>
       </Box>

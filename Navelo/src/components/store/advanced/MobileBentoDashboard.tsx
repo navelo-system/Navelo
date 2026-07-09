@@ -16,14 +16,12 @@ import {
   Tag, 
   Users, 
   TrendingUp, 
-  Settings 
+  Settings,
+  Coins
 } from "lucide-react"
 
 export const MobileBentoDashboard: React.FC = () => {
-  const [hideValues, setHideValues] = React.useState<boolean>(true)
-  const toggleHideValues = () => {
-    setHideValues(prev => !prev)
-  }
+  const [hideValues] = React.useState<boolean>(true)
 
   const menuItems = [
     { label: "Caixa", icon: ShoppingBag },
@@ -46,14 +44,14 @@ export const MobileBentoDashboard: React.FC = () => {
             value="R$ 1.250,00"
             subtitle="Hoje — 0 vendas realizadas"
             hideValues={hideValues}
-            onToggleHide={toggleHideValues}
+            icon={TrendingUp}
           />
           <KpiCard 
             title="Totais em caixa"
             value="R$ 450,00"
             subtitle="02/05/26 13:59"
             hideValues={hideValues}
-            onToggleHide={toggleHideValues}
+            icon={Coins}
           />
         </Grid>
 

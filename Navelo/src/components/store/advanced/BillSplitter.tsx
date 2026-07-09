@@ -41,7 +41,7 @@ const BillSplitterCalculations: React.FC<CalculationsProps> = ({
         </Stack>
         <Font variant="body-bold" text={formatPrice(serviceFee)} color={applyServiceFee ? "foreground" : "muted"} />
       </Stack>
-      <Box borderBottom borderColor="border-border" w="full" paddingY={1} />
+      <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
       <Stack direction="row" justify="between" align="center">
         <Font variant="body-bold" text="Total Geral" />
         <Font variant="h3" text={formatPrice(grandTotal)} color="primary" />
@@ -110,7 +110,7 @@ export const BillSplitter: React.FC<BillSplitterProps> = ({
           title="Divisão de Conta"
           subtitle="Divida o consumo de mesas e comandas de forma rápida."
         />
-        <Box borderBottom borderColor="border-border" w="full" />
+        <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
         
         <BillSplitterCalculations
           totalAmount={totalAmount}

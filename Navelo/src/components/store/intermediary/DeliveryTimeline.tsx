@@ -123,7 +123,7 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
           <Font variant="description" text="Pedido #8942" />
         </Stack>
 
-        <Box borderBottom borderColor="border-border" w="full" />
+        <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
 
         <Box w="full" overflow="auto">
           <Box paddingY={5} w="w-full" minW="w-[450px]">
@@ -150,7 +150,7 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
           </Box>
         </Box>
 
-        <Box borderBottom borderColor="border-border" w="full" />
+        <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
 
         <Stack gap={2.5}>
           <Stack direction="row" align="center" justify="between" gap={5}>

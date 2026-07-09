@@ -18,13 +18,10 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   justify?: "between" | "center" | "start" | "end"
   radius?: "default" | "full" | "none"
   border?: boolean
-  borderTop?: boolean
-  borderBottom?: boolean
-  borderLeft?: boolean
-  borderRight?: boolean
+
   borderColor?: string
   overflow?: "hidden" | "auto" | "x-hidden y-auto"
-  hoverBg?: "surface-sunken" | "primary/10"
+  hoverBg?: "surface-sunken" | "primary/10" | "secondary/10"
   cursor?: "pointer"
   flex?: "1" | "auto" | "none"
   position?: "relative" | "absolute" | "fixed" | "sticky"
@@ -37,6 +34,10 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   objectFit?: "contain" | "cover" | "fill" | "none" | "scale-down"
   borderStyle?: "solid" | "dashed"
   shadow?: "default" | "inner" | "none"
+  transition?: "all" | "opacity" | "transform" | "none"
+  opacity?: "0" | "25" | "50" | "75" | "100"
+  maxH?: "0" | "96" | "full" | "screen" | "fit-content"
+  shrink?: "0" | "1"
 }
 
 const paddingMap: Record<string, string> = {
@@ -114,7 +115,8 @@ const overflowMap = {
 
 const hoverBgMap = {
   "surface-sunken": "hover:bg-surface-sunken transition-colors",
-  "primary/10": "hover:bg-brand-primary/10 transition-colors"
+  "primary/10": "hover:bg-brand-primary/10 transition-colors",
+  "secondary/10": "hover:bg-brand-secondary/10 transition-colors"
 }
 
 const flexMap = {
@@ -138,8 +140,8 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
     as: Component = "div",
     className, padding, paddingX, paddingY, bg, w, h, 
     display, direction, justify, radius, border, borderColor, 
-    borderTop, borderBottom, borderLeft, borderRight, borderStyle, shadow,
-    overflow, hoverBg, cursor, flex, position, top, left, right, bottom, zIndex, minW, objectFit, ...props 
+    borderStyle, shadow, transition, opacity, maxH,
+    overflow, hoverBg, cursor, flex, position, top, left, right, bottom, zIndex, minW, objectFit, shrink, ...props 
   }, ref) => {
     return (
       <Component
@@ -155,10 +157,7 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
           justify && justifyMap[justify],
           radius && radiusMap[radius],
           border && "border-2",
-          borderTop && "border-t-2",
-          borderBottom && "border-b-2",
-          borderLeft && "border-l-2",
-          borderRight && "border-r-2",
+
           borderStyle === "dashed" && "border-dashed",
           borderStyle === "solid" && "border-solid",
           shadow === "default" && "shadow-md",
@@ -171,7 +170,34 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
           position,
           zIndex && zIndexMap[zIndex],
           minW,
-          objectFit && `object-${objectFit}`,
+          objectFit && {
+            "contain": "object-contain",
+            "cover": "object-cover",
+            "fill": "object-fill",
+            "none": "object-none",
+            "scale-down": "object-scale-down"
+          }[objectFit],
+          transition && {
+            "all": "transition-all duration-300",
+            "opacity": "transition-opacity duration-300",
+            "transform": "transition-transform duration-300",
+            "none": "transition-none"
+          }[transition],
+          opacity && {
+            "0": "opacity-0",
+            "25": "opacity-25",
+            "50": "opacity-50",
+            "75": "opacity-75",
+            "100": "opacity-100",
+          }[opacity],
+          maxH && {
+            "0": "max-h-0",
+            "96": "max-h-[384px]",
+            "full": "max-h-full",
+            "screen": "max-h-screen",
+            "fit-content": "max-h-fit"
+          }[maxH],
+          shrink && { "0": "shrink-0", "1": "shrink" }[shrink],
           bg,
           className
         )}

@@ -43,7 +43,7 @@ export const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({
           subtitle="Calcule o troco a ser entregue ao cliente."
         />
 
-        <Box borderBottom borderColor="border-border" w="full" />
+        <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
 
         {/* Total & Received Info */}
         <Grid cols={2} gap={5}>
@@ -90,7 +90,7 @@ export const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({
           variant="primary" 
           fullWidth 
           label="Confirmar pagamento" 
-          disabled={receivedAmount < totalAmount || totalAmount === 0}
+          disabled={receivedAmount <= 0 || totalAmount === 0}
           onClick={() => onConfirm && onConfirm(receivedAmount, change)}
         />
       </Stack>

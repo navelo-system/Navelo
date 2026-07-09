@@ -106,7 +106,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
 
       document.documentElement.style.setProperty('--brand-primary', tempPrimary)
       document.documentElement.style.setProperty('--brand-secondary', tempSecondary)
-      
+
       onSave?.(tempLogo)
     }
     onClose()
@@ -117,14 +117,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleCancel} hideCloseButton={true}>
-      <ModalHeader>
-        <SectionHeader
-          icon={Settings}
-          title="Configurações do Sistema"
-          subtitle="Gerencie suas preferências e recursos do terminal."
-        />
-      </ModalHeader>
+    <Modal isOpen={isOpen} onClose={handleCancel}>
+      <ModalHeader
+        title="Configurações do Sistema"
+        subtitle="Gerencie suas preferências e recursos do terminal."
+        icon={Settings}
+      />
       <ModalBody>
         <SettingsForm
           tempPrimary={tempPrimary}
@@ -136,16 +134,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
           handleLogoChange={handleLogoChange}
         />
       </ModalBody>
-      <ModalFooter>
-        <Stack direction="row" gap={2.5} w="full" wrap>
-          <Box flex="1">
-            <Button variant="outline-danger" label="Cancelar" onClick={handleCancel} fullWidth />
-          </Box>
-          <Box flex="1">
-            <Button variant="outline-success" label="Salvar preferências" onClick={handleSave} fullWidth />
-          </Box>
-        </Stack>
-      </ModalFooter>
+      <ModalFooter
+        cancelLabel="Cancelar"
+        onCancel={handleCancel}
+        confirmLabel="Salvar preferências"
+        onConfirm={handleSave}
+      />
     </Modal>
   )
 }

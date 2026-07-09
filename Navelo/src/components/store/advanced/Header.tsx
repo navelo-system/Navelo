@@ -26,7 +26,7 @@ const useHeaderScroll = () => {
     const handleScroll = (e: Event) => {
       const target = e.target as HTMLElement | Document
       const currentScrollY = target === document ? window.scrollY : (target as HTMLElement).scrollTop
-      
+
       if (currentScrollY === undefined) return
 
       if (currentScrollY > 50) {
@@ -60,8 +60,8 @@ export const Header: React.FC = () => {
   }, [])
 
   return (
-    <Box paddingY={5} paddingX={5} bg="bg-brand-primary" w="full" borderBottom borderColor="border-brand-primary/10" display="flex" direction="col">
-      <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={5}>
+    <Box paddingY={5} paddingX={5} bg="bg-brand-primary" w="full" border borderColor="border-brand-primary/10" display="flex" direction="col">
+      <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={isDesktop || isMobileButtonsVisible ? 5 : 0}>
         {/* Left content: Logo aligned to the left/center */}
         <Stack gap={1} align="center" mobileAlign="start">
           {logoUrl ? (
@@ -75,32 +75,36 @@ export const Header: React.FC = () => {
         </Stack>
 
         {/* Right content: Icons and logout stacked on mobile */}
-        <Stack 
-          direction="col" 
-          mobileDirection="row" 
-          align="stretch" 
-          mobileAlign="center" 
-          gap={5}
-          style={isDesktop ? {} : {
-            maxHeight: isMobileButtonsVisible ? "200px" : "0px",
-            opacity: isMobileButtonsVisible ? 1 : 0,
-            overflow: "hidden",
-            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            marginTop: isMobileButtonsVisible ? "0px" : "-20px" // compensate for parent gap={5}
-          }}
+        <Box
+          w="full"
+          transition="all"
+          overflow="hidden"
+          maxH={isDesktop || isMobileButtonsVisible ? "96" : "0"}
+          opacity={isDesktop || isMobileButtonsVisible ? "100" : "0"}
         >
-          <Stack direction="row" align="center" justify="center" gap={5}>
-            <Button variant="outline-secondary-pill-icon" icon={Settings} onClick={() => setIsSettingsOpen(true)} />
-            <Button variant="outline-secondary-pill-icon" icon={Eye} />
-            <Button variant="outline-secondary-pill-icon" icon={Cloud} />
+          <Stack
+            direction="col"
+            mobileDirection="row"
+            align="stretch"
+            mobileAlign="center"
+            justify="center"
+            mobileJustify="end"
+            gap={5}
+          >
+              <Stack direction="row" align="center" justify="center" gap={5}>
+                <Button variant="outline-secondary-pill-icon" icon={Settings} onClick={() => setIsSettingsOpen(true)} />
+                <Button variant="outline-secondary-pill-icon" icon={Eye} />
+                <Button variant="outline-secondary-pill-icon" icon={Cloud} />
+              </Stack>
+              <Button variant="outline-secondary-sm" label="Administrador" icon={LogOut} justify="center" />
           </Stack>
-          <Button variant="outline-secondary-sm" label="Administrador" icon={LogOut} justify="center" />
-        </Stack>
+        </Box>
       </Stack>
 
-      <SettingsModal 
-        isOpen={isSettingsOpen} 
-        onClose={() => setIsSettingsOpen(false)} 
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
         onSave={(newLogo) => setLogoUrl(newLogo)}
       />
     </Box>

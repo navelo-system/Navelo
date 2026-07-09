@@ -78,7 +78,7 @@ const CashSessionOpen: React.FC<OpenProps> = ({ currentCash, formatPrice, handle
       </Stack>
       {suprimentoMsg && <Font variant="description" text={suprimentoMsg} color="success" />}
     </Stack>
-    <Box borderBottom borderColor="border-border" w="full" />
+    <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
     <Button variant="outline-danger" fullWidth label="Fechar turno e imprimir resumo" icon={Lock} onClick={handleClose} />
   </Stack>
 )
@@ -139,7 +139,7 @@ export const CashSessionManager: React.FC<CashSessionManagerProps> = ({
           subtitle={`Operador: ${operatorName}`}
           action={<Badge variant={isOpen ? "success" : "danger"} label={isOpen ? "Aberto" : "Fechado"} />}
         />
-        <Box borderBottom borderColor="border-border" w="full" />
+        <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
         {!isOpen ? (
           <CashSessionClosed openingBalance={openingBalance} setOpeningBalance={setOpeningBalance} handleOpen={handleOpen} />
         ) : (

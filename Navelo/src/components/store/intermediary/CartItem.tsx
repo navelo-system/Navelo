@@ -37,7 +37,8 @@ export const CartItem: React.FC<CartItemProps> = ({
   }
 
   return (
-    <Box padding={2.5} paddingY={5} borderBottom={!isLast} borderColor="border-border">
+    <>
+      <Box padding={0}>
       <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" gap={2.5}>
         {/* Product Info */}
         <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
@@ -69,6 +70,8 @@ export const CartItem: React.FC<CartItemProps> = ({
           </Box>
         </Stack>
       </Stack>
-    </Box>
+      </Box>
+      {!isLast && <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />}
+    </>
   )
 }

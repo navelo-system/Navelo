@@ -4,6 +4,7 @@ import { Stack } from "../base/Stack"
 import { Font } from "../base/Font"
 import { Badge } from "../base/Badge"
 import { Button } from "../base/Button"
+import { Icon } from "../base/Icon"
 import { Clock, ChefHat, CheckCircle2, Package } from "lucide-react"
 
 export interface OrderItemType {
@@ -55,15 +56,15 @@ export function OrderCard({ orderId, tableNumber, status, time, items, onAction 
           </Stack>
           <Stack align="end" gap={2.5}>
             <Badge variant="outline" label={config.label} />
-            <Stack direction="row" align="center" gap={1} className={status === "queue" && parseInt(time.split(":")[0]) > 10 ? "text-red-500 animate-pulse" : "text-text-muted"}>
-              <Clock size={14} />
-              <Font variant="body-bold" text={time} />
+            <Stack direction="row" align="center" gap={1}>
+              <Icon icon={Clock} size={14} color={status === "queue" && parseInt(time.split(":")[0]) > 10 ? "danger" : "muted"} />
+              <Font variant="body-bold" text={time} color={status === "queue" && parseInt(time.split(":")[0]) > 10 ? "danger" : "muted"} />
             </Stack>
           </Stack>
         </Stack>
 
         {/* Divider */}
-        <Box borderBottom borderColor="border-border" w="full" />
+        <Box h="h-[2px]" w="full" bg="bg-border" />
 
         <Stack gap={2.5}>
           {items.map((item) => (

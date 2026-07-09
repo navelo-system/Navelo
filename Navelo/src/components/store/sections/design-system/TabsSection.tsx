@@ -6,7 +6,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/store/bas
 import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
-import { Layers } from "lucide-react"
+import { Layers, Clock } from "lucide-react"
+import { EmptyState } from "@/components/store/intermediary/EmptyState"
 
 export const TabsSection: React.FC = () => {
   return (
@@ -41,8 +42,11 @@ export const TabsSection: React.FC = () => {
 
             <TabsContent value="historico">
               <Stack gap={5}>
-                <Font variant="h4" text="Histórico de Atividades" />
-                <Font variant="description" text="Nenhuma atividade recente registrada." />
+                <EmptyState
+                  icon={Clock}
+                  title="Nenhuma atividade"
+                  subtitle="As atividades recentes aparecerão aqui."
+                />
               </Stack>
             </TabsContent>
           </Tabs>

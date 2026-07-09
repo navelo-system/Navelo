@@ -51,7 +51,7 @@ export const ProductScanner: React.FC<ProductScannerProps> = ({
           }
         />
 
-        <Box borderBottom borderColor="border-border" w="full" />
+        <Box h="h-[2px]" w="full" bg="bg-border" />
 
         {/* Input Form */}
         <Box as="form" onSubmit={handleSearchSubmit} w="full">

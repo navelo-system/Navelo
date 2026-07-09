@@ -10,6 +10,7 @@ export interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
   align?: "start" | "center" | "end" | "stretch" | "baseline"
   mobileAlign?: "start" | "center" | "end"
   justify?: "start" | "center" | "end" | "between" | "around" | "evenly"
+  mobileJustify?: "start" | "center" | "end" | "between" | "around" | "evenly"
   wrap?: boolean
   w?: "full" | "auto" | "fit-content" | string
   h?: "full" | "screen" | "auto" | "fit-content" | string
@@ -53,6 +54,15 @@ const justifyMap = {
   evenly: "justify-evenly",
 }
 
+const mobileJustifyMap = {
+  start: "md:justify-start",
+  center: "md:justify-center",
+  end: "md:justify-end",
+  between: "md:justify-between",
+  around: "md:justify-around",
+  evenly: "md:justify-evenly",
+}
+
 const widthMap: Record<string, string> = {
   "full": "w-full",
   "auto": "w-auto",
@@ -90,7 +100,7 @@ const minWMap = {
 }
 
 export const Stack = React.forwardRef<HTMLDivElement, StackProps>(
-  ({ className, direction = "col", mobileDirection, gap = 5, align, mobileAlign, justify, wrap, w, h, maxWidth, paddingX, flex, minW, ...props }, ref) => {
+  ({ className, direction = "col", mobileDirection, gap = 5, align, mobileAlign, justify, mobileJustify, wrap, w, h, maxWidth, paddingX, flex, minW, ...props }, ref) => {
     const mobileDirectionClass = mobileDirection === "row" ? "md:flex-row" : mobileDirection === "col" ? "md:flex-col" : undefined
     return (
       <div
@@ -103,6 +113,7 @@ export const Stack = React.forwardRef<HTMLDivElement, StackProps>(
           align && alignMap[align],
           mobileAlign && mobileAlignMap[mobileAlign],
           justify && justifyMap[justify],
+          mobileJustify && mobileJustifyMap[mobileJustify],
           wrap && "flex-wrap",
           w && (widthMap[w] || w),
           h && (heightMap[h] || h),

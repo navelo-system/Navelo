@@ -2,7 +2,7 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Font } from "./Font"
 import { Stack } from "./Stack"
-import { LucideIcon } from "lucide-react"
+import { LucideIcon, Eye, EyeOff } from "lucide-react"
 import { maskCPF, maskCNPJ, maskPhone, maskDate, maskCEP } from "@/lib/masks"
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -18,6 +18,9 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, variant = "default", hasError, label, description, error, icon: IconComponent, iconRight: IconRightComponent, onChange, ...props }, ref) => {
     
+    const [showPassword, setShowPassword] = React.useState(false)
+    const isPassword = type === "password"
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (variant === "cpf") e.target.value = maskCPF(e.target.value)
       else if (variant === "cnpj") e.target.value = maskCNPJ(e.target.value)
@@ -28,7 +31,9 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       onChange?.(e)
     }
 
-    const inputType = variant === "date" ? "text" : variant === "email" ? "email" : type
+    const inputType = isPassword 
+      ? (showPassword ? "text" : "password") 
+      : (variant === "date" ? "text" : variant === "email" ? "email" : type)
     const placeholder = variant === "date" && !props.placeholder ? "DD/MM/AAAA" : props.placeholder
 
     if (variant === "image-upload") {
@@ -78,17 +83,28 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           className={cn(
             "flex h-10 w-full rounded-[5px] border-2 border-border bg-surface px-5 py-2.5 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-text-muted focus:outline-none focus:border-brand-primary disabled:cursor-not-allowed disabled:opacity-50 transition-colors",
             IconComponent && "pl-10",
-            IconRightComponent && "pr-10",
+            (IconRightComponent || isPassword) && "pr-10",
             (hasError || error) && "border-red-500 focus:border-red-500",
             className
           )}
           ref={ref}
           {...props}
         />
-        {IconRightComponent && (
-          <div className="absolute right-3 flex items-center justify-center pointer-events-none text-text-muted">
-            <IconRightComponent size={16} />
-          </div>
+        {(IconRightComponent || isPassword) && (
+          <button
+            type="button"
+            onClick={isPassword ? () => setShowPassword(prev => !prev) : undefined}
+            className={cn(
+              "absolute right-3 flex items-center justify-center text-text-muted hover:text-foreground focus:outline-none",
+              isPassword ? "cursor-pointer" : "pointer-events-none"
+            )}
+          >
+            {isPassword ? (
+              showPassword ? <EyeOff size={16} /> : <Eye size={16} />
+            ) : (
+              IconRightComponent && <IconRightComponent size={16} />
+            )}
+          </button>
         )}
       </div>
     )
