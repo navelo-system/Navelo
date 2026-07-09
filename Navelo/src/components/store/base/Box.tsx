@@ -16,7 +16,7 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   display?: "hidden lg:flex" | "flex" | "block" | "inline-flex" | "hidden" | "block md:hidden" | "hidden md:block"
   direction?: "col" | "row"
   justify?: "between" | "center" | "start" | "end"
-  radius?: "default" | "full" | "none"
+  radius?: "default" | "full" | "none" | "lg"
   border?: boolean
   borderTop?: boolean
   borderBottom?: boolean
@@ -48,7 +48,7 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
 }
 
 const paddingMap: Record<string, string> = {
-  "5": "p-5",
+  "5": "p-6",
   "12": "p-12",
   "2.5": "p-2.5",
   "1": "p-1",
@@ -56,7 +56,7 @@ const paddingMap: Record<string, string> = {
 }
 
 const paddingXMap: Record<string, string> = {
-  "5": "px-5",
+  "5": "px-6",
   "12": "px-12",
   "2.5": "px-2.5",
   "1": "px-1",
@@ -64,7 +64,7 @@ const paddingXMap: Record<string, string> = {
 }
 
 const paddingYMap: Record<string, string> = {
-  "5": "py-5",
+  "5": "py-6",
   "12": "py-12",
   "2.5": "py-2.5",
   "1": "py-1",
@@ -111,9 +111,10 @@ const justifyMap = {
 }
 
 const radiusMap = {
-  "default": "rounded-[5px]",
+  "default": "rounded-[10px]",
   "full": "rounded-full",
   "none": "rounded-none",
+  "lg": "rounded-[16px]",
 }
 
 const orderMap = {

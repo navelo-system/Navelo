@@ -93,15 +93,15 @@ export const Header: React.FC = () => {
             gap={5}
           >
               <Stack direction="row" align="center" justify="center" gap={5}>
-                <Button variant="outline-secondary-pill-icon" icon={Settings} onClick={() => setIsSettingsOpen(true)} />
+                <Button variant="secondary-pill-icon" icon={Settings} onClick={() => setIsSettingsOpen(true)} />
                 <Button
-                  variant={isEyeActive ? "outline-success-pill-icon" : "outline-pill-icon"}
+                  variant={isEyeActive ? "success-pill-icon" : "outline-pill-icon"}
                   icon={Eye}
                   onClick={() => setIsEyeActive(prev => !prev)}
                 />
-                <Button variant="outline-danger-pill-icon" icon={LogOut} />
+                <Button variant="danger-pill-icon" icon={LogOut} />
               </Stack>
-              <Button variant="outline-secondary-sm" label="Administrador" icon={LogOut} justify="center" />
+              <Button variant="secondary-sm" label="Administrador" icon={LogOut} justify="center" />
           </Stack>
         </Box>
       </Stack>

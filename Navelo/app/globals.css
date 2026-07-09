@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #e2e8f0;
+  --background: #f1f5f9;
   --surface: #ffffff;
   --surface-raised: #ffffff;
   --surface-sunken: #cbd5e1;
@@ -75,7 +75,7 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: var(--brand-primary);
-  border-radius: 5px;
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -84,8 +84,13 @@ body {
 
 /* ─── Button Shimmer Effect ────────────────────────────────────── */
 @keyframes btn-shimmer {
-  0%   { transform: translateX(-120%) skewX(-20deg); }
-  100% { transform: translateX(240%) skewX(-20deg); }
+  0% {
+    transform: translateX(-120%) skewX(-20deg);
+  }
+
+  100% {
+    transform: translateX(240%) skewX(-20deg);
+  }
 }
 
 .btn-shimmer {
@@ -100,12 +105,10 @@ body {
   left: 0;
   width: 40%;
   height: 100%;
-  background: linear-gradient(
-    105deg,
-    transparent 20%,
-    rgba(255, 255, 255, 0.22) 50%,
-    transparent 80%
-  );
+  background: linear-gradient(105deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.22) 50%,
+      transparent 80%);
   transform: translateX(-120%) skewX(-20deg);
   pointer-events: none;
 }
@@ -116,13 +119,23 @@ body {
 
 /* ─── Drawer Slide Animations ────────────────────────────────────── */
 @keyframes slide-in-right {
-  from { transform: translateX(100%); }
-  to   { transform: translateX(0); }
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
 }
 
 @keyframes slide-out-right {
-  from { transform: translateX(0); }
-  to   { transform: translateX(100%); }
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
 }
 
 .animate-slide-in-right {
@@ -139,6 +152,7 @@ body {
     opacity: 0;
     transform: scale(0.88);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -150,6 +164,7 @@ body {
     opacity: 1;
     transform: scale(1);
   }
+
   to {
     opacity: 0;
     transform: scale(0.88);

@@ -288,7 +288,7 @@ export const IFoodSection: React.FC<IFoodSectionProps> = ({
               
               {/* Botão Copiar */}
               <Button
-                variant="outline-primary"
+                variant="primary"
                 label="COPIAR"
                 icon={Copy}
                 onClick={handleCopyCode}

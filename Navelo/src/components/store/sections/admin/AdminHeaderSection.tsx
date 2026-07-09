@@ -108,20 +108,20 @@ export const AdminHeaderSection: React.FC = () => {
               {/* Indicador de sincronização — visual apenas, sem interação */}
               <Box>
                 <Button
-                  variant={isSynced ? "outline-success-pill-icon" : "outline-danger-pill-icon"}
+                  variant={isSynced ? "success-pill-icon" : "danger-pill-icon"}
                   icon={isSynced ? Cloud : CloudOff}
                   title={isSynced ? "Sincronizado" : "Fora de sincronização"}
                 />
               </Box>
               <Stack direction="row" align="center" gap={2.5}>
                 <Button
-                  variant="outline-secondary-pill-icon"
+                  variant="secondary-pill-icon"
                   icon={hideValues ? EyeOff : Eye}
                   onClick={() => setHideValues(!hideValues)}
                   title="Ocultar/Mostrar Valores"
                 />
                 <Button
-                  variant="outline-secondary-pill-icon"
+                  variant="secondary-pill-icon"
                   icon={LogOut}
                   onClick={handleLogout}
                   title="Sair"

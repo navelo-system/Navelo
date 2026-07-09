@@ -219,7 +219,7 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
                           onClick={() => handleEdit(prod)}
                         />
                         <Button
-                          variant="outline-danger-sm"
+                          variant="danger-sm"
                           icon={Trash2}
                           onClick={() => handleDelete(prod.id)}
                         />

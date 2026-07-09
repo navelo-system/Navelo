@@ -371,7 +371,7 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
             </Stack>
 
             <Button
-              variant="outline-secondary"
+              variant="secondary"
               label="Exportar CSV"
               icon={Download}
               onClick={() => {}}

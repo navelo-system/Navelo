@@ -179,7 +179,7 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
                           onClick={() => handleEdit(unit)}
                         />
                         <Button
-                          variant="outline-danger-icon-xs"
+                          variant="danger-icon-xs"
                           icon={Trash2}
                           onClick={() => handleDelete(unit.id)}
                         />

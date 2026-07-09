@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 type GapToken = "section" | "title-content" | 12.5 | 12 | 5 | 2.5 | 1 | 0
 
 export interface GridProps extends React.HTMLAttributes<HTMLDivElement> {
-  cols?: 1 | 2 | 3 | 4 | 5 | 6 | 12
+  cols?: 1 | 2 | 3 | 4 | 5 | 6 | 8 | 12
   gap?: GapToken
   responsive?: boolean
   w?: string
@@ -48,12 +48,12 @@ export const Grid = React.forwardRef<HTMLDivElement, GridProps>(
     const colsClass = React.useMemo(() => {
       if (!responsive) return fixedColsMap[cols]
       if (mobileCols !== undefined) {
-        const mdClass = cols === 12 
-          ? "md:grid-cols-6 lg:grid-cols-12" 
-          : cols === 6 
-            ? "md:grid-cols-3 lg:grid-cols-6" 
-            : cols === 4 
-              ? "md:grid-cols-2 lg:grid-cols-4" 
+        const mdClass = cols === 12
+          ? "md:grid-cols-6 lg:grid-cols-12"
+          : cols === 6
+            ? "md:grid-cols-3 lg:grid-cols-6"
+            : cols === 4
+              ? "md:grid-cols-2 lg:grid-cols-4"
               : `md:grid-cols-${cols}`
         return `grid-cols-${mobileCols} ${mdClass}`
       }

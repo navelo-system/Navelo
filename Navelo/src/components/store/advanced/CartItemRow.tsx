@@ -37,7 +37,7 @@ export function CartItemRow({ item, onIncrease, onDecrease, onRemove }: CartItem
             {item.quantity > 1 ? (
               <Button variant="outline-icon-xs" icon={Minus} onClick={() => onDecrease?.(item)} />
             ) : (
-              <Button variant="outline-danger-icon-xs" icon={Trash2} onClick={() => onRemove?.(item)} />
+              <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onRemove?.(item)} />
             )}
 
             <Box w="fit-content" paddingX={2.5}>

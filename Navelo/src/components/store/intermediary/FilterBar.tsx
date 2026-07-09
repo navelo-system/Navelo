@@ -40,7 +40,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           />
           {hasActiveFilters && onClearFilters && (
             <Button
-              variant="outline-danger-icon"
+              variant="danger-icon"
               icon={X}
               onClick={onClearFilters}
             />

@@ -28,7 +28,7 @@ const gapMap: Record<string, string> = {
   "title-content": "gap-y-[30px] lg:gap-y-[50px]",
   "12.5": "gap-[50px]",
   "12": "gap-12",
-  "5": "gap-5",
+  "5": "gap-6",
   "2.5": "gap-2.5",
   "1": "gap-1",
   "0": "gap-0",
@@ -86,7 +86,7 @@ const maxWidthMap = {
 }
 
 const paddingXMap = {
-  "5": "px-5",
+  "5": "px-6",
   "12": "px-12",
   "2.5": "px-2.5",
   "0": "px-0",

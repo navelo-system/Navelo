@@ -191,7 +191,7 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
                           onClick={() => handleEdit(u)}
                         />
                         <Button
-                          variant="outline-danger-icon-xs"
+                          variant="danger-icon-xs"
                           icon={Trash2}
                           onClick={() => handleDelete(u.id)}
                           disabled={u.isCurrent}

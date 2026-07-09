@@ -16,12 +16,12 @@ export const SemanticActionsSection: React.FC = () => {
       <Box padding={5} bg="bg-surface" radius="default">
         <Grid cols={2} gap={5}>
           <Stack gap={5}>
-            <Button variant="outline-success" label="Soft Success" />
-            <Button variant="outline-success-pill" label="Pill Success" />
+            <Button variant="success" label="Solid Success" />
+            <Button variant="success-pill" label="Pill Success" />
           </Stack>
           <Stack gap={5}>
-            <Button variant="outline-danger" label="Soft Danger" />
-            <Button variant="outline-danger-pill" label="Pill Danger" />
+            <Button variant="danger" label="Solid Danger" />
+            <Button variant="danger-pill" label="Pill Danger" />
           </Stack>
         </Grid>
       </Box>
@@ -29,16 +29,16 @@ export const SemanticActionsSection: React.FC = () => {
       <Box padding={5} bg="bg-surface" radius="default">
         <Stack gap={5}>
           <Stack direction="row" gap={5} wrap>
-            <Button variant="outline-success" label="Salvar" icon={Check} />
-            <Button variant="outline-danger" label="Excluir" iconRight={Trash} />
-            <Button variant="outline-success" label="Aprovar" icon={Check} iconRight={ArrowRight} />
-            <Button variant="outline-danger" label="Bloquear" icon={Trash} iconRight={ArrowRight} />
+            <Button variant="success" label="Salvar" icon={Check} />
+            <Button variant="danger" label="Excluir" iconRight={Trash} />
+            <Button variant="success" label="Aprovar" icon={Check} iconRight={ArrowRight} />
+            <Button variant="danger" label="Bloquear" icon={Trash} iconRight={ArrowRight} />
           </Stack>
           <Stack direction="row" gap={5} wrap>
-            <Button variant="outline-success-pill" label="Salvar" icon={Check} />
-            <Button variant="outline-danger-pill" label="Excluir" iconRight={Trash} />
-            <Button variant="outline-success-pill" label="Aprovar" icon={Check} iconRight={ArrowRight} />
-            <Button variant="outline-danger-pill" label="Bloquear" icon={Trash} iconRight={ArrowRight} />
+            <Button variant="success-pill" label="Salvar" icon={Check} />
+            <Button variant="danger-pill" label="Excluir" iconRight={Trash} />
+            <Button variant="success-pill" label="Aprovar" icon={Check} iconRight={ArrowRight} />
+            <Button variant="danger-pill" label="Bloquear" icon={Trash} iconRight={ArrowRight} />
           </Stack>
         </Stack>
       </Box>

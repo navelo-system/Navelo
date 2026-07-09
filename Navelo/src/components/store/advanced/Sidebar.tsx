@@ -57,7 +57,7 @@ export const Sidebar: React.FC = () => {
         </Stack>
 
         <Stack gap={2.5}>
-          <Button variant="outline-primary" icon={LayoutDashboard} label="Design System" fullWidth justify="start" />
+          <Button variant="primary" icon={LayoutDashboard} label="Design System" fullWidth justify="start" />
           <Button variant="outline" icon={Users} label="Componentes" fullWidth justify="start" />
           <Button variant="outline" icon={Settings} label="Configurações" fullWidth justify="start" />
         </Stack>
@@ -76,9 +76,9 @@ export const Sidebar: React.FC = () => {
           </Stack>
         </Stack>
         <Stack direction="row" gap={2.5} w="full" wrap>
-          <Button variant="outline-primary-pill-icon" icon={Settings} onClick={() => setIsSettingsOpen(true)} />
+          <Button variant="primary-pill-icon" icon={Settings} onClick={() => setIsSettingsOpen(true)} />
           <Box flex="1">
-            <Button variant="outline-danger-pill-icon" icon={LogOut} label="Sair da conta" fullWidth justify="start" />
+            <Button variant="danger-pill-icon" icon={LogOut} label="Sair da conta" fullWidth justify="start" />
           </Box>
         </Stack>
       </Stack>

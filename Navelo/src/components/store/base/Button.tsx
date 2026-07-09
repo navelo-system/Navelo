@@ -5,7 +5,7 @@ import { LucideIcon } from "lucide-react"
 import { Icon as BaseIcon } from "./Icon"
 import { Font } from "./Font"
 
-type BaseColor = "primary" | "secondary" | "outline" | "outline-primary" | "outline-secondary" | "outline-success" | "outline-danger" | "ghost" | "ghost-secondary"
+type BaseColor = "primary" | "secondary" | "success" | "danger" | "outline" | "ghost" | "ghost-secondary"
 type Modifier = "" | "-pill" | "-sm" | "-xs" | "-lg" | "-icon" | "-icon-xs" | "-ghost" | "-pill-sm" | "-pill-xs" | "-pill-lg" | "-pill-icon" | "-pill-icon-xs"
 
 export type ButtonVariant = `${BaseColor}${Modifier}`
@@ -24,11 +24,9 @@ export interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonE
 const variantStyles: Record<string, string> = {
   primary: "bg-brand-primary text-white hover:opacity-90 border-2 border-transparent",
   secondary: "bg-brand-secondary text-white hover:opacity-90 border-2 border-transparent",
+  success: "bg-brand-success text-white hover:opacity-90 border-2 border-transparent",
+  danger: "bg-brand-danger text-white hover:opacity-90 border-2 border-transparent",
   outline: "border-2 border-border bg-surface hover:bg-surface-sunken text-foreground",
-  "outline-primary": "bg-brand-primary/20 text-brand-primary border-2 border-brand-primary/80 hover:bg-brand-primary/30",
-  "outline-secondary": "bg-brand-secondary/20 text-brand-secondary border-2 border-brand-secondary/80 hover:bg-brand-secondary/30",
-  "outline-success": "bg-brand-success/20 text-brand-success border-2 border-brand-success/80 hover:bg-brand-success/30",
-  "outline-danger": "bg-brand-danger/20 text-brand-danger border-2 border-brand-danger/80 hover:bg-brand-danger/30",
   ghost: "bg-transparent text-foreground border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",
   "ghost-secondary": "bg-transparent text-brand-secondary border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",
 }

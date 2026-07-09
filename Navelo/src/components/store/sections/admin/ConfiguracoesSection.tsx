@@ -148,7 +148,7 @@ export function ConfiguracoesSection() {
                   </Stack>
                 </Box>
                 <Button
-                  variant="outline-danger-sm"
+                  variant="danger-sm"
                   label="Remover Logotipo"
                   onClick={() => setConfig({ ...config, whitelabel: { ...config.whitelabel, logoUrl: "" } })}
                 />

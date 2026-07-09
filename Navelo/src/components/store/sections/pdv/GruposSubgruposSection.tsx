@@ -191,7 +191,7 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
                           onClick={() => handleEdit(group)}
                         />
                         <Button
-                          variant="outline-danger-icon-xs"
+                          variant="danger-icon-xs"
                           icon={Trash2}
                           onClick={() => handleDelete(group.id)}
                         />

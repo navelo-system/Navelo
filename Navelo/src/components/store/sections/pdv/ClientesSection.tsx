@@ -263,7 +263,7 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
                           onClick={() => handleEdit(cli)}
                         />
                         <Button
-                          variant="outline-danger-sm"
+                          variant="danger-sm"
                           icon={Trash2}
                           onClick={() => handleDelete(cli.id)}
                         />

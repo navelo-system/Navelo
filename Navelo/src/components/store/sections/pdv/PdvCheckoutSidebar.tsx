@@ -62,7 +62,7 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
           <Box paddingY={1} />
 
           <Button
-            variant="outline-success-lg"
+            variant="success-lg"
             fullWidth
             label="F9 - Pagamento"
             icon={ShoppingCart}

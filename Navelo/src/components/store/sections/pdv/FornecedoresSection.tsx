@@ -240,7 +240,7 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
                           onClick={() => handleEdit(supplier)}
                         />
                         <Button
-                          variant="outline-danger-icon-xs"
+                          variant="danger-icon-xs"
                           icon={Trash2}
                           onClick={() => handleDelete(supplier.id)}
                         />
@@ -371,7 +371,7 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
                 {editingSupplier ? (
                   <Button
                     type="button"
-                    variant="outline-danger"
+                    variant="danger"
                     label="Excluir Fornecedor"
                     icon={Trash2}
                     onClick={() => handleDelete(editingSupplier.id)}

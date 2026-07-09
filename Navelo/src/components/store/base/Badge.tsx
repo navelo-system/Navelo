@@ -11,16 +11,16 @@ export interface BadgeProps extends Omit<React.HTMLAttributes<HTMLDivElement>, '
 }
 
 const variantStyles = {
-  default: "bg-foreground/10 text-foreground border-2 border-foreground/30",
-  primary: "bg-brand-primary/20 text-brand-primary border-2 border-brand-primary/80",
-  secondary: "bg-brand-secondary/20 text-brand-secondary border-2 border-brand-secondary/80",
-  success: "bg-brand-success/20 text-brand-success border-2 border-brand-success/80",
-  danger: "bg-brand-danger/20 text-brand-danger border-2 border-brand-danger/80",
+  default: "bg-foreground/10 text-foreground border-none",
+  primary: "bg-brand-primary/20 text-brand-primary border-none",
+  secondary: "bg-brand-secondary/20 text-brand-secondary border-none",
+  success: "bg-brand-success/20 text-brand-success border-none",
+  danger: "bg-brand-danger/20 text-brand-danger border-none",
   outline: "text-foreground border-2 border-border bg-transparent",
 }
 
 const roundedStyles = {
-  default: "rounded-[5px]",
+  default: "rounded-[10px]",
   full: "rounded-full",
 }
 

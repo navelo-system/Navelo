@@ -44,44 +44,34 @@ export const RegistryMain: React.FC<RegistryMainProps> = ({
   return (
     <Box padding={5} w="full" h="full" bg="bg-background" overflow="auto" {...props}>
       <Stack gap={'section'} w="full">
-        {(title || subtitle || icon || superiorTitle) && (
+        {(onBack || customActions) && (
           <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-            <Stack gap={2.5}>
+            {onBack ? (
+              <Box display="block md:hidden">
+                <Button
+                  variant="ghost-secondary"
+                  label="Voltar"
+                  icon={ChevronLeft}
+                  onClick={onBack}
+                  justify="start"
+                />
+              </Box>
+            ) : (
+              <Box />
+            )}
+            <Stack direction="row" align="center" gap={2.5} flex="none">
+              {customActions}
               {onBack && (
-                <Box display="block md:hidden">
+                <Box display="hidden md:block">
                   <Button
                     variant="ghost-secondary"
                     label="Voltar"
                     icon={ChevronLeft}
                     onClick={onBack}
-                    justify="start"
                   />
                 </Box>
               )}
-              {superiorTitle && (
-                <Font variant="sub-tiny" color="primary" text={superiorTitle} />
-              )}
-              <Stack direction="row" align="center" gap={2.5}>
-                {icon && <Icon icon={icon} size={32} color="primary" />}
-                {title && <Font variant="h2" text={title} />}
-              </Stack>
-              {subtitle && <Font variant="description" text={subtitle} />}
             </Stack>
-            {(onBack || customActions) && (
-              <Stack direction="row" align="center" gap={2.5} flex="none">
-                {customActions}
-                {onBack && (
-                  <Box display="hidden md:block">
-                    <Button
-                      variant="outline-secondary"
-                      label="Voltar"
-                      icon={ChevronLeft}
-                      onClick={onBack}
-                    />
-                  </Box>
-                )}
-              </Stack>
-            )}
           </Stack>
         )}
 

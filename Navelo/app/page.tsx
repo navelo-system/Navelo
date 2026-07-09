@@ -15,9 +15,31 @@ import { ClientesSection } from "@/components/store/sections/pdv/ClientesSection
 import { RelatoriosSection } from "@/components/store/sections/pdv/RelatoriosSection"
 import { ConfiguracoesSection } from "@/components/store/sections/pdv/ConfiguracoesSection"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
-import { Terminal } from "lucide-react"
+import {
+  ShoppingBag,
+  Receipt,
+  Bike,
+  Package,
+  Layers,
+  Users,
+  BarChart3,
+  Settings,
+  Terminal
+} from "lucide-react"
 
 const PDV_VIEWS = ["dashboard", "caixa", "comandas", "delivery", "estoque", "produtos", "clientes", "relatorios", "configuracoes"]
+
+const viewIconMap: Record<string, any> = {
+  dashboard: Terminal,
+  caixa: ShoppingBag,
+  comandas: Receipt,
+  delivery: Bike,
+  estoque: Package,
+  produtos: Layers,
+  clientes: Users,
+  relatorios: BarChart3,
+  configuracoes: Settings,
+}
 
 export default function Home() {
   const [isMounted, setIsMounted] = React.useState(false)
@@ -163,11 +185,19 @@ export default function Home() {
             customTitle
               ? customTitle
               : currentView === "dashboard"
-              ? "Painel Geral"
+              ? undefined
               : currentView.charAt(0).toUpperCase() + currentView.slice(1)
           }
-          subtitle={`Terminal PDV — Operador: ${operator}`}
-          icon={Terminal}
+          subtitle={
+            currentView === "dashboard"
+              ? undefined
+              : `Terminal PDV — Operador: ${operator}`
+          }
+          icon={
+            currentView === "dashboard"
+              ? undefined
+              : viewIconMap[currentView] || Terminal
+          }
           onBack={
             customBack
               ? customBack
@@ -178,7 +208,7 @@ export default function Home() {
                 }
               : undefined
           }
-          customActions={customActions}
+          customActions={currentView === "dashboard" ? undefined : customActions}
         >
           <ViewTransition viewKey={currentView}>
           {currentView === "dashboard" && (

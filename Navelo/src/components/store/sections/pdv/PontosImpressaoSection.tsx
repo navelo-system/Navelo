@@ -248,7 +248,7 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
                             onClick={() => handleEdit(point)}
                           />
                           <Button
-                            variant="outline-danger-icon-xs"
+                            variant="danger-icon-xs"
                             icon={Trash2}
                             onClick={() => handleDelete(point.id)}
                           />
@@ -454,7 +454,7 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
                   <Box w="w-full md:w-auto" order="2" mdOrder="1" display="flex">
                     <Button
                       type="button"
-                      variant="outline-danger"
+                      variant="danger"
                       label="Excluir Ponto"
                       icon={Trash2}
                       onClick={() => handleDelete(editingPoint.id)}

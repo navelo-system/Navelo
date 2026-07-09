@@ -53,7 +53,7 @@ export const Numpad: React.FC<NumpadProps> = ({
           onClick={() => onActionClick("backspace")}
           disabled={disabled}
           fullWidth
-          variant="outline-danger-icon"
+          variant="danger-icon"
         />
       </Grid>
     </Box>

@@ -40,8 +40,8 @@ export interface OrderCardProps {
 export function OrderCard({ orderId, tableNumber, status, time, items, onAction }: OrderCardProps) {
   const statusConfig = {
     queue: { label: "Na Fila", color: "default" as const, action: "Preparar", actionIcon: ChefHat, actionVariant: "primary" as const },
-    preparing: { label: "Preparando", color: "primary" as const, action: "Pronto", actionIcon: CheckCircle2, actionVariant: "outline-success" as const },
-    done: { label: "Pronto", color: "success" as const, action: "Entregar", actionIcon: Package, actionVariant: "outline-success" as const }
+    preparing: { label: "Preparando", color: "primary" as const, action: "Pronto", actionIcon: CheckCircle2, actionVariant: "success" as const },
+    done: { label: "Pronto", color: "success" as const, action: "Entregar", actionIcon: Package, actionVariant: "success" as const }
   }
   const config = statusConfig[status]
 

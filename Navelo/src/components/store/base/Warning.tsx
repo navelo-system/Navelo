@@ -24,32 +24,32 @@ const variantConfig = {
     border: "border-brand-warning/30",
     textClass: "warning" as const,
     iconBg: "bg-brand-warning",
-    buttonVariant: "outline-secondary-sm" as const,
-    closeButtonVariant: "outline-secondary-pill-icon" as const,
+    buttonVariant: "primary-sm" as const,
+    closeButtonVariant: "primary-pill-icon" as const,
   },
   danger: {
     bg: "bg-brand-danger/10",
     border: "border-brand-danger/30",
     textClass: "danger" as const,
     iconBg: "bg-brand-danger",
-    buttonVariant: "outline-danger-sm" as const,
-    closeButtonVariant: "outline-danger-pill-icon" as const,
+    buttonVariant: "danger-sm" as const,
+    closeButtonVariant: "danger-pill-icon" as const,
   },
   success: {
     bg: "bg-brand-success/10",
     border: "border-brand-success/30",
     textClass: "success" as const,
     iconBg: "bg-brand-success",
-    buttonVariant: "outline-success-sm" as const,
-    closeButtonVariant: "outline-success-pill-icon" as const,
+    buttonVariant: "success-sm" as const,
+    closeButtonVariant: "success-pill-icon" as const,
   },
   info: {
     bg: "bg-brand-primary/10",
     border: "border-brand-primary/30",
     textClass: "primary" as const,
     iconBg: "bg-brand-primary",
-    buttonVariant: "outline-primary-sm" as const,
-    closeButtonVariant: "outline-primary-pill-icon" as const,
+    buttonVariant: "primary-sm" as const,
+    closeButtonVariant: "primary-pill-icon" as const,
   },
 }
 
@@ -68,8 +68,7 @@ export const Warning: React.FC<WarningProps> = ({
     <Box
       padding={5}
       bg={config.bg}
-      border={true}
-      borderColor={config.border}
+      border={false}
       radius="default"
       w="full"
     >

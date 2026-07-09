@@ -6,6 +6,8 @@ import { LucideIcon } from "lucide-react"
 import { Stack } from "./Stack"
 import { Box } from "./Box"
 import { Button } from "./Button"
+import { Font } from "./Font"
+import { CircularIcon } from "../intermediary/CircularIcon"
 
 export type ModalProps = 
   | {
@@ -124,7 +126,7 @@ export function Modal(props: ModalProps) {
                     <Box flex="1">
                       <Button 
                         type="button" 
-                        variant="outline-danger" 
+                        variant="danger" 
                         label="Cancelar" 
                         onClick={handleClose} 
                         fullWidth 
@@ -135,7 +137,7 @@ export function Modal(props: ModalProps) {
                     <Box flex="1">
                       <Button 
                         type={isSubmit ? "submit" : "button"} 
-                        variant="outline-success" 
+                        variant="success" 
                         label={successText} 
                         onClick={onSuccess} 
                         fullWidth 
@@ -195,7 +197,7 @@ export function ModalHeader({ title, subtitle, icon: IconComp }: ModalHeaderProp
   return (
     <div className="flex flex-col space-y-1.5 p-5">
       <Stack direction="row" align="center" gap={5}>
-        {IconComp && <CircularIcon icon={IconComp} size={20} />}
+        {IconComp && <CircularIcon icon={IconComp} size={20} variant="solid" solidColor="secondary" solidRadius="default" />}
         <Stack gap={1}>
           <Font variant="body-bold" text={title} />
           {subtitle && <Font variant="description" text={subtitle} />}
@@ -242,7 +244,7 @@ export function ModalFooter({
         <Box flex="1">
           <Button 
             type="button" 
-            variant="outline-danger" 
+            variant="danger" 
             label={cancelLabel} 
             icon={cancelIcon} 
             onClick={onCancel} 
@@ -252,7 +254,7 @@ export function ModalFooter({
         <Box flex="1">
           <Button 
             type={isSubmit ? "submit" : "button"} 
-            variant="outline-success" 
+            variant="success" 
             label={confirmLabel} 
             icon={confirmIcon} 
             onClick={onConfirm} 

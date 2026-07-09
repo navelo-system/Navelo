@@ -31,7 +31,7 @@ const CashSessionClosed: React.FC<ClosedProps> = ({ openingBalance, setOpeningBa
       variant="default"
     />
     <Button 
-      variant="outline-success" 
+      variant="success" 
       fullWidth 
       label="Abrir turno de vendas" 
       icon={Unlock}
@@ -79,7 +79,7 @@ const CashSessionOpen: React.FC<OpenProps> = ({ currentCash, formatPrice, handle
       {suprimentoMsg && <Font variant="description" text={suprimentoMsg} color="success" />}
     </Stack>
     <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
-    <Button variant="outline-danger" fullWidth label="Fechar turno e imprimir resumo" icon={Lock} onClick={handleClose} />
+    <Button variant="danger" fullWidth label="Fechar turno e imprimir resumo" icon={Lock} onClick={handleClose} />
   </Stack>
 )
 

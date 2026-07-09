@@ -56,7 +56,7 @@ export const BranchRow: React.FC<BranchRowProps> = ({
         </Box>
 
         <Button 
-          variant={isActive ? "outline-primary" : "outline"} 
+          variant={isActive ? "primary" : "outline"} 
           label={isActive ? "Ativo" : "Selecionar"} 
           onClick={() => onSelect(branch)}
           disabled={isActive}

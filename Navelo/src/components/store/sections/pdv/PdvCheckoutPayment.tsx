@@ -94,7 +94,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                     <Stack direction="row" align="center" gap={5} justify="end" w="w-full md:w-auto">
                       <Font variant="body-bold" text={formatPrice(item.quantity * item.unitPrice)} />
                       <Button
-                        variant="outline-danger-icon"
+                        variant="danger-icon"
                         icon={Trash2}
                         onClick={() => setItemToRemove(item)}
                       />
@@ -176,7 +176,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                         <Stack direction="row" justify="between" align="center" w="full">
                           <Icon icon={DollarSign} variant="circular-success" />
                           <Button
-                            variant="outline-danger-icon"
+                            variant="danger-icon"
                             icon={Trash2}
                             onClick={() => onRemovePayment(idx)}
                           />
@@ -198,7 +198,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                         <Stack direction="row" align="center" gap={5}>
                           <Font variant="body-bold" text={formatPrice(p.amount)} />
                           <Button
-                            variant="outline-danger-icon"
+                            variant="danger-icon"
                             icon={Trash2}
                             onClick={() => onRemovePayment(idx)}
                           />
@@ -253,7 +253,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
           </Stack>
 
           <Button
-            variant="outline-success-lg"
+            variant="success-lg"
             fullWidth
             label="Enter ou F9 - Finalizar Venda"
             disabled={amountDue > 0 || total === 0}

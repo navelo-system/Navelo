@@ -2,6 +2,7 @@
 
 
 import * as React from "react"
+import { Box } from "../../base/Box"
 import { Stack } from "../../base/Stack"
 import { Grid } from "../../base/Grid"
 import { Warning } from "../../base/Warning"
@@ -38,28 +39,27 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({ onNavigate }
   return (
     <Stack gap={12} w="full">
       {/* Seção 1: Indicadores */}
-      <Grid cols={3} gap={5}>
+      <Grid cols={3} gap={5} mobileCols={2}>
         <KpiCard
           title="Vendas"
           value="R$ 0,00"
           subtitle="Hoje - 0 vendas realizadas"
           hideValues={hideValues}
-          icon={TrendingUp}
         />
         <KpiCard
           title="Totais em caixa"
           value="R$ 45,00"
           subtitle="16/06/26 16:00"
           hideValues={hideValues}
-          icon={Coins}
         />
-        <KpiCard
-          title="Total a receber"
-          value="R$ 0,00"
-          subtitle="0 parcelas em aberto"
-          hideValues={hideValues}
-          icon={ArrowUpRight}
-        />
+        <Box className="col-span-2 md:col-span-1">
+          <KpiCard
+            title="Total a receber"
+            value="R$ 0,00"
+            subtitle="0 parcelas em aberto"
+            hideValues={hideValues}
+          />
+        </Box>
       </Grid>
 
       {/* Seção 2: Bento Grid de Módulos */}

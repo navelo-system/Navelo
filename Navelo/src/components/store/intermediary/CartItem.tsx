@@ -54,7 +54,7 @@ export const CartItem: React.FC<CartItemProps> = ({
           {/* Controls */}
           <Stack direction="row" align="center" gap={2.5}>
             {quantity === 1 ? (
-              <Button variant="outline-danger-icon-xs" icon={Trash2} onClick={() => onRemove(id)} />
+              <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onRemove(id)} />
             ) : (
               <Button variant="outline-icon-xs" icon={Minus} onClick={() => onDecrease(id)} />
             )}

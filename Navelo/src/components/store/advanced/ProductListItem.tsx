@@ -37,7 +37,7 @@ export function ProductListItem({ product, categoryName, onEdit, onDelete }: Pro
       <TableCell align="right">
         <Stack direction="row" justify="end" gap={2.5}>
           <Button variant="outline-icon-xs" icon={Edit2} onClick={() => onEdit?.(product)} />
-          <Button variant="outline-danger-icon-xs" icon={Trash2} onClick={() => onDelete?.(product)} />
+          <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onDelete?.(product)} />
         </Stack>
       </TableCell>
     </TableRow>

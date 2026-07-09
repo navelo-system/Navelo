@@ -62,7 +62,7 @@ export const PeripheralRow: React.FC<PeripheralRowProps> = ({
         </Stack>
 
         <Button
-          variant={peripheral.type === "smartpos" && !isOnline ? "primary" : "outline-primary"}
+          variant={peripheral.type === "smartpos" && !isOnline ? "primary" : "primary"}
           label={isTesting ? "Testando..." : peripheral.type === "smartpos" && !isOnline ? "Reconectar" : "Testar"}
           icon={isTesting ? RefreshCw : undefined}
           onClick={() => onTest(peripheral)}

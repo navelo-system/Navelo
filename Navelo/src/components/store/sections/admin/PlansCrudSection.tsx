@@ -117,7 +117,7 @@ export const PlansCrudSection: React.FC = () => {
                     <TableCell align="right">
                       <Stack direction="row" gap={2.5} justify="end">
                         <Button variant="outline-icon" icon={Edit2} onClick={() => handleOpenEdit(plan)} />
-                        <Button variant="outline-danger-icon" icon={Trash2} onClick={() => handleDelete(plan.id)} />
+                        <Button variant="danger-icon" icon={Trash2} onClick={() => handleDelete(plan.id)} />
                       </Stack>
                     </TableCell>
                   </TableRow>

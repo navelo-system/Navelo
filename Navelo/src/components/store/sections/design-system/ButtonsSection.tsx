@@ -24,12 +24,12 @@ export const ButtonsSection: React.FC = () => {
             <Button variant="secondary-pill" label="Pill Secondary" />
           </Stack>
           <Stack gap={5}>
-            <Button variant="outline-primary" label="Soft Primary" />
-            <Button variant="outline-primary-pill" label="Pill Soft Primary" />
+            <Button variant="primary" label="Solid Primary" />
+            <Button variant="primary-pill" label="Pill Primary" />
           </Stack>
           <Stack gap={5}>
-            <Button variant="outline-secondary" label="Soft Secondary" />
-            <Button variant="outline-secondary-pill" label="Pill Soft Secondary" />
+            <Button variant="secondary" label="Solid Secondary" />
+            <Button variant="secondary-pill" label="Pill Secondary" />
           </Stack>
           <Stack gap={5}>
             <Button variant="outline" label="Outline Action" />
@@ -39,11 +39,9 @@ export const ButtonsSection: React.FC = () => {
             <Stack direction="row" gap={2.5} wrap>
               <Button variant="primary-pill-icon" icon={MousePointerClick} />
               <Button variant="secondary-pill-icon" icon={Zap} />
+              <Button variant="success-pill-icon" icon={Check} />
+              <Button variant="danger-pill-icon" icon={Trash} />
               <Button variant="outline-pill-icon" icon={Settings} />
-              <Button variant="outline-primary-pill-icon" icon={Info} />
-              <Button variant="outline-secondary-pill-icon" icon={Tags} />
-              <Button variant="outline-success-pill-icon" icon={Check} />
-              <Button variant="outline-danger-pill-icon" icon={Trash} />
             </Stack>
           </Stack>
         </Grid>
@@ -57,26 +55,26 @@ export const ButtonsSection: React.FC = () => {
             <Button variant="primary" label="Avançar Passo" iconRight={ArrowRight} />
             <Button variant="secondary" label="Gerar Relatório IA" icon={Bot} iconRight={ArrowRight} />
 
-            <Button variant="outline-primary" label="Soft Primary" icon={Bot} />
-            <Button variant="outline-primary" label="Soft Primary" iconRight={ArrowRight} />
-            <Button variant="outline-primary" label="Soft Primary" icon={Bot} iconRight={ArrowRight} />
+            <Button variant="primary" label="Primary" icon={Bot} />
+            <Button variant="primary" label="Primary" iconRight={ArrowRight} />
+            <Button variant="primary" label="Primary" icon={Bot} iconRight={ArrowRight} />
 
-            <Button variant="outline-secondary" label="Soft Sec" icon={Bot} />
-            <Button variant="outline-secondary" label="Soft Sec" iconRight={ArrowRight} />
-            <Button variant="outline-secondary" label="Soft Sec" icon={Bot} iconRight={ArrowRight} />
+            <Button variant="secondary" label="Secondary" icon={Bot} />
+            <Button variant="secondary" label="Secondary" iconRight={ArrowRight} />
+            <Button variant="secondary" label="Secondary" icon={Bot} iconRight={ArrowRight} />
           </Stack>
           <Stack direction="row" gap={5} wrap>
             <Button variant="outline-pill" label="Botão com Ícone Pill" icon={Bot} />
             <Button variant="primary-pill" label="Avançar Passo Pill" iconRight={ArrowRight} />
             <Button variant="secondary-pill" label="Gerar Relatório IA Pill" icon={Bot} iconRight={ArrowRight} />
 
-            <Button variant="outline-primary-pill" label="Soft Pill" icon={Bot} />
-            <Button variant="outline-primary-pill" label="Soft Pill" iconRight={ArrowRight} />
-            <Button variant="outline-primary-pill" label="Soft Pill" icon={Bot} iconRight={ArrowRight} />
+            <Button variant="primary-pill" label="Primary Pill" icon={Bot} />
+            <Button variant="primary-pill" label="Primary Pill" iconRight={ArrowRight} />
+            <Button variant="primary-pill" label="Primary Pill" icon={Bot} iconRight={ArrowRight} />
 
-            <Button variant="outline-secondary-pill" label="Soft Sec Pill" icon={Bot} />
-            <Button variant="outline-secondary-pill" label="Soft Sec Pill" iconRight={ArrowRight} />
-            <Button variant="outline-secondary-pill" label="Soft Sec Pill" icon={Bot} iconRight={ArrowRight} />
+            <Button variant="secondary-pill" label="Secondary Pill" icon={Bot} />
+            <Button variant="secondary-pill" label="Secondary Pill" iconRight={ArrowRight} />
+            <Button variant="secondary-pill" label="Secondary Pill" icon={Bot} iconRight={ArrowRight} />
           </Stack>
         </Stack>
       </Box>

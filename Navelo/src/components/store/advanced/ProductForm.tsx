@@ -605,7 +605,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                                 <Stack direction="row" align="center" justify="between" w="full">
                                   <Font variant="body" text={code} />
                                   <Button
-                                    variant="outline-danger-sm"
+                                    variant="danger-sm"
                                     icon={Trash2}
                                     onClick={() => handleRemoveBarcode(idx)}
                                     type="button"

@@ -86,7 +86,7 @@ export function KitchenTicketCard({ ticket, itemLabels = {}, onAdvance }: Kitche
         {/* Advance button */}
         {nextAction && !isDelivered && (
           <Button
-            variant="outline-primary"
+            variant="primary"
             icon={CheckCircle}
             label={nextAction}
             fullWidth

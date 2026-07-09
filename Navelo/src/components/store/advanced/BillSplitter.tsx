@@ -144,7 +144,7 @@ export const BillSplitter: React.FC<BillSplitterProps> = ({
         </Stack>
 
         <Button
-          variant="outline-success"
+          variant="success"
           fullWidth
           label="Registrar pagamento parcial"
           icon={CreditCard}

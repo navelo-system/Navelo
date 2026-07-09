@@ -125,7 +125,7 @@ export function CartReceipt({
             onClick={onApplyDiscount}
           />
           <Button
-            variant="outline-success"
+            variant="success"
             icon={ShoppingCart}
             label="Cobrar"
             fullWidth

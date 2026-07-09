@@ -181,7 +181,7 @@ export const CidadesSection: React.FC<CidadesSectionProps> = ({
                           onClick={() => handleEdit(city)}
                         />
                         <Button
-                          variant="outline-danger-icon-xs"
+                          variant="danger-icon-xs"
                           icon={Trash2}
                           onClick={() => handleDelete(city.id)}
                         />
