@@ -9,44 +9,44 @@ import { Button } from "./Button"
 import { Font } from "./Font"
 import { CircularIcon } from "../intermediary/CircularIcon"
 
-export type ModalProps = 
+export type ModalProps =
   | {
-      isOpen: boolean
-      onClose: () => void
-      title: string
-      subtitle: string
-      icon: LucideIcon
-      successText?: string
-      onSuccess?: () => void
-      isSubmit?: boolean
-      showCancelButton?: boolean
-      children: React.ReactNode
-    }
+    isOpen: boolean
+    onClose: () => void
+    title: string
+    subtitle: string
+    icon: LucideIcon
+    successText?: string
+    onSuccess?: () => void
+    isSubmit?: boolean
+    showCancelButton?: boolean
+    children: React.ReactNode
+  }
   | {
-      isOpen: boolean
-      onClose: () => void
-      title?: never
-      subtitle?: never
-      icon?: never
-      successText?: never
-      onSuccess?: never
-      isSubmit?: never
-      showCancelButton?: never
-      children: React.ReactNode
-    }
-
+    isOpen: boolean
+    onClose: () => void
+    title?: never
+    subtitle?: never
+    icon?: never
+    successText?: never
+    onSuccess?: never
+    isSubmit?: never
+    showCancelButton?: never
+    children: React.ReactNode
+  }
+/**/
 export function Modal(props: ModalProps) {
-  const { 
-    isOpen, 
-    onClose, 
-    title, 
-    subtitle, 
-    icon, 
-    successText, 
-    onSuccess, 
+  const {
+    isOpen,
+    onClose,
+    title,
+    subtitle,
+    icon,
+    successText,
+    onSuccess,
     isSubmit = false,
     showCancelButton = true,
-    children 
+    children
   } = props
 
   // shouldRender: controla se o elemento existe no DOM
@@ -101,8 +101,8 @@ export function Modal(props: ModalProps) {
   if (title) {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-        <div 
-          className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" 
+        <div
+          className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
           onClick={handleClose}
           aria-hidden="true"
         />
@@ -124,23 +124,23 @@ export function Modal(props: ModalProps) {
                 <Stack direction="col" mobileDirection="row" gap={2.5} w="full">
                   {showCancelButton && (
                     <Box flex="1">
-                      <Button 
-                        type="button" 
-                        variant="danger" 
-                        label="Cancelar" 
-                        onClick={handleClose} 
-                        fullWidth 
+                      <Button
+                        type="button"
+                        variant="danger"
+                        label="Cancelar"
+                        onClick={handleClose}
+                        fullWidth
                       />
                     </Box>
                   )}
                   {successText && (
                     <Box flex="1">
-                      <Button 
-                        type={isSubmit ? "submit" : "button"} 
-                        variant="success" 
-                        label={successText} 
-                        onClick={onSuccess} 
-                        fullWidth 
+                      <Button
+                        type={isSubmit ? "submit" : "button"}
+                        variant="success"
+                        label={successText}
+                        onClick={onSuccess}
+                        fullWidth
                       />
                     </Box>
                   )}
@@ -167,8 +167,8 @@ export function Modal(props: ModalProps) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div 
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" 
+      <div
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
         onClick={handleClose}
         aria-hidden="true"
       />
@@ -226,7 +226,7 @@ export interface ModalFooterProps {
   isSubmit?: boolean
 }
 
-export function ModalFooter({ 
+export function ModalFooter({
   cancelLabel = "Cancelar",
   cancelIcon,
   onCancel,
@@ -239,23 +239,23 @@ export function ModalFooter({
     <div className="p-5">
       <Stack direction="col" mobileDirection="row" gap={2.5} w="full">
         <Box flex="1">
-          <Button 
-            type="button" 
-            variant="danger" 
-            label={cancelLabel} 
-            icon={cancelIcon} 
-            onClick={onCancel} 
-            fullWidth 
+          <Button
+            type="button"
+            variant="danger"
+            label={cancelLabel}
+            icon={cancelIcon}
+            onClick={onCancel}
+            fullWidth
           />
         </Box>
         <Box flex="1">
-          <Button 
-            type={isSubmit ? "submit" : "button"} 
-            variant="success" 
-            label={confirmLabel} 
-            icon={confirmIcon} 
-            onClick={onConfirm} 
-            fullWidth 
+          <Button
+            type={isSubmit ? "submit" : "button"}
+            variant="success"
+            label={confirmLabel}
+            icon={confirmIcon}
+            onClick={onConfirm}
+            fullWidth
           />
         </Box>
       </Stack>
