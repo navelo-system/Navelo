@@ -184,9 +184,6 @@ export function Modal(props: ModalProps) {
   )
 }
 
-import { Font } from "./Font"
-import { CircularIcon } from "../intermediary/CircularIcon"
-
 export interface ModalHeaderProps {
   title: string
   subtitle?: string
