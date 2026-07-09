@@ -9,6 +9,7 @@ import { Font } from "../../base/Font"
 import { Input } from "../../base/Input"
 import { Button } from "../../base/Button"
 import { Icon } from "../../base/Icon"
+import { Switch } from "../../base/Switch"
 import { X, CheckCircle, Search } from "lucide-react"
 import { EmptyState } from "../../intermediary/EmptyState"
 
@@ -19,24 +20,14 @@ export interface AutorizacoesSectionProps {
 }
 
 const CustomCheckbox = ({ checked, onChange, label }: { checked: boolean, onChange: () => void, label: string }) => (
-  <Box as="button" type="button" onClick={onChange} display="flex" w="full">
-    <Stack direction="row" align="center" gap={2.5} w="full">
-      <Box
-        w="w-5"
-        h="h-5"
-        border={true}
-        borderColor={checked ? "brand-primary" : "border"}
-        bg={checked ? "bg-brand-primary" : "bg-transparent"}
-        radius="default"
-        display="flex"
-        justify="center"
-        shrink="0"
-      >
-        {checked && <Icon icon={CheckCircle} size={12} color="white" />}
-      </Box>
-      <Font variant="body-sm-medium" text={label} />
-    </Stack>
-  </Box>
+  <Stack direction="col" mobileDirection="row" gap={2.5} className="md:gap-5" align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
+    <Box className="order-2 md:order-1">
+      <Font variant="body-sm-medium" text={label} align="left" />
+    </Box>
+    <Box className="order-1 md:order-2">
+      <Switch checked={checked} onChange={onChange} />
+    </Box>
+  </Stack>
 )
 
 export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
@@ -62,7 +53,7 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
   }, [setCustomBack, setCustomTitle, onCancel])
 
   return (
-    <Stack direction="row" gap={5} w="full" align="stretch">
+    <Stack direction="col" className="lg:flex-row" gap={5} w="full" align="stretch">
       {/* Painel Principal (Esquerda) */}
       <Box
         flex="1"
@@ -81,7 +72,8 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
 
       {/* Painel de Filtros (Direita) */}
       <Box
-        w="w-[320px]"
+        w="full"
+        className="lg:w-80"
         bg="bg-white"
         border={true}
         borderColor="border-border"

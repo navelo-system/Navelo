@@ -132,8 +132,8 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
         /* ================= LISTAGEM DE USUÁRIOS ================= */
         <Box padding={5} bg="bg-white" radius="default" border={true} borderColor="border-border" w="full">
           <Stack gap={5} w="full">
-            <Stack direction="row" gap={2.5} align="center" w="full">
-              <Box flex="1">
+            <Stack direction="col" mobileDirection="row" gap={2.5} align="stretch" mobileAlign="center" w="full">
+              <Box flex="1" w="full">
                 <Input
                   placeholder="Buscar por nome ou perfil..."
                   value={searchQuery}
@@ -146,6 +146,7 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
                 label="Novo Usuário"
                 icon={Plus}
                 onClick={handleCreateNew}
+                fullWidth
               />
             </Stack>
 

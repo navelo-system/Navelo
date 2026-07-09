@@ -111,15 +111,11 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
             hoverBg="surface-sunken"
           >
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-              <Stack direction="row" align="center" gap={5}>
-                <Box w="w-12" h="h-12" radius="default" bg="bg-brand-primary/10">
-                  <Stack w="full" h="full" align="center" justify="center">
-                    <Icon icon={ClipboardList} size={24} color="primary" />
-                  </Stack>
-                </Box>
-                <Stack gap={1} align="start">
-                  <Font variant="body-bold" text="Balanço de Estoque" />
-                  <Font variant="auxiliary" color="muted" text="Realizar auditoria e contagem física dos produtos na prateleira" />
+              <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" gap={5} flex="1">
+                <Icon icon={ClipboardList} variant="circular-secondary" />
+                <Stack gap={1} align="start" w="full">
+                  <Font variant="body-bold" text="Balanço de Estoque" align="left" />
+                  <Font variant="auxiliary" color="muted" text="Realizar auditoria e contagem física dos produtos na prateleira" align="left" />
                 </Stack>
               </Stack>
               <Icon icon={ChevronRight} size={20} color="muted" />
@@ -142,15 +138,11 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
             hoverBg="surface-sunken"
           >
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-              <Stack direction="row" align="center" gap={5}>
-                <Box w="w-12" h="h-12" radius="default" bg="bg-brand-primary/10">
-                  <Stack w="full" h="full" align="center" justify="center">
-                    <Icon icon={FileText} size={24} color="primary" />
-                  </Stack>
-                </Box>
-                <Stack gap={1} align="start">
-                  <Font variant="body-bold" text="Notas Fiscais (XML)" />
-                  <Font variant="auxiliary" color="muted" text="Importar notas de compra para dar entrada no estoque e cadastrar fornecedores" />
+              <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" gap={5} flex="1">
+                <Icon icon={FileText} variant="circular-secondary" />
+                <Stack gap={1} align="start" w="full">
+                  <Font variant="body-bold" text="Notas Fiscais (XML)" align="left" />
+                  <Font variant="auxiliary" color="muted" text="Importar notas de compra para dar entrada no estoque e cadastrar fornecedores" align="left" />
                 </Stack>
               </Stack>
               <Icon icon={ChevronRight} size={20} color="muted" />
@@ -173,15 +165,11 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
             hoverBg="surface-sunken"
           >
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-              <Stack direction="row" align="center" gap={5}>
-                <Box w="w-12" h="h-12" radius="default" bg="bg-brand-primary/10">
-                  <Stack w="full" h="full" align="center" justify="center">
-                    <Icon icon={PlusCircle} size={24} color="primary" />
-                  </Stack>
-                </Box>
-                <Stack gap={1} align="start">
-                  <Font variant="body-bold" text="Entrada / Saída Manual" />
-                  <Font variant="auxiliary" color="muted" text="Lançar perdas, quebras, consumo interno ou ajustes de inventário avulsos" />
+              <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" gap={5} flex="1">
+                <Icon icon={PlusCircle} variant="circular-secondary" />
+                <Stack gap={1} align="start" w="full">
+                  <Font variant="body-bold" text="Entrada / Saída Manual" align="left" />
+                  <Font variant="auxiliary" color="muted" text="Lançar perdas, quebras, consumo interno ou ajustes de inventário avulsos" align="left" />
                 </Stack>
               </Stack>
               <Icon icon={ChevronRight} size={20} color="muted" />

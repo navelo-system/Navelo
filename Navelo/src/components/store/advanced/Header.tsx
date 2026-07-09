@@ -46,6 +46,7 @@ const useHeaderScroll = () => {
 export const Header: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = React.useState(false)
   const [logoUrl, setLogoUrl] = React.useState<string>("")
+  const [isEyeActive, setIsEyeActive] = React.useState(false)
   const { isDesktop, isMobileButtonsVisible } = useHeaderScroll()
 
   React.useEffect(() => {
@@ -93,8 +94,12 @@ export const Header: React.FC = () => {
           >
               <Stack direction="row" align="center" justify="center" gap={5}>
                 <Button variant="outline-secondary-pill-icon" icon={Settings} onClick={() => setIsSettingsOpen(true)} />
-                <Button variant="outline-secondary-pill-icon" icon={Eye} />
-                <Button variant="outline-secondary-pill-icon" icon={Cloud} />
+                <Button
+                  variant={isEyeActive ? "outline-success-pill-icon" : "outline-pill-icon"}
+                  icon={Eye}
+                  onClick={() => setIsEyeActive(prev => !prev)}
+                />
+                <Button variant="outline-danger-pill-icon" icon={LogOut} />
               </Stack>
               <Button variant="outline-secondary-sm" label="Administrador" icon={LogOut} justify="center" />
           </Stack>

@@ -11,6 +11,8 @@ import { Button } from "../../base/Button"
 import { Icon } from "../../base/Icon"
 import { EmptyState } from "../../intermediary/EmptyState"
 import { Input } from "../../base/Input"
+import { Avatar } from "../../base/Avatar"
+import { Modal } from "../../base/Modal"
 import {
   DollarSign,
   Percent,
@@ -41,6 +43,7 @@ interface PdvCheckoutPaymentProps {
   paymentAmountInput: string
   onChangePaymentAmountInput: (val: string) => void
   launchAmount: number
+  onRemoveItem: (id: string) => void
 }
 
 export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
@@ -61,7 +64,10 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
   paymentAmountInput,
   onChangePaymentAmountInput,
   launchAmount,
+  onRemoveItem,
 }) => {
+  const [itemToRemove, setItemToRemove] = React.useState<CartItemType | null>(null)
+
   return (
     <Grid cols={2} gap={5}>
       {/* Painel Esquerdo: Resumo do Pedido */}
@@ -73,13 +79,26 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
           <Box flex="1" overflow="auto" maxH="96" padding={0}>
             <Stack gap={2.5}>
               {cartItems.map((item) => (
-                <Box key={item.id} padding={2.5} bg="bg-surface-sunken" radius="default">
-                  <Stack direction="row" justify="between" align="center" gap={5}>
-                    <Stack gap={1}>
-                      <Font variant="body-bold" text={item.name} />
-                      <Font variant="auxiliary" color="muted" text={`${item.quantity} UN x ${formatPrice(item.unitPrice)}`} />
+                <Box key={item.id} padding={2.5} border={true} borderColor="border-border" radius="default">
+                  <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" gap={2.5} className="md:gap-5 w-full">
+                    {/* Lado Esquerdo: Avatar + Nome + Quantidade/Preço Unitário */}
+                    <Stack direction="row" align="center" gap={5} flex="1" minW="0">
+                      <Avatar image={item.image} fallback={item.name.substring(0, 2)} />
+                      <Stack gap={1} w="full">
+                        <Font variant="body-bold" text={item.name} align="left" />
+                        <Font variant="auxiliary" color="muted" text={`${item.quantity} UN x ${formatPrice(item.unitPrice)}`} align="left" />
+                      </Stack>
                     </Stack>
-                    <Font variant="body-bold" text={formatPrice(item.quantity * item.unitPrice)} />
+
+                    {/* Lado Direito: Preço Total + Botão Lixeira */}
+                    <Stack direction="row" align="center" gap={5} justify="end" className="w-full md:w-auto">
+                      <Font variant="body-bold" text={formatPrice(item.quantity * item.unitPrice)} />
+                      <Button
+                        variant="outline-danger-icon"
+                        icon={Trash2}
+                        onClick={() => setItemToRemove(item)}
+                      />
+                    </Stack>
                   </Stack>
                 </Box>
               ))}
@@ -99,10 +118,10 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
             </Stack>
             <Stack direction="row" justify="between" align="center">
               <Font variant="body-bold" text="Total a Cobrar" />
-              <Font variant="h3" color="primary" text={formatPrice(total)} />
+              <Font variant="h3" color="success" text={formatPrice(total)} />
             </Stack>
             <Button
-              variant="outline"
+              variant="secondary"
               label="F6 - Aplicar Desconto"
               icon={Percent}
               onClick={onOpenDiscountModal}
@@ -119,19 +138,19 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
 
           {/* Totalizadores de Quitação */}
           <Grid cols={3} gap={2.5}>
-            <Box padding={2.5} bg="bg-surface-sunken" radius="default">
+            <Box padding={2.5} border={true} borderColor="border-border" radius="default">
               <Stack gap={1} align="center">
                 <Font variant="sub-tiny" color="muted" text="Total" />
                 <Font variant="body-bold" text={formatPrice(total)} />
               </Stack>
             </Box>
-            <Box padding={2.5} bg="bg-surface-sunken" radius="default">
+            <Box padding={2.5} border={true} borderColor="border-border" radius="default">
               <Stack gap={1} align="center">
                 <Font variant="sub-tiny" color="muted" text="Total Pago" />
                 <Font variant="body-bold" color="success" text={formatPrice(totalPaid)} />
               </Stack>
             </Box>
-            <Box padding={2.5} bg="bg-surface-sunken" radius="default">
+            <Box padding={2.5} border={true} borderColor="border-border" radius="default">
               <Stack gap={1} align="center">
                 <Font variant="sub-tiny" color="muted" text="Restante" />
                 <Font variant="body-bold" color={amountDue > 0 ? "danger" : "secondary"} text={formatPrice(amountDue)} />
@@ -150,21 +169,42 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                 />
               ) : (
                 payments.map((p, idx) => (
-                  <Box key={idx} padding={2.5} bg="bg-surface-sunken" radius="default" border={true} borderColor="border-border">
-                    <Stack direction="row" justify="between" align="center">
-                      <Stack direction="row" align="center" gap={2.5}>
-                        <Icon icon={DollarSign} size={16} color="success" />
-                        <Font variant="body-bold" text={p.method} />
+                  <Box key={idx} padding={2.5} radius="default" border={true} borderColor="border-border">
+                    {/* Visualização Mobile: Ícone e Lixeira em cima, Método e Valor embaixo */}
+                    <Box className="block md:hidden" w="full">
+                      <Stack gap={2.5} w="full">
+                        <Stack direction="row" justify="between" align="center" w="full">
+                          <Icon icon={DollarSign} variant="circular-success" />
+                          <Button
+                            variant="outline-danger-icon"
+                            icon={Trash2}
+                            onClick={() => onRemovePayment(idx)}
+                          />
+                        </Stack>
+                        <Stack direction="row" justify="between" align="center" w="full">
+                          <Font variant="body-bold" text={p.method} />
+                          <Font variant="body-bold" text={formatPrice(p.amount)} />
+                        </Stack>
                       </Stack>
-                      <Stack direction="row" align="center" gap={5}>
-                        <Font variant="body-bold" text={formatPrice(p.amount)} />
-                        <Button
-                          variant="outline-danger-sm"
-                          icon={Trash2}
-                          onClick={() => onRemovePayment(idx)}
-                        />
+                    </Box>
+
+                    {/* Visualização Desktop: Lado a lado tradicional */}
+                    <Box className="hidden md:block" w="full">
+                      <Stack direction="row" justify="between" align="center" w="full">
+                        <Stack direction="row" align="center" gap={2.5}>
+                          <Icon icon={DollarSign} variant="circular-success" />
+                          <Font variant="body-bold" text={p.method} />
+                        </Stack>
+                        <Stack direction="row" align="center" gap={5}>
+                          <Font variant="body-bold" text={formatPrice(p.amount)} />
+                          <Button
+                            variant="outline-danger-icon"
+                            icon={Trash2}
+                            onClick={() => onRemovePayment(idx)}
+                          />
+                        </Stack>
                       </Stack>
-                    </Stack>
+                    </Box>
                   </Box>
                 ))
               )}
@@ -183,28 +223,28 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
             <Grid cols={2} gap={2.5}>
               <Button
                 variant="outline"
-                label="D - Dinheiro (Troco)"
+                label="Dinheiro (Troco)"
                 icon={DollarSign}
                 disabled={amountDue <= 0}
                 onClick={onOpenChangeModal}
               />
               <Button
                 variant="outline"
-                label="P - Pix Instantâneo"
+                label="Pix Instantâneo"
                 icon={QrCode}
                 disabled={amountDue <= 0}
                 onClick={() => onLaunchPayment("Pix", launchAmount)}
               />
               <Button
                 variant="outline"
-                label="C - Cartão Crédito/Débito"
+                label="Crédito/Débito"
                 icon={CreditCard}
                 disabled={amountDue <= 0}
                 onClick={onOpenCardModal}
               />
               <Button
                 variant="outline"
-                label="N - Crediário Fiado"
+                label="Crediário Fiado"
                 icon={Users}
                 disabled={amountDue <= 0}
                 onClick={() => onLaunchPayment("Crediário", launchAmount)}
@@ -213,12 +253,28 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
           </Stack>
 
           <Button
-            variant="primary-lg"
+            variant="outline-success-lg"
             fullWidth
             label="Enter ou F9 - Finalizar Venda"
             disabled={amountDue > 0 || total === 0}
             onClick={onFinalizeSale}
           />
+          {itemToRemove && (
+            <Modal
+              isOpen={itemToRemove !== null}
+              onClose={() => setItemToRemove(null)}
+              title="Remover Item"
+              subtitle={`Deseja realmente remover o produto "${itemToRemove.name}" do carrinho?`}
+              icon={Trash2}
+              successText="Remover"
+              onSuccess={() => {
+                onRemoveItem(itemToRemove.id)
+                setItemToRemove(null)
+              }}
+            >
+              <Font variant="description" text="Esta ação removerá o produto desta venda e recalculará o total da conta." />
+            </Modal>
+          )}
         </Stack>
       </Box>
     </Grid>

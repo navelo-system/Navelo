@@ -12,8 +12,9 @@ import { Button } from "../../base/Button"
 import { Input } from "../../base/Input"
 import { Badge } from "../../base/Badge"
 import { Modal } from "../../base/Modal"
+import { Sidebar } from "../../base/Sidebar"
 import { EmptyState } from "../../intermediary/EmptyState"
-import { Search, Clock, Receipt, Menu, X, Maximize2, Cloud } from "lucide-react"
+import { Search, Clock, Receipt, Menu, Cloud } from "lucide-react"
 
 interface ComandaItem {
   id: string
@@ -71,7 +72,7 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
           />
         </Box>
         <Button
-          variant="outline-secondary-pill-icon"
+          variant="primary-pill-icon"
           icon={Menu}
           onClick={() => setIsSidebarOpen(true)}
         />
@@ -85,7 +86,7 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
           subtitle="Abra uma comanda pelo menu para iniciar o consumo."
         />
       ) : (
-        <Grid cols={4} gap={5}>
+        <Grid cols={4} gap={5} mobileCols={1}>
           {filtered.map((comanda) => (
             <Box
               key={comanda.id}
@@ -122,95 +123,53 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
         </Grid>
       )}
 
-      {/* Sidebar Drawer */}
-      {isSidebarOpen && (
-        <Box position="fixed" top={0} left={0} right={0} bottom={0} zIndex="50" display="flex" justify="end">
-          {/* Backdrop */}
-          <Box
-            position="absolute"
-            top={0}
-            left={0}
-            right={0}
-            bottom={0}
-            bg="bg-black/50"
-            onClick={() => setIsSidebarOpen(false)}
-          />
-          {/* Drawer Body */}
-          <Box
-            w="w-full max-w-xs"
-            h="full"
-            bg="bg-surface"
-            display="flex"
-            direction="col"
-            position="relative"
-            zIndex="50"
-            border={true}
-            borderColor="border-border"
-            shadow="default"
-          >
-            {/* Header */}
-            <Box padding={5}>
-              <Stack direction="row" align="center" justify="between" w="full">
-                <Font variant="h3" text="Menu" />
-                <Stack direction="row" gap={2.5}>
-                  <Button variant="outline" icon={Maximize2} />
-                  <Button variant="outline" icon={X} onClick={() => setIsSidebarOpen(false)} />
-                </Stack>
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} title="Menu">
+        <Stack gap={5}>
+          {/* Sincronizacao */}
+          <Box w="full" bg="bg-surface-sunken" padding={2.5} radius="default">
+            <Stack direction="row" align="center" justify="between" w="full">
+              <Stack direction="row" align="center" gap={2.5}>
+                <Icon icon={Cloud} size={16} color="primary" />
+                <Font variant="body-sm-semibold" text="Sincronizacao" />
               </Stack>
-            </Box>
-            <Box h="h-[1px]" w="full" bg="bg-border" />
-
-            {/* Scrollable Content */}
-            <Box flex="1" overflow="x-hidden y-auto" padding={5}>
-              <Stack gap={5}>
-                {/* Sincronização */}
-                <Box w="full" bg="bg-surface-sunken" padding={2.5} radius="default">
-                  <Stack direction="row" align="center" justify="between" w="full">
-                    <Stack direction="row" align="center" gap={2.5}>
-                      <Icon icon={Cloud} size={16} color="primary" />
-                      <Font variant="body-sm-semibold" text="Sincronização" />
-                    </Stack>
-                    <Font variant="body-sm-medium" color="muted" text="Sincronizado" />
-                  </Stack>
-                </Box>
-
-                {/* Atendimento */}
-                <Stack gap={2.5}>
-                  <Font variant="body-xs-bold" color="muted" text="ATENDIMENTO" />
-                  <Box display="flex" direction="col" bg="bg-surface" border={true} borderColor="border-border" radius="default" overflow="hidden">
-                    <Box 
-                      as="button" 
-                      w="full" 
-                      padding={2.5} 
-                      hoverBg="surface-sunken" 
-                      display="flex" 
-                      justify="start"
-                      onClick={() => {
-                        setIsSidebarOpen(false)
-                        setIsCreateModalOpen(true)
-                      }}
-                    >
-                      <Font variant="body-sm-semibold" text="Novo atendimento avulso" />
-                    </Box>
-                    <Box h="h-[1px]" w="full" bg="bg-border" />
-                    <Box 
-                      as="button" 
-                      w="full" 
-                      padding={2.5} 
-                      hoverBg="surface-sunken" 
-                      display="flex" 
-                      justify="start"
-                      onClick={() => setIsSidebarOpen(false)}
-                    >
-                      <Font variant="body-sm-semibold" text="Finalizar atendimentos" />
-                    </Box>
-                  </Box>
-                </Stack>
-              </Stack>
-            </Box>
+              <Font variant="body-sm-medium" color="muted" text="Sincronizado" />
+            </Stack>
           </Box>
-        </Box>
-      )}
+
+          {/* Atendimento */}
+          <Stack gap={2.5}>
+            <Font variant="body-xs-bold" color="muted" text="ATENDIMENTO" />
+            <Box display="flex" direction="col" bg="bg-surface" border={true} borderColor="border-border" radius="default" overflow="hidden">
+              <Box
+                as="button"
+                w="full"
+                padding={2.5}
+                hoverBg="surface-sunken"
+                display="flex"
+                justify="start"
+                onClick={() => {
+                  setIsSidebarOpen(false)
+                  setIsCreateModalOpen(true)
+                }}
+              >
+                <Font variant="body-sm-semibold" text="Novo atendimento avulso" />
+              </Box>
+              <Box h="h-[1px]" w="full" bg="bg-border" />
+              <Box
+                as="button"
+                w="full"
+                padding={2.5}
+                hoverBg="surface-sunken"
+                display="flex"
+                justify="start"
+                onClick={() => setIsSidebarOpen(false)}
+              >
+                <Font variant="body-sm-semibold" text="Finalizar atendimentos" />
+              </Box>
+            </Box>
+          </Stack>
+        </Stack>
+      </Sidebar>
 
       {/* Modal Novo Atendimento */}
       <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)}>

@@ -45,18 +45,54 @@ export function Modal(props: ModalProps) {
     showCancelButton = true,
     children 
   } = props
+
+  // shouldRender: controla se o elemento existe no DOM
+  // isActive: controla o estado visual (dispara a transição CSS)
+  const [shouldRender, setShouldRender] = React.useState(false)
+  const [isActive, setIsActive] = React.useState(false)
+
   React.useEffect(() => {
     if (isOpen) {
+      setShouldRender(true)
       document.body.style.overflow = "hidden"
+      // Double RAF: garante que o browser pintou o estado inicial (scale 0.9, opacity 0)
+      // antes de aplicar a transição para o estado final
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setIsActive(true)
+        })
+      })
     } else {
+      setIsActive(false)
       document.body.style.overflow = ""
-    }
-    return () => {
-      document.body.style.overflow = ""
+      const timer = setTimeout(() => setShouldRender(false), 220)
+      return () => clearTimeout(timer)
     }
   }, [isOpen])
 
-  if (!isOpen) return null
+  React.useEffect(() => {
+    return () => { document.body.style.overflow = "" }
+  }, [])
+
+  const handleClose = () => {
+    setIsActive(false)
+    document.body.style.overflow = ""
+    setTimeout(() => {
+      setShouldRender(false)
+      onClose()
+    }, 220)
+  }
+
+  if (!shouldRender) return null
+
+  // Estado inicial: scale 0.9, opacity 0 → transição para scale 1, opacity 1
+  const dialogStyle: React.CSSProperties = {
+    opacity: isActive ? 1 : 0,
+    transform: isActive ? "scale(1)" : "scale(0.9)",
+    transition: isActive
+      ? "opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1)"
+      : "opacity 0.18s ease, transform 0.18s ease"
+  }
 
   // Modo Simplificado (quando 'title' é fornecido)
   if (title) {
@@ -64,13 +100,14 @@ export function Modal(props: ModalProps) {
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div 
           className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" 
-          onClick={onClose}
+          onClick={handleClose}
           aria-hidden="true"
         />
         <div
           role="dialog"
           aria-modal="true"
-          className="relative z-[101] w-full max-w-lg rounded-[5px] border-2 border-border bg-surface shadow-lg sm:rounded-[8px] animate-in fade-in zoom-in-95 duration-200"
+          style={dialogStyle}
+          className="relative z-[101] w-full max-w-lg rounded-[5px] border-2 border-border bg-surface shadow-lg sm:rounded-[8px]"
         >
           <ModalHeader title={title} subtitle={subtitle} icon={icon} />
           <div className="h-[2px] bg-border w-full" />
@@ -88,7 +125,7 @@ export function Modal(props: ModalProps) {
                         type="button" 
                         variant="outline-danger" 
                         label="Cancelar" 
-                        onClick={onClose} 
+                        onClick={handleClose} 
                         fullWidth 
                       />
                     </Box>
@@ -129,13 +166,14 @@ export function Modal(props: ModalProps) {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div 
         className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity" 
-        onClick={onClose}
+        onClick={handleClose}
         aria-hidden="true"
       />
       <div
         role="dialog"
         aria-modal="true"
-        className="relative z-[101] w-full max-w-lg rounded-[5px] border-2 border-border bg-surface shadow-lg sm:rounded-[8px] animate-in fade-in zoom-in-95 duration-200"
+        style={animStyle}
+        className="relative z-[101] w-full max-w-lg rounded-[5px] border-2 border-border bg-surface shadow-lg sm:rounded-[8px]"
       >
         {renderedChildren}
       </div>

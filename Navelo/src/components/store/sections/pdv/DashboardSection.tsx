@@ -8,11 +8,11 @@ import { Grid } from "../../base/Grid"
 import { Font } from "../../base/Font"
 import { Icon } from "../../base/Icon"
 import { Button } from "../../base/Button"
+import { Warning } from "../../base/Warning"
 import { KpiCard } from "../../../store/intermediary/KpiCard"
 import { BentoPDVModulesGrid } from "../../advanced/BentoPDVModulesGrid"
 import {
   AlertTriangle,
-  X,
   TrendingUp,
   Coins,
   ArrowUpRight
@@ -71,28 +71,15 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({ onNavigate }
 
       {/* Seção 3: Alertas / Pendências Fiscais */}
       {isAlertVisible && (
-        <Box padding={5} bg="bg-brand-warning/10" border={true} borderColor="border-brand-warning" radius="default">
-          {/* Desktop: row (texto à esq, botões à dir) | Mobile: col (botões abaixo) */}
-          <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" justify="between" gap={5}>
-            {/* Texto */}
-            <Stack direction="row" gap={5} align="start" flex="1">
-              <Box shrink="0">
-                <Icon icon={AlertTriangle} color="warning" size={20} />
-              </Box>
-              <Stack gap={1}>
-                <Font variant="body-semibold" color="warning" text="Pendência Fiscal Detectada" />
-                <Font variant="description" color="warning" text="Existem notas fiscais em contingência aguardando sincronização com a SEFAZ." />
-              </Stack>
-            </Stack>
-            {/* Botões */}
-            <Stack direction="row" gap={2.5} align="center">
-              <Button variant="outline-secondary-sm" label="Configurar" onClick={() => onNavigate("configuracoes")} fullWidth />
-              <Box shrink="0">
-                <Button variant="outline-secondary-pill-icon" icon={X} onClick={() => setIsAlertVisible(false)} />
-              </Box>
-            </Stack>
-          </Stack>
-        </Box>
+        <Warning
+          variant="danger"
+          title="Pendência Fiscal Detectada"
+          text="Existem notas fiscais em contingência aguardando sincronização com a SEFAZ."
+          icon={AlertTriangle}
+          textButton="Configurar"
+          onClick={() => onNavigate("configuracoes")}
+          onClose={() => setIsAlertVisible(false)}
+        />
       )}
     </Stack>
   )

@@ -362,11 +362,11 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
       ) : (
         /* ================= VISUALIZAÇÃO DE RELATÓRIO E FILTROS ================= */
         <Stack direction="col" gap={5} w="full">
-          <Stack direction="row" align="center" justify="between" w="full" gap={2.5}>
-            <Stack direction="row" align="center" gap={2.5}>
-              <Stack gap={1}>
-                <Font variant="h3" text={reportDetails?.title || "Relatório"} />
-                <Font variant="description" text={reportDetails?.description || ""} />
+          <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
+            <Stack direction="row" align="center" gap={2.5} w="full">
+              <Stack gap={1} w="full">
+                <Font variant="h3" text={reportDetails?.title || "Relatório"} align="left" />
+                <Font variant="description" text={reportDetails?.description || ""} align="left" />
               </Stack>
             </Stack>
 
@@ -375,11 +375,12 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
               label="Exportar CSV"
               icon={Download}
               onClick={() => {}}
+              fullWidth
             />
           </Stack>
 
           {/* Layout Principal com Painel de Filtros Lateral */}
-          <Stack direction="col" mobileDirection="row" gap={5} w="full" align="start">
+          <Stack direction="col" className="lg:flex-row" gap={5} w="full" align="start">
             {/* Painel Principal (Tabela / Resumos) */}
             <Box flex="1" w="full">
               {reportDetails && (
@@ -392,7 +393,7 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
                       ))}
                     </Grid>
                   )}
-
+ 
                   {/* Detalhe de Ação ou Tabela */}
                   {selectedReport === "xml-export" ? (
                     <Box border={true} borderColor="border-border" padding={5} bg="bg-surface" radius="default" w="full">
@@ -423,7 +424,7 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
                                   // Destacar status se for o último campo e contiver texto conhecido
                                   const isStatus = cIdx === row.length - 1 && (cell === "Autorizada" || cell === "Finalizado" || cell === "Aberto" || cell === "Atrasado")
                                   const isKey = cell.length > 35 // Chave de acesso grande
-
+ 
                                   return (
                                     <TableCell key={cIdx} align={cIdx === row.length - 2 ? "right" : "left"}>
                                       {isStatus ? (
@@ -455,9 +456,9 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
                 </Stack>
               )}
             </Box>
-
+ 
             {/* Painel Lateral de Filtros (Fidelidade ao Print) */}
-            <Box bg="bg-surface" padding={5} radius="default" border={true} borderColor="border-border" w="w-full lg:w-80" shrink="0">
+            <Box bg="bg-surface" padding={5} radius="default" border={true} borderColor="border-border" w="full" className="lg:w-80" shrink="0">
               <Stack gap={5} w="full">
                 <Font variant="body-semibold" text="Filtros" />
 

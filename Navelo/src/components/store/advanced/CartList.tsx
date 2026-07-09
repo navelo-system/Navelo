@@ -68,13 +68,6 @@ export const CartList: React.FC<CartListProps> = ({
         </Stack>
       </Box>
 
-      {/* Footer / Total */}
-      <Box padding={5} bg="bg-surface" borderTop borderColor="border-border">
-        <Stack direction="row" align="center" justify="between" gap={5}>
-          <Font variant="body-bold" text="Total" />
-          <Font variant="h3" text={formatPrice(total)} color="primary" />
-        </Stack>
-      </Box>
     </Box>
   )
 }

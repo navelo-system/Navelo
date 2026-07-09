@@ -19,9 +19,13 @@ export interface RestricoesSectionProps {
 }
 
 const CustomCheckbox = ({ checked, onChange, label }: { checked: boolean, onChange: () => void, label: string }) => (
-  <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-    <Font variant="body" text={label} />
-    <Switch checked={checked} onChange={onChange} />
+  <Stack direction="col" mobileDirection="row" gap={2.5} className="md:gap-5" align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
+    <Box className="order-2 md:order-1">
+      <Font variant="body" text={label} align="left" />
+    </Box>
+    <Box className="order-1 md:order-2">
+      <Switch checked={checked} onChange={onChange} />
+    </Box>
   </Stack>
 )
 
@@ -116,9 +120,9 @@ export const RestricoesSection: React.FC<RestricoesSectionProps> = ({
 
         {/* Botão de Salvar na Cor Primária na parte inferior */}
         <Box paddingY={2.5} w="full">
-          <Stack direction="row" justify="end" gap={2.5} w="full">
-            <Button variant="outline" label="Cancelar" onClick={onCancel} />
-            <Button type="button" variant="primary" label="Salvar alterações" onClick={handleSaveClick} />
+          <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full" className="md:w-auto">
+            <Button variant="outline" label="Cancelar" onClick={onCancel} fullWidth />
+            <Button type="button" variant="primary" label="Salvar alterações" onClick={handleSaveClick} fullWidth />
           </Stack>
         </Box>
       </Stack>

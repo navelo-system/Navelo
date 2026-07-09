@@ -165,8 +165,8 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
         /* ================= LISTAGEM DE PRODUTOS ================= */
         <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
           <Stack gap={5} w="full">
-            <Stack direction="row" gap={2.5} align="center" w="full">
-              <Box flex="1">
+            <Stack direction="col" mobileDirection="row" gap={2.5} align="stretch" mobileAlign="center" w="full">
+              <Box flex="1" w="full">
                 <Input
                   placeholder="Buscar por nome do produto..."
                   value={searchQuery}
@@ -179,6 +179,7 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
                 label="Novo Produto"
                 icon={Plus}
                 onClick={handleCreateNew}
+                fullWidth
               />
             </Stack>
 

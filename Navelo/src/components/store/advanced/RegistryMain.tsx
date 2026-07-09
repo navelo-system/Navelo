@@ -47,6 +47,17 @@ export const RegistryMain: React.FC<RegistryMainProps> = ({
         {(title || subtitle || icon || superiorTitle) && (
           <Stack direction="row" align="center" justify="between" w="full" gap={5}>
             <Stack gap={2.5}>
+              {onBack && (
+                <Box className="block md:hidden">
+                  <Button
+                    variant="ghost-secondary"
+                    label="Voltar"
+                    icon={ChevronLeft}
+                    onClick={onBack}
+                    justify="start"
+                  />
+                </Box>
+              )}
               {superiorTitle && (
                 <Font variant="sub-tiny" color="primary" text={superiorTitle} />
               )}
@@ -60,12 +71,14 @@ export const RegistryMain: React.FC<RegistryMainProps> = ({
               <Stack direction="row" align="center" gap={2.5} flex="none">
                 {customActions}
                 {onBack && (
-                  <Button
-                    variant="outline"
-                    label="Voltar"
-                    icon={ChevronLeft}
-                    onClick={onBack}
-                  />
+                  <Box className="hidden md:block">
+                    <Button
+                      variant="outline-secondary"
+                      label="Voltar"
+                      icon={ChevronLeft}
+                      onClick={onBack}
+                    />
+                  </Box>
                 )}
               </Stack>
             )}

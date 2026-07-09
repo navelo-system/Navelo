@@ -7,18 +7,12 @@ import { Box } from "../../base/Box"
 import { Stack } from "../../base/Stack"
 import { Grid } from "../../base/Grid"
 import { Font } from "../../base/Font"
-import { Button } from "../../base/Button"
-import { Input } from "../../base/Input"
 import { Tabs, TabsTrigger } from "../../base/Tabs"
 import { EmptyState } from "../../intermediary/EmptyState"
-import { ViewModeToggle } from "../../intermediary/ViewModeToggle"
 import { ProductCard } from "../../advanced/ProductCard"
 import { Product, ProductType, UnitType } from "@/src/types/domain"
 import {
-  Search,
-  Package,
-  Percent,
-  Menu
+  Package
 } from "lucide-react"
 
 export interface MockProduct {
@@ -32,19 +26,12 @@ export interface MockProduct {
 }
 
 interface PdvCatalogProps {
-  searchQuery: string
-  onSearchQueryChange: (val: string) => void
-  quantityMultiplier: number
-  onQuantityMultiplierChange: () => void
-  viewMode: "grade" | "lista"
-  onViewModeChange: (mode: "grade" | "lista") => void
   activeCategory: string
-  onActiveCategoryChange: (cat: string) => void
+  onActiveCategoryChange: (val: string) => void
   filteredProducts: MockProduct[]
   onAddProduct: (prod: MockProduct) => void
-  onOpenDiscountModal: () => void
-  onOpenSidebarDrawer: () => void
   categories: string[]
+  viewMode: "grade" | "lista"
 }
 
 const adaptProduct = (prod: MockProduct): Product => ({
@@ -65,55 +52,15 @@ const adaptProduct = (prod: MockProduct): Product => ({
 })
 
 export const PdvCatalog: React.FC<PdvCatalogProps> = ({
-  searchQuery,
-  onSearchQueryChange,
-  quantityMultiplier,
-  onQuantityMultiplierChange,
-  viewMode,
-  onViewModeChange,
   activeCategory,
   onActiveCategoryChange,
   filteredProducts,
   onAddProduct,
-  onOpenDiscountModal,
-  onOpenSidebarDrawer,
   categories,
+  viewMode,
 }) => {
   return (
     <Stack gap={5}>
-      {/* Controles de pesquisa e view toggle */}
-      <Stack direction="row" gap={2.5} align="center" justify="between" w="full">
-        <Box flex="1" padding={0}>
-          <Input
-            placeholder="Pesquisar produto pelo nome..."
-            value={searchQuery}
-            onChange={(e) => onSearchQueryChange(e.target.value)}
-            icon={Search}
-          />
-        </Box>
-        <Stack direction="row" gap={2.5} align="center">
-          {/* Multiplicador de quantidade */}
-          <Button
-            variant={quantityMultiplier > 1 ? "outline-secondary" : "outline"}
-            label={`${quantityMultiplier}x`}
-            onClick={onQuantityMultiplierChange}
-          />
-          {/* Segmented View Toggle */}
-          <ViewModeToggle value={viewMode} onChange={onViewModeChange} />
-          {/* Desconto */}
-          <Button
-            variant="outline-pill-icon"
-            icon={Percent}
-            onClick={onOpenDiscountModal}
-          />
-          {/* Menu Hamburguer */}
-          <Button
-            variant="outline-secondary-pill-icon"
-            icon={Menu}
-            onClick={onOpenSidebarDrawer}
-          />
-        </Stack>
-      </Stack>
 
       {/* Abas de Categorias */}
       <Box w="full" overflow="auto" paddingY={1}>
@@ -137,7 +84,7 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
             subtitle="Nenhum produto cadastrado nesta categoria."
           />
         ) : viewMode === "grade" ? (
-          <Grid cols={6} gap={5}>
+          <Grid cols={6} gap={5} mobileCols={2}>
             {filteredProducts.map((prod) => (
               <ProductCard
                 key={prod.id}
@@ -159,7 +106,7 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
                   hoverBg="surface-sunken"
                   onClick={() => onAddProduct(prod)}
                 >
-                  <Stack direction="row" align="center" justify="between" gap={5}>
+                  <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" gap={2} className="md:gap-5 w-full">
                     {/* Thumbnail + Nome */}
                     <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
                       <Box w="w-10" h="h-10" bg="bg-surface-sunken" radius="default" overflow="hidden" shrink="0">
@@ -171,15 +118,15 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
                           </Stack>
                         )}
                       </Box>
-                      <Font variant="body-sm-semibold" text={prod.name.toUpperCase()} />
+                      <Font variant="body-sm-semibold" text={prod.name.toUpperCase()} align="left" />
                     </Stack>
                     {/* Preço + Unidade */}
-                    <Stack direction="row" align="baseline" gap={1}>
+                    <Stack direction="row" align="baseline" gap={1} justify="end" className="w-full md:w-auto">
                       <Font
                         variant="body-sm-semibold"
                         text={new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(prod.unitPrice)}
                       />
-                      <Font variant="auxiliary" color="muted" text="UN" />
+                      <Font variant="auxiliary" color="muted" text={prod.unit || "UN"} />
                     </Stack>
                   </Stack>
                 </Box>

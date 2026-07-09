@@ -8,6 +8,7 @@ import { Stack } from "../base/Stack"
 import { Font } from "../base/Font"
 import { Switch } from "../base/Switch"
 import { Icon } from "../base/Icon"
+import { Warning } from "../base/Warning"
 import { Laptop, Server, ChevronRight, CheckCircle } from "lucide-react"
 
 export interface CompanySyncFormProps {
@@ -85,26 +86,17 @@ export const CompanySyncForm: React.FC<CompanySyncFormProps> = () => {
         </Stack>
       </Box>
 
-      {/* Box Sincronizado */}
-      <Box
-        padding={5}
-        radius="default"
-        border={true}
-        bg="bg-brand-success/10"
-        borderColor="border-brand-success/20"
-        w="full"
-      >
-        <Stack direction="row" gap={5} align="start" w="full">
-          <Box shrink="0">
-            <Icon icon={CheckCircle} color="success" size={20} />
-          </Box>
-          <Stack gap={1} flex="1">
-            <Font variant="body-semibold" color="success" text="Sincronizado" />
-            <Font variant="description" color="success" text="Última verificação: 08/07/2026 22:50" />
-            <Font variant="description" color="success" text="Última atualização de dados: 05/07/2026 07:28" />
+      <Warning
+        variant="success"
+        icon={CheckCircle}
+        title="Sincronizado"
+        text={
+          <Stack gap={1} w="full">
+            <Font variant="description" color="success" text="Última verificação: 08/07/2026 22:50" align="left" />
+            <Font variant="description" color="success" text="Última atualização de dados: 05/07/2026 07:28" align="left" />
           </Stack>
-        </Stack>
-      </Box>
+        }
+      />
 
       {/* Disclaimer */}
       <Font

@@ -34,7 +34,7 @@ export const BentoPDVModulesGrid: React.FC<BentoPDVModulesGridProps> = ({ onNavi
   ]
 
   return (
-    <Grid cols={4} gap={5}>
+    <Grid cols={4} gap={5} mobileCols={1}>
       {modules.map((m) => (
         <Box
           key={m.id}
@@ -48,7 +48,7 @@ export const BentoPDVModulesGrid: React.FC<BentoPDVModulesGridProps> = ({ onNavi
           w="full"
           h="full"
           cursor="pointer"
-          hoverBg="surface-sunken"
+          hoverBg="secondary/10"
         >
           <Stack gap={2.5} align="start" justify="start">
             <Box w="w-10" h="h-10" radius="default" bg="bg-brand-secondary">

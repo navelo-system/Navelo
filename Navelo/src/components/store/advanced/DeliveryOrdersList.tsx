@@ -61,7 +61,7 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
         icon={Search}
       />
 
-      <Box maxH="96" overflow="auto">
+      <Box overflow="auto">
         <Stack gap={2.5}>
           {filtered.map((ord) => {
             const isSelected = ord.id === selectedOrderId
@@ -81,12 +81,12 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
               >
                 <Stack gap={1} align="start" w="full">
                   <Stack direction="row" justify="between" align="center" w="full">
-                    <Font variant="body-bold" text={`#${ord.id} - ${ord.clientName}`} />
+                    <Font variant="body-bold" text={`#${ord.id} - ${ord.clientName}`} align="left" />
                     <Font variant="body-sm-semibold" color="secondary" text={formatPrice(ord.total)} />
                   </Stack>
-                  <Font variant="auxiliary" color="muted" text={ord.address} truncate={true} />
+                  <Font variant="auxiliary" color="muted" text={ord.address} align="left" />
                   <Stack direction="row" justify="between" align="center" w="full">
-                    <Font variant="sub-tiny" color="muted" text={`Estimativa: ${ord.estimatedTime}`} />
+                    <Font variant="sub-tiny" color="muted" text={`Estimativa: ${ord.estimatedTime}`} align="left" />
                     <Badge variant={statusInfo.variant} label={statusInfo.label} />
                   </Stack>
                 </Stack>

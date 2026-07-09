@@ -34,12 +34,12 @@ export const ViewModeToggle: React.FC<ViewModeToggleProps> = ({ value, onChange 
         display="flex"
         justify="center"
         onClick={() => onChange("grade")}
-        bg={value === "grade" ? "bg-surface-sunken" : "bg-surface"}
-        hoverBg="surface-sunken"
+        bg={value === "grade" ? "bg-brand-secondary" : "bg-surface"}
+        hoverBg={value === "grade" ? undefined : "secondary/10"}
         cursor="pointer"
       >
         <Stack direction="row" align="center" justify="center" w="full" h="full">
-          <Icon icon={LayoutGrid} size={16} color={value === "grade" ? "secondary" : "muted"} />
+          <Icon icon={LayoutGrid} size={16} color={value === "grade" ? "white" : "muted"} />
         </Stack>
       </Box>
 
@@ -55,12 +55,12 @@ export const ViewModeToggle: React.FC<ViewModeToggleProps> = ({ value, onChange 
         display="flex"
         justify="center"
         onClick={() => onChange("lista")}
-        bg={value === "lista" ? "bg-surface-sunken" : "bg-surface"}
-        hoverBg="surface-sunken"
+        bg={value === "lista" ? "bg-brand-secondary" : "bg-surface"}
+        hoverBg={value === "lista" ? undefined : "secondary/10"}
         cursor="pointer"
       >
         <Stack direction="row" align="center" justify="center" w="full" h="full">
-          <Icon icon={List} size={16} color={value === "lista" ? "secondary" : "muted"} />
+          <Icon icon={List} size={16} color={value === "lista" ? "white" : "muted"} />
         </Stack>
       </Box>
     </Box>

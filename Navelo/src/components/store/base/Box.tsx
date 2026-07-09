@@ -18,6 +18,10 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   justify?: "between" | "center" | "start" | "end"
   radius?: "default" | "full" | "none"
   border?: boolean
+  borderTop?: boolean
+  borderBottom?: boolean
+  borderLeft?: boolean
+  borderRight?: boolean
 
   borderColor?: string
   overflow?: "hidden" | "auto" | "x-hidden y-auto"
@@ -38,6 +42,7 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   opacity?: "0" | "25" | "50" | "75" | "100"
   maxH?: "0" | "96" | "full" | "screen" | "fit-content"
   shrink?: "0" | "1"
+  animation?: "slide-in-right" | "slide-out-right"
 }
 
 const paddingMap: Record<string, string> = {
@@ -139,8 +144,10 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
   ({ 
     as: Component = "div",
     className, padding, paddingX, paddingY, bg, w, h, 
-    display, direction, justify, radius, border, borderColor, 
-    borderStyle, shadow, transition, opacity, maxH,
+    display, direction, justify, radius, border,
+    borderTop, borderBottom, borderLeft, borderRight,
+    borderColor, 
+    borderStyle, shadow, transition, opacity, maxH, animation,
     overflow, hoverBg, cursor, flex, position, top, left, right, bottom, zIndex, minW, objectFit, shrink, ...props 
   }, ref) => {
     return (
@@ -157,6 +164,10 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
           justify && justifyMap[justify],
           radius && radiusMap[radius],
           border && "border-2",
+          borderTop && "border-t-2",
+          borderBottom && "border-b-2",
+          borderLeft && "border-l-2",
+          borderRight && "border-r-2",
 
           borderStyle === "dashed" && "border-dashed",
           borderStyle === "solid" && "border-solid",
@@ -206,6 +217,11 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
           left: left !== undefined ? left : undefined,
           right: right !== undefined ? right : undefined,
           bottom: bottom !== undefined ? bottom : undefined,
+          animation: animation === "slide-in-right"
+            ? "slide-in-right 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards"
+            : animation === "slide-out-right"
+            ? "slide-out-right 0.24s cubic-bezier(0.4, 0, 0.2, 1) forwards"
+            : undefined,
           ...(props.style || {})
         }}
         {...props}

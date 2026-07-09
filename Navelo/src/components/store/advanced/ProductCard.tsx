@@ -11,19 +11,14 @@ export interface ProductCardProps {
 
 export function ProductCard({ product, onClick }: ProductCardProps) {
   return (
-    <Box 
-      bg="bg-surface" 
-      radius="default" 
-      border 
-      borderColor="border-border"
-      overflow="hidden"
-      cursor="pointer"
-      hoverBg="surface-sunken"
+    <Stack 
+      gap={2.5}
       onClick={() => onClick?.(product)}
-      display="flex"
-      direction="col"
+      className="cursor-pointer"
+      w="full"
+      align="stretch"
     >
-      <Box h="h-32" w="full" bg="bg-surface-sunken">
+      <Box className="w-full aspect-square" bg="bg-surface-sunken" radius="default" overflow="hidden">
         {product.mainImage ? (
           <Box 
             as="img" 
@@ -34,21 +29,25 @@ export function ProductCard({ product, onClick }: ProductCardProps) {
             objectFit="cover" 
           />
         ) : (
-          <Stack align="center" justify="center" w="full" h="full">
+          <Stack align="center" justify="center" w="full" h="full" className="aspect-square">
             <Font variant="auxiliary" color="muted" text="Sem Foto" />
           </Stack>
         )}
       </Box>
 
-      <Box padding={5}>
-        <Stack gap={2.5}>
-          <Box w="full">
-            <Font as="p" variant="body-bold" text={product.name} align="center" />
-          </Box>
-          
-          <Font as="p" variant="body-sm-semibold" color="primary" text={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.sellingPrice)} align="center" />
-        </Stack>
-      </Box>
-    </Box>
+      <Stack gap={1} w="full">
+        <Box w="full">
+          <Font as="p" variant="body-bold" text={product.name} align="center" />
+        </Box>
+        
+        <Font 
+          as="p" 
+          variant="body-sm-semibold" 
+          color="primary" 
+          text={`${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(product.sellingPrice)} / ${product.unitType || 'UN'}`} 
+          align="center" 
+        />
+      </Stack>
+    </Stack>
   );
 }

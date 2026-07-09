@@ -9,6 +9,7 @@ export interface GridProps extends React.HTMLAttributes<HTMLDivElement> {
   responsive?: boolean
   w?: string
   h?: string
+  mobileCols?: 1 | 2 | 3 | 4 | 5 | 6 | 12
 }
 
 const gapMap: Record<string, string> = {
@@ -43,13 +44,28 @@ const fixedColsMap: Record<number, string> = {
 }
 
 export const Grid = React.forwardRef<HTMLDivElement, GridProps>(
-  ({ className, cols = 1, gap = 5, responsive = true, w, h, ...props }, ref) => {
+  ({ className, cols = 1, gap = 5, responsive = true, w, h, mobileCols, ...props }, ref) => {
+    const colsClass = React.useMemo(() => {
+      if (!responsive) return fixedColsMap[cols]
+      if (mobileCols !== undefined) {
+        const mdClass = cols === 12 
+          ? "md:grid-cols-6 lg:grid-cols-12" 
+          : cols === 6 
+            ? "md:grid-cols-3 lg:grid-cols-6" 
+            : cols === 4 
+              ? "md:grid-cols-2 lg:grid-cols-4" 
+              : `md:grid-cols-${cols}`
+        return `grid-cols-${mobileCols} ${mdClass}`
+      }
+      return colsMap[cols]
+    }, [responsive, cols, mobileCols])
+
     return (
       <div
         ref={ref}
         className={cn(
           "grid",
-          responsive ? colsMap[cols] : fixedColsMap[cols],
+          colsClass,
           gapMap[String(gap)],
           w,
           h,

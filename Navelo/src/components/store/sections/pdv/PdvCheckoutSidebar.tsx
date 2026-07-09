@@ -56,13 +56,13 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
           </Stack>
           <Stack direction="row" justify="between" align="center">
             <Font variant="body-bold" text="Total" />
-            <Font variant="body-bold" text={formatPrice(total)} />
+            <Font variant="body-bold" color="success" text={formatPrice(total)} />
           </Stack>
           
           <Box paddingY={1} />
 
           <Button
-            variant="primary-lg"
+            variant="outline-success-lg"
             fullWidth
             label="F9 - Pagamento"
             icon={ShoppingCart}

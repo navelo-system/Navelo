@@ -40,12 +40,12 @@ const justifyStyles = {
 }
 
 const sizeStyles = {
-  default: "h-10 px-5",
-  sm: "h-8 px-3",
-  xs: "h-7 px-3",
-  lg: "h-12 px-6",
-  icon: "h-10 w-10 p-0 flex items-center justify-center",
-  "icon-xs": "h-7 w-7 p-0 flex items-center justify-center",
+  default: "py-2.5 px-5 min-h-[40px] h-auto",
+  sm: "py-2 px-3 min-h-[32px] h-auto",
+  xs: "py-1.5 px-3 min-h-[28px] h-auto",
+  lg: "py-3.5 px-6 min-h-[48px] h-auto",
+  icon: "h-10 w-10 p-0 flex items-center justify-center shrink-0",
+  "icon-xs": "h-7 w-7 p-0 flex items-center justify-center shrink-0",
   ghost: "min-h-0 p-0 h-auto w-auto flex items-center justify-center",
 }
 
@@ -60,7 +60,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const isPill = variant.includes("-pill")
     
     let logicalSize: keyof typeof sizeStyles = "default"
-    if (variant.includes("-icon-xs")) logicalSize = "icon-xs"
+    if (variant === "ghost" || variant === "ghost-secondary") {
+      logicalSize = "ghost"
+    } else if (variant.includes("-icon-xs")) logicalSize = "icon-xs"
     else if (variant.includes("-icon")) logicalSize = "icon"
     else if (variant.includes("-xs")) logicalSize = "xs"
     else if (variant.includes("-sm")) logicalSize = "sm"
@@ -82,7 +84,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       variantStyles[baseColor] || variantStyles.primary,
       sizeStyles[logicalSize],
       roundedStyles[isPill ? "full" : "default"],
-      !logicalSize.includes("icon") && !fullWidth && "w-full md:w-auto",
+      !logicalSize.includes("icon") && logicalSize !== "ghost" && !fullWidth && "w-full md:w-auto",
       fullWidth && "w-full"
     )
 

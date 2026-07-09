@@ -5,12 +5,19 @@
 import * as React from "react"
 import { Box } from "../../base/Box"
 import { Stack } from "../../base/Stack"
+import { Button } from "../../base/Button"
+import { Input } from "../../base/Input"
+import { ViewModeToggle } from "../../intermediary/ViewModeToggle"
+import { Search, Percent, Menu, LogOut } from "lucide-react"
+import { ViewTransition } from "../../base/ViewTransition"
+import { Modal } from "../../base/Modal"
 
 import { PdvCatalog, MockProduct } from "./PdvCatalog"
 import { PdvCheckoutPayment } from "./PdvCheckoutPayment"
 import { PdvCheckoutReceipt } from "./PdvCheckoutReceipt"
 import { PdvCheckoutSidebar } from "./PdvCheckoutSidebar"
 import { PdvModals } from "./PdvModals"
+import { Font } from "../../base/Font"
 
 // Interface dos itens do carrinho
 export interface CartItemType {
@@ -25,6 +32,7 @@ interface PdvSectionProps {
   onBackToDashboard: () => void
   activeComandaId?: string | null
   onCloseComanda?: (id: string) => void
+  setCustomBack?: (cb: (() => void) | null) => void
 }
 
 const MOCK_PRODUCTS = [
@@ -43,7 +51,8 @@ const CATEGORIES = ["Todos", "Bebidas", "Lanches", "Acompanhamentos"]
 export const PdvSection: React.FC<PdvSectionProps> = ({
   onBackToDashboard,
   activeComandaId,
-  onCloseComanda
+  onCloseComanda,
+  setCustomBack,
 }) => {
   const [step, setStep] = React.useState<"negociacao" | "pagamento" | "recibo">("negociacao")
   const [cartItems, setCartItems] = React.useState<CartItemType[]>([])
@@ -62,11 +71,37 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   const [isCardModalOpen, setIsCardModalOpen] = React.useState(false)
   const [isDiscountModalOpen, setIsDiscountModalOpen] = React.useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
+  const [isExitConfirmOpen, setIsExitConfirmOpen] = React.useState(false)
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0)
   const total = Math.max(0, subtotal - discount)
   const totalPaid = payments.reduce((acc, p) => acc + p.amount, 0)
   const amountDue = Math.max(0, total - totalPaid)
+
+  // Ref estável para onBackToDashboard — evita que referência instável cause loop infinito no useEffect
+  const onBackToDashboardRef = React.useRef(onBackToDashboard)
+  React.useEffect(() => {
+    onBackToDashboardRef.current = onBackToDashboard
+  }, [onBackToDashboard])
+
+  // Registra o back correto de acordo com o step atual
+  React.useEffect(() => {
+    if (step === "negociacao") {
+      // Se o carrinho estiver vazio, volta direto; se tiver itens, confirma saída
+      setCustomBack?.(() => () => {
+        if (cartItems.length === 0) {
+          onBackToDashboardRef.current()
+        } else {
+          setIsExitConfirmOpen(true)
+        }
+      })
+    } else if (step === "pagamento") {
+      setCustomBack?.(() => () => setStep("negociacao"))
+    } else if (step === "recibo") {
+      setCustomBack?.(() => () => setStep("pagamento"))
+    }
+    return () => setCustomBack?.(null)
+  }, [step, setCustomBack, cartItems.length])
 
   // Sincroniza o valor de pagamento sugerido com o restante a pagar reativamente
   React.useEffect(() => {
@@ -157,72 +192,105 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
 
   if (step === "recibo") {
     return (
-      <PdvCheckoutReceipt
-        cartItems={cartItems}
-        payments={payments}
-        onCloseReceipt={handleCloseReceipt}
-      />
+      <ViewTransition viewKey={step}>
+        <PdvCheckoutReceipt
+          cartItems={cartItems}
+          payments={payments}
+          onCloseReceipt={handleCloseReceipt}
+        />
+      </ViewTransition>
     )
   }
 
   return (
     <Stack gap={5} w="full">
-      {step === "negociacao" ? (
-        <Stack direction="row" gap={5} w="full" align="stretch">
-          {/* Lado Esquerdo - Catálogo */}
-          <Box flex="1">
-            <PdvCatalog
-              searchQuery={searchQuery}
-              onSearchQueryChange={setSearchQuery}
-              quantityMultiplier={quantityMultiplier}
-              onQuantityMultiplierChange={() => setQuantityMultiplier((prev) => (prev >= 9 ? 1 : prev + 1))}
-              viewMode={viewMode}
-              onViewModeChange={setViewMode}
-              activeCategory={activeCategory}
-              onActiveCategoryChange={setActiveCategory}
-              filteredProducts={filteredProducts}
-              onAddProduct={handleAddProduct}
-              onOpenDiscountModal={() => setIsDiscountModalOpen(true)}
-              onOpenSidebarDrawer={() => setIsSidebarOpen(true)}
-              categories={CATEGORIES}
-            />
-          </Box>
+      <ViewTransition viewKey={step}>
+        {step === "negociacao" ? (
+          <Stack gap={5} w="full">
+            {/* Controles de pesquisa e view toggle (busca cheia no mobile, lado a lado no PC) */}
+            <Stack direction="col" mobileDirection="row" gap={2.5} align="stretch" mobileAlign="center" justify="between" w="full">
+              <Box flex="1" padding={0} w="full">
+                <Input
+                  placeholder="Pesquisar produto pelo nome..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  icon={Search}
+                />
+              </Box>
+              <Stack direction="row" gap={2.5} align="center" justify="between" mobileJustify="end" w="full" className="md:w-auto">
+                {/* Segmented View Toggle */}
+                <ViewModeToggle value={viewMode} onChange={setViewMode} />
+                
+                {/* Botões de Ação da Direita */}
+                <Stack direction="row" gap={2.5} align="center">
+                  {/* Desconto */}
+                  <Button
+                    variant="secondary-pill-icon"
+                    icon={Percent}
+                    onClick={() => setIsDiscountModalOpen(true)}
+                  />
+                  {/* Menu Hamburguer */}
+                  <Button
+                    variant="primary-pill-icon"
+                    icon={Menu}
+                    onClick={() => setIsSidebarOpen(true)}
+                  />
+                </Stack>
+              </Stack>
+            </Stack>
 
-          {/* Lado Direito - Carrinho e Totais */}
-          <Box w="1/4">
-            <PdvCheckoutSidebar
-              cartItems={cartItems}
-              discount={discount}
-              total={total}
-              formatPrice={formatPrice}
-              onIncrease={handleIncrease}
-              onDecrease={handleDecrease}
-              onRemove={handleRemove}
-              onGoToPayment={() => setStep("pagamento")}
-            />
-          </Box>
-        </Stack>
-      ) : (
-        <PdvCheckoutPayment
-          cartItems={cartItems}
-          payments={payments}
-          discount={discount}
-          subtotal={subtotal}
-          total={total}
-          totalPaid={totalPaid}
-          amountDue={amountDue}
-          formatPrice={formatPrice}
-          onOpenDiscountModal={() => setIsDiscountModalOpen(true)}
-          onLaunchPayment={handleLaunchPayment}
-          onRemovePayment={handleRemovePayment}
-          onOpenChangeModal={() => setIsChangeModalOpen(true)}
-          onOpenCardModal={() => setIsCardModalOpen(true)}
-          onFinalizeSale={handleFinalizeSale}
-          paymentAmountInput={paymentAmountInput}
-          onChangePaymentAmountInput={setPaymentAmountInput}
-          launchAmount={launchAmount}
-        />
-      )}
+            {/* Container do Catálogo e do Carrinho (verticalizado no mobile, lado a lado no PC) */}
+            <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch">
+              {/* Lado Esquerdo - Catálogo */}
+              <Box flex="1" w="full">
+                <PdvCatalog
+                  activeCategory={activeCategory}
+                  onActiveCategoryChange={setActiveCategory}
+                  filteredProducts={filteredProducts}
+                  onAddProduct={handleAddProduct}
+                  categories={CATEGORIES}
+                  viewMode={viewMode}
+                />
+              </Box>
+
+              {/* Lado Direito - Carrinho e Totais */}
+              <Box w="full" className="md:w-1/4">
+                <PdvCheckoutSidebar
+                  cartItems={cartItems}
+                  discount={discount}
+                  total={total}
+                  formatPrice={formatPrice}
+                  onIncrease={handleIncrease}
+                  onDecrease={handleDecrease}
+                  onRemove={handleRemove}
+                  onGoToPayment={() => setStep("pagamento")}
+                />
+              </Box>
+            </Stack>
+          </Stack>
+        ) : (
+          <PdvCheckoutPayment
+            cartItems={cartItems}
+            payments={payments}
+            discount={discount}
+            subtotal={subtotal}
+            total={total}
+            totalPaid={totalPaid}
+            amountDue={amountDue}
+            formatPrice={formatPrice}
+            onOpenDiscountModal={() => setIsDiscountModalOpen(true)}
+            onLaunchPayment={handleLaunchPayment}
+            onRemovePayment={handleRemovePayment}
+            onOpenChangeModal={() => setIsChangeModalOpen(true)}
+            onOpenCardModal={() => setIsCardModalOpen(true)}
+            onFinalizeSale={handleFinalizeSale}
+            onRemoveItem={handleRemove}
+            paymentAmountInput={paymentAmountInput}
+            onChangePaymentAmountInput={setPaymentAmountInput}
+            launchAmount={launchAmount}
+          />
+        )}
+      </ViewTransition>
 
       <PdvModals
         isChangeModalOpen={isChangeModalOpen}
@@ -241,7 +309,28 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         onCloseSidebar={() => setIsSidebarOpen(false)}
         onBackToDashboard={onBackToDashboard}
         launchAmount={launchAmount}
+        subtotal={subtotal}
       />
+
+      {/* Modal de confirmação de saída */}
+      <Modal
+        isOpen={isExitConfirmOpen}
+        onClose={() => setIsExitConfirmOpen(false)}
+        title="Descartar operação e sair do caixa?"
+        subtitle="Os itens do carrinho e os pagamentos lançados serão descartados."
+        icon={LogOut}
+        successText="Descartar e sair"
+        onSuccess={() => {
+          setIsExitConfirmOpen(false)
+          onBackToDashboardRef.current()
+        }}
+        showCancelButton
+      >
+        <Stack gap={2.5}>
+          <Font variant="body" text={`Você possui ${cartItems.length} ${cartItems.length === 1 ? "item" : "itens"} no carrinho com um total de ${formatPrice(total)}.`} />
+          <Font variant="body" text="Ao sair, toda a operação atual será perdida e você voltará ao painel principal. Esta ação não pode ser desfeita." color="muted" />
+        </Stack>
+      </Modal>
     </Stack>
   )
 }

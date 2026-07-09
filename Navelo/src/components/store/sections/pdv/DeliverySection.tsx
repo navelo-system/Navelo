@@ -49,11 +49,11 @@ export const DeliverySection: React.FC = () => {
 
   return (
     <Stack gap={12} w="full">
-      {/* Grade Principal: Pedidos à esquerda (1/3) e Detalhes/Timeline à direita (restante) */}
-      <Stack direction="row" gap={5} w="full" align="stretch">
+      {/* Grade Principal: Pedidos à esquerda (1/3) e Detalhes/Timeline à direita (restante) (vertical no mobile, lado a lado no PC) */}
+      <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch">
         
-        {/* Painel Esquerdo (1/3) */}
-        <Box w="1/3">
+        {/* Painel Esquerdo (1/3 no PC, 100% no mobile) */}
+        <Box w="full" className="md:w-1/3">
           <Stack gap={5}>
             {/* Novo Pedido */}
             <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">

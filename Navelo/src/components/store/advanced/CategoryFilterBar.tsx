@@ -14,18 +14,22 @@ export function CategoryFilterBar({ categories, selectedCategoryId, onSelectCate
   return (
     <Box w="full" overflow="auto" paddingY={2.5}>
       <Stack direction="row" align="center" gap={2.5}>
-        <Button 
-          variant={selectedCategoryId === undefined ? "primary-pill" : "outline-pill"}
-          label="Todos"
-          onClick={() => onSelectCategory(undefined)}
-        />
-        {categories.map(category => (
+        <Box shrink="0">
           <Button 
-            key={category.id}
-            variant={selectedCategoryId === category.id ? "primary-pill" : "outline-pill"}
-            label={category.name}
-            onClick={() => onSelectCategory(category.id)}
+            variant={selectedCategoryId === undefined ? "secondary-pill" : "outline-pill"}
+            label="Todos"
+            onClick={() => onSelectCategory(undefined)}
           />
+        </Box>
+        {categories.map(category => (
+          <Box shrink="0" key={category.id}>
+            <Button 
+              key={category.id}
+              variant={selectedCategoryId === category.id ? "secondary-pill" : "outline-pill"}
+              label={category.name}
+              onClick={() => onSelectCategory(category.id)}
+            />
+          </Box>
         ))}
       </Stack>
     </Box>

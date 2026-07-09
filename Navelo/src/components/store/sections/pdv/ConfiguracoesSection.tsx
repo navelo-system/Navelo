@@ -231,8 +231,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
     } else if (currentSubView === "restricoes") {
       // O próprio RestricoesSection se encarrega de setar o customActions via effects!
     } else if (currentSubView === "autorizacoes") {
-      setCustomBack?.(() => handleBack)
-      setCustomTitle?.("Registro de autorizações")
+      // O próprio AutorizacoesSection se encarrega de setar o custom header via effects
     } else if (currentSubView === "nota-fiscal-config") {
       // NotaFiscalSection se encarrega de setar o customActions via effects!
     } else if (currentSubView === "pagamento-integrado") {
@@ -364,8 +363,8 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   if (currentSubView === "dados-empresa") {
     return (
       <CompanyDataForm
-        onCancel={() => setCurrentSubView(null)}
-        onSave={() => setCurrentSubView(null)}
+        onCancel={popSubView}
+        onSave={popSubView}
       />
     )
   }
@@ -373,7 +372,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   if (currentSubView === "sincronizacao") {
     return (
       <CompanySyncForm
-        onCancel={() => setCurrentSubView(null)}
+        onCancel={popSubView}
       />
     )
   }
@@ -381,7 +380,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   if (currentSubView === "usuarios") {
     return (
       <UsuariosSection
-        onCancel={() => setCurrentSubView(null)}
+        onCancel={popSubView}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
       />
@@ -391,7 +390,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   if (currentSubView === "restricoes") {
     return (
       <RestricoesSection
-        onCancel={() => setCurrentSubView(null)}
+        onCancel={popSubView}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
         setCustomActions={setCustomActions}
@@ -402,7 +401,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   if (currentSubView === "autorizacoes") {
     return (
       <AutorizacoesSection
-        onCancel={() => setCurrentSubView(null)}
+        onCancel={popSubView}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
       />
@@ -412,7 +411,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   if (currentSubView === "nota-fiscal-config") {
     return (
       <NotaFiscalSection
-        onCancel={() => setCurrentSubView(null)}
+        onCancel={popSubView}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
         setCustomActions={setCustomActions}
@@ -423,7 +422,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   if (currentSubView === "pagamento-integrado") {
     return (
       <PagamentoIntegradoSection
-        onCancel={() => setCurrentSubView(null)}
+        onCancel={popSubView}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
       />
@@ -434,7 +433,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
     return (
       <PagamentoIntegradoSection
         type="order"
-        onCancel={() => setCurrentSubView(null)}
+        onCancel={popSubView}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
       />
@@ -444,7 +443,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   if (currentSubView === "conta-digital") {
     return (
       <ContaDigitalSection
-        onCancel={() => setCurrentSubView(null)}
+        onCancel={popSubView}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
       />
@@ -454,7 +453,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   if (currentSubView === "pix") {
     return (
       <PixSection
-        onCancel={() => setCurrentSubView(null)}
+        onCancel={popSubView}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
       />
@@ -464,7 +463,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   if (currentSubView === "crediario") {
     return (
       <CrediarioSection
-        onCancel={() => setCurrentSubView(null)}
+        onCancel={popSubView}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
       />
@@ -474,7 +473,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   if (currentSubView === "entregadores") {
     return (
       <ConectaEntregadorSection
-        onCancel={() => setCurrentSubView(null)}
+        onCancel={popSubView}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
       />
@@ -484,7 +483,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   if (currentSubView === "ifood") {
     return (
       <IFoodSection
-        onCancel={() => setCurrentSubView(null)}
+        onCancel={popSubView}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
       />
@@ -494,7 +493,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   if (currentSubView === "taxa-entrega") {
     return (
       <TaxaEntregaSection
-        onCancel={() => setCurrentSubView(null)}
+        onCancel={popSubView}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
       />
@@ -504,7 +503,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   if (currentSubView === "consulta-preco") {
     return (
       <ConsultaPrecoSection
-        onCancel={() => setCurrentSubView(null)}
+        onCancel={popSubView}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
       />
@@ -514,7 +513,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   if (currentSubView === "pesagem-automatica") {
     return (
       <PesagemAutomaticaSection
-        onCancel={() => setCurrentSubView(null)}
+        onCancel={popSubView}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
       />
@@ -894,19 +893,21 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
                       }
                     }}
                   >
-                    <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-                      <Stack direction="row" align="center" gap={5}>
-                        <Icon icon={item.icon} size={20} color="muted" />
-                        <Stack gap={1}>
-                          <Font variant="body-bold" text={item.title} />
+                    <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5} className="md:gap-5">
+                      <Stack direction="row" align="center" gap={5} flex="1">
+                        <Icon icon={item.icon} variant="circular-secondary" />
+                        <Stack gap={1} align="start">
+                          <Font variant="body-bold" text={item.title} align="left" />
                           {item.subtitle && (
-                            <Font variant="description" text={item.subtitle} />
+                            <Font variant="description" text={item.subtitle} align="left" />
                           )}
                         </Stack>
                       </Stack>
 
                       {item.badge && (
-                        <Badge variant="success" label={item.badge} icon={Check} />
+                        <Box display="flex" justify="end" className="w-full md:w-auto">
+                          <Badge variant="success" label={item.badge} icon={Check} />
+                        </Box>
                       )}
                     </Stack>
                   </Box>

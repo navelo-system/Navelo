@@ -6,6 +6,7 @@ import { ChangeCalculator } from "../../advanced/ChangeCalculator"
 import { DiscountModal } from "./modals/DiscountModal"
 import { CardTransactionModal } from "./modals/CardTransactionModal"
 import { PdvSidebarDrawer } from "./modals/PdvSidebarDrawer"
+import { DollarSign } from "lucide-react"
 
 interface PdvModalsProps {
   isChangeModalOpen: boolean
@@ -24,6 +25,7 @@ interface PdvModalsProps {
   onCloseSidebar: () => void
   onBackToDashboard: () => void
   launchAmount: number
+  subtotal: number
 }
 
 export const PdvModals: React.FC<PdvModalsProps> = ({
@@ -42,13 +44,28 @@ export const PdvModals: React.FC<PdvModalsProps> = ({
   onCloseSidebar,
   onBackToDashboard,
   launchAmount,
+  subtotal,
 }) => {
+  const [calculatorAmount, setCalculatorAmount] = React.useState(0)
+
   return (
     <>
-      <Modal isOpen={isChangeModalOpen} onClose={onCloseChangeModal}>
+      <Modal
+        isOpen={isChangeModalOpen}
+        onClose={onCloseChangeModal}
+        title="Calculadora de Troco"
+        subtitle="Calcule o troco a ser entregue ao cliente."
+        icon={DollarSign}
+        successText="Confirmar Pagamento"
+        onSuccess={() => {
+          onConfirmChangePayment(Math.min(calculatorAmount, launchAmount))
+          onCloseChangeModal()
+        }}
+      >
         <ChangeCalculator
           totalAmount={launchAmount}
-          onConfirm={(receivedAmount) => onConfirmChangePayment(Math.min(receivedAmount, launchAmount))}
+          hideHeaderAndFooter={true}
+          onChange={setCalculatorAmount}
         />
       </Modal>
 
@@ -65,6 +82,7 @@ export const PdvModals: React.FC<PdvModalsProps> = ({
         onClose={onCloseDiscountModal}
         discount={discount}
         onChangeDiscount={onChangeDiscount}
+        subtotal={subtotal}
       />
 
       <PdvSidebarDrawer

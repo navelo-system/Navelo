@@ -82,7 +82,10 @@ export const TabsTrigger = React.forwardRef<
       data-state={isActive ? "active" : "inactive"}
       onClick={() => context.onValueChange(value)}
       className={cn(
-        "flex-1 inline-flex items-center justify-center whitespace-nowrap rounded-[5px] px-4 py-1.5 text-sm font-semibold ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-brand-primary/20 data-[state=active]:text-brand-primary data-[state=active]:border-2 data-[state=active]:border-brand-primary/80 data-[state=inactive]:bg-surface data-[state=inactive]:text-text-secondary data-[state=inactive]:border-2 data-[state=inactive]:border-border data-[state=inactive]:hover:bg-surface-sunken data-[state=inactive]:hover:text-foreground",
+        "shrink-0 inline-flex items-center justify-center whitespace-nowrap rounded-[5px] px-4 py-1.5 text-sm font-semibold ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+        isActive
+          ? "bg-brand-secondary text-white border-2 border-brand-secondary"
+          : "bg-surface text-text-secondary border-2 border-border hover:bg-surface-sunken hover:text-foreground",
         className
       )}
       {...props}

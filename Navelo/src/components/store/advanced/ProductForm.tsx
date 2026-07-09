@@ -288,18 +288,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     <Box as="form" onSubmit={handleSubmit} w="full">
       <Stack gap={5} w="full">
         <Tabs defaultValue="basico">
-          <TabsList>
-            <TabsTrigger value="basico">
-              <Stack direction="row" align="center" gap={1}>
-                <Icon icon={Package} size={16} />
-                <Font variant="body-bold" text="Dados Básicos" />
-              </Stack>
+          <TabsList className="flex-col md:flex-row gap-2.5 w-full md:w-auto">
+            <TabsTrigger value="basico" className="w-full md:w-auto">
+              Dados Básicos
             </TabsTrigger>
-            <TabsTrigger value="avancado">
-              <Stack direction="row" align="center" gap={1}>
-                <Icon icon={Layers} size={16} />
-                <Font variant="body-bold" text="Recursos Avançados" />
-              </Stack>
+            <TabsTrigger value="avancado" className="w-full md:w-auto">
+              Recursos Avançados
             </TabsTrigger>
           </TabsList>
 
@@ -447,12 +441,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 {isMultissaborOpen && (
                   <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
                     <Stack gap={5} w="full">
-                      <Stack direction="row" gap={5} align="center" justify="between">
-                        <Stack gap={1}>
-                          <Font variant="body-semibold" text="Habilitar Multissabor" />
-                          <Font variant="description" text="Permite que o produto seja fracionado em diferentes sabores" />
+                      <Stack direction="col" mobileDirection="row" gap={2.5} className="md:gap-5" align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
+                        <Stack gap={1} className="order-2 md:order-1">
+                          <Font variant="body-semibold" text="Habilitar Multissabor" align="left" />
+                          <Font variant="description" text="Permite que o produto seja fracionado em diferentes sabores" align="left" />
                         </Stack>
-                        <Switch checked={multissaborEnabled} onChange={(e) => setMultissaborEnabled(e.target.checked)} />
+                        <Box className="order-1 md:order-2">
+                          <Switch checked={multissaborEnabled} onChange={(e) => setMultissaborEnabled(e.target.checked)} />
+                        </Box>
                       </Stack>
                       {multissaborEnabled && (
                         <Grid cols={2} gap={5}>
@@ -499,12 +495,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 {isComplementosOpen && (
                   <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
                     <Stack gap={5} w="full">
-                      <Stack direction="row" gap={5} align="center" justify="between">
-                        <Stack gap={1}>
-                          <Font variant="body-semibold" text="Vincular Complementos" />
-                          <Font variant="description" text="Vincular opcionais e acompanhamentos cadastrados no subgrupo" />
+                      <Stack direction="col" mobileDirection="row" gap={2.5} className="md:gap-5" align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
+                        <Stack gap={1} className="order-2 md:order-1">
+                          <Font variant="body-semibold" text="Vincular Complementos" align="left" />
+                          <Font variant="description" text="Vincular opcionais e acompanhamentos cadastrados no subgrupo" align="left" />
                         </Stack>
-                        <Switch checked={complementosEnabled} onChange={(e) => setComplementosEnabled(e.target.checked)} />
+                        <Box className="order-1 md:order-2">
+                          <Switch checked={complementosEnabled} onChange={(e) => setComplementosEnabled(e.target.checked)} />
+                        </Box>
                       </Stack>
                     </Stack>
                   </Box>
@@ -534,12 +532,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 {isPlataformasOpen && (
                   <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
                     <Stack gap={5} w="full">
-                      <Stack direction="row" gap={5} align="center" justify="between">
-                        <Stack gap={1}>
-                          <Font variant="body-semibold" text="Exibir no Catálogo Online" />
-                          <Font variant="description" text="Habilita a exibição do produto em vendas digitais" />
+                      <Stack direction="col" mobileDirection="row" gap={2.5} className="md:gap-5" align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
+                        <Stack gap={1} className="order-2 md:order-1">
+                          <Font variant="body-semibold" text="Exibir no Catálogo Online" align="left" />
+                          <Font variant="description" text="Habilita a exibição do produto em vendas digitais" align="left" />
                         </Stack>
-                        <Switch checked={plataformasEnabled} onChange={(e) => setPlataformasEnabled(e.target.checked)} />
+                        <Box className="order-1 md:order-2">
+                          <Switch checked={plataformasEnabled} onChange={(e) => setPlataformasEnabled(e.target.checked)} />
+                        </Box>
                       </Stack>
                       {plataformasEnabled && (
                         <Box w="full">
@@ -579,8 +579,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 {isBarcodesOpen && (
                   <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
                     <Stack gap={5} w="full">
-                      <Stack direction="row" gap={2.5} align="end" w="full">
-                        <Box flex="1">
+                      <Stack direction="col" mobileDirection="row" gap={2.5} align="stretch" mobileAlign="end" w="full">
+                        <Box flex="1" w="full">
                           <Input
                             label="Adicionar Novo EAN / GTIN"
                             placeholder="Ex: 7891234567890"
@@ -594,6 +594,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                           icon={Plus}
                           onClick={handleAddBarcode}
                           type="button"
+                          fullWidth
                         />
                       </Stack>
                       {barcodes.length > 0 && (
@@ -679,12 +680,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 {isProducaoOpen && (
                   <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
                     <Stack gap={5} w="full">
-                      <Stack direction="row" gap={5} align="center" justify="between">
-                        <Stack gap={1}>
-                          <Font variant="body-semibold" text="Produção Própria" />
-                          <Font variant="description" text="Habilite se o item for de fabricação interna (KDS)" />
+                      <Stack direction="col" mobileDirection="row" gap={2.5} className="md:gap-5" align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
+                        <Stack gap={1} className="order-2 md:order-1">
+                          <Font variant="body-semibold" text="Produção Própria" align="left" />
+                          <Font variant="description" text="Habilite se o item for de fabricação interna (KDS)" align="left" />
                         </Stack>
-                        <Switch checked={producaoPropria} onChange={(e) => setProducaoPropria(e.target.checked)} />
+                        <Box className="order-1 md:order-2">
+                          <Switch checked={producaoPropria} onChange={(e) => setProducaoPropria(e.target.checked)} />
+                        </Box>
                       </Stack>
                       {producaoPropria && (
                         <Stack gap={5} w="full">
@@ -762,12 +765,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
                       {/* Configurações de ICMS */}
                       <Stack gap={5} w="full">
-                        <Stack direction="row" gap={5} align="center" justify="between">
-                          <Stack gap={1}>
-                            <Font variant="body-semibold" text="Utilizar ICMS Padrão" />
-                            <Font variant="description" text="Herda as definições fiscais padrão da filial" />
+                        <Stack direction="col" mobileDirection="row" gap={2.5} className="md:gap-5" align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
+                          <Stack gap={1} className="order-2 md:order-1">
+                            <Font variant="body-semibold" text="Utilizar ICMS Padrão" align="left" />
+                            <Font variant="description" text="Herda as definições fiscais padrão da filial" align="left" />
                           </Stack>
-                          <Switch checked={icmsDefault} onChange={(e) => setIcmsDefault(e.target.checked)} />
+                          <Box className="order-1 md:order-2">
+                            <Switch checked={icmsDefault} onChange={(e) => setIcmsDefault(e.target.checked)} />
+                          </Box>
                         </Stack>
 
                         {!icmsDefault && (
@@ -799,12 +804,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
                       {/* Configurações de PIS/COFINS */}
                       <Stack gap={5} w="full">
-                        <Stack direction="row" gap={5} align="center" justify="between">
-                          <Stack gap={1}>
-                            <Font variant="body-semibold" text="Utilizar PIS/COFINS Padrão" />
-                            <Font variant="description" text="Herda as definições de PIS/COFINS padrão da filial" />
+                        <Stack direction="col" mobileDirection="row" gap={2.5} className="md:gap-5" align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
+                          <Stack gap={1} className="order-2 md:order-1">
+                            <Font variant="body-semibold" text="Utilizar PIS/COFINS Padrão" align="left" />
+                            <Font variant="description" text="Herda as definições de PIS/COFINS padrão da filial" align="left" />
                           </Stack>
-                          <Switch checked={pisCofinsDefault} onChange={(e) => setPisCofinsDefault(e.target.checked)} />
+                          <Box className="order-1 md:order-2">
+                            <Switch checked={pisCofinsDefault} onChange={(e) => setPisCofinsDefault(e.target.checked)} />
+                          </Box>
                         </Stack>
 
                         {!pisCofinsDefault && (
@@ -838,12 +845,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         </Tabs>
 
         {/* Ações do Formulário */}
-        <Box border={true} borderStyle="dashed" borderColor="border-border" padding={5} radius="default" w="full">
-          <Stack direction="row" justify="end" gap={2.5} w="full">
-            <Button variant="outline" label="Cancelar" onClick={onCancel} type="button" />
-            <Button variant="primary" label="Salvar Produto" type="submit" />
-          </Stack>
-        </Box>
+        <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full" className="md:w-auto">
+          <Button variant="outline" label="Cancelar" onClick={onCancel} type="button" fullWidth />
+          <Button variant="primary" label="Salvar Produto" type="submit" fullWidth />
+        </Stack>
       </Stack>
     </Box>
   )
