@@ -51,7 +51,7 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
       />
 
       {/* Totais do Cupom / Checkout */}
-      <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
+      <Box padding={5} bg="bg-surface" radius="default">
         <Stack gap={2.5}>
           <Stack direction="row" justify="between" align="center">
             <Font variant="description" color="muted" text="Subtotal" />

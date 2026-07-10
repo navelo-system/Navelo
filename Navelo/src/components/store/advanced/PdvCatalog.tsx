@@ -46,13 +46,13 @@ interface PdvCatalogProps {
 
 const GRID_GAP_PX = 20
 
-type GridCols = 1 | 2 | 3 | 4 | 5 | 6 | 8 | 12
+type GridCols = 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12
 
 function toGridCols(count: number): GridCols {
-  const clamped = Math.max(1, Math.min(count, 12))
+  const clamped = Math.max(1, Math.min(count, 10))
   if (clamped <= 6) return clamped as 1 | 2 | 3 | 4 | 5 | 6
   if (clamped <= 8) return 8
-  return 12
+  return 10
 }
 
 function useGridColumnCount(
@@ -143,7 +143,7 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
       </Box>
 
       {/* Grade/Lista de Produtos ou Carrinho */}
-      <Box padding={1} flex="1" className="min-h-0 overflow-y-auto">
+      <Box padding={0} flex="1" className="min-h-0 overflow-y-auto">
         {filteredProducts.length === 0 ? (
           <EmptyState
             icon={Package}

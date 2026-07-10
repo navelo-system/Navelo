@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 type GapToken = "section" | "title-content" | 12.5 | 12 | 5 | 2.5 | 1 | 0
 
 export interface GridProps extends React.HTMLAttributes<HTMLDivElement> {
-  cols?: 1 | 2 | 3 | 4 | 5 | 6 | 8 | 12
+  cols?: 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12
   gap?: GapToken
   responsive?: boolean
   w?: string
@@ -30,6 +30,7 @@ const colsMap: Record<number, string> = {
   4: "grid-cols-2 md:grid-cols-2 lg:grid-cols-4",
   5: "grid-cols-1 md:grid-cols-5",
   6: "grid-cols-1 md:grid-cols-3 lg:grid-cols-6",
+  10: "grid-cols-2 md:grid-cols-5 lg:grid-cols-10",
   12: "grid-cols-4 md:grid-cols-6 lg:grid-cols-12",
 }
 
@@ -40,6 +41,7 @@ const fixedColsMap: Record<number, string> = {
   4: "grid-cols-4",
   5: "grid-cols-5",
   6: "grid-cols-6",
+  10: "grid-cols-10",
   12: "grid-cols-12",
 }
 
@@ -50,11 +52,13 @@ export const Grid = React.forwardRef<HTMLDivElement, GridProps>(
       if (mobileCols !== undefined) {
         const mdClass = cols === 12
           ? "md:grid-cols-6 lg:grid-cols-12"
-          : cols === 6
-            ? "md:grid-cols-3 lg:grid-cols-6"
-            : cols === 4
-              ? "md:grid-cols-2 lg:grid-cols-4"
-              : `md:grid-cols-${cols}`
+          : cols === 10
+            ? "md:grid-cols-5 lg:grid-cols-10"
+            : cols === 6
+              ? "md:grid-cols-3 lg:grid-cols-6"
+              : cols === 4
+                ? "md:grid-cols-2 lg:grid-cols-4"
+                : `md:grid-cols-${cols}`
         return `grid-cols-${mobileCols} ${mdClass}`
       }
       return colsMap[cols]

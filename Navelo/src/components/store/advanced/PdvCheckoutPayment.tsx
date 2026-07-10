@@ -103,7 +103,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
   return (
     <Grid cols={2} gap={5} className="flex-1 min-h-0">
       {/* Painel Esquerdo: Resumo do Pedido */}
-      <Box bg="bg-surface" padding={5} radius="default" border={true} borderColor="border-border" w="full" className="flex flex-col min-h-0">
+      <Box bg="bg-surface" padding={5} radius="default" w="full" className="flex flex-col min-h-0">
         <Stack gap={5} className="flex-1 min-h-0">
           <Font variant="h3" text="Resumo da Conta" />
           <Box h="h-[2px]" bg="bg-border" w="full" />
@@ -153,7 +153,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
       </Box>
 
       {/* Painel Direito: Métodos de Pagamento e Lançamento */}
-      <Box bg="bg-surface" padding={5} radius="default" border={true} borderColor="border-border" w="full" className="flex flex-col min-h-0">
+      <Box bg="bg-surface" padding={5} radius="default" w="full" className="flex flex-col min-h-0">
         <Stack gap={5} className="flex-1 min-h-0">
           <Font variant="h3" text="Quitação de Valores" />
           <Box h="h-[2px]" bg="bg-border" w="full" shrink="0" />

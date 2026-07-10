@@ -59,7 +59,7 @@ export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
         >
           <Box shrink="0">
             <Box as="button" onClick={() => onNavigate("dashboard")} shrink="0" display="flex">
-              <Font variant="h2" text="Navelo - PDV" color="brand-secondary" />
+              <Font variant="body" as="h1" color="brand-secondary" text="Navelo - PDV" />
             </Box>
           </Box>
 
