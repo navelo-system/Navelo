@@ -98,7 +98,7 @@ export const PagamentoIntegradoSection: React.FC<PagamentoIntegradoSectionProps>
                   <Font variant="body-bold" text={`POS código: ${pos}`} />
                 </Stack>
                 <Button
-                  variant="outline-neutral"
+                  variant="outline"
                   label="Desvincular"
                   icon={Trash2}
                   onClick={() => handleUnlinkPos(idx)}

@@ -91,7 +91,7 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
                   objectFit="contain"
                 />
                 <Button
-                  variant="danger-sm"
+                  variant="secondary"
                   label="Remover logo"
                   onClick={() => setLogo(null)}
                 />

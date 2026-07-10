@@ -235,12 +235,12 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
                     <TableCell align="right" w="w-24">
                       <Stack direction="row" gap={2.5} justify="end">
                         <Button
-                          variant="outline-sm"
+                          variant="primary-icon-xs"
                           icon={Edit2}
                           onClick={() => handleEdit(prod)}
                         />
                         <Button
-                          variant="danger-sm"
+                          variant="danger-icon-xs"
                           icon={Trash2}
                           onClick={() => handleDelete(prod.id)}
                         />

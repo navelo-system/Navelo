@@ -374,7 +374,7 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
               leftAction={editingSupplier ? (
                 <Button
                   type="button"
-                  variant="outline-neutral"
+                  variant="outline"
                   label="Excluir Fornecedor"
                   icon={Trash2}
                   onClick={() => handleDelete(editingSupplier.id)}

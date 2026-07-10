@@ -60,7 +60,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
               <Box w="w-8" h="h-8" radius="default" display="flex" justify="center" overflow="hidden">
                 <Box as="img" src={tempLogo} alt="Preview Logo" w="w-[28px]" h="h-[28px]" objectFit="contain" />
               </Box>
-              <Button variant="outline-xs" label="Remover logo" onClick={() => setTempLogo("")} />
+              <Button variant="secondary" label="Remover logo" onClick={() => setTempLogo("")} />
             </Stack>
           )}
         </Stack>

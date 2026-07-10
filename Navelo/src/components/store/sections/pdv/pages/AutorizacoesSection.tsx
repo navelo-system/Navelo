@@ -89,25 +89,13 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
               {["Hoje", "7D", "1M", "3M", "6M", "1A"].map((p) => {
                 const isActive = period === p
                 return (
-                  <Box
+                  <Button
                     key={p}
-                    as="button"
-                    type="button"
+                    variant={isActive ? "primary" : "outline"}
+                    label={p}
                     onClick={() => setPeriod(p)}
-                    bg={isActive ? "bg-brand-primary" : "bg-transparent"}
-                    border={true}
-                    borderColor={isActive ? "brand-primary" : "border"}
-                    radius="default"
-                    paddingX={2.5}
-                    paddingY={1}
-                    cursor="pointer"
-                  >
-                    <Font
-                      variant="body-xs-semibold"
-                      color={isActive ? "white" : "foreground"}
-                      text={p}
-                    />
-                  </Box>
+                    type="button"
+                  />
                 )
               })}
             </Stack>

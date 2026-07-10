@@ -58,7 +58,7 @@ export function ConfiguracoesSection() {
     <>
       <Stack direction="row" align="start" w="fit-content">
         <Button
-          variant="ghost-ghost"
+          variant="ghost"
           label="Voltar ao Painel"
           icon={ArrowLeft}
           onClick={() => window.location.href = "/admin"}
@@ -148,7 +148,7 @@ export function ConfiguracoesSection() {
                   </Stack>
                 </Box>
                 <Button
-                  variant="danger-sm"
+                  variant="outline"
                   label="Remover Logotipo"
                   onClick={() => setConfig({ ...config, whitelabel: { ...config.whitelabel, logoUrl: "" } })}
                 />

@@ -108,7 +108,7 @@ export const AdminHeaderSection: React.FC = () => {
               {/* Indicador de sincronização — visual apenas, sem interação */}
               <Box>
                 <Button
-                  variant={isSynced ? "success-pill-icon" : "danger-pill-icon"}
+                  variant={isSynced ? "primary-pill-icon" : "danger-pill-icon"}
                   icon={isSynced ? Cloud : CloudOff}
                   title={isSynced ? "Sincronizado" : "Fora de sincronização"}
                 />

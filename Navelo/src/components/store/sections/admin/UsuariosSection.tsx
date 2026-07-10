@@ -89,7 +89,7 @@ export function UsuariosSection() {
     <>
       <Stack direction="row" align="start" w="fit-content">
         <Button
-          variant="ghost-ghost"
+          variant="ghost"
           label="Voltar ao Painel"
           icon={ArrowLeft}
           onClick={() => window.location.href = "/admin"}

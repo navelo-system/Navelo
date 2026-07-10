@@ -319,7 +319,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                         <Icon icon={Package} size={32} color="secondary" />
                       </Stack>
                     </Box>
-                    <Button variant="outline-sm" label="Adicionar Imagem" type="button" />
+                    <Button variant="outline" label="Adicionar Imagem" type="button" />
                   </Stack>
 
                   <Grid cols={2} gap={5}>
@@ -606,7 +606,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                                 <Stack direction="row" align="center" justify="between" w="full">
                                   <Font variant="body" text={code} />
                                   <Button
-                                    variant="danger-sm"
+                                    variant="danger-icon-xs"
                                     icon={Trash2}
                                     onClick={() => handleRemoveBarcode(idx)}
                                     type="button"

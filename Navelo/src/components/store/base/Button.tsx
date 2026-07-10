@@ -5,10 +5,28 @@ import { LucideIcon } from "lucide-react"
 import { Icon as BaseIcon } from "./Icon"
 import { Font } from "./Font"
 
-type BaseColor = "primary" | "secondary" | "success" | "danger" | "outline" | "outline-neutral" | "ghost" | "ghost-secondary" | "ghost-primary"
-type Modifier = "" | "-pill" | "-sm" | "-xs" | "-lg" | "-icon" | "-icon-xs" | "-ghost" | "-pill-sm" | "-pill-xs" | "-pill-lg" | "-pill-icon" | "-pill-icon-xs"
-
-export type ButtonVariant = Exclude<`${BaseColor}${Modifier}`, "outline-icon-xs">
+export type ButtonVariant =
+  | "primary"
+  | "primary-lg"
+  | "primary-sm"
+  | "primary-icon-xs"
+  | "primary-pill-icon"
+  | "secondary"
+  | "secondary-lg"
+  | "secondary-sm"
+  | "secondary-pill-icon"
+  | "danger-sm"
+  | "danger-icon"
+  | "danger-icon-xs"
+  | "danger-pill-icon"
+  | "success-sm"
+  | "outline"
+  | "outline-lg"
+  | "outline-pill-icon"
+  | "outline-pill-icon-xs"
+  | "ghost"
+  | "ghost-primary"
+  | "ghost-secondary"
 
 export interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "children" | "className" | "style"> {
   variant?: ButtonVariant
@@ -27,7 +45,6 @@ const variantStyles: Record<string, string> = {
   success: "bg-brand-success text-white hover:opacity-90",
   danger: "bg-brand-danger text-white hover:opacity-90",
   outline: "bg-surface hover:bg-surface-sunken text-foreground",
-  "outline-neutral": "bg-surface hover:bg-surface-sunken text-foreground",
   ghost: "bg-transparent text-foreground border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",
   "ghost-secondary": "bg-transparent text-brand-secondary border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",
   "ghost-primary": "bg-transparent text-brand-primary border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",
@@ -56,14 +73,14 @@ const roundedStyles = {
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = "primary", justify = "center", fullWidth, label, icon: IconComponent, iconRight: IconRightComponent, href, modalTarget, ...props }, ref) => {
-    
+
     let activeVariant = variant
     if (label === "Cancelar" && activeVariant === "outline") {
       activeVariant = "secondary"
     }
 
     const isPill = activeVariant.includes("-pill")
-    
+
     let logicalSize: keyof typeof sizeStyles = "default"
     if (activeVariant === "ghost" || activeVariant === "ghost-secondary" || activeVariant === "ghost-primary") {
       logicalSize = "ghost"

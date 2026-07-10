@@ -65,7 +65,7 @@ export const PlansCrudSection: React.FC = () => {
     <>
       <Stack direction="row" align="start" w="fit-content">
         <Button
-          variant="ghost-ghost"
+          variant="ghost"
           label="Voltar ao Painel"
           icon={ArrowLeft}
           onClick={() => window.location.href = "/admin"}
@@ -116,8 +116,8 @@ export const PlansCrudSection: React.FC = () => {
                     </TableCell>
                     <TableCell align="right">
                       <Stack direction="row" gap={2.5} justify="end">
-                        <Button variant="outline-icon" icon={Edit2} onClick={() => handleOpenEdit(plan)} />
-                        <Button variant="danger-icon" icon={Trash2} onClick={() => handleDelete(plan.id)} />
+                        <Button variant="primary-icon-xs" icon={Edit2} onClick={() => handleOpenEdit(plan)} />
+                        <Button variant="danger-icon-xs" icon={Trash2} onClick={() => handleDelete(plan.id)} />
                       </Stack>
                     </TableCell>
                   </TableRow>

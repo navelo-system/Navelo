@@ -74,7 +74,7 @@ export function TenantsSection() {
     <>
       <Stack direction="row" align="start">
         <Button
-          variant="ghost-ghost"
+          variant="ghost"
           label="Voltar ao Painel"
           icon={ArrowLeft}
           onClick={() => window.location.href = "/admin"}

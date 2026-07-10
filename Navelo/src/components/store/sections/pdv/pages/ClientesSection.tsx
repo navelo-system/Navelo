@@ -279,12 +279,12 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
                     <TableCell align="right" w="w-24">
                       <Stack direction="row" gap={2.5} justify="end">
                         <Button
-                          variant="outline-sm"
+                          variant="primary-icon-xs"
                           icon={Edit2}
                           onClick={() => handleEdit(cli)}
                         />
                         <Button
-                          variant="danger-sm"
+                          variant="danger-icon-xs"
                           icon={Trash2}
                           onClick={() => handleDelete(cli.id)}
                         />
@@ -360,7 +360,7 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
                       <Font variant="auxiliary" color="muted" text="Gerencie os locais de entrega deste cliente" />
                     </Stack>
                     <Button
-                      variant="outline-sm"
+                      variant="outline"
                       label="Adicionar Endereço"
                       icon={Plus}
                       onClick={handleAddAddress}

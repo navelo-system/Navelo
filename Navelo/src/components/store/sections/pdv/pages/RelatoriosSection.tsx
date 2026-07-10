@@ -469,24 +469,14 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
                     {(["Hoje", "7D", "1M", "3M", "6M", "1A"] as const).map((p) => {
                       const isActive = period === p
                       return (
-                        <Box
+                        <Button
                           key={p}
-                          as="button"
+                          variant={isActive ? "primary" : "outline"}
+                          label={p}
                           onClick={() => setPeriod(p)}
                           type="button"
-                          paddingY={1}
-                          radius="default"
-                          bg={isActive ? "bg-brand-primary" : "bg-slate-100 hover:bg-slate-200"}
-                          display="flex"
-                          justify="center"
-                          cursor="pointer"
-                        >
-                          <Font
-                            variant="body-xs-semibold"
-                            text={p}
-                            color={isActive ? "white" : "secondary"}
-                          />
-                        </Box>
+                          fullWidth
+                        />
                       )
                     })}
                   </Grid>

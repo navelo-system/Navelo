@@ -34,13 +34,13 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             />
           </Box>
           <Button
-            variant={hasActiveFilters ? "primary-icon" : "outline-icon"}
+            variant={hasActiveFilters ? "primary-pill-icon" : "outline-pill-icon"}
             icon={Filter}
             onClick={onFilterClick}
           />
           {hasActiveFilters && onClearFilters && (
             <Button
-              variant="danger-icon"
+              variant="danger-pill-icon"
               icon={X}
               onClick={onClearFilters}
             />
