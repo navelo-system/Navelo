@@ -7,7 +7,6 @@ import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Checkbox } from "@/components/store/base/Checkbox"
-import { Button } from "@/components/store/base/Button"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 
 export interface OpcoesEntregaSectionProps {

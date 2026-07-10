@@ -7,7 +7,6 @@ import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Switch } from "@/components/store/base/Switch"
-import { Button } from "@/components/store/base/Button"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 import { Input } from "@/components/store/base/Input"
 

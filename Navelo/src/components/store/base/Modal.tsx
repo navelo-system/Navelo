@@ -5,7 +5,7 @@ import * as React from "react"
 import { LucideIcon } from "lucide-react"
 import { Stack } from "./Stack"
 import { Box } from "./Box"
-import { Button } from "./Button"
+import { Button, ButtonVariant } from "./Button"
 import { Font } from "./Font"
 import { CircularIcon } from "@/components/store/intermediary/CircularIcon"
 import { X } from "lucide-react"
@@ -21,7 +21,7 @@ export type ModalProps =
     onSuccess?: () => void
     isSubmit?: boolean
     showCancelButton?: boolean
-    cancelVariant?: string
+    cancelVariant?: ButtonVariant
     variant?: "default" | "bottom" | "sidebar"
     children: React.ReactNode
     footer?: React.ReactNode
@@ -255,7 +255,7 @@ export function Modal(props: ModalProps) {
                     <Box flex="1">
                       <Button
                         type="button"
-                        variant={cancelVariant as any}
+                        variant={cancelVariant}
                         label="Cancelar"
                         onClick={handleClose}
                         fullWidth
@@ -349,7 +349,7 @@ export interface ModalFooterProps {
   cancelLabel?: string
   cancelIcon?: LucideIcon
   onCancel?: () => void
-  cancelVariant?: string
+  cancelVariant?: ButtonVariant
   confirmLabel?: string
   confirmIcon?: LucideIcon
   onConfirm?: () => void
@@ -372,7 +372,7 @@ export function ModalFooter({
         <Box flex="1">
           <Button
             type="button"
-            variant={cancelVariant as any}
+            variant={cancelVariant}
             label={cancelLabel}
             icon={cancelIcon}
             onClick={onCancel}
