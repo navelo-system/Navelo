@@ -5,9 +5,9 @@
 import * as React from "react"
 import { Box } from "../../base/Box"
 import { Stack } from "../../base/Stack"
-import { Grid } from "../../base/Grid"
 import { Font } from "../../base/Font"
 import { Icon } from "../../base/Icon"
+import { TagFoldSvg } from "../../base/TagFoldSvg"
 import { Button } from "../../base/Button"
 import { Input } from "../../base/Input"
 import { Modal } from "../../base/Modal"
@@ -100,12 +100,7 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
               direction="col"
             >
               {/* Tag fold */}
-              <Box position="absolute" top={0} left={0} w="w-12" h="h-12">
-                <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', color: 'var(--brand-secondary)' }} fill="currentColor">
-                  <path d="M0 0 H100 L0 100 V0" />
-                  <circle cx="28" cy="28" r="14" fill="var(--surface)" />
-                </svg>
-              </Box>
+              <TagFoldSvg />
 
               {/* Identifier */}
               <Box position="absolute" top={3} right={3}>

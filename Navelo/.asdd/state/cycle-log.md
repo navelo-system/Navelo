@@ -1,5 +1,32 @@
 # Cycle Log
 
+## Ciclo #233 — Fix: Erro de lint no-restricted-syntax em LoginSection
+- Data: 2026-07-09
+- Tipo: fix
+- Prompt original: "npm run lint erro no LoginSection.tsx na linha 29"
+- Intenção interpretada: Corrigir o literal de padding `paddingX="5"` que deve ser um número `{5}` de acordo com as regras de tokens do Design System no ESLint.
+- Superfície tocada: `LoginSection.tsx`
+- Mudanças:
+  - Alterado `paddingX="5"` para `paddingX={5}` na tag Stack.
+- Status: Aprovado e Aplicado
+- Decisões tomadas: Seguir estritamente o tipo de variável suportada pelo AST do ESLint para regras customizadas de tokens do Design System.
+- Mudanças no truth/: Nenhuma
+- Estado antes → depois: Erro no ESLint de no-restricted-syntax → Lint passando.
+
+## Ciclo #232 — Fix: Desabilitar zoom de pinça e aumento de escala
+- Data: 2026-07-09
+- Tipo: fix
+- Prompt original: "agora algumas configurações globais no app, quero proibir o zoom de pinsa dentro do app e quero proibir aumento de escala de qualquer modo, isso evita muito bug"
+- Intenção interpretada: Configurar a Viewport no layout.tsx e CSS global no body para desabilitar pinch-to-zoom em dispositivos touch/mobile.
+- Superfície tocada: `app/layout.tsx`, `app/globals.css`
+- Mudanças:
+  - Adicionado export `viewport` em `app/layout.tsx` com `maximumScale: 1` e `userScalable: false`.
+  - Adicionado `touch-action: pan-x pan-y;` no `body` em `app/globals.css`.
+- Status: Aprovado
+- Decisões tomadas: Utilizar `userScalable: false` e `maximumScale: 1` combinados com `touch-action` para abranger tanto navegadores baseados no Chromium quanto Safari.
+- Mudanças no truth/: Nenhuma
+- Estado antes → depois: Aplicativo permitia zoom de pinça global → Zoom de pinça e escalonamento desativados.
+
 ## Ciclo #230 — Fix: Saneamento Completo de Warnings de Complexidade Ciclo
 - Data: 2026-07-08
 - Tipo: fix
