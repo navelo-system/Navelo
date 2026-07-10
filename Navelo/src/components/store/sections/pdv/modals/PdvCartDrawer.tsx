@@ -5,7 +5,7 @@ import { Modal } from "@/components/store/base/Modal"
 import { Stack } from "@/components/store/base/Stack"
 import { Button } from "@/components/store/base/Button"
 import { PdvCheckoutSidebar } from "@/components/store/advanced/PdvCheckoutSidebar"
-import { ShoppingCart } from "lucide-react"
+import { SaveAll, ShoppingCart } from "lucide-react"
 import { CartItemType } from "@/components/store/sections/pdv/pages/PdvSection"
 
 interface PdvCartDrawerProps {
@@ -52,11 +52,11 @@ export const PdvCartDrawer: React.FC<PdvCartDrawerProps> = ({
       title="Carrinho"
       variant="sidebar"
       footer={
-        <Stack gap={2.5} w="full">
+        <Stack direction="col" gap={2.5} w="full">
           <Button
             variant="success-lg"
             fullWidth
-            label="F9 - Pagamento"
+            label="Pagamento"
             icon={ShoppingCart}
             disabled={cartItems.length === 0}
             onClick={handlePayment}
@@ -65,6 +65,7 @@ export const PdvCartDrawer: React.FC<PdvCartDrawerProps> = ({
             <Button
               variant="outline"
               fullWidth
+              icon={SaveAll}
               label="Salvar Comanda"
               onClick={handleSave}
             />

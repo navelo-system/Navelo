@@ -6,7 +6,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { CartList } from "@/components/store/advanced/CartList"
-import { ShoppingCart } from "lucide-react"
+import { SaveAll, ShoppingCart } from "lucide-react"
 
 // Types
 import { CartItemType } from "@/components/store/sections/pdv/pages/PdvSection"
@@ -66,7 +66,7 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
             <Font variant="body-bold" text="Total" />
             <Font variant="body-bold" color="success" text={formatPrice(total)} />
           </Stack>
-          
+
           {!hideActions && (
             <>
               <Box paddingY={1} />
@@ -74,7 +74,7 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
               <Button
                 variant="success-lg"
                 fullWidth
-                label="F9 - Pagamento"
+                label="Pagamento"
                 icon={ShoppingCart}
                 disabled={cartItems.length === 0}
                 onClick={onGoToPayment}
@@ -83,6 +83,7 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
                 <Button
                   variant="outline"
                   fullWidth
+                  icon={SaveAll}
                   label="Salvar Comanda"
                   onClick={onSaveComanda}
                 />

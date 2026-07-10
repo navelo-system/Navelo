@@ -28,6 +28,7 @@ export interface MockProduct {
   stock?: number
   unitPrice: number
   category: string
+  barcode?: string
 }
 
 interface PdvCatalogProps {

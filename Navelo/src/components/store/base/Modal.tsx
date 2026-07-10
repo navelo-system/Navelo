@@ -109,32 +109,32 @@ export function Modal(props: ModalProps) {
   // Animado de baixo para cima na variante bottom, senão em scale centralizado
   const dialogStyle: React.CSSProperties = isSidebar
     ? {
-        transform: isActive ? "translateX(0)" : "translateX(100%)",
-        transition: enableTransition
-          ? isActive
-            ? "transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)"
-            : "transform 0.22s cubic-bezier(0.4, 0, 0.2, 1)"
-          : "none",
-      }
+      transform: isActive ? "translateX(0)" : "translateX(100%)",
+      transition: enableTransition
+        ? isActive
+          ? "transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)"
+          : "transform 0.22s cubic-bezier(0.4, 0, 0.2, 1)"
+        : "none",
+    }
     : {
-        opacity: isBottom ? 1 : (isActive ? 1 : 0),
-        transform: isBottom
-          ? (isActive ? "translateY(0)" : "translateY(100%)")
-          : (isActive ? "scale(1)" : "scale(0.9)"),
-        transition: isActive
-          ? (isBottom
-              ? "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)"
-              : "opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1)")
-          : (isBottom
-              ? "transform 0.22s ease-in"
-              : "opacity 0.18s ease, transform 0.18s ease")
-      }
+      opacity: isBottom ? 1 : (isActive ? 1 : 0),
+      transform: isBottom
+        ? (isActive ? "translateY(0)" : "translateY(100%)")
+        : (isActive ? "scale(1)" : "scale(0.9)"),
+      transition: isActive
+        ? (isBottom
+          ? "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)"
+          : "opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1)")
+        : (isBottom
+          ? "transform 0.22s ease-in"
+          : "opacity 0.18s ease, transform 0.18s ease")
+    }
 
   const backdropStyle: React.CSSProperties = isSidebar
     ? {
-        opacity: isActive ? 1 : 0,
-        transition: enableTransition ? "opacity 0.22s ease" : "none",
-      }
+      opacity: isActive ? 1 : 0,
+      transition: enableTransition ? "opacity 0.22s ease" : "none",
+    }
     : {}
 
   // Variant: sidebar (drawer deslizando da direita)
@@ -219,6 +219,7 @@ export function Modal(props: ModalProps) {
                 )}
               </Stack>
             </Stack>
+            {children}
           </div>
         </div>
       )

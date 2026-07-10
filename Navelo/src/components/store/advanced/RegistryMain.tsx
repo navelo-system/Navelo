@@ -41,31 +41,23 @@ export const RegistryMain: React.FC<RegistryMainProps> = ({
         {(onBack || customActions) && (
           <Stack direction="row" align="center" justify="between" w="full" gap={5} flex="none">
             {onBack ? (
-              <Box display="block md:hidden">
-                <Button
-                  variant="ghost-primary"
-                  label={_title || "Voltar"}
-                  icon={ArrowLeft}
-                  onClick={onBack}
-                  justify="start"
-                />
-              </Box>
+              <Button
+                variant="ghost-primary"
+                label={_title || "Voltar"}
+                icon={ArrowLeft}
+                onClick={onBack}
+                justify="start"
+              />
             ) : (
               <Box />
             )}
-            <Stack direction="row" align="center" gap={2.5} flex="none">
-              {customActions}
-              {onBack && (
-                <Box display="hidden md:block">
-                  <Button
-                    variant="ghost-primary"
-                    label={_title || "Voltar"}
-                    icon={ArrowLeft}
-                    onClick={onBack}
-                  />
-                </Box>
-              )}
-            </Stack>
+            {customActions ? (
+              <Stack direction="row" align="center" gap={2.5} flex="none">
+                {customActions}
+              </Stack>
+            ) : (
+              <Box />
+            )}
           </Stack>
         )}
 
