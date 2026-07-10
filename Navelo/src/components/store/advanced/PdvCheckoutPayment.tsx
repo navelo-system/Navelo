@@ -199,7 +199,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                           <Stack direction="row" justify="between" align="center" w="full">
                             <Icon icon={DollarSign} variant="circular-success" />
                             <Stack direction="row" gap={2.5}>
-                              <Button variant="outline-icon-xs" icon={Check} onClick={confirmEditPayment} />
+                              <Button variant="primary-icon-xs" icon={Check} onClick={confirmEditPayment} />
                               <Button variant="danger-icon-xs" icon={X} onClick={cancelEditPayment} />
                             </Stack>
                           </Stack>
@@ -215,7 +215,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                           <Stack direction="row" justify="between" align="center" w="full">
                             <Icon icon={DollarSign} variant="circular-success" />
                             <Stack direction="row" gap={2.5}>
-                              <Button variant="outline-icon-xs" icon={Pencil} onClick={() => startEditPayment(idx, p.amount)} />
+                              <Button variant="primary-icon-xs" icon={Pencil} onClick={() => startEditPayment(idx, p.amount)} />
                               <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onRemovePayment(idx)} />
                             </Stack>
                           </Stack>
@@ -239,7 +239,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                             <Box w="w-24">
                               <Input value={editPaymentInput} onChange={(e) => setEditPaymentInput(e.target.value)} />
                             </Box>
-                            <Button variant="outline-icon-xs" icon={Check} onClick={confirmEditPayment} />
+                            <Button variant="primary-icon-xs" icon={Check} onClick={confirmEditPayment} />
                             <Button variant="danger-icon-xs" icon={X} onClick={cancelEditPayment} />
                           </Stack>
                         </Stack>
@@ -253,7 +253,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                           </Stack>
                           <Stack direction="row" align="center" gap={2.5}>
                             <Font variant="body-bold" text={formatPrice(p.amount)} />
-                            <Button variant="outline-icon-xs" icon={Pencil} onClick={() => startEditPayment(idx, p.amount)} />
+                            <Button variant="primary-icon-xs" icon={Pencil} onClick={() => startEditPayment(idx, p.amount)} />
                             <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onRemovePayment(idx)} />
                           </Stack>
                         </Stack>

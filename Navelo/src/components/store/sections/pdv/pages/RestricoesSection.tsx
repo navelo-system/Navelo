@@ -8,6 +8,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 import { Switch } from "@/components/store/base/Switch"
 
 export interface RestricoesSectionProps {
@@ -119,12 +120,12 @@ export const RestricoesSection: React.FC<RestricoesSectionProps> = ({
         </Box>
 
         {/* Botão de Salvar na Cor Primária na parte inferior */}
-        <Box paddingY={2.5} w="full">
-          <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="w-full md:w-auto">
-            <Button variant="outline" label="Cancelar" onClick={onCancel} fullWidth />
-            <Button type="button" variant="primary" label="Salvar alterações" onClick={handleSaveClick} fullWidth />
-          </Stack>
-        </Box>
+              <FormActions
+        confirmLabel="Salvar alterações"
+        onConfirm={handleSaveClick}
+        isSubmit={false}
+        onCancel={onCancel}
+      />
       </Stack>
     </Box>
   )

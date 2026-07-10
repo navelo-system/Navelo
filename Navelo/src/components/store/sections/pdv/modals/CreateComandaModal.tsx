@@ -7,6 +7,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 
 interface CreateComandaModalProps {
   isOpen: boolean
@@ -51,18 +52,12 @@ export const CreateComandaModal: React.FC<CreateComandaModalProps> = ({
                   autoFocus
                 />
               </Stack>
-              <Stack direction="row" gap={2.5} justify="end" w="full">
-                <Button 
-                  variant="outline" 
-                  label="Cancelar" 
-                  onClick={onClose} 
-                />
-                <Button 
-                  variant="primary" 
-                  label="Confirmar e Abrir" 
-                  type="submit" 
-                />
-              </Stack>
+                    <FormActions
+        confirmLabel="Confirmar e Abrir"
+        onConfirm={() => {}}
+        isSubmit={true}
+        onCancel={onClose}
+      />
             </Stack>
           </Box>
         </Stack>

@@ -8,6 +8,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 import { Upload, LucideIcon, Building, MapPin, User, Phone, FileText } from "lucide-react"
 import { WhatsAppIcon } from "@/components/store/base/WhatsAppIcon"
 
@@ -208,13 +209,12 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
           />
         </Stack>
 
-        {/* Ações */}
-        <Box padding={2.5} w="w-full md:w-auto">
-          <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full">
-            <Button variant="outline" label="Cancelar" onClick={onCancel} fullWidth />
-            <Button type="submit" variant="primary" label="Salvar alterações" fullWidth />
-          </Stack>
-        </Box>
+        <FormActions
+          confirmLabel="Salvar alterações"
+          onConfirm={() => {}}
+          isSubmit={true}
+          onCancel={onCancel}
+        />
       </Stack>
     </Box>
   )

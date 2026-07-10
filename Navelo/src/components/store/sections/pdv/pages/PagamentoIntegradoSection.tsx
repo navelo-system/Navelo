@@ -98,7 +98,7 @@ export const PagamentoIntegradoSection: React.FC<PagamentoIntegradoSectionProps>
                   <Font variant="body-bold" text={`POS código: ${pos}`} />
                 </Stack>
                 <Button
-                  variant="outline"
+                  variant="outline-neutral"
                   label="Desvincular"
                   icon={Trash2}
                   onClick={() => handleUnlinkPos(idx)}
@@ -142,7 +142,7 @@ export const PagamentoIntegradoSection: React.FC<PagamentoIntegradoSectionProps>
             </Box>
             <Box shrink="0" className="w-full md:w-auto" display="flex">
               <Button
-                variant="outline"
+                variant="primary"
                 label={isEditingName ? "SALVAR" : "EDITAR"}
                 onClick={handleEditClick}
               />

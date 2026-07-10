@@ -9,7 +9,8 @@ import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
-import { Percent } from "lucide-react"
+import { Percent, Minus, Plus } from "lucide-react"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 
 export interface CrediarioSectionProps {
   onCancel: () => void
@@ -94,17 +95,17 @@ export const CrediarioSection: React.FC<CrediarioSectionProps> = ({
             >
               <Stack direction="row" align="center" justify="between" w="full" gap={5}>
                 <Button
-                  variant="ghost"
+                  variant="primary-icon-xs"
+                  icon={Minus}
                   onClick={() => setGraceDays((prev) => Math.max(0, prev - 1))}
-                  label="—"
                 />
                 
                 <Font variant="body-bold" text={String(graceDays)} />
 
                 <Button
-                  variant="ghost"
+                  variant="primary-icon-xs"
+                  icon={Plus}
                   onClick={() => setGraceDays((prev) => prev + 1)}
-                  label="+"
                 />
               </Stack>
             </Box>
@@ -112,13 +113,11 @@ export const CrediarioSection: React.FC<CrediarioSectionProps> = ({
         </Stack>
       </Box>
 
-      {/* Botões de Ações na Base do Formulário */}
-      <Box paddingY={2.5} w="full">
-        <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full">
-          <Button variant="outline" label="Cancelar" onClick={onCancel} />
-          <Button type="button" variant="primary" label="Salvar alterações" onClick={handleSave} />
-        </Stack>
-      </Box>
+      <FormActions
+        confirmLabel="Salvar alterações"
+        onConfirm={handleSave}
+        onCancel={onCancel}
+      />
     </Stack>
   )
 }

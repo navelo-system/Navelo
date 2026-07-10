@@ -6,6 +6,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Package, Plus, Minus } from "lucide-react"
 
@@ -92,10 +93,12 @@ export const ManualMovementForm: React.FC<ManualMovementFormProps> = ({
           </Stack>
 
           {/* Botões */}
-          <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full">
-            <Button variant="outline" label="Cancelar" onClick={onCancel} />
-            <Button variant="primary" label="Confirmar Movimentação" type="submit" />
-          </Stack>
+                <FormActions
+        confirmLabel="Confirmar Movimentação"
+        onConfirm={() => {}}
+        isSubmit={true}
+        onCancel={onCancel}
+      />
         </Stack>
       </Box>
     </Box>

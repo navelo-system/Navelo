@@ -8,6 +8,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Checkbox } from "@/components/store/base/Checkbox"
 import { Button } from "@/components/store/base/Button"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Monitor } from "lucide-react"
 
@@ -180,12 +181,11 @@ export const OpcoesPedidoSection: React.FC<OpcoesPedidoSectionProps> = ({
       </Box>
 
       {/* Botões de Ação */}
-      <Box paddingY={2.5} w="full">
-        <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full">
-          <Button variant="outline" label="Cancelar" onClick={onCancel} />
-          <Button type="button" variant="primary" label="Salvar alterações" onClick={handleSave} />
-        </Stack>
-      </Box>
+            <FormActions
+        confirmLabel="Salvar alterações"
+        onConfirm={handleSave}
+        onCancel={onCancel}
+      />
     </Stack>
   )
 }

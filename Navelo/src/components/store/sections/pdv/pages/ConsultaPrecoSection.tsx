@@ -8,6 +8,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { Icon } from "@/components/store/base/Icon"
 import { LinkDeviceModal } from "@/components/store/advanced/LinkDeviceModal"
@@ -141,12 +142,11 @@ export const ConsultaPrecoSection: React.FC<ConsultaPrecoSectionProps> = ({
       </Box>
 
       {/* Botões de Ações */}
-      <Box paddingY={2.5} w="full">
-        <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full">
-          <Button variant="outline" label="Cancelar" onClick={onCancel} />
-          <Button type="button" variant="primary" label="Salvar alterações" onClick={handleSave} />
-        </Stack>
-      </Box>
+            <FormActions
+        confirmLabel="Salvar alterações"
+        onConfirm={handleSave}
+        onCancel={onCancel}
+      />
 
       {/* Modal de Vinculação */}
       <LinkDeviceModal

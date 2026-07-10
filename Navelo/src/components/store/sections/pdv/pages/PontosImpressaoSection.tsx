@@ -243,7 +243,7 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
                         {/* Ações de Edição/Deleção */}
                         <Stack direction="row" gap={2.5}>
                           <Button
-                            variant="outline-icon-xs"
+                            variant="primary-icon-xs"
                             icon={Edit2}
                             onClick={() => handleEdit(point)}
                           />

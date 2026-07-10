@@ -9,6 +9,7 @@ import { Font } from "@/components/store/base/Font"
 import { Switch } from "@/components/store/base/Switch"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 import { RotateCcw } from "lucide-react"
 
 export interface AutoatendimentoNumeroSectionProps {
@@ -107,12 +108,11 @@ export const AutoatendimentoNumeroSection: React.FC<AutoatendimentoNumeroSection
       </Box>
 
       {/* Botões de Ação */}
-      <Box paddingY={2.5} w="full">
-        <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full">
-          <Button variant="outline" label="Cancelar" onClick={onCancel} />
-          <Button type="button" variant="primary" label="Salvar alterações" onClick={handleSave} />
-        </Stack>
-      </Box>
+            <FormActions
+        confirmLabel="Salvar alterações"
+        onConfirm={handleSave}
+        onCancel={onCancel}
+      />
     </Stack>
   )
 }

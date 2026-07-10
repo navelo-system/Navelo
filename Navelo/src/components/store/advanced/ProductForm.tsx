@@ -10,6 +10,7 @@ import { Font } from "@/components/store/base/Font"
 import { Icon } from "@/components/store/base/Icon"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 import { Switch } from "@/components/store/base/Switch"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/store/base/Tabs"
@@ -844,10 +845,12 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         </Tabs>
 
         {/* Ações do Formulário */}
-        <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="w-full md:w-auto">
-          <Button variant="outline" label="Cancelar" onClick={onCancel} type="button" fullWidth />
-          <Button variant="primary" label="Salvar Produto" type="submit" fullWidth />
-        </Stack>
+              <FormActions
+        confirmLabel="Salvar Produto"
+        onConfirm={() => {}}
+        isSubmit={true}
+        onCancel={onCancel}
+      />
       </Stack>
     </Box>
   )

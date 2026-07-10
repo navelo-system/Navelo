@@ -221,12 +221,12 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
                             {qty === 1 ? (
                               <Button variant="danger-icon-xs" icon={Trash2} onClick={(e) => { e.stopPropagation(); onRemove?.(prod.id); }} />
                             ) : (
-                              <Button variant="outline-icon-xs" icon={Minus} onClick={(e) => { e.stopPropagation(); onDecrease?.(prod.id); }} />
+                              <Button variant="primary-icon-xs" icon={Minus} onClick={(e) => { e.stopPropagation(); onDecrease?.(prod.id); }} />
                             )}
                             <Box padding={0} w="w-4">
                               <Font variant="body-bold" text={String(qty)} align="center" />
                             </Box>
-                            <Button variant="outline-icon-xs" icon={Plus} onClick={(e) => { e.stopPropagation(); onIncrease?.(prod.id); }} />
+                            <Button variant="primary-icon-xs" icon={Plus} onClick={(e) => { e.stopPropagation(); onIncrease?.(prod.id); }} />
                           </Stack>
                         )}
                       </Stack>

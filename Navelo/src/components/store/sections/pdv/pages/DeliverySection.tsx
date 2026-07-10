@@ -5,9 +5,7 @@
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
-import { Grid } from "@/components/store/base/Grid"
 import { Font } from "@/components/store/base/Font"
-import { Button } from "@/components/store/base/Button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/store/base/Tabs"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { DeliveryTimeline, DeliveryStatus } from "@/components/store/intermediary/DeliveryTimeline"
@@ -89,7 +87,7 @@ export const DeliverySection: React.FC = () => {
                 <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
                   <Stack gap={2.5}>
                     <Font variant="body-bold" text="Mudar Status do Pedido" />
-                    <Tabs value={selectedOrder.status} onValueChange={(val) => handleUpdateStatus(val as any)}>
+                    <Tabs value={selectedOrder.status} onValueChange={(val) => handleUpdateStatus(val as DeliveryStatus)}>
                       <TabsList className="grid grid-cols-3 gap-2.5 w-full">
                         <TabsTrigger value="confirmed" className="w-full">Confirmar</TabsTrigger>
                         <TabsTrigger value="preparing" className="w-full">Preparando</TabsTrigger>

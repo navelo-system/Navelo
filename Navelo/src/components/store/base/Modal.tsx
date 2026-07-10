@@ -21,6 +21,7 @@ export type ModalProps =
     onSuccess?: () => void
     isSubmit?: boolean
     showCancelButton?: boolean
+    cancelVariant?: string
     variant?: "default" | "bottom" | "sidebar"
     children: React.ReactNode
     footer?: React.ReactNode
@@ -35,6 +36,7 @@ export type ModalProps =
     onSuccess?: never
     isSubmit?: never
     showCancelButton?: never
+    cancelVariant?: never
     variant?: "default" | "bottom" | "sidebar"
     children: React.ReactNode
     footer?: React.ReactNode
@@ -52,6 +54,7 @@ export function Modal(props: ModalProps) {
     isSubmit = false,
     showCancelButton = true,
     variant = "default",
+    cancelVariant = "secondary",
     children,
     footer,
   } = props
@@ -252,7 +255,7 @@ export function Modal(props: ModalProps) {
                     <Box flex="1">
                       <Button
                         type="button"
-                        variant="outline"
+                        variant={cancelVariant as any}
                         label="Cancelar"
                         onClick={handleClose}
                         fullWidth
@@ -346,6 +349,7 @@ export interface ModalFooterProps {
   cancelLabel?: string
   cancelIcon?: LucideIcon
   onCancel?: () => void
+  cancelVariant?: string
   confirmLabel?: string
   confirmIcon?: LucideIcon
   onConfirm?: () => void
@@ -356,6 +360,7 @@ export function ModalFooter({
   cancelLabel = "Cancelar",
   cancelIcon,
   onCancel,
+  cancelVariant = "secondary",
   confirmLabel = "Confirmar",
   confirmIcon,
   onConfirm,
@@ -367,7 +372,7 @@ export function ModalFooter({
         <Box flex="1">
           <Button
             type="button"
-            variant="outline"
+            variant={cancelVariant as any}
             label={cancelLabel}
             icon={cancelIcon}
             onClick={onCancel}

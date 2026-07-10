@@ -186,7 +186,7 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
                     <TableCell align="right" w="w-24">
                       <Stack direction="row" gap={2.5} justify="end">
                         <Button
-                          variant="outline-icon-xs"
+                          variant="primary-icon-xs"
                           icon={Edit2}
                           onClick={() => handleEdit(u)}
                         />

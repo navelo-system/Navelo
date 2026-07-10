@@ -10,6 +10,7 @@ import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { Search, Plus, Edit2, Trash2, Building, ShieldCheck, CreditCard, Phone, MapPin } from "lucide-react"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 
 export interface SupplierItem {
   id: string
@@ -235,7 +236,7 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
                       {/* Ações de Edição/Deleção */}
                       <Stack direction="row" gap={2.5} justify="end">
                         <Button
-                          variant="outline-icon-xs"
+                          variant="primary-icon-xs"
                           icon={Edit2}
                           onClick={() => handleEdit(supplier)}
                         />
@@ -365,35 +366,21 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
               </Grid>
             </Stack>
 
-            {/* Ações de Formulário */}
-            <Box paddingY={2.5} w="full">
-              <Stack direction="row" justify="between" align="center" w="full">
-                {editingSupplier ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    label="Excluir Fornecedor"
-                    icon={Trash2}
-                    onClick={() => handleDelete(editingSupplier.id)}
-                  />
-                ) : (
-                  <Box />
-                )}
-                <Stack direction="row" gap={2.5}>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    label="Cancelar"
-                    onClick={() => setMode("list")}
-                  />
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    label={editingSupplier ? "Salvar alterações" : "Salvar fornecedor"}
-                  />
-                </Stack>
-              </Stack>
-            </Box>
+            <FormActions
+              confirmLabel={editingSupplier ? "Salvar alterações" : "Salvar fornecedor"}
+              onConfirm={() => {}}
+              isSubmit={true}
+              onCancel={() => setMode("list")}
+              leftAction={editingSupplier ? (
+                <Button
+                  type="button"
+                  variant="outline-neutral"
+                  label="Excluir Fornecedor"
+                  icon={Trash2}
+                  onClick={() => handleDelete(editingSupplier.id)}
+                />
+              ) : undefined}
+            />
           </Stack>
         </Box>
       )}

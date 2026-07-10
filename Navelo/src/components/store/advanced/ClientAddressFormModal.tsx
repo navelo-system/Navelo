@@ -10,6 +10,7 @@ import { Grid } from "@/components/store/base/Grid"
 import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 
 export interface ClientAddressFormModalProps {
   isOpen: boolean
@@ -152,10 +153,12 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
             />
           </Grid>
 
-          <Stack direction="row" justify="end" gap={2.5}>
-            <Button variant="outline" label="Cancelar" onClick={onClose} />
-            <Button variant="primary" label="Salvar Endereço" type="submit" />
-          </Stack>
+                <FormActions
+        confirmLabel="Salvar Endereço"
+        onConfirm={() => {}}
+        isSubmit={true}
+        onCancel={onClose}
+      />
         </Stack>
       </Box>
     </Modal>

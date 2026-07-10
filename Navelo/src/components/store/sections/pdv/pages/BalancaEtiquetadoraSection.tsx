@@ -8,6 +8,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Switch } from "@/components/store/base/Switch"
 import { Button } from "@/components/store/base/Button"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Icon } from "@/components/store/base/Icon"
 import { Scale, Coins, Download, LayoutGrid, ChevronRight, HelpCircle } from "lucide-react"
@@ -159,12 +160,11 @@ export const BalancaEtiquetadoraSection: React.FC<BalancaEtiquetadoraSectionProp
       </Box>
 
       {/* Ações de Cancelar / Salvar */}
-      <Box paddingY={2.5} w="full">
-        <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full">
-          <Button variant="outline" label="Cancelar" onClick={onCancel} />
-          <Button type="button" variant="primary" label="Salvar alterações" onClick={handleSave} />
-        </Stack>
-      </Box>
+            <FormActions
+        confirmLabel="Salvar alterações"
+        onConfirm={handleSave}
+        onCancel={onCancel}
+      />
 
       <ScaleStatusModal
         isOpen={modalMsg !== null}

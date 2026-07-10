@@ -10,6 +10,7 @@ import { Switch } from "@/components/store/base/Switch"
 import { Checkbox } from "@/components/store/base/Checkbox"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Printer, Settings, RefreshCw } from "lucide-react"
 import { PrintTestModal } from "@/components/store/sections/pdv/modals/PrintTestModal"
@@ -206,12 +207,12 @@ export const ImpressoraSection: React.FC<ImpressoraSectionProps> = ({
       </Box>
 
       {/* Ações de Cancelar / Salvar */}
-      <Box paddingY={2.5} w="full">
-        <Stack direction="row" justify="end" gap={2.5} w="full">
-          <Button variant="outline" label="Cancelar" onClick={onCancel} />
-          <Button type="button" variant="primary" label="Salvar alterações" onClick={handleSave} />
-        </Stack>
-      </Box>
+            <FormActions
+        confirmLabel="Salvar alterações"
+        onConfirm={handleSave}
+        isSubmit={false}
+        onCancel={onCancel}
+      />
 
       {/* Modal de Impressão de Teste */}
       <PrintTestModal

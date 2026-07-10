@@ -23,6 +23,7 @@ export const ExitConfirmModal: React.FC<ExitConfirmModalProps> = ({
       successText="Descartar e sair"
       onSuccess={onConfirm}
       showCancelButton
+      cancelVariant="outline"
       variant="bottom"
     >
       <Box />
