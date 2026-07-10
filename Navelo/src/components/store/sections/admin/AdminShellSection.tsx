@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Box } from "../../base/Box"
+import { Box } from "@/components/store/base/Box"
 import { AdminHeaderSection } from "./AdminHeaderSection"
 
 interface AdminShellSectionProps {

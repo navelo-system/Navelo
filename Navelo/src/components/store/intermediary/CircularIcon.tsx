@@ -1,6 +1,6 @@
 import * as React from "react"
-import { Box } from "../base/Box"
-import { Icon } from "../base/Icon"
+import { Box } from "@/components/store/base/Box"
+import { Icon } from "@/components/store/base/Icon"
 import { LucideIcon } from "lucide-react"
 
 export interface CircularIconProps {

@@ -1,10 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../base/Table"
-import { Stack } from "../base/Stack"
-import { Box } from "../base/Box"
-import { Font } from "../base/Font"
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/store/base/Table"
+import { Stack } from "@/components/store/base/Stack"
+import { Box } from "@/components/store/base/Box"
+import { Font } from "@/components/store/base/Font"
 import { SupplierInvoice } from "@/src/types/domain"
 
 export interface InvoicesTableProps {

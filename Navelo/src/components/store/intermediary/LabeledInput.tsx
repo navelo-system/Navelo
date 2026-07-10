@@ -1,7 +1,7 @@
 import * as React from "react"
-import { Font } from "../base/Font"
-import { Input, InputProps } from "../base/Input"
-import { Stack } from "../base/Stack"
+import { Font } from "@/components/store/base/Font"
+import { Input, InputProps } from "@/components/store/base/Input"
+import { Stack } from "@/components/store/base/Stack"
 
 export interface LabeledInputProps extends InputProps {
   label: string

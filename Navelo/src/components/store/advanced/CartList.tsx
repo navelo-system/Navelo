@@ -1,9 +1,9 @@
 import * as React from "react"
-import { Box } from "../base/Box"
-import { Stack } from "../base/Stack"
-import { Font } from "../base/Font"
-import { CartItem } from "../intermediary/CartItem"
-import { EmptyState } from "../intermediary/EmptyState"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Font } from "@/components/store/base/Font"
+import { CartItem } from "@/components/store/intermediary/CartItem"
+import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { ShoppingCart } from "lucide-react"
 
 export interface CartListItemType {

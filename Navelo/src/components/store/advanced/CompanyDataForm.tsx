@@ -3,13 +3,13 @@
 /* eslint-disable max-lines-per-function */
 
 import * as React from "react"
-import { Box } from "../base/Box"
-import { Stack } from "../base/Stack"
-import { Font } from "../base/Font"
-import { Input } from "../base/Input"
-import { Button } from "../base/Button"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Font } from "@/components/store/base/Font"
+import { Input } from "@/components/store/base/Input"
+import { Button } from "@/components/store/base/Button"
 import { Upload, LucideIcon, Building, MapPin, User, Phone, FileText } from "lucide-react"
-import { WhatsAppIcon } from "../base/WhatsAppIcon"
+import { WhatsAppIcon } from "@/components/store/base/WhatsAppIcon"
 
 export interface CompanyDataFormProps {
   onCancel: () => void

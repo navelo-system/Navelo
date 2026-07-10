@@ -1,7 +1,7 @@
 import * as React from "react"
-import { Box } from "../base/Box"
-import { Stack } from "../base/Stack"
-import { Button } from "../base/Button"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Button } from "@/components/store/base/Button"
 import { LucideIcon, ArrowLeft } from "lucide-react"
 
 export interface RegistryMainProps extends React.HTMLAttributes<HTMLDivElement> {

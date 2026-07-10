@@ -1,11 +1,11 @@
 "use client"
 
 import * as React from "react"
-import { Box } from "../base/Box"
-import { Stack } from "../base/Stack"
-import { Font } from "../base/Font"
-import { Icon } from "../base/Icon"
-import { Button } from "../base/Button"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Font } from "@/components/store/base/Font"
+import { Icon } from "@/components/store/base/Icon"
+import { Button } from "@/components/store/base/Button"
 import { SettingsModal } from "./SettingsModal"
 import { Eye, LogOut, Settings, Store } from "lucide-react"
 

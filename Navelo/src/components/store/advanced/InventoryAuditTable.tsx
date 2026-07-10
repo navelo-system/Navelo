@@ -1,10 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "../base/Table"
-import { Stack } from "../base/Stack"
-import { Input } from "../base/Input"
-import { Button } from "../base/Button"
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/store/base/Table"
+import { Stack } from "@/components/store/base/Stack"
+import { Input } from "@/components/store/base/Input"
+import { Button } from "@/components/store/base/Button"
 import { Search } from "lucide-react"
 
 export interface BalancoProduct {

@@ -1,10 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { Box } from "../base/Box"
-import { Stack } from "../base/Stack"
-import { Input } from "../base/Input"
-import { Button } from "../base/Button"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Input } from "@/components/store/base/Input"
+import { Button } from "@/components/store/base/Button"
 import { User, MapPin } from "lucide-react"
 
 export interface DeliveryFormProps {

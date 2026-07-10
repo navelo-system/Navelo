@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { RegistrySection } from "../../advanced/RegistrySection"
-import { BentoModulesGrid } from "../../intermediary/BentoModulesGrid"
-import { AuditLogTable } from "../../intermediary/AuditLogTable"
+import { RegistrySection } from "@/components/store/advanced/RegistrySection"
+import { BentoModulesGrid } from "@/components/store/intermediary/BentoModulesGrid"
+import { AuditLogTable } from "@/components/store/intermediary/AuditLogTable"
 import { LayoutDashboard, History } from "lucide-react"
 
 export function DashboardSection() {

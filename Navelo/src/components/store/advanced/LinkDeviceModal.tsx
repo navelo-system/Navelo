@@ -1,10 +1,10 @@
 "use client"
 
 import * as React from "react"
-import { Stack } from "../base/Stack"
-import { Font } from "../base/Font"
-import { Input } from "../base/Input"
-import { Modal } from "../base/Modal"
+import { Stack } from "@/components/store/base/Stack"
+import { Font } from "@/components/store/base/Font"
+import { Input } from "@/components/store/base/Input"
+import { Modal } from "@/components/store/base/Modal"
 import { Barcode, LucideIcon } from "lucide-react"
 
 export interface LinkDeviceModalProps {

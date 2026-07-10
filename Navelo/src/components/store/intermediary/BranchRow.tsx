@@ -1,10 +1,10 @@
 import * as React from "react"
-import { Box } from "../base/Box"
-import { Stack } from "../base/Stack"
-import { Font } from "../base/Font"
-import { Badge } from "../base/Badge"
-import { Button } from "../base/Button"
-import { Icon } from "../base/Icon"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Font } from "@/components/store/base/Font"
+import { Badge } from "@/components/store/base/Badge"
+import { Button } from "@/components/store/base/Button"
+import { Icon } from "@/components/store/base/Icon"
 import { Wifi, WifiOff, RefreshCw } from "lucide-react"
 
 export interface Branch {

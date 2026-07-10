@@ -3,12 +3,12 @@
 /* eslint-disable max-lines-per-function */
 
 import * as React from "react"
-import { Box } from "../base/Box"
-import { Stack } from "../base/Stack"
-import { Font } from "../base/Font"
-import { Switch } from "../base/Switch"
-import { Icon } from "../base/Icon"
-import { Warning } from "../base/Warning"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Font } from "@/components/store/base/Font"
+import { Switch } from "@/components/store/base/Switch"
+import { Icon } from "@/components/store/base/Icon"
+import { Warning } from "@/components/store/base/Warning"
 import { Laptop, Server, ChevronRight, CheckCircle } from "lucide-react"
 
 export interface CompanySyncFormProps {

@@ -2,11 +2,11 @@
 "use client"
 
 import * as React from "react"
-import { Stack } from "../../../base/Stack"
-import { Box } from "../../../base/Box"
-import { Font } from "../../../base/Font"
-import { Icon } from "../../../base/Icon"
-import { Sidebar } from "../../../base/Sidebar"
+import { Stack } from "@/components/store/base/Stack"
+import { Box } from "@/components/store/base/Box"
+import { Font } from "@/components/store/base/Font"
+import { Icon } from "@/components/store/base/Icon"
+import { Modal } from "@/components/store/base/Modal"
 import { Cloud } from "lucide-react"
 
 interface PdvSidebarDrawerProps {
@@ -21,7 +21,7 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
   onBackToDashboard,
 }) => {
   return (
-    <Sidebar isOpen={isOpen} onClose={onClose} title="Menu">
+    <Modal isOpen={isOpen} onClose={onClose} title="Menu" variant="sidebar">
       <Stack gap={5}>
         {/* Sincronizacao */}
         <Box w="full" bg="bg-surface-sunken" padding={2.5} radius="default">
@@ -119,6 +119,6 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
           </Box>
         </Stack>
       </Stack>
-    </Sidebar>
+    </Modal>
   )
 }

@@ -3,13 +3,13 @@
 /* eslint-disable complexity */
 
 import * as React from "react"
-import { Box } from "../base/Box"
-import { Stack } from "../base/Stack"
-import { Grid } from "../base/Grid"
-import { Font } from "../base/Font"
-import { Input } from "../base/Input"
-import { Button } from "../base/Button"
-import { CustomSelect, CustomSelectItem } from "../base/CustomSelect"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Grid } from "@/components/store/base/Grid"
+import { Font } from "@/components/store/base/Font"
+import { Input } from "@/components/store/base/Input"
+import { Button } from "@/components/store/base/Button"
+import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { FileSpreadsheet, Globe, Check } from "lucide-react"
 
 export interface FiscalConfigData {

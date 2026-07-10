@@ -3,13 +3,13 @@
 /* eslint-disable max-lines-per-function, complexity */
 
 import * as React from "react"
-import { Modal } from "../base/Modal"
-import { Box } from "../base/Box"
-import { Stack } from "../base/Stack"
-import { Grid } from "../base/Grid"
-import { Font } from "../base/Font"
-import { Input } from "../base/Input"
-import { Button } from "../base/Button"
+import { Modal } from "@/components/store/base/Modal"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Grid } from "@/components/store/base/Grid"
+import { Font } from "@/components/store/base/Font"
+import { Input } from "@/components/store/base/Input"
+import { Button } from "@/components/store/base/Button"
 
 export interface ClientAddressFormModalProps {
   isOpen: boolean

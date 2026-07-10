@@ -1,8 +1,8 @@
 import * as React from "react"
-import { Stack } from "../base/Stack"
-import { Font } from "../base/Font"
-import { Box } from "../base/Box"
-import { Grid } from "../base/Grid"
+import { Stack } from "@/components/store/base/Stack"
+import { Font } from "@/components/store/base/Font"
+import { Box } from "@/components/store/base/Box"
+import { Grid } from "@/components/store/base/Grid"
 
 export interface FormProps extends Omit<React.FormHTMLAttributes<HTMLFormElement>, "children"> {
   label?: string

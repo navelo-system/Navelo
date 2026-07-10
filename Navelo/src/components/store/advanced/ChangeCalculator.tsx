@@ -1,12 +1,12 @@
 /* eslint-disable max-lines-per-function, complexity */
 import * as React from "react"
-import { Box } from "../base/Box"
-import { Stack } from "../base/Stack"
-import { Grid } from "../base/Grid"
-import { Font } from "../base/Font"
-import { Button } from "../base/Button"
-import { Input } from "../base/Input"
-import { SectionHeader } from "../intermediary/SectionHeader"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Grid } from "@/components/store/base/Grid"
+import { Font } from "@/components/store/base/Font"
+import { Button } from "@/components/store/base/Button"
+import { Input } from "@/components/store/base/Input"
+import { SectionHeader } from "@/components/store/intermediary/SectionHeader"
 import { DollarSign } from "lucide-react"
 
 export interface ChangeCalculatorProps {

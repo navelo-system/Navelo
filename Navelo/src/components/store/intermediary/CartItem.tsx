@@ -1,9 +1,9 @@
 import * as React from "react"
-import { Stack } from "../base/Stack"
-import { Font } from "../base/Font"
-import { Button } from "../base/Button"
-import { Avatar } from "../base/Avatar"
-import { Box } from "../base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Font } from "@/components/store/base/Font"
+import { Button } from "@/components/store/base/Button"
+import { Avatar } from "@/components/store/base/Avatar"
+import { Box } from "@/components/store/base/Box"
 import { Minus, Plus, Trash2 } from "lucide-react"
 
 export interface CartItemProps {

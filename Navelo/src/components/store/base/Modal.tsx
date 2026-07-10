@@ -7,7 +7,8 @@ import { Stack } from "./Stack"
 import { Box } from "./Box"
 import { Button } from "./Button"
 import { Font } from "./Font"
-import { CircularIcon } from "../intermediary/CircularIcon"
+import { CircularIcon } from "@/components/store/intermediary/CircularIcon"
+import { X } from "lucide-react"
 
 export type ModalProps =
   | {
@@ -20,7 +21,7 @@ export type ModalProps =
     onSuccess?: () => void
     isSubmit?: boolean
     showCancelButton?: boolean
-    variant?: "default" | "bottom"
+    variant?: "default" | "bottom" | "sidebar"
     children: React.ReactNode
   }
   | {
@@ -33,7 +34,7 @@ export type ModalProps =
     onSuccess?: never
     isSubmit?: never
     showCancelButton?: never
-    variant?: "default" | "bottom"
+    variant?: "default" | "bottom" | "sidebar"
     children: React.ReactNode
   }
 /**/
@@ -91,24 +92,67 @@ export function Modal(props: ModalProps) {
 
   if (!shouldRender) return null
 
+  const isSidebar = variant === "sidebar"
   const isBottom = variant === "bottom"
 
   // Animado de baixo para cima na variante bottom, senão em scale centralizado
-  const dialogStyle: React.CSSProperties = {
-    opacity: isBottom ? 1 : (isActive ? 1 : 0),
-    transform: isBottom
-      ? (isActive ? "translateY(0)" : "translateY(100%)")
-      : (isActive ? "scale(1)" : "scale(0.9)"),
-    transition: isActive
-      ? (isBottom
-          ? "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)"
-          : "opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1)")
-      : (isBottom
-          ? "transform 0.22s ease-in"
-          : "opacity 0.18s ease, transform 0.18s ease")
+  const dialogStyle: React.CSSProperties = isSidebar
+    ? {
+        transform: isActive ? "translateX(0)" : "translateX(100%)",
+        transition: isActive
+          ? "transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)"
+          : "transform 0.22s cubic-bezier(0.4, 0, 0.2, 1)",
+      }
+    : {
+        opacity: isBottom ? 1 : (isActive ? 1 : 0),
+        transform: isBottom
+          ? (isActive ? "translateY(0)" : "translateY(100%)")
+          : (isActive ? "scale(1)" : "scale(0.9)"),
+        transition: isActive
+          ? (isBottom
+              ? "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)"
+              : "opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1)")
+          : (isBottom
+              ? "transform 0.22s ease-in"
+              : "opacity 0.18s ease, transform 0.18s ease")
+      }
+
+  const backdropStyle: React.CSSProperties = isSidebar
+    ? { opacity: isActive ? 1 : 0, transition: "opacity 0.22s ease" }
+    : {}
+
+  // Variant: sidebar (drawer deslizando da direita)
+  if (isSidebar) {
+    return (
+      <div className="fixed inset-0 z-[100] flex justify-end">
+        <div
+          className="absolute inset-0 bg-black/50"
+          style={backdropStyle}
+          onClick={handleClose}
+          aria-hidden="true"
+        />
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={dialogStyle}
+          className="relative z-[101] w-full max-w-xs h-full bg-surface border-l-2 border-border shadow-2xl flex flex-col"
+        >
+          <div className="p-5">
+            <Stack direction="row" align="center" justify="between" w="full">
+              <Font variant="h3" text={title ?? ""} />
+              <Button variant="outline-pill-icon-xs" icon={X} onClick={handleClose} />
+            </Stack>
+          </div>
+          <div className="h-[1px] w-full bg-border" />
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-5">
+            {children}
+          </div>
+        </div>
+      </div>
+    )
   }
 
-  // Modo Simplificado (quando 'title' é fornecido)
+  // Modo Simplificado com title
   if (title) {
     if (isBottom) {
       return (
@@ -250,13 +294,13 @@ export interface ModalHeaderProps {
 export function ModalHeader({ title, subtitle, icon: IconComp }: ModalHeaderProps) {
   return (
     <div className="flex flex-col space-y-1.5 p-5">
-      <Stack direction="row" align="center" gap={5}>
+      <div className="flex flex-col items-start gap-2.5 md:flex-row md:items-center md:gap-5">
         {IconComp && <CircularIcon icon={IconComp} size={20} variant="solid" solidColor="secondary" solidRadius="default" />}
         <Stack gap={1}>
           <Font variant="body-bold" text={title} />
           {subtitle && <Font variant="description" text={subtitle} />}
         </Stack>
-      </Stack>
+      </div>
     </div>
   )
 }

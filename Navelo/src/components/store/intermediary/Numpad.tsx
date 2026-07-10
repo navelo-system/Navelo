@@ -1,7 +1,7 @@
 import * as React from "react"
-import { Box } from "../base/Box"
-import { Grid } from "../base/Grid"
-import { Button } from "../base/Button"
+import { Box } from "@/components/store/base/Box"
+import { Grid } from "@/components/store/base/Grid"
+import { Button } from "@/components/store/base/Button"
 import { Delete } from "lucide-react"
 
 export interface NumpadProps {

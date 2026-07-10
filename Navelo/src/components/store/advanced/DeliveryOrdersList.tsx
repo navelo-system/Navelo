@@ -1,13 +1,13 @@
 "use client"
 
 import * as React from "react"
-import { Box } from "../base/Box"
-import { Stack } from "../base/Stack"
-import { Input } from "../base/Input"
-import { Badge } from "../base/Badge"
-import { Font } from "../base/Font"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Input } from "@/components/store/base/Input"
+import { Badge } from "@/components/store/base/Badge"
+import { Font } from "@/components/store/base/Font"
 import { Search } from "lucide-react"
-import { DeliveryStatus } from "../intermediary/DeliveryTimeline"
+import { DeliveryStatus } from "@/components/store/intermediary/DeliveryTimeline"
 
 export interface DeliveryOrder {
   id: string

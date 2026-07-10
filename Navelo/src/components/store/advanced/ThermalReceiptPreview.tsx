@@ -1,9 +1,9 @@
 import * as React from "react"
-import { Box } from "../base/Box"
-import { Stack } from "../base/Stack"
-import { Font } from "../base/Font"
-import { Grid } from "../base/Grid"
-import { Icon } from "../base/Icon"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Font } from "@/components/store/base/Font"
+import { Grid } from "@/components/store/base/Grid"
+import { Icon } from "@/components/store/base/Icon"
 import { Printer } from "lucide-react"
 
 export interface ThermalReceiptItem {

@@ -1,13 +1,13 @@
 "use client"
 
 import * as React from "react"
-import { Box } from "../base/Box"
-import { Stack } from "../base/Stack"
-import { Grid } from "../base/Grid"
-import { Button } from "../base/Button"
-import { Modal } from "../base/Modal"
-import { Input } from "../base/Input"
-import { SectionHeader } from "../intermediary/SectionHeader"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Grid } from "@/components/store/base/Grid"
+import { Button } from "@/components/store/base/Button"
+import { Modal } from "@/components/store/base/Modal"
+import { Input } from "@/components/store/base/Input"
+import { SectionHeader } from "@/components/store/intermediary/SectionHeader"
 import { Settings, Upload, Palette } from "lucide-react"
 
 const isValidHex = (color: string | null): color is string => {

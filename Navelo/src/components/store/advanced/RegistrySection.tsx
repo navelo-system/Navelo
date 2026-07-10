@@ -1,7 +1,7 @@
 import * as React from "react"
-import { Stack } from "../base/Stack"
-import { Box } from "../base/Box"
-import { SectionHeader } from "../intermediary/SectionHeader"
+import { Stack } from "@/components/store/base/Stack"
+import { Box } from "@/components/store/base/Box"
+import { SectionHeader } from "@/components/store/intermediary/SectionHeader"
 import { LucideIcon } from "lucide-react"
 
 export interface RegistrySectionProps extends React.HTMLAttributes<HTMLDivElement> {

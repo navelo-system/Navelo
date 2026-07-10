@@ -1,8 +1,8 @@
 import * as React from "react"
-import { Box } from "../base/Box"
-import { Stack } from "../base/Stack"
-import { Font } from "../base/Font"
-import { Icon } from "../base/Icon"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Font } from "@/components/store/base/Font"
+import { Icon } from "@/components/store/base/Icon"
 import { CheckCircle2, ChefHat, Package, Bike, MapPin, Clock, LucideIcon } from "lucide-react"
 
 export type DeliveryStatus = "confirmed" | "preparing" | "ready" | "dispatched" | "delivered"

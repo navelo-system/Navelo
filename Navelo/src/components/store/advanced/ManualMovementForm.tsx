@@ -1,12 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { Box } from "../base/Box"
-import { Stack } from "../base/Stack"
-import { Font } from "../base/Font"
-import { Input } from "../base/Input"
-import { Button } from "../base/Button"
-import { CustomSelect, CustomSelectItem } from "../base/CustomSelect"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Font } from "@/components/store/base/Font"
+import { Input } from "@/components/store/base/Input"
+import { Button } from "@/components/store/base/Button"
+import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Package, Plus, Minus } from "lucide-react"
 
 export interface ManualMovementFormProps {

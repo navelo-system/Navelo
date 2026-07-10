@@ -1,9 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { Box } from "../base/Box"
-import { Stack } from "../base/Stack"
-import { Icon } from "../base/Icon"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Icon } from "@/components/store/base/Icon"
 import { LayoutGrid, List } from "lucide-react"
 
 export interface ViewModeToggleProps {
