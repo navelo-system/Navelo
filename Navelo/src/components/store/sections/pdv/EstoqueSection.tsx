@@ -32,6 +32,27 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
 }) => {
   const [estoqueView, setEstoqueView] = React.useState<"menu" | "balanco" | "notas" | "entrada_manual">("menu")
 
+  const scrollPositions = React.useRef<Record<string, number>>({})
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return
+    const handleScroll = () => {
+      scrollPositions.current[estoqueView] = window.scrollY
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [estoqueView])
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return
+    const savedScroll = scrollPositions.current[estoqueView] || 0
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: savedScroll, behavior: "instant" })
+      })
+    })
+  }, [estoqueView])
+
   // Mock de dados para o Balanço
   const [balancoProducts, setBalancoProducts] = React.useState([
     { id: "1", name: "ÁGUA MINERAL SEM GÁS", category: "Bebidas", systemStock: 15, counted: "" },

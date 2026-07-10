@@ -192,6 +192,29 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   const [currentSubView, setCurrentSubView] = React.useState<string | null>(null)
   const [, setSubViewHistory] = React.useState<string[]>([])
 
+  const scrollPositions = React.useRef<Record<string, number>>({})
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return
+    const handleScroll = () => {
+      const key = currentSubView || "root"
+      scrollPositions.current[key] = window.scrollY
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [currentSubView])
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return
+    const key = currentSubView || "root"
+    const savedScroll = scrollPositions.current[key] || 0
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: savedScroll, behavior: "instant" })
+      })
+    })
+  }, [currentSubView])
+
   const pushSubView = React.useCallback((view: string) => {
     setSubViewHistory(prev => {
       const next = [...prev]

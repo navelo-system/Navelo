@@ -57,9 +57,19 @@ export default function Home() {
   const [customTitle, setCustomTitle] = React.useState<string | null>(null)
   const [customActions, setCustomActions] = React.useState<React.ReactNode | null>(null)
 
-  // Função de navegação que sincroniza estado + hash do browser
-  const setCurrentView = React.useCallback((view: string) => {
-    setCurrentViewState(view)
+  // Armazena posições de scroll por view
+  const scrollPositions = React.useRef<Record<string, number>>({})
+  const isBackNavigation = React.useRef<boolean>(false)
+
+  // Função de navegação que sincroniza estado + hash do browser e salva scroll
+  const setCurrentView = React.useCallback((view: string, isBack = false) => {
+    isBackNavigation.current = isBack
+    setCurrentViewState(prev => {
+      if (typeof window !== "undefined") {
+        scrollPositions.current[prev] = window.scrollY
+      }
+      return view
+    })
     setCustomTitle(null)
     setCustomActions(null)
     if (typeof window !== "undefined") {
@@ -101,16 +111,36 @@ export default function Home() {
   React.useEffect(() => {
     if (!isMounted) return
     const handlePopState = () => {
+      isBackNavigation.current = true
       const savedOp = sessionStorage.getItem("pdv-operator")
       if (!savedOp) {
-        setCurrentViewState("login")
+        setCurrentViewState(prev => {
+          scrollPositions.current[prev] = window.scrollY
+          return "login"
+        })
         return
       }
-      setCurrentViewState(getViewFromHash())
+      setCurrentViewState(prev => {
+        scrollPositions.current[prev] = window.scrollY
+        return getViewFromHash()
+      })
     }
     window.addEventListener("popstate", handlePopState)
     return () => window.removeEventListener("popstate", handlePopState)
   }, [isMounted])
+
+  // Restaura o scroll ao trocar de view
+  React.useEffect(() => {
+    if (typeof window === "undefined" || !isMounted) return
+    const savedScroll = isBackNavigation.current ? (scrollPositions.current[currentView] || 0) : 0
+    isBackNavigation.current = false // reset for next navigation
+    
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: savedScroll, behavior: "instant" })
+      })
+    })
+  }, [currentView, isMounted])
 
   // Estado global de comandas para fluxo integrado
   const [comandas, setComandas] = React.useState([
@@ -171,7 +201,7 @@ export default function Home() {
               if (view === "dashboard") {
                 setActiveComandaId(null)
               }
-              setCurrentView(view)
+              setCurrentView(view, view === "dashboard")
             }}
             operatorName={operator}
             onLogout={() => {
@@ -210,7 +240,7 @@ export default function Home() {
               : currentView !== "dashboard"
                 ? () => {
                     setActiveComandaId(null)
-                    setCurrentView("dashboard")
+                    setCurrentView("dashboard", true)
                   }
                 : undefined
           }
@@ -232,7 +262,7 @@ export default function Home() {
                     <PdvSection
                       onBackToDashboard={() => {
                         setActiveComandaId(null)
-                        setCurrentView("dashboard")
+                        setCurrentView("dashboard", true)
                       }}
                       activeComandaId={activeComandaId}
                       onCloseComanda={handleCloseComanda}
@@ -260,7 +290,7 @@ export default function Home() {
                 {currentView === "estoque" && (
                   <Box w="full" flex="1" className="min-h-0 flex flex-col">
                     <EstoqueSection
-                      onBackToDashboard={() => setCurrentView("dashboard")}
+                      onBackToDashboard={() => setCurrentView("dashboard", true)}
                       setCustomBack={setCustomBack}
                     />
                   </Box>
@@ -269,7 +299,7 @@ export default function Home() {
                 {currentView === "produtos" && (
                   <Box w="full" flex="1" className="min-h-0 flex flex-col">
                     <ProdutosSection
-                      onBackToDashboard={() => setCurrentView("dashboard")}
+                      onBackToDashboard={() => setCurrentView("dashboard", true)}
                       setCustomBack={setCustomBack}
                     />
                   </Box>
@@ -278,7 +308,7 @@ export default function Home() {
                 {currentView === "clientes" && (
                   <Box w="full" flex="1" className="min-h-0 flex flex-col">
                     <ClientesSection
-                      onBackToDashboard={() => setCurrentView("dashboard")}
+                      onBackToDashboard={() => setCurrentView("dashboard", true)}
                       setCustomBack={setCustomBack}
                     />
                   </Box>
@@ -287,7 +317,7 @@ export default function Home() {
                 {currentView === "relatorios" && (
                   <Box w="full" flex="1" className="min-h-0 flex flex-col">
                     <RelatoriosSection
-                      onBackToDashboard={() => setCurrentView("dashboard")}
+                      onBackToDashboard={() => setCurrentView("dashboard", true)}
                       setCustomBack={setCustomBack}
                     />
                   </Box>
@@ -296,7 +326,7 @@ export default function Home() {
                 {currentView === "configuracoes" && (
                   <Box w="full" flex="1" className="min-h-0 flex flex-col">
                     <ConfiguracoesSection
-                      onBackToDashboard={() => setCurrentView("dashboard")}
+                      onBackToDashboard={() => setCurrentView("dashboard", true)}
                       setCustomBack={setCustomBack}
                       setCustomTitle={setCustomTitle}
                       setCustomActions={setCustomActions}

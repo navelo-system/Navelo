@@ -54,6 +54,27 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
   ])
 
   const [mode, setMode] = React.useState<"list" | "form">("list")
+
+  const scrollPositions = React.useRef<Record<string, number>>({})
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return
+    const handleScroll = () => {
+      scrollPositions.current[mode] = window.scrollY
+    }
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [mode])
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return
+    const savedScroll = scrollPositions.current[mode] || 0
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: savedScroll, behavior: "instant" })
+      })
+    })
+  }, [mode])
   const [editingClient, setEditingClient] = React.useState<ClientItem | null>(null)
   const [searchQuery, setSearchQuery] = React.useState("")
 
