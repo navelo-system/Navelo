@@ -15,7 +15,7 @@ export interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
   w?: "full" | "auto" | "fit-content" | string
   h?: "full" | "screen" | "auto" | "fit-content" | string
   maxWidth?: "5xl" | "full" | "none"
-  paddingX?: "5" | "12" | "2.5" | "0"
+  paddingX?: 5 | 12 | 2.5 | 0 | "5" | "12" | "2.5" | "0"
   flex?: "1" | "auto" | "none"
   minW?: "0"
   order?: "1" | "2"

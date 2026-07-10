@@ -1,5 +1,33 @@
 # Cycle Log
 
+## Ciclo #235 — Feature: Habilitar scroll de página por padrão (exceto Caixa)
+- Data: 2026-07-09
+- Tipo: feature
+- Prompt original: "vamos reabilitar o scoll da pagina por padrão, só deixa sem scroll na tela de caixa"
+- Intenção interpretada: Remover as travas de altura (`h-screen`) e overflow (`overflow-hidden`) da estrutura principal do aplicativo no `page.tsx`, aplicando-as exclusivamente quando a tela ativa for o "caixa".
+- Superfície tocada: `app/page.tsx`
+- Mudanças:
+  - Container raiz: `h="h-auto md:h-screen"` substituído por ternário condicional (`screen` vs `auto`). `md:overflow-hidden` aplicado apenas se `currentView === "caixa"`.
+  - Área de conteúdo e RegistryMain: `min-h-0` e `overflow-y-auto` aplicados via ternário apenas para a tela de caixa.
+- Status: Aprovado e Aplicado
+- Decisões tomadas: Ao invés de travar a altura no Body/HTML, a mudança é feita dinamicamente no wrapper raiz da árvore React para evitar efeitos colaterais em outras partes do DOM, garantindo que "caixa" mantenha sua experiência de PDV fixa e as demais telas tenham scroll natural do sistema operacional.
+- Mudanças no truth/: Nenhuma
+- Estado antes → depois: Scroll principal restrito a áreas internas → Scroll natural na página habilitado, mantendo a tela do caixa imutável.
+
+## Ciclo #234 — Fix: Permitir number em paddingX do Stack
+- Data: 2026-07-09
+- Tipo: fix
+- Prompt original: "npm run lint error 29:82 Raw string or number literals for gap/padding must follow the Design System tokens"
+- Intenção interpretada: O ESLint exigia o literal numérico `{5}` em vez de string, mas o componente `Stack` só aceitava a string `"5"` no TypeScript. Isso causou um conflito que foi 'consertado' pelo usuário para `{'5'}`, reintroduzindo o erro do linter.
+- Superfície tocada: `Stack.tsx`, `LoginSection.tsx`
+- Mudanças:
+  - Adicionados os tipos numéricos (`5 | 12 | 2.5 | 0`) à prop `paddingX` em `StackProps`.
+  - Revertido `paddingX={'5'}` para `paddingX={5}` em `LoginSection.tsx`.
+- Status: Aprovado e Aplicado
+- Decisões tomadas: Alinhar a tipagem do TypeScript do componente Base com as regras restritas do AST do ESLint.
+- Mudanças no truth/: Nenhuma
+- Estado antes → depois: Tipagem forçava strings e quebrava o linter → Tipagem aceita números e linter passa.
+
 ## Ciclo #233 — Fix: Erro de lint no-restricted-syntax em LoginSection
 - Data: 2026-07-09
 - Tipo: fix

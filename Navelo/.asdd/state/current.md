@@ -1,7 +1,7 @@
 # Current State
 
 ## Última atualização
-Ciclo #233 — Fix: Erro de lint no-restricted-syntax em LoginSection — 2026-07-09
+Ciclo #235 — Feature: Habilitar scroll de página por padrão (exceto Caixa) — 2026-07-09
 
 ## Status do ciclo ativo
 IDLE
