@@ -92,10 +92,11 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
               border={true}
               borderColor="border-brand-secondary"
               overflow="hidden"
-              w="w-[130px]"
+              minW="min-w-[130px]"
               h="h-[170px]"
               hoverBg="secondary/10"
               display="flex"
+              flex="1"
               direction="col"
             >
               {/* Tag fold */}

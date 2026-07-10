@@ -113,7 +113,7 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
             {filteredProducts.map((prod) => {
               const qty = getProductQuantity(prod.id)
               return (
-                <Box key={prod.id} w="w-[105px] md:w-[120px]" display="flex" direction="col">
+                <Box key={prod.id} minW="min-w-[105px] md:min-w-[120px]" flex="1" display="flex" direction="col">
                   <ProductCard
                     product={adaptProduct(prod)}
                     onClick={() => onAddProduct(prod)}
