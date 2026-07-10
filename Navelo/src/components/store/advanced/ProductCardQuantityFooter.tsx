@@ -79,12 +79,12 @@ export function ProductCardQuantityFooter({
         {displayQuantity === 1 ? (
           <Button variant="danger-icon-xs" icon={Trash2} onClick={(e) => { e.stopPropagation(); onRemove?.(); }} />
         ) : (
-          <Button variant="outline-icon-xs" icon={Minus} onClick={(e) => { e.stopPropagation(); onDecrease?.(); }} />
+          <Button variant="primary-icon-xs" icon={Minus} onClick={(e) => { e.stopPropagation(); onDecrease?.(); }} />
         )}
         <Box padding={0} w="w-4">
           <Font variant="body-bold" text={String(displayQuantity)} align="center" />
         </Box>
-        <Button variant="outline-icon-xs" icon={Plus} onClick={(e) => { e.stopPropagation(); onIncrease?.(); }} />
+        <Button variant="primary-icon-xs" icon={Plus} onClick={(e) => { e.stopPropagation(); onIncrease?.(); }} />
       </Stack>
     </Box>
   )

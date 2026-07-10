@@ -51,7 +51,7 @@ export function TenantListTable({ tenants }: TenantListTableProps) {
               {(tenant.monthlyFee ?? 0) === 0 ? "Grátis" : `R$ ${(tenant.monthlyFee ?? 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
             </TableCell>
             <TableCell align="right">
-              <Button variant="outline-icon-xs" icon={MoreHorizontal} />
+              <Button variant="primary-icon-xs" icon={MoreHorizontal} />
             </TableCell>
           </TableRow>
         ))}

@@ -57,7 +57,7 @@ export function AddressList({ addresses, onEdit, onDelete }: AddressListProps) {
             </Stack>
 
             <Stack direction="row" gap={2.5}>
-              <Button variant="outline-icon-xs" icon={Edit2} onClick={() => onEdit?.(addr)} />
+              <Button variant="primary-icon-xs" icon={Edit2} onClick={() => onEdit?.(addr)} />
               <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onDelete?.(addr)} />
             </Stack>
           </Stack>

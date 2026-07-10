@@ -35,7 +35,7 @@ export function CartItemRow({ item, onIncrease, onDecrease, onRemove }: CartItem
 
           <Stack direction="row" align="center" gap={2.5}>
             {item.quantity > 1 ? (
-              <Button variant="outline-icon-xs" icon={Minus} onClick={() => onDecrease?.(item)} />
+              <Button variant="primary-icon-xs" icon={Minus} onClick={() => onDecrease?.(item)} />
             ) : (
               <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onRemove?.(item)} />
             )}
@@ -44,7 +44,7 @@ export function CartItemRow({ item, onIncrease, onDecrease, onRemove }: CartItem
               <Font variant="body-bold" text={item.quantity.toString()} />
             </Box>
 
-            <Button variant="outline-icon-xs" icon={Plus} onClick={() => onIncrease?.(item)} />
+            <Button variant="primary-icon-xs" icon={Plus} onClick={() => onIncrease?.(item)} />
           </Stack>
         </Stack>
       </Stack>

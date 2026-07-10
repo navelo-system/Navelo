@@ -32,7 +32,7 @@ export const KpiCard: React.FC<KpiCardProps> = ({
             <Icon icon={icon} color="muted" size={16} />
           ) : onToggleHide ? (
             <Button 
-              variant="outline-icon-xs" 
+              variant="primary-icon-xs" 
               icon={hideValues ? EyeOff : Eye} 
               onClick={onToggleHide} 
             />

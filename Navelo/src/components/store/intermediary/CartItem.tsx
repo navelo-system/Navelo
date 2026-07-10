@@ -56,12 +56,12 @@ export const CartItem: React.FC<CartItemProps> = ({
             {quantity === 1 ? (
               <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onRemove(id)} />
             ) : (
-              <Button variant="outline-icon-xs" icon={Minus} onClick={() => onDecrease(id)} />
+              <Button variant="primary-icon-xs" icon={Minus} onClick={() => onDecrease(id)} />
             )}
             <Box padding={0} w="auto">
               <Font variant="body-bold" text={String(quantity)} />
             </Box>
-            <Button variant="outline-icon-xs" icon={Plus} onClick={() => onIncrease(id)} />
+            <Button variant="primary-icon-xs" icon={Plus} onClick={() => onIncrease(id)} />
           </Stack>
 
           {/* Line Total */}

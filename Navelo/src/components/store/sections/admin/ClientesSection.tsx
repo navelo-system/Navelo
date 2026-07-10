@@ -145,7 +145,7 @@ export function ClientesSection() {
                       {tenant.monthlyFee === 0 ? "Grátis" : `R$ ${tenant.monthlyFee.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
                     </TableCell>
                     <TableCell align="right">
-                      <Button variant="outline-icon-xs" icon={MoreHorizontal} />
+                      <Button variant="primary-icon-xs" icon={MoreHorizontal} />
                     </TableCell>
                   </TableRow>
                 ))}
