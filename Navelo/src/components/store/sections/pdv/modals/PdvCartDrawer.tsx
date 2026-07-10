@@ -54,7 +54,7 @@ export const PdvCartDrawer: React.FC<PdvCartDrawerProps> = ({
       footer={
         <Stack direction="col" gap={2.5} w="full">
           <Button
-            variant="success-lg"
+            variant="primary-lg"
             fullWidth
             label="Pagamento"
             icon={ShoppingCart}
@@ -63,7 +63,7 @@ export const PdvCartDrawer: React.FC<PdvCartDrawerProps> = ({
           />
           {onSaveComanda && (
             <Button
-              variant="outline"
+              variant="secondary-lg"
               fullWidth
               icon={SaveAll}
               label="Salvar Comanda"

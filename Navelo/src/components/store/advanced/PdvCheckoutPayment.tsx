@@ -307,7 +307,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
           </Stack>
 
           <Button
-            variant="success-lg"
+            variant="primary-lg"
             fullWidth
             label="Enter ou F9 - Finalizar Venda"
             disabled={amountDue > 0 || total === 0}

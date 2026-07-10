@@ -13,8 +13,10 @@
   --text-dim: #94a3b8;
 
   --brand-primary: #16315e;
+  --brand-primary-fg: var(--brand-secondary);
   /* Blue default */
   --brand-secondary: #f97316;
+  --brand-secondary-fg: var(--brand-primary);
   /* Orange default */
   --brand-accent: var(--brand-secondary);
 
@@ -42,7 +44,9 @@
   --color-text-dim: var(--text-dim);
 
   --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-fg: var(--brand-primary-fg);
   --color-brand-secondary: var(--brand-secondary);
+  --color-brand-secondary-fg: var(--brand-secondary-fg);
   --color-brand-accent: var(--brand-accent);
 
   --color-brand-success: var(--brand-success);

@@ -347,7 +347,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
           <Box w="full" bg="bg-background" paddingX={5} paddingY={2.5}>
             <Stack direction="row" gap={2.5} w="full">
               <Button
-                variant="success-lg"
+                variant="primary-lg"
                 fullWidth
                 label="Pagamento"
                 disabled={cartItems.length === 0}
@@ -355,7 +355,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
               />
               {activeComandaId && (
                 <Button
-                  variant="outline"
+                  variant="secondary-lg"
                   fullWidth
                   label="Salvar"
                   onClick={onBackToDashboard}

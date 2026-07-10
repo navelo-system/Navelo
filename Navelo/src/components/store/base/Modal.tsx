@@ -252,7 +252,7 @@ export function Modal(props: ModalProps) {
                     <Box flex="1">
                       <Button
                         type="button"
-                        variant="danger"
+                        variant="outline"
                         label="Cancelar"
                         onClick={handleClose}
                         fullWidth
@@ -263,7 +263,7 @@ export function Modal(props: ModalProps) {
                     <Box flex="1">
                       <Button
                         type={isSubmit ? "submit" : "button"}
-                        variant="success"
+                        variant="primary"
                         label={successText}
                         onClick={onSuccess}
                         fullWidth
@@ -367,7 +367,7 @@ export function ModalFooter({
         <Box flex="1">
           <Button
             type="button"
-            variant="danger"
+            variant="outline"
             label={cancelLabel}
             icon={cancelIcon}
             onClick={onCancel}
@@ -377,7 +377,7 @@ export function ModalFooter({
         <Box flex="1">
           <Button
             type={isSubmit ? "submit" : "button"}
-            variant="success"
+            variant="primary"
             label={confirmLabel}
             icon={confirmIcon}
             onClick={onConfirm}

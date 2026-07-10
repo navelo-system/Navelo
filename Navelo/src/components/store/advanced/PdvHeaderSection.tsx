@@ -36,6 +36,7 @@ const useHeaderState = () => {
 
 export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
   onNavigate,
+  operatorName,
   isSynced = true,
   onLogout
 }) => {
@@ -58,21 +59,29 @@ export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
           gap={2.5}
         >
           <Box shrink="0">
-            <Box as="button" onClick={() => onNavigate("dashboard")} shrink="0" display="flex">
-              <Font variant="body" as="h1" color="brand-secondary" text="Navelo - PDV" />
-            </Box>
+            <Stack gap={1} align="start">
+              <Box as="button" onClick={() => onNavigate("dashboard")} shrink="0" display="flex">
+                <Font variant="h3" as="h1" color="brand-secondary" text="Navelo - PDV" />
+              </Box>
+              <Button
+                variant="ghost-secondary"
+                label={operatorName || "Administrador"}
+                icon={LogOut}
+                onClick={onLogout}
+              />
+            </Stack>
           </Box>
 
-          {/* Lado Direito: Status de Sincronia, Olho e Logout */}
+          {/* Lado Direito: Status de Sincronia e Olho */}
           <Box shrink="0">
             <Stack direction="row" align="center" justify="end" gap={2.5}>
               <Button
-                variant={isSynced ? "success-pill-icon" : "danger-pill-icon"}
+                variant={isSynced ? "secondary-pill-icon" : "outline-pill-icon"}
                 icon={isSynced ? Cloud : AlertTriangle}
                 title={isSynced ? "Sincronizado" : "Erro na sincronização"}
               />
               <Button
-                variant={hideValues ? "danger-pill-icon" : "success-pill-icon"}
+                variant={hideValues ? "outline-pill-icon" : "secondary-pill-icon"}
                 icon={hideValues ? EyeOff : Eye}
                 onClick={() => {
                   const next = !hideValues
@@ -83,12 +92,6 @@ export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
                   }
                 }}
                 title="Ocultar/Mostrar Valores"
-              />
-              <Button
-                variant="danger-pill-icon"
-                icon={LogOut}
-                onClick={onLogout}
-                title="Sair"
               />
             </Stack>
           </Box>

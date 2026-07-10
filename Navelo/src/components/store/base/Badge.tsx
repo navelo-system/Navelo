@@ -20,7 +20,7 @@ const variantStyles = {
 }
 
 const roundedStyles = {
-  default: "rounded-[10px]",
+  default: "rounded-[20px]",
   full: "rounded-full",
 }
 

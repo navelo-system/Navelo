@@ -5,6 +5,7 @@
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
+import { Grid } from "@/components/store/base/Grid"
 import { Font } from "@/components/store/base/Font"
 import { TagFoldSvg } from "@/components/store/base/TagFoldSvg"
 import { Button } from "@/components/store/base/Button"
@@ -28,6 +29,48 @@ interface ComandasSectionProps {
   setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
+type GridCols = 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12
+
+function toGridCols(count: number): GridCols {
+  const clamped = Math.max(1, Math.min(count, 10))
+  if (clamped <= 6) return clamped as 1 | 2 | 3 | 4 | 5 | 6
+  if (clamped <= 8) return 8
+  return 10
+}
+
+function useGridColumnCount(
+  minCardWidth: number,
+  gap: number
+) {
+  const [columns, setColumns] = React.useState<GridCols>(3)
+  const observerRef = React.useRef<ResizeObserver | null>(null)
+
+  const refCallback = React.useCallback(
+    (node: HTMLElement | null) => {
+      if (observerRef.current) {
+        observerRef.current.disconnect()
+        observerRef.current = null
+      }
+
+      if (node) {
+        const updateColumns = () => {
+          const width = node.getBoundingClientRect().width
+          const next = Math.floor((width + gap) / (minCardWidth + gap))
+          setColumns(toGridCols(next))
+        }
+
+        updateColumns()
+        const observer = new ResizeObserver(updateColumns)
+        observer.observe(node)
+        observerRef.current = observer
+      }
+    },
+    [minCardWidth, gap]
+  )
+
+  return [columns, refCallback] as const
+}
+
 export const ComandasSection: React.FC<ComandasSectionProps> = ({
   onSelectComanda,
   comandas,
@@ -37,6 +80,7 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
   const [searchQuery, setSearchQuery] = React.useState("")
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false)
+  const [gridColumns, gridContainerRef] = useGridColumnCount(130, 20)
 
   const filtered = comandas.filter((c) =>
     c.label.toLowerCase().includes(searchQuery.toLowerCase())
@@ -80,41 +124,42 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
           subtitle="Abra uma comanda pelo menu para iniciar o consumo."
         />
       ) : (
-        <Stack direction="row" wrap={true} gap={5} justify="start">
-          {filtered.map((comanda) => (
-            <Box
-              key={comanda.id}
-              as="button"
-              onClick={() => onSelectComanda(comanda.id)}
-              position="relative"
-              padding={0}
-              bg="bg-surface"
-              radius="lg"
-              border={true}
-              borderColor="border-brand-secondary"
-              overflow="hidden"
-              minW="min-w-[130px]"
-              h="h-[170px]"
-              hoverBg="secondary/10"
-              display="flex"
-              flex="1"
-              direction="col"
-            >
-              {/* Tag fold */}
-              <TagFoldSvg />
+        <Box ref={gridContainerRef} w="full">
+          <Grid cols={gridColumns} responsive={false} gap={5} w="full">
+            {filtered.map((comanda) => (
+              <Box
+                key={comanda.id}
+                as="button"
+                onClick={() => onSelectComanda(comanda.id)}
+                position="relative"
+                padding={0}
+                bg="bg-surface"
+                radius="lg"
+                border={true}
+                borderColor="border-brand-secondary"
+                overflow="hidden"
+                w="full"
+                h="h-[170px]"
+                hoverBg="secondary/10"
+                display="flex"
+                direction="col"
+              >
+                {/* Tag fold */}
+                <TagFoldSvg />
 
-              {/* Identifier */}
-              <Box position="absolute" top={3} right={3}>
-                <Font variant="body-sm-medium" text={comanda.label} />
+                {/* Identifier */}
+                <Box position="absolute" top={3} right={3}>
+                  <Font variant="body-sm-medium" text={comanda.label} />
+                </Box>
+
+                {/* Time */}
+                <Stack w="full" h="full" justify="center" align="center">
+                  <Font variant="body-medium" text={comanda.time} />
+                </Stack>
               </Box>
-
-              {/* Time */}
-              <Stack w="full" h="full" justify="center" align="center">
-                <Font variant="body-medium" text={comanda.time} />
-              </Stack>
-            </Box>
-          ))}
-        </Stack>
+            ))}
+          </Grid>
+        </Box>
       )}
 
       <ComandasMenuSidebar

@@ -56,29 +56,36 @@ function toGridCols(count: number): GridCols {
 }
 
 function useGridColumnCount(
-  containerRef: React.RefObject<HTMLElement | null>,
   minCardWidth: number,
   gap: number
 ) {
   const [columns, setColumns] = React.useState<GridCols>(3)
+  const observerRef = React.useRef<ResizeObserver | null>(null)
 
-  React.useEffect(() => {
-    const element = containerRef.current
-    if (!element) return
+  const refCallback = React.useCallback(
+    (node: HTMLElement | null) => {
+      if (observerRef.current) {
+        observerRef.current.disconnect()
+        observerRef.current = null
+      }
 
-    const updateColumns = () => {
-      const width = element.getBoundingClientRect().width
-      const next = Math.floor((width + gap) / (minCardWidth + gap))
-      setColumns(toGridCols(next))
-    }
+      if (node) {
+        const updateColumns = () => {
+          const width = node.getBoundingClientRect().width
+          const next = Math.floor((width + gap) / (minCardWidth + gap))
+          setColumns(toGridCols(next))
+        }
 
-    updateColumns()
-    const observer = new ResizeObserver(updateColumns)
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [containerRef, minCardWidth, gap])
+        updateColumns()
+        const observer = new ResizeObserver(updateColumns)
+        observer.observe(node)
+        observerRef.current = observer
+      }
+    },
+    [minCardWidth, gap]
+  )
 
-  return columns
+  return [columns, refCallback] as const
 }
 
 const adaptProduct = (prod: MockProduct): Product => ({
@@ -110,9 +117,8 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
   onDecrease,
   onRemove,
 }) => {
-  const gridContainerRef = React.useRef<HTMLElement>(null)
   const [minCardWidth, setMinCardWidth] = React.useState(105)
-  const gridColumns = useGridColumnCount(gridContainerRef, minCardWidth, GRID_GAP_PX)
+  const [gridColumns, gridContainerRef] = useGridColumnCount(minCardWidth, GRID_GAP_PX)
 
   React.useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 768px)")
@@ -199,7 +205,7 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
                             </Stack>
                           )}
                         </Box>
-                        <Font variant="body-sm-semibold" text={prod.name.toUpperCase()} align="left" />
+                        <Font variant="body-sm-medium" text={prod.name.toUpperCase()} align="left" />
                       </Stack>
                       {/* Preço + Unidade e Controles */}
                       <Stack direction="row" align="center" gap={2.5} justify="end" w="w-full md:w-auto">

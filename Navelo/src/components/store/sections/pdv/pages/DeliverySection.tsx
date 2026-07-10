@@ -8,6 +8,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Grid } from "@/components/store/base/Grid"
 import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
+import { Tabs, TabsList, TabsTrigger } from "@/components/store/base/Tabs"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { DeliveryTimeline, DeliveryStatus } from "@/components/store/intermediary/DeliveryTimeline"
 import { DeliveryForm } from "@/components/store/advanced/DeliveryForm"
@@ -88,33 +89,15 @@ export const DeliverySection: React.FC = () => {
                 <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
                   <Stack gap={2.5}>
                     <Font variant="body-bold" text="Mudar Status do Pedido" />
-                    <Grid cols={3} gap={2.5}>
-                      <Button
-                        variant={selectedOrder.status === "confirmed" ? "primary" : "outline"}
-                        label="Confirmar"
-                        onClick={() => handleUpdateStatus("confirmed")}
-                      />
-                      <Button
-                        variant={selectedOrder.status === "preparing" ? "primary" : "outline"}
-                        label="Preparando"
-                        onClick={() => handleUpdateStatus("preparing")}
-                      />
-                      <Button
-                        variant={selectedOrder.status === "ready" ? "primary" : "outline"}
-                        label="Pronto"
-                        onClick={() => handleUpdateStatus("ready")}
-                      />
-                      <Button
-                        variant={selectedOrder.status === "dispatched" ? "primary" : "outline"}
-                        label="Despachar"
-                        onClick={() => handleUpdateStatus("dispatched")}
-                      />
-                      <Button
-                        variant={selectedOrder.status === "delivered" ? "primary" : "outline"}
-                        label="Entregar"
-                        onClick={() => handleUpdateStatus("delivered")}
-                      />
-                    </Grid>
+                    <Tabs value={selectedOrder.status} onValueChange={(val) => handleUpdateStatus(val as any)}>
+                      <TabsList className="grid grid-cols-3 gap-2.5 w-full">
+                        <TabsTrigger value="confirmed" className="w-full">Confirmar</TabsTrigger>
+                        <TabsTrigger value="preparing" className="w-full">Preparando</TabsTrigger>
+                        <TabsTrigger value="ready" className="w-full">Pronto</TabsTrigger>
+                        <TabsTrigger value="dispatched" className="w-full">Despachar</TabsTrigger>
+                        <TabsTrigger value="delivered" className="w-full">Entregar</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
                   </Stack>
                 </Box>
               </Stack>

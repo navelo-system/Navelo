@@ -22,11 +22,11 @@ export interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonE
 }
 
 const variantStyles: Record<string, string> = {
-  primary: "bg-brand-primary text-white hover:opacity-90 border-2 border-transparent",
-  secondary: "bg-brand-secondary text-white hover:opacity-90 border-2 border-transparent",
-  success: "bg-brand-success text-white hover:opacity-90 border-2 border-transparent",
-  danger: "bg-brand-danger text-white hover:opacity-90 border-2 border-transparent",
-  outline: "border-2 border-border bg-surface hover:bg-surface-sunken text-foreground",
+  primary: "bg-brand-primary text-brand-primary-fg hover:opacity-90",
+  secondary: "bg-brand-secondary text-brand-secondary-fg hover:opacity-90",
+  success: "bg-brand-success text-white hover:opacity-90",
+  danger: "bg-brand-danger text-white hover:opacity-90",
+  outline: "bg-surface hover:bg-surface-sunken text-foreground",
   ghost: "bg-transparent text-foreground border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",
   "ghost-secondary": "bg-transparent text-brand-secondary border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",
   "ghost-primary": "bg-transparent text-brand-primary border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",
@@ -49,7 +49,7 @@ const sizeStyles = {
 }
 
 const roundedStyles = {
-  default: "rounded-[5px]",
+  default: "rounded-[20px]",
   full: "rounded-full",
 }
 

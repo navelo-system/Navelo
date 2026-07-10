@@ -113,7 +113,7 @@ const justifyMap = {
 }
 
 const radiusMap = {
-  "default": "rounded-[10px]",
+  "default": "rounded-[20px]",
   "full": "rounded-full",
   "none": "rounded-none",
   "lg": "rounded-[16px]",

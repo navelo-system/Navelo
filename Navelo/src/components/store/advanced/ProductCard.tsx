@@ -62,7 +62,7 @@ export function ProductCard({ product, onClick, quantity = 0, onIncrease, onDecr
 
       <Stack gap={1} w="full" flex="1" justify="between">
         <Box w="full" flex="1">
-          <Font as="p" variant="body-bold" text={product.name} align="center" lineClamp={2} />
+          <Font as="p" variant="body" text={product.name} align="center" lineClamp={2} />
         </Box>
 
         <Font

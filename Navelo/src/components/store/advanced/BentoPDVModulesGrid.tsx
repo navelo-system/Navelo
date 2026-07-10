@@ -33,7 +33,7 @@ export const BentoPDVModulesGrid: React.FC<BentoPDVModulesGridProps> = ({ onNavi
   ]
 
   return (
-    <Stack direction="row" wrap={true} gap={5} justify="center" align="start" w="full">
+    <Stack direction="row" wrap={true} gap={5} justify="between" align="start" w="full">
       {modules.map((m) => (
         <Stack key={m.id} gap={2.5} align="center" justify="center" w="w-[72px] md:w-20">
           <Box
@@ -46,7 +46,7 @@ export const BentoPDVModulesGrid: React.FC<BentoPDVModulesGridProps> = ({ onNavi
           >
             <Icon icon={m.icon} size={28} color="brand-secondary" />
           </Box>
-          <Font variant="body-bold" text={m.title} align="center" />
+          <Font variant="body" text={m.title} align="center" />
         </Stack>
       ))}
     </Stack>

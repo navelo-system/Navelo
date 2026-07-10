@@ -249,7 +249,7 @@ export default function Home() {
         >
           {/* Container centralizado com largura limitada para o conteúdo (apenas no dashboard) */}
           <Box display="flex" justify="center" w="full" flex="1" className="min-h-0">
-            <Box w="full" flex="1" display="flex" direction="col" className={`min-h-0 ${currentView === "dashboard" ? "max-w-[1000px]" : ""}`}>
+            <Box w="full" flex="1" display="flex" direction="col" className={`min-h-0 ${currentView === "dashboard" ? "max-w-[850px]" : ""}`}>
               <ViewTransition viewKey={currentView} className="flex-1 flex flex-col min-h-0">
                 {currentView === "dashboard" && (
                   <Box w="full" flex="1" className="min-h-0">

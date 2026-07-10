@@ -27,7 +27,7 @@ export const KpiCard: React.FC<KpiCardProps> = ({
     <Box padding={2.5} bg="bg-surface" radius="default">
       <Stack gap={2.5}>
         <Stack direction="row" align="center" justify="between" gap={1}>
-          <Font variant="description" text={title} />
+          <Font variant="body-sm-semibold" color="secondary" text={title} />
           {icon ? (
             <Icon icon={icon} color="muted" size={16} />
           ) : onToggleHide ? (

@@ -71,7 +71,7 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
               <Box paddingY={1} />
 
               <Button
-                variant="success-lg"
+                variant="primary-lg"
                 fullWidth
                 label="Pagamento"
                 disabled={cartItems.length === 0}
@@ -79,7 +79,7 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
               />
               {onSaveComanda && (
                 <Button
-                  variant="outline"
+                  variant="secondary-lg"
                   fullWidth
                   label="Salvar"
                   onClick={onSaveComanda}
