@@ -80,6 +80,7 @@ import {
   Check,
   LucideIcon
 } from "lucide-react"
+import { ViewTransition } from "@/components/store/base/ViewTransition"
 
 interface ConfiguracoesSectionProps {
   onBackToDashboard: () => void
@@ -383,457 +384,458 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
     }
   }, [currentSubView, setCustomBack, setCustomTitle, setCustomActions, popSubView])
 
-  if (currentSubView === "dados-empresa") {
-    return (
-      <CompanyDataForm
-        onCancel={popSubView}
-        onSave={popSubView}
-      />
-    )
-  }
+  const renderCurrentView = (): React.ReactNode => {
+    if (currentSubView === "dados-empresa") {
+      return (
+        <CompanyDataForm
+          onCancel={popSubView}
+          onSave={popSubView}
+        />
+      )
+    }
 
-  if (currentSubView === "sincronizacao") {
-    return (
-      <CompanySyncForm
-        onCancel={popSubView}
-      />
-    )
-  }
+    if (currentSubView === "sincronizacao") {
+      return (
+        <CompanySyncForm
+          onCancel={popSubView}
+        />
+      )
+    }
 
-  if (currentSubView === "usuarios") {
-    return (
-      <UsuariosSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "usuarios") {
+      return (
+        <UsuariosSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "restricoes") {
-    return (
-      <RestricoesSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-        setCustomActions={setCustomActions}
-      />
-    )
-  }
+    if (currentSubView === "restricoes") {
+      return (
+        <RestricoesSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+          setCustomActions={setCustomActions}
+        />
+      )
+    }
 
-  if (currentSubView === "autorizacoes") {
-    return (
-      <AutorizacoesSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "autorizacoes") {
+      return (
+        <AutorizacoesSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "nota-fiscal-config") {
-    return (
-      <NotaFiscalSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-        setCustomActions={setCustomActions}
-      />
-    )
-  }
+    if (currentSubView === "nota-fiscal-config") {
+      return (
+        <NotaFiscalSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+          setCustomActions={setCustomActions}
+        />
+      )
+    }
 
-  if (currentSubView === "pagamento-integrado") {
-    return (
-      <PagamentoIntegradoSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "pagamento-integrado") {
+      return (
+        <PagamentoIntegradoSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "ordem-pagamento") {
-    return (
-      <PagamentoIntegradoSection
-        type="order"
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "ordem-pagamento") {
+      return (
+        <PagamentoIntegradoSection
+          type="order"
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "conta-digital") {
-    return (
-      <ContaDigitalSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "conta-digital") {
+      return (
+        <ContaDigitalSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "pix") {
-    return (
-      <PixSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "pix") {
+      return (
+        <PixSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "crediario") {
-    return (
-      <CrediarioSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "crediario") {
+      return (
+        <CrediarioSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "entregadores") {
-    return (
-      <ConectaEntregadorSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "entregadores") {
+      return (
+        <ConectaEntregadorSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "ifood") {
-    return (
-      <IFoodSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "ifood") {
+      return (
+        <IFoodSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "taxa-entrega") {
-    return (
-      <TaxaEntregaSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "taxa-entrega") {
+      return (
+        <TaxaEntregaSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "consulta-preco") {
-    return (
-      <ConsultaPrecoSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "consulta-preco") {
+      return (
+        <ConsultaPrecoSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "pesagem-automatica") {
-    return (
-      <PesagemAutomaticaSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "pesagem-automatica") {
+      return (
+        <PesagemAutomaticaSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "menu-digital") {
-    return (
-      <MenuDigitalSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-        onNavigate={pushSubView}
-      />
-    )
-  }
+    if (currentSubView === "menu-digital") {
+      return (
+        <MenuDigitalSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+          onNavigate={pushSubView}
+        />
+      )
+    }
 
-  if (currentSubView === "catalogo-online") {
-    return (
-      <CatalogoOnlineSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-        onNavigate={pushSubView}
-      />
-    )
-  }
+    if (currentSubView === "catalogo-online") {
+      return (
+        <CatalogoOnlineSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+          onNavigate={pushSubView}
+        />
+      )
+    }
 
-  if (currentSubView === "identificacao") {
-    return (
-      <IdentificacaoSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "identificacao") {
+      return (
+        <IdentificacaoSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "catalogo-produtos") {
-    return (
-      <CatalogoProdutosSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "catalogo-produtos") {
+      return (
+        <CatalogoProdutosSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "horario-atendimento") {
-    return (
-      <HorarioAtendimentoSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "horario-atendimento") {
+      return (
+        <HorarioAtendimentoSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "formas-pagamento") {
-    return (
-      <FormasPagamentoSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "formas-pagamento") {
+      return (
+        <FormasPagamentoSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "whatsapp") {
-    return (
-      <WhatsAppSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "whatsapp") {
+      return (
+        <WhatsAppSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "opcao-entrega") {
-    return (
-      <OpcoesEntregaSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "opcao-entrega") {
+      return (
+        <OpcoesEntregaSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "opcao-pedido") {
-    return (
-      <OpcoesPedidoSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "opcao-pedido") {
+      return (
+        <OpcoesPedidoSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "opcao-pedido-menu-digital") {
-    return (
-      <OpcoesPedidoMenuDigitalSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "opcao-pedido-menu-digital") {
+      return (
+        <OpcoesPedidoMenuDigitalSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "mesas-comandas") {
-    return (
-      <MesasComandasSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-        onNavigate={pushSubView}
-      />
-    )
-  }
+    if (currentSubView === "mesas-comandas") {
+      return (
+        <MesasComandasSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+          onNavigate={pushSubView}
+        />
+      )
+    }
 
-  if (currentSubView === "configurar-comandas") {
-    return (
-      <ConfigurarComandasSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "configurar-comandas") {
+      return (
+        <ConfigurarComandasSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "taxas-servico") {
-    return (
-      <TaxaServicoSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "taxas-servico") {
+      return (
+        <TaxaServicoSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "autoatendimento") {
-    return (
-      <AutoatendimentoSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-        onNavigate={pushSubView}
-      />
-    )
-  }
+    if (currentSubView === "autoatendimento") {
+      return (
+        <AutoatendimentoSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+          onNavigate={pushSubView}
+        />
+      )
+    }
 
-  if (currentSubView === "autoatendimento-cartao") {
-    return (
-      <PagamentoIntegradoSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-        type="integrated"
-      />
-    )
-  }
+    if (currentSubView === "autoatendimento-cartao") {
+      return (
+        <PagamentoIntegradoSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+          type="integrated"
+        />
+      )
+    }
 
-  if (currentSubView === "autoatendimento-pix") {
-    return (
-      <ContaDigitalSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "autoatendimento-pix") {
+      return (
+        <ContaDigitalSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "autoatendimento-customizacao") {
-    return (
-      <AutoatendimentoCustomizacaoSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "autoatendimento-customizacao") {
+      return (
+        <AutoatendimentoCustomizacaoSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "autoatendimento-numero") {
-    return (
-      <AutoatendimentoNumeroSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "autoatendimento-numero") {
+      return (
+        <AutoatendimentoNumeroSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "grupos-subgrupos") {
-    return (
-      <GruposSubgruposSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "grupos-subgrupos") {
+      return (
+        <GruposSubgruposSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "unidades") {
-    return (
-      <UnidadesSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "unidades") {
+      return (
+        <UnidadesSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "fornecedores") {
-    return (
-      <FornecedoresSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "fornecedores") {
+      return (
+        <FornecedoresSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "cidades") {
-    return (
-      <CidadesSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "cidades") {
+      return (
+        <CidadesSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "impressora") {
-    return (
-      <ImpressoraSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "impressora") {
+      return (
+        <ImpressoraSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "pontos-impressao") {
-    return (
-      <PontosImpressaoSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-        onNavigate={pushSubView}
-      />
-    )
-  }
+    if (currentSubView === "pontos-impressao") {
+      return (
+        <PontosImpressaoSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+          onNavigate={pushSubView}
+        />
+      )
+    }
 
-  if (currentSubView === "comprovantes") {
-    return (
-      <ComprovantesSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "comprovantes") {
+      return (
+        <ComprovantesSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "balanca-checkout") {
-    return (
-      <BalancaCheckoutSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "balanca-checkout") {
+      return (
+        <BalancaCheckoutSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  if (currentSubView === "balanca-etiquetadora") {
-    return (
-      <BalancaEtiquetadoraSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-        onNavigate={pushSubView}
-      />
-    )
-  }
+    if (currentSubView === "balanca-etiquetadora") {
+      return (
+        <BalancaEtiquetadoraSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+          onNavigate={pushSubView}
+        />
+      )
+    }
 
-  if (currentSubView === "backup") {
-    return (
-      <BackupSection
-        onCancel={popSubView}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-      />
-    )
-  }
+    if (currentSubView === "backup") {
+      return (
+        <BackupSection
+          onCancel={popSubView}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+        />
+      )
+    }
 
-  return (
-    <Stack gap={5} w="full">
-      {/* Listagem de Grupos de Configuração */}
+    // Lista de configurações (root)
+    return (
       <Stack gap={5} w="full">
+        <Stack gap={5} w="full">
         {SETTINGS_GROUPS.map((group) => (
           <Box
             key={group.id}
@@ -938,7 +940,14 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
             </Stack>
           </Box>
         ))}
+        </Stack>
       </Stack>
-    </Stack>
+    )
+  }
+
+  return (
+    <ViewTransition viewKey={currentSubView ?? "root"}>
+      {renderCurrentView()}
+    </ViewTransition>
   )
 }
