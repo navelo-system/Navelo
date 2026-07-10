@@ -21,6 +21,7 @@ export type ButtonVariant =
   | "danger-icon-xs"
   | "danger-pill-icon"
   | "success-sm"
+  | "outline"
   | "ghost"
   | "ghost-primary"
   | "ghost-secondary"
@@ -38,12 +39,8 @@ export interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonE
 
 const variantStyles: Record<string, string> = {
   primary: "bg-brand-primary text-brand-primary-fg hover:opacity-90",
-<<<<<<< HEAD
-  secondary: "bg-brand-secondary/15 text-brand-secondary hover:bg-brand-secondary/25 shadow-none",
-=======
   secondary: "bg-brand-secondary text-brand-secondary-fg hover:opacity-90",
   outline: "bg-brand-secondary/10 text-brand-primary hover:bg-brand-secondary/20",
->>>>>>> e0cde29 (Novo Commit)
   success: "bg-brand-success text-white hover:opacity-90",
   danger: "bg-brand-danger text-white hover:opacity-90",
   ghost: "bg-transparent text-foreground border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",

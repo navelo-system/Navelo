@@ -95,7 +95,7 @@ export const Header: React.FC = () => {
               <Stack direction="row" align="center" justify="center" gap={5}>
                 <Button variant="secondary-pill-icon" icon={Settings} onClick={() => setIsSettingsOpen(true)} />
                 <Button
-                  variant={isEyeActive ? "primary-pill-icon" : "outline-pill-icon"}
+                  variant={isEyeActive ? "primary-pill-icon" : "secondary-pill-icon"}
                   icon={Eye}
                   onClick={() => setIsEyeActive(prev => !prev)}
                 />

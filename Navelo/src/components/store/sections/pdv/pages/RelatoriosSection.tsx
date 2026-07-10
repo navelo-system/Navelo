@@ -470,7 +470,7 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
                       return (
                         <Button
                           key={p}
-                          variant={isActive ? "primary" : "secondary-pill-icon-xs"}
+                          variant={isActive ? "primary" : "outline"}
                           label={p}
                           onClick={() => setPeriod(p)}
                           type="button"
@@ -554,7 +554,7 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
                       return (
                         <Button
                           key={c}
-                          variant={isActive ? "primary" : "secondary-pill-icon-xs"}
+                          variant={isActive ? "primary" : "outline"}
                           label={c}
                           onClick={() => setCost(c)}
                           type="button"
@@ -579,7 +579,7 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
                       return (
                         <Button
                           key={o}
-                          variant={isActive ? "primary" : "secondary-pill-icon-xs"}
+                          variant={isActive ? "primary" : "outline"}
                           label={o}
                           onClick={() => setOrder(o)}
                           type="button"

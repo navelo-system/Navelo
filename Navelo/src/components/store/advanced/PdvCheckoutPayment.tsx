@@ -276,28 +276,28 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
             <Font variant="body-bold" text="Lançar Forma de Pagamento" />
             <Grid cols={2} gap={2.5}>
               <Button
-                variant="secondary"
+                variant="outline"
                 label="Dinheiro (Troco)"
                 icon={DollarSign}
                 disabled={amountDue <= 0}
                 onClick={onOpenChangeModal}
               />
               <Button
-                variant="secondary"
+                variant="outline"
                 label="Pix Instantâneo"
                 icon={QrCode}
                 disabled={amountDue <= 0}
                 onClick={() => onLaunchPayment("Pix", launchAmount)}
               />
               <Button
-                variant="secondary"
+                variant="outline"
                 label="Crédito/Débito"
                 icon={CreditCard}
                 disabled={amountDue <= 0}
                 onClick={onOpenCardModal}
               />
               <Button
-                variant="secondary"
+                variant="outline"
                 label="Crediário Fiado"
                 icon={Users}
                 disabled={amountDue <= 0}
