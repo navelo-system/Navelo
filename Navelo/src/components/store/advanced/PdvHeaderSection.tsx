@@ -67,17 +67,7 @@ export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
         >
           <Box shrink="0">
             <Box as="button" onClick={() => onNavigate("dashboard")} shrink="0" display="flex">
-              <Stack direction="row" align="center" gap={2.5}>
-                {logoUrl ? (
-                  <Avatar image={logoUrl} fallback="Logo" />
-                ) : (
-                  <Icon icon={Store} size={32} color="brand-secondary" />
-                )}
-                <Stack gap={0} align="start">
-                  <Font variant="body-bold" color="white" text="Navelo" />
-                  <Font variant="sub-tiny" color="brand-secondary" text="sistema PDV" />
-                </Stack>
-              </Stack>
+              <Font variant="h2" text="Navelo - PDV" color="brand-secondary" />
             </Box>
           </Box>
 
