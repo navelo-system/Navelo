@@ -1,5 +1,7 @@
 "use client"
 
+/* eslint-disable max-lines-per-function */
+
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -77,7 +79,7 @@ export const PdvCatalogToolbar: React.FC<PdvCatalogToolbarProps> = ({
           w="full"
           transition="opacity"
           opacity={searchMounted ? "0" : "100"}
-          className={searchMounted ? "pointer-events-none" : undefined}
+          pointerEvents={searchMounted ? "none" : "auto"}
         >
           <Stack direction="row" align="center" justify="between" w="full" gap={2.5}>
             <Stack direction="row" align="center" gap={2.5}>

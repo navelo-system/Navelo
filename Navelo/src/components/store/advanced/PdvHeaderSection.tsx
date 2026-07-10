@@ -5,9 +5,7 @@ import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
-import { Icon } from "@/components/store/base/Icon"
-import { Avatar } from "@/components/store/base/Avatar"
-import { Cloud, Eye, EyeOff, LogOut, Store, AlertTriangle } from "lucide-react"
+import { Cloud, Eye, EyeOff, LogOut, AlertTriangle } from "lucide-react"
 
 interface PdvHeaderSectionProps {
   currentView: string
@@ -18,12 +16,6 @@ interface PdvHeaderSectionProps {
 }
 
 const useHeaderState = () => {
-  const [logoUrl] = React.useState<string>(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("logo-data") || ""
-    }
-    return ""
-  })
   const [hideValues, setHideValues] = React.useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("hide-values") === "true"
@@ -39,7 +31,7 @@ const useHeaderState = () => {
     return () => window.removeEventListener("visibility-toggled", handler)
   }, [])
 
-  return { logoUrl, hideValues, setHideValues }
+  return { hideValues, setHideValues }
 }
 
 export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
@@ -47,7 +39,7 @@ export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
   isSynced = true,
   onLogout
 }) => {
-  const { logoUrl, hideValues, setHideValues } = useHeaderState()
+  const { hideValues, setHideValues } = useHeaderState()
 
   return (
     <Stack gap={0} w="full">

@@ -35,6 +35,7 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   right?: string | number
   bottom?: string | number
   zIndex?: "0" | "10" | "20" | "30" | "40" | "50" | "auto"
+  pointerEvents?: "none" | "auto"
   minW?: string
   objectFit?: "contain" | "cover" | "fill" | "none" | "scale-down"
   borderStyle?: "solid" | "dashed"
@@ -164,7 +165,7 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
     borderTop, borderBottom, borderLeft, borderRight,
     borderColor, 
     borderStyle, shadow, transition, opacity, maxH, animation,
-    overflow, hoverBg, cursor, flex, position, top, left, right, bottom, zIndex, minW, objectFit, shrink,
+    overflow, hoverBg, cursor, flex, position, top, left, right, bottom, zIndex, pointerEvents, minW, objectFit, shrink,
     order, mdOrder, ...props 
   }, ref) => {
     return (
@@ -236,6 +237,7 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
           left: left !== undefined ? left : undefined,
           right: right !== undefined ? right : undefined,
           bottom: bottom !== undefined ? bottom : undefined,
+          pointerEvents,
           background: bgGradient === "fade-up"
             ? "linear-gradient(to top, var(--background) 0%, var(--background) 45%, transparent 100%)"
             : undefined,

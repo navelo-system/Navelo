@@ -252,7 +252,7 @@ export const IFoodSection: React.FC<IFoodSectionProps> = ({
       <IFoodActivationModal
         isOpen={isActivationModalOpen}
         onClose={handleCancelActivation}
-        onActivate={(_code) => {
+        onActivate={() => {
           setEnabled(true)
           setIsActivationModalOpen(false)
         }}

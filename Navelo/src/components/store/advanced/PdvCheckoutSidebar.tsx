@@ -6,7 +6,6 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { CartList } from "@/components/store/advanced/CartList"
-import { SaveAll, ShoppingCart } from "lucide-react"
 
 // Types
 import { CartItemType } from "@/components/store/sections/pdv/pages/PdvSection"

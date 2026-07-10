@@ -1,5 +1,8 @@
 "use client"
 
+/* eslint-disable max-lines-per-function */
+/* eslint-disable react-hooks/set-state-in-effect */
+
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
 import { Box } from "@/components/store/base/Box"
@@ -30,9 +33,13 @@ export const ProductBarcodeScannerModal: React.FC<ProductBarcodeScannerModalProp
   React.useEffect(() => {
     if (!isOpen) return
 
+    setIsSupported(true)
+    setErrorMessage(null)
+
     let stream: MediaStream | null = null
     let animationFrame = 0
     let cancelled = false
+    const video = videoRef.current
 
     const startScanner = async () => {
       setErrorMessage(null)
@@ -48,7 +55,6 @@ export const ProductBarcodeScannerModal: React.FC<ProductBarcodeScannerModalProp
           audio: false,
         })
 
-        const video = videoRef.current
         if (!video || cancelled) return
 
         video.srcObject = stream
@@ -83,15 +89,14 @@ export const ProductBarcodeScannerModal: React.FC<ProductBarcodeScannerModalProp
       }
     }
 
-    setIsSupported(true)
     startScanner()
 
     return () => {
       cancelled = true
       cancelAnimationFrame(animationFrame)
       stream?.getTracks().forEach((track) => track.stop())
-      if (videoRef.current) {
-        videoRef.current.srcObject = null
+      if (video) {
+        video.srcObject = null
       }
     }
   }, [isOpen, onClose, onScan])
