@@ -2,10 +2,12 @@
 "use client"
 
 import * as React from "react"
+import { cn } from "@/lib/utils"
 
 interface ViewTransitionProps {
   children: React.ReactNode
   viewKey: string
+  className?: string
 }
 
 /**
@@ -18,7 +20,7 @@ interface ViewTransitionProps {
  *     {children}
  *   </ViewTransition>
  */
-export const ViewTransition: React.FC<ViewTransitionProps> = ({ children, viewKey }) => {
+export const ViewTransition: React.FC<ViewTransitionProps> = ({ children, viewKey, className }) => {
   const [isActive, setIsActive] = React.useState(false)
   // animDone: quando true, remove o transform para eliminar o stacking context
   // que impediria elementos position:fixed (modais) de cobrirem a viewport inteira
@@ -48,6 +50,7 @@ export const ViewTransition: React.FC<ViewTransitionProps> = ({ children, viewKe
   return (
     <div
       style={style}
+      className={cn(className)}
       onTransitionEnd={(e) => {
         // Garante que só processa quando a transição principal (transform) completou
         if (e.propertyName === "transform" && isActive) {

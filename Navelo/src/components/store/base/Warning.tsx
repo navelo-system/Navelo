@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { LucideIcon, X } from "lucide-react"
+import { LucideIcon } from "lucide-react"
 import { Box } from "./Box"
 import { Stack } from "./Stack"
 import { Font } from "./Font"
@@ -14,7 +14,6 @@ export interface WarningProps {
   icon: LucideIcon
   textButton?: string
   onClick?: () => void
-  onClose?: () => void
   variant: "warning" | "danger" | "success" | "info"
 }
 
@@ -25,7 +24,6 @@ const variantConfig = {
     textClass: "warning" as const,
     iconBg: "bg-brand-warning",
     buttonVariant: "primary-sm" as const,
-    closeButtonVariant: "primary-pill-icon" as const,
   },
   danger: {
     bg: "bg-brand-danger/10",
@@ -33,7 +31,6 @@ const variantConfig = {
     textClass: "danger" as const,
     iconBg: "bg-brand-danger",
     buttonVariant: "danger-sm" as const,
-    closeButtonVariant: "danger-pill-icon" as const,
   },
   success: {
     bg: "bg-brand-success/10",
@@ -41,7 +38,6 @@ const variantConfig = {
     textClass: "success" as const,
     iconBg: "bg-brand-success",
     buttonVariant: "success-sm" as const,
-    closeButtonVariant: "success-pill-icon" as const,
   },
   info: {
     bg: "bg-brand-primary/10",
@@ -49,7 +45,6 @@ const variantConfig = {
     textClass: "primary" as const,
     iconBg: "bg-brand-primary",
     buttonVariant: "primary-sm" as const,
-    closeButtonVariant: "primary-pill-icon" as const,
   },
 }
 
@@ -59,7 +54,6 @@ export const Warning: React.FC<WarningProps> = ({
   icon: IconComponent,
   textButton,
   onClick,
-  onClose,
   variant,
 }) => {
   const config = variantConfig[variant] || variantConfig.warning
@@ -77,6 +71,7 @@ export const Warning: React.FC<WarningProps> = ({
         direction="col"
         mobileDirection="row"
         align="stretch"
+        mobileAlign="center"
         justify="between"
         gap={5}
         w="full"
@@ -113,7 +108,7 @@ export const Warning: React.FC<WarningProps> = ({
           </Stack>
         </Stack>
 
-        {/* Lado Direito: Botões de Ação e Fechar (largura cheia no mobile, auto no PC) */}
+        {/* Lado Direito: Botões de Ação (largura cheia no mobile, auto no PC) */}
         <Stack direction="row" gap={2.5} align="center" flex="none" className="w-full md:w-auto">
           {textButton && onClick && (
             <Box flex="1" className="md:flex-none min-w-0">
@@ -122,15 +117,6 @@ export const Warning: React.FC<WarningProps> = ({
                 label={textButton}
                 onClick={onClick}
                 fullWidth
-              />
-            </Box>
-          )}
-          {onClose && (
-            <Box shrink="0">
-              <Button
-                variant={config.closeButtonVariant}
-                icon={X}
-                onClick={onClose}
               />
             </Box>
           )}

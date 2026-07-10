@@ -8,7 +8,7 @@ import { Stack } from "../../base/Stack"
 import { Button } from "../../base/Button"
 import { Input } from "../../base/Input"
 import { ViewModeToggle } from "../../intermediary/ViewModeToggle"
-import { Search, Percent, Menu, LogOut } from "lucide-react"
+import { Search, Percent, Menu } from "lucide-react"
 import { ViewTransition } from "../../base/ViewTransition"
 import { Modal } from "../../base/Modal"
 
@@ -17,7 +17,6 @@ import { PdvCheckoutPayment } from "./PdvCheckoutPayment"
 import { PdvCheckoutReceipt } from "./PdvCheckoutReceipt"
 import { PdvCheckoutSidebar } from "./PdvCheckoutSidebar"
 import { PdvModals } from "./PdvModals"
-import { Font } from "../../base/Font"
 
 // Interface dos itens do carrinho
 export interface CartItemType {
@@ -162,6 +161,10 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
     setPayments((prev) => prev.filter((_, i) => i !== idx))
   }
 
+  const handleEditPayment = (idx: number, newAmount: number) => {
+    setPayments((prev) => prev.map((p, i) => i === idx ? { ...p, amount: newAmount } : p))
+  }
+
   const handleConfirmChangePayment = (amount: number) => {
     handleLaunchPayment("Dinheiro", amount)
     setIsChangeModalOpen(false)
@@ -203,58 +206,79 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   }
 
   return (
-    <Stack gap={5} w="full">
-      <ViewTransition viewKey={step}>
+    <Stack gap={5} w="full" flex="1" className="min-h-0">
+      <ViewTransition viewKey={step} className="flex-1 flex flex-col min-h-0">
         {step === "negociacao" ? (
-          <Stack gap={5} w="full">
-            {/* Controles de pesquisa e view toggle (busca cheia no mobile, lado a lado no PC) */}
-            <Stack direction="col" mobileDirection="row" gap={2.5} align="stretch" mobileAlign="center" justify="between" w="full">
-              <Box flex="1" padding={0} w="full">
-                <Input
-                  placeholder="Pesquisar produto pelo nome..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  icon={Search}
-                />
-              </Box>
-              <Stack direction="row" gap={2.5} align="center" justify="between" mobileJustify="end" w="w-full md:w-auto">
-                {/* Segmented View Toggle */}
-                <ViewModeToggle value={viewMode} onChange={setViewMode} />
-                
-                {/* Botões de Ação da Direita */}
-                <Stack direction="row" gap={2.5} align="center">
-                  {/* Desconto */}
-                  <Button
-                    variant="secondary-pill-icon"
-                    icon={Percent}
-                    onClick={() => setIsDiscountModalOpen(true)}
-                  />
-                  {/* Menu Hamburguer */}
-                  <Button
-                    variant="primary-pill-icon"
-                    icon={Menu}
-                    onClick={() => setIsSidebarOpen(true)}
+          <Stack gap={5} w="full" flex="1" className="min-h-0">
+            {/* Container do Catálogo e do Carrinho (verticalizado no mobile, lado a lado no PC) */}
+            <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" className="min-h-0">
+              {/* Lado Esquerdo - Catálogo */}
+              <Box flex="1" w="full" className="min-h-0 flex flex-col">
+                <Stack gap={5} w="full" flex="1" className="min-h-0">
+                  {/* Controles de pesquisa e view toggle (busca cheia no mobile, lado a lado no PC) */}
+                  <Stack direction="col" mobileDirection="row" gap={2.5} align="stretch" mobileAlign="center" justify="between" w="full">
+                    <Box flex="1" padding={0} w="full">
+                      <Input
+                        placeholder="Pesquisar produto pelo nome..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        icon={Search}
+                      />
+                    </Box>
+                    <Stack direction="row" gap={2.5} align="center" justify="between" mobileJustify="end" w="w-full md:w-auto">
+                      {/* Segmented View Toggle */}
+                      <ViewModeToggle value={viewMode} onChange={setViewMode} />
+                      
+                      {/* Botões de Ação da Direita */}
+                      <Stack direction="row" gap={2.5} align="center">
+                        {/* Desconto */}
+                        <Button
+                          variant="secondary-pill-icon"
+                          icon={Percent}
+                          onClick={() => setIsDiscountModalOpen(true)}
+                        />
+                        {/* Menu Hamburguer */}
+                        <Button
+                          variant="primary-pill-icon"
+                          icon={Menu}
+                          onClick={() => setIsSidebarOpen(true)}
+                        />
+                      </Stack>
+                    </Stack>
+                  </Stack>
+
+                  <PdvCatalog
+                    activeCategory={activeCategory}
+                    onActiveCategoryChange={setActiveCategory}
+                    filteredProducts={filteredProducts}
+                    onAddProduct={handleAddProduct}
+                    categories={CATEGORIES}
+                    viewMode={viewMode}
+                    cartItems={cartItems}
+                    onIncrease={handleIncrease}
+                    onDecrease={handleDecrease}
+                    onRemove={handleRemove}
+                    cartSidebarNode={
+                      <Box display="flex" direction="col" flex="1" className="md:hidden min-h-0">
+                        <PdvCheckoutSidebar
+                          cartItems={cartItems}
+                          discount={discount}
+                          total={total}
+                          formatPrice={formatPrice}
+                          onIncrease={handleIncrease}
+                          onDecrease={handleDecrease}
+                          onRemove={handleRemove}
+                          onGoToPayment={() => setStep("pagamento")}
+                          onSaveComanda={activeComandaId ? onBackToDashboard : undefined}
+                        />
+                      </Box>
+                    }
                   />
                 </Stack>
-              </Stack>
-            </Stack>
-
-            {/* Container do Catálogo e do Carrinho (verticalizado no mobile, lado a lado no PC) */}
-            <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch">
-              {/* Lado Esquerdo - Catálogo */}
-              <Box flex="1" w="full">
-                <PdvCatalog
-                  activeCategory={activeCategory}
-                  onActiveCategoryChange={setActiveCategory}
-                  filteredProducts={filteredProducts}
-                  onAddProduct={handleAddProduct}
-                  categories={CATEGORIES}
-                  viewMode={viewMode}
-                />
               </Box>
 
-              {/* Lado Direito - Carrinho e Totais */}
-              <Box w="w-full md:w-1/4">
+              {/* Lado Direito - Carrinho e Totais (Visível apenas no Desktop) */}
+              <Box w="w-full md:w-1/4" className="hidden md:flex flex-col min-h-0">
                 <PdvCheckoutSidebar
                   cartItems={cartItems}
                   discount={discount}
@@ -264,6 +288,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
                   onDecrease={handleDecrease}
                   onRemove={handleRemove}
                   onGoToPayment={() => setStep("pagamento")}
+                  onSaveComanda={activeComandaId ? onBackToDashboard : undefined}
                 />
               </Box>
             </Stack>
@@ -281,10 +306,13 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
             onOpenDiscountModal={() => setIsDiscountModalOpen(true)}
             onLaunchPayment={handleLaunchPayment}
             onRemovePayment={handleRemovePayment}
+            onEditPayment={handleEditPayment}
             onOpenChangeModal={() => setIsChangeModalOpen(true)}
             onOpenCardModal={() => setIsCardModalOpen(true)}
             onFinalizeSale={handleFinalizeSale}
             onRemoveItem={handleRemove}
+            onIncreaseItem={handleIncrease}
+            onDecreaseItem={handleDecrease}
             paymentAmountInput={paymentAmountInput}
             onChangePaymentAmountInput={setPaymentAmountInput}
             launchAmount={launchAmount}
@@ -317,19 +345,15 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         isOpen={isExitConfirmOpen}
         onClose={() => setIsExitConfirmOpen(false)}
         title="Descartar operação e sair do caixa?"
-        subtitle="Os itens do carrinho e os pagamentos lançados serão descartados."
-        icon={LogOut}
         successText="Descartar e sair"
         onSuccess={() => {
           setIsExitConfirmOpen(false)
           onBackToDashboardRef.current()
         }}
         showCancelButton
+        variant="bottom"
       >
-        <Stack gap={2.5}>
-          <Font variant="body" text={`Você possui ${cartItems.length} ${cartItems.length === 1 ? "item" : "itens"} no carrinho com um total de ${formatPrice(total)}.`} />
-          <Font variant="body" text="Ao sair, toda a operação atual será perdida e você voltará ao painel principal. Esta ação não pode ser desfeita." color="muted" />
-        </Stack>
+        <Box />
       </Modal>
     </Stack>
   )

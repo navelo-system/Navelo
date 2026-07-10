@@ -193,8 +193,8 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
         /* ================= SUB-SEÇÃO: NOTAS FISCAIS ================= */
         <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
           <Stack gap={5}>
-            <Stack direction="row" align="center" justify="between" w="full" gap={2.5}>
-              <Box flex="1">
+            <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
+              <Box flex="1" w="full">
                 <Input
                   placeholder="Buscar por número ou fornecedor..."
                   value={invoiceSearchQuery}

@@ -32,7 +32,6 @@ export interface PaymentMethodModalProps {
   onConfirm?: (method: PaymentMethod, amountPaid?: number) => void;
 }
 
-// eslint-disable-next-line max-lines-per-function
 export function PaymentMethodModal({ isOpen, onClose, totalAmount, onConfirm }: PaymentMethodModalProps) {
   const [selected, setSelected] = React.useState<PaymentMethod | null>(null);
   const [cashAmount, setCashAmount] = React.useState<string>('');

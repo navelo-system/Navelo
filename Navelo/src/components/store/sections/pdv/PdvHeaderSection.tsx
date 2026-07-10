@@ -1,14 +1,13 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, complexity */
-
 import * as React from "react"
 import { Box } from "../../base/Box"
 import { Stack } from "../../base/Stack"
 import { Font } from "../../base/Font"
 import { Button } from "../../base/Button"
-import { Cloud, CloudOff, Eye, EyeOff, LogOut, Store, AlertTriangle } from "lucide-react"
-import { CircularIcon } from "../../intermediary/CircularIcon"
+import { Icon } from "../../base/Icon"
+import { Avatar } from "../../base/Avatar"
+import { Cloud, Eye, EyeOff, LogOut, Store, AlertTriangle } from "lucide-react"
 
 interface PdvHeaderSectionProps {
   currentView: string
@@ -18,41 +17,7 @@ interface PdvHeaderSectionProps {
   onLogout: () => void
 }
 
-const useHeaderScroll = () => {
-  const [isBottomVisible, setIsBottomVisible] = React.useState(true)
-  const [isDesktop, setIsDesktop] = React.useState(true)
-
-  React.useEffect(() => {
-    const checkDesktop = () => setIsDesktop(window.innerWidth >= 768)
-    checkDesktop()
-    window.addEventListener("resize", checkDesktop)
-    return () => window.removeEventListener("resize", checkDesktop)
-  }, [])
-
-  React.useEffect(() => {
-    if (isDesktop) return
-    const handleScroll = (e: Event) => {
-      const target = e.target as HTMLElement | Document
-      const currentScrollY = target === document ? window.scrollY : (target as HTMLElement).scrollTop
-      if (currentScrollY === undefined) return
-      if (currentScrollY > 50) {
-        setIsBottomVisible(false)
-      } else if (currentScrollY <= 10) {
-        setIsBottomVisible(true)
-      }
-    }
-    window.addEventListener("scroll", handleScroll, { passive: true, capture: true })
-    return () => window.removeEventListener("scroll", handleScroll, { capture: true } as EventListenerOptions)
-  }, [isDesktop])
-
-  return { isDesktop, isBottomVisible }
-}
-
-export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
-  onNavigate,
-  isSynced = true,
-  onLogout
-}) => {
+const useHeaderState = () => {
   const [logoUrl] = React.useState<string>(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("logo-data") || ""
@@ -73,7 +38,16 @@ export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
     window.addEventListener("visibility-toggled", handler)
     return () => window.removeEventListener("visibility-toggled", handler)
   }, [])
-  const { isDesktop, isBottomVisible } = useHeaderScroll()
+
+  return { logoUrl, hideValues, setHideValues }
+}
+
+export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
+  onNavigate,
+  isSynced = true,
+  onLogout
+}) => {
+  const { logoUrl, hideValues, setHideValues } = useHeaderState()
 
   return (
     <Stack gap={0} w="full">
@@ -83,44 +57,33 @@ export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
         bg="bg-brand-primary"
         w="full"
         display="flex"
-        direction="col"
       >
         <Stack
-          direction="col"
-          mobileDirection="row"
-          align="stretch"
-          mobileAlign="center"
+          direction="row"
+          align="center"
           justify="between"
           w="full"
-          gap={isDesktop || isBottomVisible ? 5 : 0}
+          gap={2.5}
         >
           <Box shrink="0">
-            <Stack gap={1} align="center" mobileAlign="start">
-              <Box as="button" onClick={() => onNavigate("dashboard")} shrink="0" display="flex">
-                <Stack direction="row" align="center" gap={2.5}>
-                  {logoUrl ? (
-                    <img src={logoUrl} alt="Logo" className="h-8 w-auto object-contain" />
-                  ) : (
-                    <Store className="h-8 w-8 text-brand-secondary" />
-                  )}
-                  <Stack gap={0} align="start">
-                    <Font variant="body-bold" color="white" text="Navelo" />
-                    <Font variant="sub-tiny" color="brand-secondary" text="sistema PDV" />
-                  </Stack>
+            <Box as="button" onClick={() => onNavigate("dashboard")} shrink="0" display="flex">
+              <Stack direction="row" align="center" gap={2.5}>
+                {logoUrl ? (
+                  <Avatar image={logoUrl} fallback="Logo" />
+                ) : (
+                  <Icon icon={Store} size={32} color="brand-secondary" />
+                )}
+                <Stack gap={0} align="start">
+                  <Font variant="body-bold" color="white" text="Navelo" />
+                  <Font variant="sub-tiny" color="brand-secondary" text="sistema PDV" />
                 </Stack>
-              </Box>
-            </Stack>
+              </Stack>
+            </Box>
           </Box>
 
           {/* Lado Direito: Status de Sincronia, Olho e Logout */}
-          <Box
-            w="full"
-            transition="all"
-            overflow="hidden"
-            maxH={isDesktop || isBottomVisible ? "96" : "0"}
-            opacity={isDesktop || isBottomVisible ? "100" : "0"}
-          >
-            <Stack direction="row" align="center" justify="center" mobileJustify="end" w="full" gap={2.5}>
+          <Box shrink="0">
+            <Stack direction="row" align="center" justify="end" gap={2.5}>
               <Button
                 variant={isSynced ? "success-pill-icon" : "danger-pill-icon"}
                 icon={isSynced ? Cloud : AlertTriangle}

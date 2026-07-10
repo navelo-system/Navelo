@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils"
 type GapToken = "section" | "title-content" | 12.5 | 12 | 5 | 2.5 | 1 | 0
 
 export interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
-  direction?: "row" | "col"
-  mobileDirection?: "row" | "col"
+  direction?: "row" | "col" | "col-reverse" | "row-reverse"
+  mobileDirection?: "row" | "col" | "col-reverse" | "row-reverse"
   gap?: GapToken
   align?: "start" | "center" | "end" | "stretch" | "baseline"
   mobileAlign?: "start" | "center" | "end"
@@ -24,7 +24,7 @@ export interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const gapMap: Record<string, string> = {
-  "section": "gap-y-[50px] lg:gap-y-[100px]",
+  "section": "gap-y-[50px]",
   "title-content": "gap-y-[30px] lg:gap-y-[50px]",
   "12.5": "gap-[50px]",
   "12": "gap-12",
@@ -114,14 +114,13 @@ const mdOrderMap = {
 
 export const Stack = React.forwardRef<HTMLDivElement, StackProps>(
   ({ className, direction = "col", mobileDirection, gap = 5, align, mobileAlign, justify, mobileJustify, wrap, w, h, maxWidth, paddingX, flex, minW, order, mdOrder, cursor, ...props }, ref) => {
-    const mobileDirectionClass = mobileDirection === "row" ? "md:flex-row" : mobileDirection === "col" ? "md:flex-col" : undefined
     return (
       <div
         ref={ref}
         className={cn(
           "flex",
-          direction === "col" ? "flex-col" : "flex-row",
-          mobileDirectionClass,
+          direction === "col" ? "flex-col" : direction === "col-reverse" ? "flex-col-reverse" : direction === "row-reverse" ? "flex-row-reverse" : "flex-row",
+          mobileDirection === "row" ? "md:flex-row" : mobileDirection === "col" ? "md:flex-col" : mobileDirection === "col-reverse" ? "md:flex-col-reverse" : mobileDirection === "row-reverse" ? "md:flex-row-reverse" : undefined,
           gapMap[String(gap)],
           align && alignMap[align],
           mobileAlign && mobileAlignMap[mobileAlign],

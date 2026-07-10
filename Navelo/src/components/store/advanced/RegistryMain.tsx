@@ -1,11 +1,8 @@
-/* eslint-disable complexity */
 import * as React from "react"
 import { Box } from "../base/Box"
 import { Stack } from "../base/Stack"
-import { Font } from "../base/Font"
-import { Icon } from "../base/Icon"
 import { Button } from "../base/Button"
-import { LucideIcon, ChevronLeft } from "lucide-react"
+import { LucideIcon, ArrowLeft } from "lucide-react"
 
 export interface RegistryMainProps extends React.HTMLAttributes<HTMLDivElement> {
   title?: string
@@ -18,10 +15,7 @@ export interface RegistryMainProps extends React.HTMLAttributes<HTMLDivElement> 
 }
 
 export const RegistryMain: React.FC<RegistryMainProps> = ({
-  title,
-  subtitle,
-  superiorTitle,
-  icon,
+  title: _title,
   onBack,
   customActions,
   children,
@@ -42,16 +36,16 @@ export const RegistryMain: React.FC<RegistryMainProps> = ({
   });
 
   return (
-    <Box padding={5} w="full" h="full" bg="bg-background" overflow="auto" {...props}>
-      <Stack gap={'section'} w="full">
+    <Box padding={5} w="full" flex="1" bg="bg-background" className="min-h-0 flex flex-col" {...props}>
+      <Stack gap={5} w="full" flex="1" className="min-h-0">
         {(onBack || customActions) && (
-          <Stack direction="row" align="center" justify="between" w="full" gap={5}>
+          <Stack direction="row" align="center" justify="between" w="full" gap={5} flex="none">
             {onBack ? (
               <Box display="block md:hidden">
                 <Button
-                  variant="ghost-secondary"
-                  label="Voltar"
-                  icon={ChevronLeft}
+                  variant="ghost-primary"
+                  label={_title || "Voltar"}
+                  icon={ArrowLeft}
                   onClick={onBack}
                   justify="start"
                 />
@@ -64,9 +58,9 @@ export const RegistryMain: React.FC<RegistryMainProps> = ({
               {onBack && (
                 <Box display="hidden md:block">
                   <Button
-                    variant="ghost-secondary"
-                    label="Voltar"
-                    icon={ChevronLeft}
+                    variant="ghost-primary"
+                    label={_title || "Voltar"}
+                    icon={ArrowLeft}
                     onClick={onBack}
                   />
                 </Box>
@@ -76,7 +70,7 @@ export const RegistryMain: React.FC<RegistryMainProps> = ({
         )}
 
         {/* Content (RegistrySections) */}
-        <Stack gap={'section'} w="full" flex="1">
+        <Stack gap={'section'} w="full" flex="1" className="min-h-0">
           {children}
         </Stack>
       </Stack>

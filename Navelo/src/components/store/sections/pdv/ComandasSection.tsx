@@ -10,11 +10,10 @@ import { Font } from "../../base/Font"
 import { Icon } from "../../base/Icon"
 import { Button } from "../../base/Button"
 import { Input } from "../../base/Input"
-import { Badge } from "../../base/Badge"
 import { Modal } from "../../base/Modal"
 import { Sidebar } from "../../base/Sidebar"
 import { EmptyState } from "../../intermediary/EmptyState"
-import { Search, Clock, Receipt, Menu, Cloud } from "lucide-react"
+import { Search, Receipt, Menu, Cloud } from "lucide-react"
 
 interface ComandaItem {
   id: string
@@ -52,12 +51,6 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
     setIsCreateModalOpen(false)
   }
 
-  const formatPrice = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value)
-  }
 
   return (
     <Stack gap={5} w="full">
@@ -86,41 +79,45 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
           subtitle="Abra uma comanda pelo menu para iniciar o consumo."
         />
       ) : (
-        <Grid cols={4} gap={5} mobileCols={1}>
+        <Stack direction="row" wrap={true} gap={5} justify="start">
           {filtered.map((comanda) => (
             <Box
               key={comanda.id}
               as="button"
               onClick={() => onSelectComanda(comanda.id)}
-              padding={5}
+              position="relative"
+              padding={0}
               bg="bg-surface"
-              radius="default"
+              radius="lg"
               border={true}
               borderColor="border-brand-secondary"
-              w="full"
+              overflow="hidden"
+              w="w-[130px]"
+              h="h-[170px]"
               hoverBg="secondary/10"
+              display="flex"
+              direction="col"
             >
-              <Stack gap={5} w="full" align="start">
-                <Badge variant="secondary" label="Ativo" />
+              {/* Tag fold */}
+              <Box position="absolute" top={0} left={0} w="w-12" h="h-12">
+                <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', color: 'var(--brand-secondary)' }} fill="currentColor">
+                  <path d="M0 0 H100 L0 100 V0" />
+                  <circle cx="28" cy="28" r="14" fill="var(--surface)" />
+                </svg>
+              </Box>
 
-                <Stack gap={1} align="start" w="full">
-                  <Font variant="body-bold" text={comanda.label} />
-                  <Stack direction="row" align="center" gap={1}>
-                    <Icon icon={Clock} size={14} color="muted" />
-                    <Font variant="auxiliary" color="muted" text={comanda.time} />
-                  </Stack>
-                </Stack>
+              {/* Identifier */}
+              <Box position="absolute" top={3} right={3}>
+                <Font variant="body-sm-medium" text={comanda.label} />
+              </Box>
 
-                <Box h="h-[2px]" bg="bg-border" w="full" />
-
-                <Stack direction="row" justify="between" align="center" w="full">
-                  <Font variant="sub-tiny" color="muted" text="Consumo" />
-                  <Font variant="body-sm-semibold" color="secondary" text={formatPrice(comanda.total)} />
-                </Stack>
+              {/* Time */}
+              <Stack w="full" h="full" justify="center" align="center">
+                <Font variant="body-medium" text={comanda.time} />
               </Stack>
             </Box>
           ))}
-        </Grid>
+        </Stack>
       )}
 
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} title="Menu">

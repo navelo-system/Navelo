@@ -20,6 +20,7 @@ interface PdvCheckoutSidebarProps {
   onDecrease: (id: string) => void
   onRemove: (id: string) => void
   onGoToPayment: () => void
+  onSaveComanda?: () => void
 }
 
 export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
@@ -31,11 +32,12 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
   onDecrease,
   onRemove,
   onGoToPayment,
+  onSaveComanda,
 }) => {
   const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0)
 
   return (
-    <Stack gap={5}>
+    <Stack gap={5} flex="1" className="min-h-0">
       <CartList
         items={cartItems}
         onIncrease={onIncrease}
@@ -69,6 +71,14 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
             disabled={cartItems.length === 0}
             onClick={onGoToPayment}
           />
+          {onSaveComanda && (
+            <Button
+              variant="outline"
+              fullWidth
+              label="Salvar Comanda"
+              onClick={onSaveComanda}
+            />
+          )}
         </Stack>
       </Box>
     </Stack>

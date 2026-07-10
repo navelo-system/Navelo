@@ -84,16 +84,7 @@ export const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
 
     const childrenArray = React.Children.toArray(children) as React.ReactElement<CustomSelectItemProps>[]
 
-    // Validate that all children are CustomSelectItem components
-    React.Children.forEach(children, (child) => {
-      if (React.isValidElement(child)) {
-        if (child.type !== CustomSelectItem) {
-          throw new Error("CustomSelect only accepts CustomSelectItem as children")
-        }
-      } else {
-        throw new Error("Invalid child detected in CustomSelect. Only CustomSelectItem is allowed.")
-      }
-    })
+    // Validation removed because it conflicts with Next.js Fast Refresh and .map() fragments
 
     const selectedChild = childrenArray.find(
       (child) => React.isValidElement(child) && child.props.value === value
@@ -123,12 +114,12 @@ export const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
             aria-expanded={isOpen}
             onClick={() => setIsOpen((prev) => !prev)}
             className={cn(
-              "flex h-10 w-full items-center justify-between rounded-[5px] border-2 border-border bg-surface px-5 py-0 text-sm text-foreground transition-colors focus:outline-none focus:border-brand-primary",
+              "flex min-h-[40px] w-full items-center justify-between rounded-[5px] border-2 border-border bg-surface px-5 py-2 text-sm text-foreground transition-colors focus:outline-none focus:border-brand-primary",
               hasError && "border-brand-danger focus:border-brand-danger",
               isOpen && "border-brand-primary"
             )}
           >
-            <span className="flex items-center gap-2.5">
+            <span className="flex items-center gap-2.5 text-left">
               {SelectedIcon && <SelectedIcon size={16} className="text-brand-primary shrink-0" />}
               <span className={cn(!selectedChild && "text-text-muted")}>
                 {selectedLabel}

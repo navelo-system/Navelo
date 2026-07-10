@@ -4,7 +4,7 @@ import { Grid } from "@/components/store/base/Grid"
 import { Stack } from "@/components/store/base/Stack"
 import { Box } from "@/components/store/base/Box"
 import { Button } from "@/components/store/base/Button"
-import { MousePointerClick, Zap, Settings, Info, Tags, Check, Trash, Bot, ArrowRight } from "lucide-react"
+import { MousePointerClick, Zap, Settings, Check, Trash, Bot, ArrowRight } from "lucide-react"
 
 export const ButtonsSection: React.FC = () => {
   return (

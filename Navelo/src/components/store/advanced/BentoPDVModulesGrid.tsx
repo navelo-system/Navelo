@@ -35,7 +35,7 @@ export const BentoPDVModulesGrid: React.FC<BentoPDVModulesGridProps> = ({ onNavi
   return (
     <Stack direction="row" wrap={true} gap={5} justify="center" align="start" w="full">
       {modules.map((m) => (
-        <Stack key={m.id} gap={2.5} align="center" justify="center" className="w-[72px] md:w-20">
+        <Stack key={m.id} gap={2.5} align="center" justify="center" w="w-[72px] md:w-20">
           <Box
             as="button"
             onClick={() => onNavigate(m.id)}

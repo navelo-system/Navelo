@@ -14,12 +14,13 @@ export type ModalProps =
     isOpen: boolean
     onClose: () => void
     title: string
-    subtitle: string
-    icon: LucideIcon
+    subtitle?: string
+    icon?: LucideIcon
     successText?: string
     onSuccess?: () => void
     isSubmit?: boolean
     showCancelButton?: boolean
+    variant?: "default" | "bottom"
     children: React.ReactNode
   }
   | {
@@ -32,6 +33,7 @@ export type ModalProps =
     onSuccess?: never
     isSubmit?: never
     showCancelButton?: never
+    variant?: "default" | "bottom"
     children: React.ReactNode
   }
 /**/
@@ -46,6 +48,7 @@ export function Modal(props: ModalProps) {
     onSuccess,
     isSubmit = false,
     showCancelButton = true,
+    variant = "default",
     children
   } = props
 
@@ -88,17 +91,71 @@ export function Modal(props: ModalProps) {
 
   if (!shouldRender) return null
 
-  // Estado inicial: scale 0.9, opacity 0 → transição para scale 1, opacity 1
+  const isBottom = variant === "bottom"
+
+  // Animado de baixo para cima na variante bottom, senão em scale centralizado
   const dialogStyle: React.CSSProperties = {
-    opacity: isActive ? 1 : 0,
-    transform: isActive ? "scale(1)" : "scale(0.9)",
+    opacity: isBottom ? 1 : (isActive ? 1 : 0),
+    transform: isBottom
+      ? (isActive ? "translateY(0)" : "translateY(100%)")
+      : (isActive ? "scale(1)" : "scale(0.9)"),
     transition: isActive
-      ? "opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1)"
-      : "opacity 0.18s ease, transform 0.18s ease"
+      ? (isBottom
+          ? "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)"
+          : "opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1)")
+      : (isBottom
+          ? "transform 0.22s ease-in"
+          : "opacity 0.18s ease, transform 0.18s ease")
   }
 
   // Modo Simplificado (quando 'title' é fornecido)
   if (title) {
+    if (isBottom) {
+      return (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center">
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+            onClick={handleClose}
+            aria-hidden="true"
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            style={dialogStyle}
+            className="relative z-[101] w-full bg-surface shadow-2xl rounded-t-[24px] border-t-2 border-border p-6"
+          >
+            <Stack direction="row" align="center" justify="between" w="full" gap={5}>
+              <Box flex="1">
+                <Font variant="body-bold" text={title} color="muted" />
+              </Box>
+
+              <Stack direction="row" align="center" gap={5}>
+                {showCancelButton && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    label="Cancelar"
+                    onClick={handleClose}
+                  />
+                )}
+                {showCancelButton && successText && (
+                  <Box h="24px" w="1px" bg="bg-border" opacity="50" />
+                )}
+                {successText && (
+                  <Button
+                    type={isSubmit ? "submit" : "button"}
+                    variant="ghost-secondary"
+                    label={successText}
+                    onClick={onSuccess}
+                  />
+                )}
+              </Stack>
+            </Stack>
+          </div>
+        </div>
+      )
+    }
+
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <div

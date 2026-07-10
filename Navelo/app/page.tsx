@@ -24,12 +24,13 @@ import {
   Users,
   BarChart3,
   Settings,
-  Terminal
+  Terminal,
+  LucideIcon
 } from "lucide-react"
 
 const PDV_VIEWS = ["dashboard", "caixa", "comandas", "delivery", "estoque", "produtos", "clientes", "relatorios", "configuracoes"]
 
-const viewIconMap: Record<string, any> = {
+const viewIconMap: Record<string, LucideIcon> = {
   dashboard: Terminal,
   caixa: ShoppingBag,
   comandas: Receipt,
@@ -114,7 +115,7 @@ export default function Home() {
   // Estado global de comandas para fluxo integrado
   const [comandas, setComandas] = React.useState([
     { id: "101", label: "#filipe", time: "452:42", total: 45.00 },
-    { id: "102", label: "#maria", time: "015:30", total: 120.50 },
+    { id: "102442", label: "#maria", time: "015:30", total: 120.50 },
     { id: "103", label: "#mesa_5", time: "124:10", total: 18.00 },
     { id: "104", label: "#mesa_12", time: "002:15", total: 0.00 }
   ])
@@ -160,33 +161,38 @@ export default function Home() {
   }
 
   return (
-    <Box w="full" h="screen" bg="bg-slate-200" display="flex" direction="col">
-      {/* Cabeçalho superior do PDV */}
-      <PdvHeaderSection
-        currentView={currentView}
-        onNavigate={(view) => {
-          if (view === "dashboard") {
-            setActiveComandaId(null)
-          }
-          setCurrentView(view)
-        }}
-        operatorName={operator}
-        onLogout={() => {
-          setOperator(null)
-          setCurrentView("login")
-          setActiveComandaId(null)
-        }}
-      />
-
-      {/* Conteúdo dinâmico da tela envolto por RegistryMain */}
-      <Box flex="1" overflow="auto">
+    <Box w="full" h="h-auto md:h-screen" display="flex" direction="col" className="md:overflow-hidden bg-slate-200">
+      {/* Header full width (only for dashboard) */}
+      {currentView === "dashboard" && (
+        <Box w="full" shrink="0">
+          <PdvHeaderSection
+            currentView={currentView}
+            onNavigate={(view) => {
+              if (view === "dashboard") {
+                setActiveComandaId(null)
+              }
+              setCurrentView(view)
+            }}
+            operatorName={operator}
+            onLogout={() => {
+              setOperator(null)
+              setCurrentView("login")
+              setActiveComandaId(null)
+            }}
+          />
+        </Box>
+      )}
+      {/* Main content area */}
+      <Box flex="1" w="full" className="min-h-0 overflow-y-auto md:overflow-hidden flex flex-col">
         <RegistryMain
           title={
             customTitle
               ? customTitle
               : currentView === "dashboard"
-              ? undefined
-              : currentView.charAt(0).toUpperCase() + currentView.slice(1)
+                ? undefined
+                : currentView === "caixa" && activeComandaId
+                  ? comandas.find(c => c.id === activeComandaId)?.label || "Caixa"
+                  : currentView.charAt(0).toUpperCase() + currentView.slice(1)
           }
           subtitle={
             currentView === "dashboard"
@@ -202,98 +208,104 @@ export default function Home() {
             customBack
               ? customBack
               : currentView !== "dashboard"
-              ? () => {
-                  setActiveComandaId(null)
-                  setCurrentView("dashboard")
-                }
-              : undefined
+                ? () => {
+                    setActiveComandaId(null)
+                    setCurrentView("dashboard")
+                  }
+                : undefined
           }
           customActions={currentView === "dashboard" ? undefined : customActions}
+          className="flex-1 flex flex-col min-h-0"
         >
-          <ViewTransition viewKey={currentView}>
-          {currentView === "dashboard" && (
-            <Box w="full">
-              <DashboardSection onNavigate={setCurrentView} />
-            </Box>
-          )}
+          {/* Container centralizado com largura limitada para o conteúdo (apenas no dashboard) */}
+          <Box display="flex" justify="center" w="full" flex="1" className="min-h-0">
+            <Box w="full" flex="1" display="flex" direction="col" className={`min-h-0 ${currentView === "dashboard" ? "max-w-[1000px]" : ""}`}>
+              <ViewTransition viewKey={currentView} className="flex-1 flex flex-col min-h-0">
+                {currentView === "dashboard" && (
+                  <Box w="full" flex="1" className="min-h-0">
+                    <DashboardSection onNavigate={setCurrentView} />
+                  </Box>
+                )}
 
-          {currentView === "caixa" && (
-            <Box w="full">
-              <PdvSection
-                onBackToDashboard={() => {
-                  setActiveComandaId(null)
-                  setCurrentView("dashboard")
-                }}
-                activeComandaId={activeComandaId}
-                onCloseComanda={handleCloseComanda}
-                setCustomBack={setCustomBack}
-              />
-            </Box>
-          )}
+                {currentView === "caixa" && (
+                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                    <PdvSection
+                      onBackToDashboard={() => {
+                        setActiveComandaId(null)
+                        setCurrentView("dashboard")
+                      }}
+                      activeComandaId={activeComandaId}
+                      onCloseComanda={handleCloseComanda}
+                      setCustomBack={setCustomBack}
+                    />
+                  </Box>
+                )}
 
-          {currentView === "comandas" && (
-            <Box w="full">
-              <ComandasSection
-                onSelectComanda={handleSelectComanda}
-                comandas={comandas}
-                onAddComanda={handleAddComanda}
-              />
-            </Box>
-          )}
+                {currentView === "comandas" && (
+                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                    <ComandasSection
+                      onSelectComanda={handleSelectComanda}
+                      comandas={comandas}
+                      onAddComanda={handleAddComanda}
+                    />
+                  </Box>
+                )}
 
-          {currentView === "delivery" && (
-            <Box w="full">
-              <DeliverySection />
-            </Box>
-          )}
+                {currentView === "delivery" && (
+                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                    <DeliverySection />
+                  </Box>
+                )}
 
-          {currentView === "estoque" && (
-            <Box w="full">
-              <EstoqueSection
-                onBackToDashboard={() => setCurrentView("dashboard")}
-                setCustomBack={setCustomBack}
-              />
-            </Box>
-          )}
+                {currentView === "estoque" && (
+                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                    <EstoqueSection
+                      onBackToDashboard={() => setCurrentView("dashboard")}
+                      setCustomBack={setCustomBack}
+                    />
+                  </Box>
+                )}
 
-          {currentView === "produtos" && (
-            <Box w="full">
-              <ProdutosSection
-                onBackToDashboard={() => setCurrentView("dashboard")}
-                setCustomBack={setCustomBack}
-              />
-            </Box>
-          )}
+                {currentView === "produtos" && (
+                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                    <ProdutosSection
+                      onBackToDashboard={() => setCurrentView("dashboard")}
+                      setCustomBack={setCustomBack}
+                    />
+                  </Box>
+                )}
 
-          {currentView === "clientes" && (
-            <Box w="full">
-              <ClientesSection
-                onBackToDashboard={() => setCurrentView("dashboard")}
-                setCustomBack={setCustomBack}
-              />
-            </Box>
-          )}
+                {currentView === "clientes" && (
+                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                    <ClientesSection
+                      onBackToDashboard={() => setCurrentView("dashboard")}
+                      setCustomBack={setCustomBack}
+                    />
+                  </Box>
+                )}
 
-          {currentView === "relatorios" && (
-            <Box w="full">
-              <RelatoriosSection
-                onBackToDashboard={() => setCurrentView("dashboard")}
-                setCustomBack={setCustomBack}
-              />
-            </Box>
-          )}
+                {currentView === "relatorios" && (
+                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                    <RelatoriosSection
+                      onBackToDashboard={() => setCurrentView("dashboard")}
+                      setCustomBack={setCustomBack}
+                    />
+                  </Box>
+                )}
 
-          {currentView === "configuracoes" && (
-            <Box w="full">
-              <ConfiguracoesSection
-                onBackToDashboard={() => setCurrentView("dashboard")}
-                setCustomBack={setCustomBack}
-                setCustomTitle={setCustomTitle}
-                setCustomActions={setCustomActions}
-              />
+                {currentView === "configuracoes" && (
+                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                    <ConfiguracoesSection
+                      onBackToDashboard={() => setCurrentView("dashboard")}
+                      setCustomBack={setCustomBack}
+                      setCustomTitle={setCustomTitle}
+                      setCustomActions={setCustomActions}
+                    />
+                  </Box>
+                )}
+              </ViewTransition>
             </Box>
-          )}
-          </ViewTransition>
+          </Box>
         </RegistryMain>
       </Box>
     </Box>

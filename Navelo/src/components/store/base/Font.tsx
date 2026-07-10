@@ -10,6 +10,7 @@ export interface FontProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, "
   as?: "span" | "p" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "div"
   truncate?: boolean
   mono?: boolean
+  lineClamp?: 1 | 2 | 3 | 4
 }
 
 const variantStyles = {
@@ -60,7 +61,7 @@ const mobileAlignStyles = {
 }
 
 export const Font = React.forwardRef<HTMLElement, FontProps>(
-  ({ className, text, variant = "body", color, align, mobileAlign, as = "span", truncate, mono, ...props }, ref) => {
+  ({ className, text, variant = "body", color, align, mobileAlign, as = "span", truncate, mono, lineClamp, ...props }, ref) => {
     const Comp = as as React.ElementType
     return (
       <Comp
@@ -72,6 +73,10 @@ export const Font = React.forwardRef<HTMLElement, FontProps>(
           mobileAlign && mobileAlignStyles[mobileAlign],
           mono && "font-mono",
           truncate && "truncate",
+          lineClamp === 1 && "line-clamp-1",
+          lineClamp === 2 && "line-clamp-2",
+          lineClamp === 3 && "line-clamp-3",
+          lineClamp === 4 && "line-clamp-4",
           className
         )}
         {...props}

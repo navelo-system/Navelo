@@ -11,7 +11,7 @@ import { Button } from "../../base/Button"
 import { Icon } from "../../base/Icon"
 import { EmptyState } from "../../intermediary/EmptyState"
 import { Input } from "../../base/Input"
-import { Avatar } from "../../base/Avatar"
+import { CartItem } from "../../intermediary/CartItem"
 import { Modal } from "../../base/Modal"
 import {
   DollarSign,
@@ -19,7 +19,10 @@ import {
   QrCode,
   CreditCard,
   Users,
-  Trash2
+  Trash2,
+  Pencil,
+  Check,
+  X
 } from "lucide-react"
 
 // Types
@@ -37,6 +40,7 @@ interface PdvCheckoutPaymentProps {
   onOpenDiscountModal: () => void
   onLaunchPayment: (method: string, amount: number) => void
   onRemovePayment: (idx: number) => void
+  onEditPayment?: (idx: number, newAmount: number) => void
   onOpenChangeModal: () => void
   onOpenCardModal: () => void
   onFinalizeSale: () => void
@@ -44,6 +48,8 @@ interface PdvCheckoutPaymentProps {
   onChangePaymentAmountInput: (val: string) => void
   launchAmount: number
   onRemoveItem: (id: string) => void
+  onIncreaseItem?: (id: string) => void
+  onDecreaseItem?: (id: string) => void
 }
 
 export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
@@ -58,6 +64,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
   onOpenDiscountModal,
   onLaunchPayment,
   onRemovePayment,
+  onEditPayment,
   onOpenChangeModal,
   onOpenCardModal,
   onFinalizeSale,
@@ -65,47 +72,62 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
   onChangePaymentAmountInput,
   launchAmount,
   onRemoveItem,
+  onIncreaseItem,
+  onDecreaseItem,
 }) => {
   const [itemToRemove, setItemToRemove] = React.useState<CartItemType | null>(null)
+  const [editingPaymentIdx, setEditingPaymentIdx] = React.useState<number | null>(null)
+  const [editPaymentInput, setEditPaymentInput] = React.useState("")
+
+  const startEditPayment = (idx: number, amount: number) => {
+    setEditingPaymentIdx(idx)
+    setEditPaymentInput(amount.toFixed(2).replace(".", ","))
+  }
+
+  const confirmEditPayment = () => {
+    if (editingPaymentIdx !== null && onEditPayment) {
+      const parsed = parseFloat(editPaymentInput.replace(",", "."))
+      if (!isNaN(parsed) && parsed > 0) {
+        onEditPayment(editingPaymentIdx, parsed)
+      }
+    }
+    setEditingPaymentIdx(null)
+    setEditPaymentInput("")
+  }
+
+  const cancelEditPayment = () => {
+    setEditingPaymentIdx(null)
+    setEditPaymentInput("")
+  }
 
   return (
-    <Grid cols={2} gap={5}>
+    <Grid cols={2} gap={5} className="flex-1 min-h-0">
       {/* Painel Esquerdo: Resumo do Pedido */}
-      <Box bg="bg-surface" padding={5} radius="default" border={true} borderColor="border-border" w="full">
-        <Stack gap={5}>
+      <Box bg="bg-surface" padding={5} radius="default" border={true} borderColor="border-border" w="full" className="flex flex-col min-h-0">
+        <Stack gap={5} className="flex-1 min-h-0">
           <Font variant="h3" text="Resumo da Conta" />
           <Box h="h-[2px]" bg="bg-border" w="full" />
 
-          <Box flex="1" overflow="auto" maxH="96" padding={0}>
+          <Box flex="1" overflow="auto" padding={0} className="min-h-0">
             <Stack gap={2.5}>
-              {cartItems.map((item) => (
-                <Box key={item.id} padding={2.5} border={true} borderColor="border-border" radius="default">
-                  <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" gap={2.5} className="md:gap-5 w-full">
-                    {/* Lado Esquerdo: Avatar + Nome + Quantidade/Preço Unitário */}
-                    <Stack direction="row" align="center" gap={5} flex="1" minW="0">
-                      <Avatar image={item.image} fallback={item.name.substring(0, 2)} />
-                      <Stack gap={1} w="full">
-                        <Font variant="body-bold" text={item.name} align="left" />
-                        <Font variant="auxiliary" color="muted" text={`${item.quantity} UN x ${formatPrice(item.unitPrice)}`} align="left" />
-                      </Stack>
-                    </Stack>
-
-                    {/* Lado Direito: Preço Total + Botão Lixeira */}
-                    <Stack direction="row" align="center" gap={5} justify="end" w="w-full md:w-auto">
-                      <Font variant="body-bold" text={formatPrice(item.quantity * item.unitPrice)} />
-                      <Button
-                        variant="danger-icon"
-                        icon={Trash2}
-                        onClick={() => setItemToRemove(item)}
-                      />
-                    </Stack>
-                  </Stack>
-                </Box>
+              {cartItems.map((item, idx) => (
+                <CartItem
+                  key={item.id}
+                  id={item.id}
+                  name={item.name}
+                  quantity={item.quantity}
+                  unitPrice={item.unitPrice}
+                  image={item.image}
+                  isLast={idx === cartItems.length - 1}
+                  onIncrease={onIncreaseItem || (() => { })}
+                  onDecrease={onDecreaseItem || (() => { })}
+                  onRemove={() => setItemToRemove(item)}
+                />
               ))}
             </Stack>
           </Box>
 
-          <Box h="h-[2px]" bg="bg-border" w="full" />
+          <Box h="h-[2px]" bg="bg-border" w="full" shrink="0" />
 
           <Stack gap={2.5}>
             <Stack direction="row" justify="between" align="center">
@@ -131,10 +153,10 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
       </Box>
 
       {/* Painel Direito: Métodos de Pagamento e Lançamento */}
-      <Box bg="bg-surface" padding={5} radius="default" border={true} borderColor="border-border" w="full">
-        <Stack gap={5}>
+      <Box bg="bg-surface" padding={5} radius="default" border={true} borderColor="border-border" w="full" className="flex flex-col min-h-0">
+        <Stack gap={5} className="flex-1 min-h-0">
           <Font variant="h3" text="Quitação de Valores" />
-          <Box h="h-[2px]" bg="bg-border" w="full" />
+          <Box h="h-[2px]" bg="bg-border" w="full" shrink="0" />
 
           {/* Totalizadores de Quitação */}
           <Grid cols={3} gap={2.5}>
@@ -159,7 +181,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
           </Grid>
 
           {/* Pagamentos Lançados */}
-          <Box flex="1" overflow="auto" maxH="96" padding={0}>
+          <Box flex="1" overflow="auto" padding={0} className="min-h-0">
             <Stack gap={2.5}>
               {payments.length === 0 ? (
                 <EmptyState
@@ -171,40 +193,72 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                 payments.map((p, idx) => (
                   <Box key={idx} padding={2.5} radius="default" border={true} borderColor="border-border">
                     {/* Visualização Mobile: Ícone e Lixeira em cima, Método e Valor embaixo */}
-                    <Box display="block md:hidden" w="full">
-                      <Stack gap={2.5} w="full">
-                        <Stack direction="row" justify="between" align="center" w="full">
-                          <Icon icon={DollarSign} variant="circular-success" />
-                          <Button
-                            variant="danger-icon"
-                            icon={Trash2}
-                            onClick={() => onRemovePayment(idx)}
-                          />
+                    {editingPaymentIdx === idx ? (
+                      <Box display="block md:hidden" w="full">
+                        <Stack gap={2.5} w="full">
+                          <Stack direction="row" justify="between" align="center" w="full">
+                            <Icon icon={DollarSign} variant="circular-success" />
+                            <Stack direction="row" gap={2.5}>
+                              <Button variant="outline-icon" icon={Check} onClick={confirmEditPayment} />
+                              <Button variant="danger-icon" icon={X} onClick={cancelEditPayment} />
+                            </Stack>
+                          </Stack>
+                          <Stack direction="row" justify="between" align="center" w="full">
+                            <Font variant="body-bold" text={p.method} />
+                            <Input value={editPaymentInput} onChange={(e) => setEditPaymentInput(e.target.value)} />
+                          </Stack>
                         </Stack>
-                        <Stack direction="row" justify="between" align="center" w="full">
-                          <Font variant="body-bold" text={p.method} />
-                          <Font variant="body-bold" text={formatPrice(p.amount)} />
+                      </Box>
+                    ) : (
+                      <Box display="block md:hidden" w="full">
+                        <Stack gap={2.5} w="full">
+                          <Stack direction="row" justify="between" align="center" w="full">
+                            <Icon icon={DollarSign} variant="circular-success" />
+                            <Stack direction="row" gap={2.5}>
+                              <Button variant="outline-icon" icon={Pencil} onClick={() => startEditPayment(idx, p.amount)} />
+                              <Button variant="danger-icon" icon={Trash2} onClick={() => onRemovePayment(idx)} />
+                            </Stack>
+                          </Stack>
+                          <Stack direction="row" justify="between" align="center" w="full">
+                            <Font variant="body-bold" text={p.method} />
+                            <Font variant="body-bold" text={formatPrice(p.amount)} />
+                          </Stack>
                         </Stack>
-                      </Stack>
-                    </Box>
+                      </Box>
+                    )}
 
                     {/* Visualização Desktop: Lado a lado tradicional */}
-                    <Box display="hidden md:block" w="full">
-                      <Stack direction="row" justify="between" align="center" w="full">
-                        <Stack direction="row" align="center" gap={2.5}>
-                          <Icon icon={DollarSign} variant="circular-success" />
-                          <Font variant="body-bold" text={p.method} />
+                    {editingPaymentIdx === idx ? (
+                      <Box display="hidden md:block" w="full">
+                        <Stack direction="row" justify="between" align="center" w="full">
+                          <Stack direction="row" align="center" gap={2.5}>
+                            <Icon icon={DollarSign} variant="circular-success" />
+                            <Font variant="body-bold" text={p.method} />
+                          </Stack>
+                          <Stack direction="row" align="center" gap={2.5}>
+                            <Box w="w-24">
+                              <Input value={editPaymentInput} onChange={(e) => setEditPaymentInput(e.target.value)} />
+                            </Box>
+                            <Button variant="outline-icon" icon={Check} onClick={confirmEditPayment} />
+                            <Button variant="danger-icon" icon={X} onClick={cancelEditPayment} />
+                          </Stack>
                         </Stack>
-                        <Stack direction="row" align="center" gap={5}>
-                          <Font variant="body-bold" text={formatPrice(p.amount)} />
-                          <Button
-                            variant="danger-icon"
-                            icon={Trash2}
-                            onClick={() => onRemovePayment(idx)}
-                          />
+                      </Box>
+                    ) : (
+                      <Box display="hidden md:block" w="full">
+                        <Stack direction="row" justify="between" align="center" w="full">
+                          <Stack direction="row" align="center" gap={2.5}>
+                            <Icon icon={DollarSign} variant="circular-success" />
+                            <Font variant="body-bold" text={p.method} />
+                          </Stack>
+                          <Stack direction="row" align="center" gap={2.5}>
+                            <Font variant="body-bold" text={formatPrice(p.amount)} />
+                            <Button variant="outline-icon" icon={Pencil} onClick={() => startEditPayment(idx, p.amount)} />
+                            <Button variant="danger-icon" icon={Trash2} onClick={() => onRemovePayment(idx)} />
+                          </Stack>
                         </Stack>
-                      </Stack>
-                    </Box>
+                      </Box>
+                    )}
                   </Box>
                 ))
               )}

@@ -29,7 +29,7 @@ export const PdvCheckoutReceipt: React.FC<PdvCheckoutReceiptProps> = ({
 
   return (
     <Stack gap={5} w="full" align="center">
-      <Box w="1/4" bg="bg-surface" padding={5} radius="default" border={true} borderColor="border-border">
+      <Box w="w-full md:w-fit" bg="bg-surface" padding={5} radius="default" border={true} borderColor="border-border">
         <ThermalReceiptPreview
           companyName="Navelo Restaurante e PDV"
           cnpj="12.345.678/0001-90"

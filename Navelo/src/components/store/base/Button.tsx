@@ -5,7 +5,7 @@ import { LucideIcon } from "lucide-react"
 import { Icon as BaseIcon } from "./Icon"
 import { Font } from "./Font"
 
-type BaseColor = "primary" | "secondary" | "success" | "danger" | "outline" | "ghost" | "ghost-secondary"
+type BaseColor = "primary" | "secondary" | "success" | "danger" | "outline" | "ghost" | "ghost-secondary" | "ghost-primary"
 type Modifier = "" | "-pill" | "-sm" | "-xs" | "-lg" | "-icon" | "-icon-xs" | "-ghost" | "-pill-sm" | "-pill-xs" | "-pill-lg" | "-pill-icon" | "-pill-icon-xs"
 
 export type ButtonVariant = `${BaseColor}${Modifier}`
@@ -29,6 +29,7 @@ const variantStyles: Record<string, string> = {
   outline: "border-2 border-border bg-surface hover:bg-surface-sunken text-foreground",
   ghost: "bg-transparent text-foreground border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",
   "ghost-secondary": "bg-transparent text-brand-secondary border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",
+  "ghost-primary": "bg-transparent text-brand-primary border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",
 }
 
 const justifyStyles = {
@@ -58,7 +59,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const isPill = variant.includes("-pill")
     
     let logicalSize: keyof typeof sizeStyles = "default"
-    if (variant === "ghost" || variant === "ghost-secondary") {
+    if (variant === "ghost" || variant === "ghost-secondary" || variant === "ghost-primary") {
       logicalSize = "ghost"
     } else if (variant.includes("-icon-xs")) logicalSize = "icon-xs"
     else if (variant.includes("-icon")) logicalSize = "icon"
@@ -73,7 +74,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       baseColor = baseColor.replace(mod, "")
     })
 
-    const isGhost = baseColor === "ghost" || baseColor === "ghost-secondary"
+    const isGhost = baseColor === "ghost" || baseColor === "ghost-secondary" || baseColor === "ghost-primary"
 
     const classes = cn(
       !isGhost && "btn-shimmer",

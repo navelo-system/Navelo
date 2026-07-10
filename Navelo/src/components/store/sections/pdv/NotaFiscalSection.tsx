@@ -48,7 +48,7 @@ const CustomCheckbox = ({ checked, onChange, label }: { checked: boolean, onChan
       >
         {checked && <Icon icon={Check} size={12} color="white" />}
       </Box>
-      <Font variant="body-sm-medium" text={label} />
+      <Font variant="body-sm-medium" text={label} align="left" />
     </Stack>
   </Box>
 )
@@ -149,10 +149,10 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
       <Stack gap={5} w="full">
         {/* Toggle Habilitar emissão */}
         <Box border={true} borderColor="border-border" padding={5} radius="default" bg="bg-surface">
-          <Stack direction="row" align="center" justify="between" w="full" gap={5}>
+          <Stack direction="col-reverse" mobileDirection="row" align="start" mobileAlign="center" justify="between" w="full" gap={5}>
             <Stack gap={1}>
-              <Font variant="body-bold" text="Habilitar emissão de notas" />
-              <Font variant="description" text="Ative para realizar a emissão de cupons e notas fiscais de venda" />
+              <Font variant="body-bold" text="Habilitar emissão de notas" align="left" />
+              <Font variant="description" text="Ative para realizar a emissão de cupons e notas fiscais de venda" align="left" />
             </Stack>
             <Switch checked={emitirNotas} onChange={() => setEmitirNotas(!emitirNotas)} />
           </Stack>
@@ -275,17 +275,17 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
             cursor="pointer"
             w="full"
           >
-            <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-              <Stack direction="row" align="center" gap={2.5}>
+            <Stack direction="col" mobileDirection="row" align="center" justify="between" w="full" gap={2.5}>
+              <Stack direction="col" mobileDirection="row" align="center" gap={2.5}>
                 <Icon icon={User} size={18} color="muted" />
-                <Font variant="body-bold" text="CPF/CNPJ autorizada a obter o XML" />
+                <Font variant="body-bold" text="CPF/CNPJ autorizada a obter o XML" align="center" />
               </Stack>
               <Icon icon={xmlAccordionOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
             </Stack>
           </Box>
           
           {xmlAccordionOpen && (
-            <Box padding={5} borderStyle="solid" border={true} borderColor="border-border">
+            <Box padding={5} borderTop={true} borderColor="border-border">
               <Stack gap={2.5} w="full">
                 {authorizedCpfCnpj.length === 0 ? (
                   <EmptyState
@@ -347,17 +347,17 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
             cursor="pointer"
             w="full"
           >
-            <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-              <Stack direction="row" align="center" gap={2.5}>
+            <Stack direction="col" mobileDirection="row" align="center" justify="between" w="full" gap={2.5}>
+              <Stack direction="col" mobileDirection="row" align="center" gap={2.5}>
                 <Icon icon={CreditCard} size={18} color="muted" />
-                <Font variant="body-bold" text="Informações POS" />
+                <Font variant="body-bold" text="Informações POS" align="center" />
               </Stack>
               <Icon icon={posAccordionOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
             </Stack>
           </Box>
           
           {posAccordionOpen && (
-            <Box padding={5} borderStyle="solid" border={true} borderColor="border-border">
+            <Box padding={5} borderTop={true} borderColor="border-border">
               <Stack gap={5} w="full">
                 <Font
                   variant="description"

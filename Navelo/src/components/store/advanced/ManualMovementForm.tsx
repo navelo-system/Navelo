@@ -92,7 +92,7 @@ export const ManualMovementForm: React.FC<ManualMovementFormProps> = ({
           </Stack>
 
           {/* Botões */}
-          <Stack direction="row" gap={2.5}>
+          <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full">
             <Button variant="outline" label="Cancelar" onClick={onCancel} />
             <Button variant="primary" label="Confirmar Movimentação" type="submit" />
           </Stack>

@@ -5,15 +5,19 @@
 import * as React from "react"
 import { Box } from "../../base/Box"
 import { Stack } from "../../base/Stack"
-import { Grid } from "../../base/Grid"
 import { Font } from "../../base/Font"
 import { Tabs, TabsTrigger } from "../../base/Tabs"
 import { EmptyState } from "../../intermediary/EmptyState"
 import { ProductCard } from "../../advanced/ProductCard"
 import { Product, ProductType, UnitType } from "@/src/types/domain"
 import {
-  Package
+  Package,
+  Minus,
+  Plus,
+  Trash2
 } from "lucide-react"
+import { Button } from "../../base/Button"
+import { CartItemType } from "./PdvSection"
 
 export interface MockProduct {
   id: string
@@ -32,6 +36,11 @@ interface PdvCatalogProps {
   onAddProduct: (prod: MockProduct) => void
   categories: string[]
   viewMode: "grade" | "lista"
+  cartSidebarNode?: React.ReactNode
+  cartItems?: CartItemType[]
+  onIncrease?: (id: string) => void
+  onDecrease?: (id: string) => void
+  onRemove?: (id: string) => void
 }
 
 const adaptProduct = (prod: MockProduct): Product => ({
@@ -58,83 +67,127 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
   onAddProduct,
   categories,
   viewMode,
+  cartSidebarNode,
+  cartItems = [],
+  onIncrease,
+  onDecrease,
+  onRemove,
 }) => {
+  const getProductQuantity = (id: string) => {
+    return cartItems.find((item) => item.id === id)?.quantity || 0
+  }
+
   return (
-    <Stack gap={5}>
+    <Stack gap={5} className="flex-1 min-h-0">
 
       {/* Abas de Categorias */}
-      <Box w="full" overflow="auto" paddingY={1}>
+      <Box w="full" overflow="auto" paddingY={1} shrink="0">
         <Tabs value={activeCategory} onValueChange={onActiveCategoryChange}>
-          <Stack direction="row" gap={5}>
+          <Stack direction="row" gap={2.5}>
             {categories.map((cat) => (
               <TabsTrigger key={cat} value={cat}>
                 {cat}
               </TabsTrigger>
             ))}
+            {cartSidebarNode && (
+              <Box display="block md:hidden">
+                <TabsTrigger value="Resumo">Resumo</TabsTrigger>
+              </Box>
+            )}
           </Stack>
         </Tabs>
       </Box>
 
-      {/* Grade/Lista de Produtos */}
-      <Box padding={1}>
-        {filteredProducts.length === 0 ? (
+      {/* Grade/Lista de Produtos ou Carrinho */}
+      <Box padding={1} flex="1" className="min-h-0 overflow-y-auto">
+        {activeCategory === "Resumo" && cartSidebarNode ? (
+          cartSidebarNode
+        ) : filteredProducts.length === 0 ? (
           <EmptyState
             icon={Package}
             title="Sem produtos"
             subtitle="Nenhum produto cadastrado nesta categoria."
           />
         ) : viewMode === "grade" ? (
-          <Grid cols={6} gap={5} mobileCols={2}>
-            {filteredProducts.map((prod) => (
-              <ProductCard
-                key={prod.id}
-                product={adaptProduct(prod)}
-                onClick={() => onAddProduct(prod)}
-              />
-            ))}
-          </Grid>
+          <Stack direction="row" wrap={true} gap={5} justify="between" align="stretch" w="full">
+            {filteredProducts.map((prod) => {
+              const qty = getProductQuantity(prod.id)
+              return (
+                <Box key={prod.id} w="w-[105px] md:w-[120px]" display="flex" direction="col">
+                  <ProductCard
+                    product={adaptProduct(prod)}
+                    onClick={() => onAddProduct(prod)}
+                    quantity={qty}
+                    onIncrease={() => onIncrease?.(prod.id)}
+                    onDecrease={() => onDecrease?.(prod.id)}
+                    onRemove={() => onRemove?.(prod.id)}
+                  />
+                </Box>
+              )
+            })}
+          </Stack>
         ) : (
           /* Lista limpa — thumbnail + nome + preço/unidade */
           <Box display="flex" direction="col" radius="default" border={true} borderColor="border-border" bg="bg-white">
-            {filteredProducts.map((prod, idx) => (
-              <Box key={prod.id}>
-                <Box
-                  as="button"
-                  w="full"
-                  paddingX={2.5}
-                  paddingY={2.5}
-                  hoverBg="surface-sunken"
-                  onClick={() => onAddProduct(prod)}
-                >
-                  <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" gap={2.5} w="full">
-                    {/* Thumbnail + Nome */}
-                    <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
-                      <Box w="w-10" h="h-10" bg="bg-surface-sunken" radius="default" overflow="hidden" shrink="0">
-                        {prod.image ? (
-                          <Box as="img" src={prod.image} alt={prod.name} w="full" h="full" objectFit="cover" />
-                        ) : (
-                          <Stack align="center" justify="center" w="full" h="full">
-                            <Font variant="auxiliary" color="muted" text="—" />
+            {filteredProducts.map((prod, idx) => {
+              const qty = getProductQuantity(prod.id)
+              return (
+                <Box key={prod.id}>
+                  <Box
+                    w="full"
+                    paddingX={2.5}
+                    paddingY={2.5}
+                    hoverBg="surface-sunken"
+                    onClick={() => {
+                      if (qty === 0) onAddProduct(prod)
+                    }}
+                    cursor={qty === 0 ? "pointer" : undefined}
+                  >
+                    <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" gap={2.5} w="full">
+                      {/* Thumbnail + Nome */}
+                      <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
+                        <Box w="w-10" h="h-10" bg="bg-surface-sunken" radius="default" overflow="hidden" shrink="0">
+                          {prod.image ? (
+                            <Box as="img" src={prod.image} alt={prod.name} w="full" h="full" objectFit="cover" />
+                          ) : (
+                            <Stack align="center" justify="center" w="full" h="full">
+                              <Font variant="auxiliary" color="muted" text="—" />
+                            </Stack>
+                          )}
+                        </Box>
+                        <Font variant="body-sm-semibold" text={prod.name.toUpperCase()} align="left" />
+                      </Stack>
+                      {/* Preço + Unidade e Controles */}
+                      <Stack direction="row" align="center" gap={2.5} justify="end" w="w-full md:w-auto">
+                        <Stack direction="row" align="baseline" gap={1}>
+                          <Font
+                            variant="body-sm-semibold"
+                            text={new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(prod.unitPrice)}
+                          />
+                          <Font variant="auxiliary" color="muted" text={prod.unit || "UN"} />
+                        </Stack>
+                        {qty > 0 && (
+                          <Stack direction="row" align="center" justify="center" gap={2.5}>
+                            {qty === 1 ? (
+                              <Button variant="danger-icon-xs" icon={Trash2} onClick={(e) => { e.stopPropagation(); onRemove?.(prod.id); }} />
+                            ) : (
+                              <Button variant="outline-icon-xs" icon={Minus} onClick={(e) => { e.stopPropagation(); onDecrease?.(prod.id); }} />
+                            )}
+                            <Box padding={0} w="w-4">
+                              <Font variant="body-bold" text={String(qty)} align="center" />
+                            </Box>
+                            <Button variant="outline-icon-xs" icon={Plus} onClick={(e) => { e.stopPropagation(); onIncrease?.(prod.id); }} />
                           </Stack>
                         )}
-                      </Box>
-                      <Font variant="body-sm-semibold" text={prod.name.toUpperCase()} align="left" />
+                      </Stack>
                     </Stack>
-                    {/* Preço + Unidade */}
-                    <Stack direction="row" align="baseline" gap={1} justify="end" w="w-full md:w-auto">
-                      <Font
-                        variant="body-sm-semibold"
-                        text={new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(prod.unitPrice)}
-                      />
-                      <Font variant="auxiliary" color="muted" text={prod.unit || "UN"} />
-                    </Stack>
-                  </Stack>
+                  </Box>
+                  {idx < filteredProducts.length - 1 && (
+                    <Box h="h-[1px]" w="full" bg="bg-border" />
+                  )}
                 </Box>
-                {idx < filteredProducts.length - 1 && (
-                  <Box h="h-[1px]" w="full" bg="bg-border" />
-                )}
-              </Box>
-            ))}
+              )
+            })}
           </Box>
         )}
       </Box>

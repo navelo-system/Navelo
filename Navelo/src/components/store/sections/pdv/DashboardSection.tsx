@@ -9,10 +9,7 @@ import { Warning } from "../../base/Warning"
 import { KpiCard } from "../../../store/intermediary/KpiCard"
 import { BentoPDVModulesGrid } from "../../advanced/BentoPDVModulesGrid"
 import {
-  AlertTriangle,
-  TrendingUp,
-  Coins,
-  ArrowUpRight
+  AlertTriangle
 } from "lucide-react"
 
 interface DashboardSectionProps {
@@ -20,7 +17,6 @@ interface DashboardSectionProps {
 }
 
 export const DashboardSection: React.FC<DashboardSectionProps> = ({ onNavigate }) => {
-  const [isAlertVisible, setIsAlertVisible] = React.useState(true)
   const [hideValues, setHideValues] = React.useState(() => {
     if (typeof window !== "undefined") {
       return localStorage.getItem("hide-values") === "true"
@@ -52,6 +48,7 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({ onNavigate }
           subtitle="16/06/26 16:00"
           hideValues={hideValues}
         />
+        {/* eslint-disable-next-line no-restricted-syntax */}
         <Box className="col-span-2 md:col-span-1">
           <KpiCard
             title="Total a receber"
@@ -66,17 +63,14 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({ onNavigate }
       <BentoPDVModulesGrid onNavigate={onNavigate} />
 
       {/* Seção 3: Alertas / Pendências Fiscais */}
-      {isAlertVisible && (
-        <Warning
-          variant="danger"
-          title="Pendência Fiscal Detectada"
-          text="Existem notas fiscais em contingência aguardando sincronização com a SEFAZ."
-          icon={AlertTriangle}
-          textButton="Configurar"
-          onClick={() => onNavigate("configuracoes")}
-          onClose={() => setIsAlertVisible(false)}
-        />
-      )}
+      <Warning
+        variant="danger"
+        title="Pendência Fiscal Detectada"
+        text="Existem notas fiscais em contingência aguardando sincronização com a SEFAZ."
+        icon={AlertTriangle}
+        textButton="Configurar"
+        onClick={() => onNavigate("configuracoes")}
+      />
     </Stack>
   )
 }
