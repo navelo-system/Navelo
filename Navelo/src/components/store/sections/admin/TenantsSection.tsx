@@ -140,7 +140,7 @@ export function TenantsSection() {
               />
 
               <Stack gap={2.5}>
-                <Badge variant="outline" label="Plano de Cobrança" />
+                <Badge variant="ghost" label="Plano de Cobrança" />
                 <CustomSelect value={selectedPlan} onChange={setSelectedPlan}>
                   {plans.map(p => (
                     <CustomSelectItem
@@ -154,7 +154,7 @@ export function TenantsSection() {
               </Stack>
 
               <Stack direction="row" align="center" justify="between">
-                <Badge variant="outline" label="Status Inicial Ativo" />
+                <Badge variant="ghost" label="Status Inicial Ativo" />
                 <Switch
                   checked={isActive}
                   onChange={(e) => setIsActive(e.target.checked)}

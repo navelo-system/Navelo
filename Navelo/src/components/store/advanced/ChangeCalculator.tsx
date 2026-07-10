@@ -83,10 +83,10 @@ export const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({
       <Stack gap={2.5}>
         <Font variant="body-bold" text="Cédulas Rápidas" />
         <Grid cols={4} gap={2.5}>
-          <Button variant="outline" label="R$ 10" onClick={() => handleShortcutClick(10)} />
-          <Button variant="outline" label="R$ 20" onClick={() => handleShortcutClick(20)} />
-          <Button variant="outline" label="R$ 50" onClick={() => handleShortcutClick(50)} />
-          <Button variant="outline" label="R$ 100" onClick={() => handleShortcutClick(100)} />
+          <Button variant="ghost" label="R$ 10" onClick={() => handleShortcutClick(10)} />
+          <Button variant="ghost" label="R$ 20" onClick={() => handleShortcutClick(20)} />
+          <Button variant="ghost" label="R$ 50" onClick={() => handleShortcutClick(50)} />
+          <Button variant="ghost" label="R$ 100" onClick={() => handleShortcutClick(100)} />
         </Grid>
       </Stack>
 

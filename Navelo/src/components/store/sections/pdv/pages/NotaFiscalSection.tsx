@@ -320,7 +320,7 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
                       />
                     </Box>
                     <Button variant="primary" label="Adicionar" onClick={handleAddCpfCnpj} />
-                    <Button variant="outline" label="Cancelar" onClick={() => setShowAddCpfCnpjInput(false)} />
+                    <Button variant="ghost" label="Cancelar" onClick={() => setShowAddCpfCnpjInput(false)} />
                   </Stack>
                 ) : (
                   <Box display="flex">
@@ -419,7 +419,7 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
                             />
                           </Box>
                           <Button variant="primary" label="Adicionar" onClick={handleAddInstituicao} />
-                          <Button variant="outline" label="Cancelar" onClick={() => setShowAddInstituicaoInput(false)} />
+                          <Button variant="ghost" label="Cancelar" onClick={() => setShowAddInstituicaoInput(false)} />
                         </Stack>
                       ) : (
                         <Box display="flex">

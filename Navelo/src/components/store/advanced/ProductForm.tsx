@@ -319,7 +319,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                         <Icon icon={Package} size={32} color="secondary" />
                       </Stack>
                     </Box>
-                    <Button variant="outline" label="Adicionar Imagem" type="button" />
+                    <Button variant="ghost" label="Adicionar Imagem" type="button" />
                   </Stack>
 
                   <Grid cols={2} gap={5}>

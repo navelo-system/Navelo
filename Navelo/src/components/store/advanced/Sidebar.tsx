@@ -58,8 +58,8 @@ export const Sidebar: React.FC = () => {
 
         <Stack gap={2.5}>
           <Button variant="primary" icon={LayoutDashboard} label="Design System" fullWidth justify="start" />
-          <Button variant="outline" icon={Users} label="Componentes" fullWidth justify="start" />
-          <Button variant="outline" icon={Settings} label="Configurações" fullWidth justify="start" />
+          <Button variant="ghost" icon={Users} label="Componentes" fullWidth justify="start" />
+          <Button variant="ghost" icon={Settings} label="Configurações" fullWidth justify="start" />
         </Stack>
       </Stack>
 

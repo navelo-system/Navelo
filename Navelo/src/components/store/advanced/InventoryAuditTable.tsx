@@ -82,7 +82,7 @@ export const InventoryAuditTable: React.FC<InventoryAuditTableProps> = ({
         </TableBody>
       </Table>
       <Stack direction="col" mobileDirection="row" justify="end" gap={2.5} w="full">
-        <Button variant="outline" label="Cancelar" onClick={onCancel} />
+        <Button variant="ghost" label="Cancelar" onClick={onCancel} />
         <Button variant="primary" label="Salvar Contagem" onClick={() => onSave(localProducts)} />
       </Stack>
     </Stack>

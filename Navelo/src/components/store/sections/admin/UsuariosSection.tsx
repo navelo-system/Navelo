@@ -176,7 +176,7 @@ export function UsuariosSection() {
                 required
               />
               <Stack gap={2.5}>
-                <Badge variant="outline" label="Empresa Inquilina" />
+                <Badge variant="ghost" label="Empresa Inquilina" />
                 <CustomSelect value={newTenantId} onChange={setNewTenantId}>
                   {tenantsList.map(t => (
                     <CustomSelectItem key={t.id} value={t.id} text={t.name} icon={UserIcon} />
@@ -185,7 +185,7 @@ export function UsuariosSection() {
               </Stack>
 
               <Stack gap={2.5}>
-                <Badge variant="outline" label="Cargo / Nível de Acesso" />
+                <Badge variant="ghost" label="Cargo / Nível de Acesso" />
                 <CustomSelect value={newRole} onChange={(v) => setNewRole(v as UserRole)}>
                   <CustomSelectItem value={UserRole.CASHIER} text="Caixa" icon={UserIcon} />
                   <CustomSelectItem value={UserRole.ATTENDANT} text="Atendente" icon={UserIcon} />
