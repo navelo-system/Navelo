@@ -55,12 +55,12 @@ export const DeliverySection: React.FC = () => {
         <Box w="w-full md:w-1/3">
           <Stack gap={5}>
             {/* Novo Pedido */}
-            <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
+            <Box padding={5} bg="bg-surface" radius="default">
               <DeliveryForm onSubmit={handleCreateOrder} />
             </Box>
 
             {/* Busca e Lista de Rastreamento */}
-            <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
+            <Box padding={5} bg="bg-surface" radius="default">
               <DeliveryOrdersList
                 orders={orders}
                 selectedOrderId={selectedOrderId}
@@ -84,7 +84,7 @@ export const DeliverySection: React.FC = () => {
                 />
 
                 {/* Botões de Avanço de Status */}
-                <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
+                <Box padding={5} bg="bg-surface" radius="default">
                   <Stack gap={2.5}>
                     <Font variant="body-bold" text="Mudar Status do Pedido" />
                     <Tabs value={selectedOrder.status} onValueChange={(val) => handleUpdateStatus(val as DeliveryStatus)}>

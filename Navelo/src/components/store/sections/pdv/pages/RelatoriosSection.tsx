@@ -363,20 +363,19 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
         /* ================= VISUALIZAÇÃO DE RELATÓRIO E FILTROS ================= */
         <Stack direction="col" gap={5} w="full">
           <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
-            <Stack direction="row" align="center" gap={2.5} w="full">
-              <Stack gap={1} w="full">
-                <Font variant="h3" text={reportDetails?.title || "Relatório"} align="left" />
-                <Font variant="description" text={reportDetails?.description || ""} align="left" />
-              </Stack>
+            <Stack gap={1} flex="1" minW="0">
+              <Font variant="h3" text={reportDetails?.title || "Relatório"} align="left" />
+              <Font variant="description" text={reportDetails?.description || ""} align="left" />
             </Stack>
 
-            <Button
-              variant="secondary"
-              label="Exportar CSV"
-              icon={Download}
-              onClick={() => {}}
-              fullWidth
-            />
+            <Box shrink="0">
+              <Button
+                variant="secondary"
+                label="Exportar CSV"
+                icon={Download}
+                onClick={() => {}}
+              />
+            </Box>
           </Stack>
 
           {/* Layout Principal com Painel de Filtros Lateral */}
@@ -553,24 +552,14 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
                     {(["Vendido", "Atual"] as const).map((c) => {
                       const isActive = cost === c
                       return (
-                        <Box
+                        <Button
                           key={c}
-                          as="button"
+                          variant={isActive ? "primary" : "outline"}
+                          label={c}
                           onClick={() => setCost(c)}
                           type="button"
-                          paddingY={1}
-                          radius="default"
-                          bg={isActive ? "bg-brand-primary" : "bg-slate-100 hover:bg-slate-200"}
-                          display="flex"
-                          justify="center"
-                          cursor="pointer"
-                        >
-                          <Font
-                            variant="body-xs-semibold"
-                            text={c}
-                            color={isActive ? "white" : "secondary"}
-                          />
-                        </Box>
+                          fullWidth
+                        />
                       )
                     })}
                   </Grid>
@@ -588,24 +577,14 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
                     {(["Descrição", "Margem bruta"] as const).map((o) => {
                       const isActive = order === o
                       return (
-                        <Box
+                        <Button
                           key={o}
-                          as="button"
+                          variant={isActive ? "primary" : "outline"}
+                          label={o}
                           onClick={() => setOrder(o)}
                           type="button"
-                          paddingY={1}
-                          radius="default"
-                          bg={isActive ? "bg-brand-primary" : "bg-slate-100 hover:bg-slate-200"}
-                          display="flex"
-                          justify="center"
-                          cursor="pointer"
-                        >
-                          <Font
-                            variant="body-xs-semibold"
-                            text={o}
-                            color={isActive ? "white" : "secondary"}
-                          />
-                        </Box>
+                          fullWidth
+                        />
                       )
                     })}
                   </Grid>

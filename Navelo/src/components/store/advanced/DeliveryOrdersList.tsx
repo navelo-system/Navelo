@@ -74,8 +74,6 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
                 padding={2.5}
                 bg={isSelected ? "bg-brand-primary/10" : "bg-surface"}
                 radius="default"
-                border={true}
-                borderColor={isSelected ? "border-brand-primary" : "border-border"}
                 w="full"
                 hoverBg="surface-sunken"
               >
