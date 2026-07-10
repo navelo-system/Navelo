@@ -124,12 +124,12 @@ export function Modal(props: ModalProps) {
             style={dialogStyle}
             className="relative z-[101] w-full bg-surface shadow-2xl rounded-t-[24px] border-t-2 border-border p-6"
           >
-            <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" justify="between" w="full" gap={5}>
-              <Box flex="1">
+            <Stack direction="col" mobileDirection="row" align="center" mobileAlign="center" justify="between" w="full" gap={5}>
+              <Box flex="1" className="text-center md:text-left">
                 <Font variant="body-bold" text={title} color="muted" />
               </Box>
 
-              <Stack direction="row" align="center" justify="end" w="full" mobileJustify="end" gap={5} className="md:w-auto">
+              <Stack direction="row" align="center" justify="center" w="full" mobileJustify="end" gap={5} className="md:w-auto">
                 {showCancelButton && (
                   <Button
                     type="button"
