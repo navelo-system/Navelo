@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
+import { Grid } from "@/components/store/base/Grid"
 import { Icon } from "@/components/store/base/Icon"
 import { Font } from "@/components/store/base/Font"
 import {
@@ -33,7 +34,7 @@ export const BentoPDVModulesGrid: React.FC<BentoPDVModulesGridProps> = ({ onNavi
   ]
 
   return (
-    <Stack direction="row" wrap={true} gap={5} justify="between" align="start" w="full">
+    <Stack direction="row" wrap={true} gap={5} justify="center" align="start" w="full">
       {modules.map((m) => (
         <Stack key={m.id} gap={2.5} align="center" justify="center" w="w-[72px] md:w-20">
           <Box
