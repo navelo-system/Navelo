@@ -15,15 +15,12 @@ export type ButtonVariant =
   | "secondary-lg"
   | "secondary-sm"
   | "secondary-pill-icon"
+  | "secondary-pill-icon-xs"
   | "danger-sm"
   | "danger-icon"
   | "danger-icon-xs"
   | "danger-pill-icon"
   | "success-sm"
-  | "outline"
-  | "outline-lg"
-  | "outline-pill-icon"
-  | "outline-pill-icon-xs"
   | "ghost"
   | "ghost-primary"
   | "ghost-secondary"
@@ -41,10 +38,9 @@ export interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonE
 
 const variantStyles: Record<string, string> = {
   primary: "bg-brand-primary text-brand-primary-fg hover:opacity-90",
-  secondary: "bg-brand-secondary text-brand-secondary-fg hover:opacity-90",
+  secondary: "bg-brand-secondary/15 text-brand-secondary hover:bg-brand-secondary/25 shadow-none",
   success: "bg-brand-success text-white hover:opacity-90",
   danger: "bg-brand-danger text-white hover:opacity-90",
-  outline: "bg-surface hover:bg-surface-sunken text-foreground",
   ghost: "bg-transparent text-foreground border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",
   "ghost-secondary": "bg-transparent text-brand-secondary border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",
   "ghost-primary": "bg-transparent text-brand-primary border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",
@@ -75,9 +71,6 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ variant = "primary", justify = "center", fullWidth, label, icon: IconComponent, iconRight: IconRightComponent, href, modalTarget, ...props }, ref) => {
 
     let activeVariant = variant
-    if (label === "Cancelar" && activeVariant === "outline") {
-      activeVariant = "secondary"
-    }
 
     const isPill = activeVariant.includes("-pill")
 

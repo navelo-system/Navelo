@@ -128,7 +128,7 @@ export const PdvCatalogToolbar: React.FC<PdvCatalogToolbarProps> = ({
               </Box>
               <Box shrink="0">
                 <Button
-                  variant="outline-pill-icon"
+                  variant="secondary-pill-icon"
                   icon={X}
                   onClick={closeSearch}
                 />

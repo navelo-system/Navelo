@@ -29,7 +29,7 @@ export const Numpad: React.FC<NumpadProps> = ({
             onClick={() => onNumberClick(num)}
             disabled={disabled}
             fullWidth
-            variant="outline-lg"
+            variant="secondary-lg"
           />
         ))}
         
@@ -39,14 +39,14 @@ export const Numpad: React.FC<NumpadProps> = ({
           onClick={() => customActionLabel === "00" ? onNumberClick("00") : onActionClick("custom")}
           disabled={disabled}
           fullWidth
-          variant="outline-lg"
+          variant="secondary-lg"
         />
         <Button
           label="0"
           onClick={() => onNumberClick("0")}
           disabled={disabled}
           fullWidth
-          variant="outline-lg"
+          variant="secondary-lg"
         />
         <Button
           icon={Delete}

@@ -159,7 +159,7 @@ export function Modal(props: ModalProps) {
           <div className="p-5">
             <Stack direction="row" align="center" justify="between" w="full">
               <Font variant="h3" text={title ?? ""} />
-              <Button variant="outline-pill-icon-xs" icon={X} onClick={handleClose} />
+              <Button variant="secondary-pill-icon-xs" icon={X} onClick={handleClose} />
             </Stack>
           </div>
           <div className="h-[1px] w-full bg-border" />
