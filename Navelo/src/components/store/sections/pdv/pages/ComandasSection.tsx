@@ -25,12 +25,14 @@ interface ComandasSectionProps {
   onSelectComanda: (id: string) => void
   comandas: ComandaItem[]
   onAddComanda: (label: string) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
 export const ComandasSection: React.FC<ComandasSectionProps> = ({
   onSelectComanda,
   comandas,
   onAddComanda,
+  setCustomActions,
 }) => {
   const [searchQuery, setSearchQuery] = React.useState("")
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
@@ -46,25 +48,29 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
     setIsCreateModalOpen(false)
   }
 
+  React.useEffect(() => {
+    setCustomActions?.(
+      <Button
+        variant="primary-pill-icon"
+        icon={Menu}
+        onClick={() => setIsSidebarOpen(true)}
+      />
+    )
+
+    return () => setCustomActions?.(null)
+  }, [setCustomActions])
+
 
   return (
     <Stack gap={5} w="full">
-      {/* Barra de Pesquisa + Hambúrguer */}
-      <Stack direction="row" gap={2.5} align="center" w="full">
-        <Box flex="1" padding={0}>
-          <Input
-            placeholder="Pesquisar comanda ativa..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            icon={Search}
-          />
-        </Box>
-        <Button
-          variant="primary-pill-icon"
-          icon={Menu}
-          onClick={() => setIsSidebarOpen(true)}
+      <Box flex="1" padding={0} w="full">
+        <Input
+          placeholder="Pesquisar comanda ativa..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          icon={Search}
         />
-      </Stack>
+      </Box>
 
       {/* Grade de Comandas Ativas */}
       {filtered.length === 0 ? (

@@ -19,8 +19,10 @@ interface PdvCheckoutSidebarProps {
   onIncrease: (id: string) => void
   onDecrease: (id: string) => void
   onRemove: (id: string) => void
-  onGoToPayment: () => void
+  onGoToPayment?: () => void
   onSaveComanda?: () => void
+  hideActions?: boolean
+  compactList?: boolean
 }
 
 export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
@@ -33,6 +35,8 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
   onRemove,
   onGoToPayment,
   onSaveComanda,
+  hideActions = false,
+  compactList = false,
 }) => {
   const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0)
 
@@ -43,6 +47,8 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
         onIncrease={onIncrease}
         onDecrease={onDecrease}
         onRemove={onRemove}
+        hideHeader={compactList}
+        flushContent={compactList}
       />
 
       {/* Totais do Cupom / Checkout */}
@@ -61,23 +67,27 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
             <Font variant="body-bold" color="success" text={formatPrice(total)} />
           </Stack>
           
-          <Box paddingY={1} />
+          {!hideActions && (
+            <>
+              <Box paddingY={1} />
 
-          <Button
-            variant="success-lg"
-            fullWidth
-            label="F9 - Pagamento"
-            icon={ShoppingCart}
-            disabled={cartItems.length === 0}
-            onClick={onGoToPayment}
-          />
-          {onSaveComanda && (
-            <Button
-              variant="outline"
-              fullWidth
-              label="Salvar Comanda"
-              onClick={onSaveComanda}
-            />
+              <Button
+                variant="success-lg"
+                fullWidth
+                label="F9 - Pagamento"
+                icon={ShoppingCart}
+                disabled={cartItems.length === 0}
+                onClick={onGoToPayment}
+              />
+              {onSaveComanda && (
+                <Button
+                  variant="outline"
+                  fullWidth
+                  label="Salvar Comanda"
+                  onClick={onSaveComanda}
+                />
+              )}
+            </>
           )}
         </Stack>
       </Box>

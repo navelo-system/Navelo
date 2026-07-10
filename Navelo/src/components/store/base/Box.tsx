@@ -42,7 +42,7 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   opacity?: "0" | "25" | "50" | "75" | "100"
   maxH?: "0" | "96" | "full" | "screen" | "fit-content"
   shrink?: "0" | "1"
-  animation?: "slide-in-right" | "slide-out-right"
+  animation?: "slide-in-right" | "slide-out-right" | "slide-up" | "slide-down" | "search-expand-in" | "search-collapse-out"
   order?: "1" | "2"
   mdOrder?: "1" | "2"
 }
@@ -239,6 +239,14 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
             ? "slide-in-right 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards"
             : animation === "slide-out-right"
             ? "slide-out-right 0.24s cubic-bezier(0.4, 0, 0.2, 1) forwards"
+            : animation === "slide-up"
+            ? "slide-up 0.24s cubic-bezier(0.4, 0, 0.2, 1) forwards"
+            : animation === "slide-down"
+            ? "slide-down 0.24s cubic-bezier(0.4, 0, 0.2, 1) forwards"
+            : animation === "search-expand-in"
+            ? "search-expand-in 0.24s cubic-bezier(0.4, 0, 0.2, 1) forwards"
+            : animation === "search-collapse-out"
+            ? "search-collapse-out 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards"
             : undefined,
           ...(props.style || {})
         }}

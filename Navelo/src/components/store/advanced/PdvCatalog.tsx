@@ -5,6 +5,7 @@
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
+import { Grid } from "@/components/store/base/Grid"
 import { Font } from "@/components/store/base/Font"
 import { Tabs, TabsTrigger } from "@/components/store/base/Tabs"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
@@ -36,11 +37,47 @@ interface PdvCatalogProps {
   onAddProduct: (prod: MockProduct) => void
   categories: string[]
   viewMode: "grade" | "lista"
-  cartSidebarNode?: React.ReactNode
   cartItems?: CartItemType[]
   onIncrease?: (id: string) => void
   onDecrease?: (id: string) => void
   onRemove?: (id: string) => void
+}
+
+const GRID_GAP_PX = 20
+
+type GridCols = 1 | 2 | 3 | 4 | 5 | 6 | 8 | 12
+
+function toGridCols(count: number): GridCols {
+  const clamped = Math.max(1, Math.min(count, 12))
+  if (clamped <= 6) return clamped as 1 | 2 | 3 | 4 | 5 | 6
+  if (clamped <= 8) return 8
+  return 12
+}
+
+function useGridColumnCount(
+  containerRef: React.RefObject<HTMLElement | null>,
+  minCardWidth: number,
+  gap: number
+) {
+  const [columns, setColumns] = React.useState<GridCols>(3)
+
+  React.useEffect(() => {
+    const element = containerRef.current
+    if (!element) return
+
+    const updateColumns = () => {
+      const width = element.getBoundingClientRect().width
+      const next = Math.floor((width + gap) / (minCardWidth + gap))
+      setColumns(toGridCols(next))
+    }
+
+    updateColumns()
+    const observer = new ResizeObserver(updateColumns)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [containerRef, minCardWidth, gap])
+
+  return columns
 }
 
 const adaptProduct = (prod: MockProduct): Product => ({
@@ -67,12 +104,23 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
   onAddProduct,
   categories,
   viewMode,
-  cartSidebarNode,
   cartItems = [],
   onIncrease,
   onDecrease,
   onRemove,
 }) => {
+  const gridContainerRef = React.useRef<HTMLElement>(null)
+  const [minCardWidth, setMinCardWidth] = React.useState(105)
+  const gridColumns = useGridColumnCount(gridContainerRef, minCardWidth, GRID_GAP_PX)
+
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia("(min-width: 768px)")
+    const updateMinWidth = () => setMinCardWidth(mediaQuery.matches ? 120 : 105)
+    updateMinWidth()
+    mediaQuery.addEventListener("change", updateMinWidth)
+    return () => mediaQuery.removeEventListener("change", updateMinWidth)
+  }, [])
+
   const getProductQuantity = (id: string) => {
     return cartItems.find((item) => item.id === id)?.quantity || 0
   }
@@ -89,43 +137,38 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
                 {cat}
               </TabsTrigger>
             ))}
-            {cartSidebarNode && (
-              <Box display="block md:hidden">
-                <TabsTrigger value="Resumo">Resumo</TabsTrigger>
-              </Box>
-            )}
           </Stack>
         </Tabs>
       </Box>
 
       {/* Grade/Lista de Produtos ou Carrinho */}
       <Box padding={1} flex="1" className="min-h-0 overflow-y-auto">
-        {activeCategory === "Resumo" && cartSidebarNode ? (
-          cartSidebarNode
-        ) : filteredProducts.length === 0 ? (
+        {filteredProducts.length === 0 ? (
           <EmptyState
             icon={Package}
             title="Sem produtos"
             subtitle="Nenhum produto cadastrado nesta categoria."
           />
         ) : viewMode === "grade" ? (
-          <Stack direction="row" wrap={true} gap={5} justify="between" align="stretch" w="full">
-            {filteredProducts.map((prod) => {
-              const qty = getProductQuantity(prod.id)
-              return (
-                <Box key={prod.id} minW="min-w-[105px] md:min-w-[120px]" flex="1" display="flex" direction="col">
-                  <ProductCard
-                    product={adaptProduct(prod)}
-                    onClick={() => onAddProduct(prod)}
-                    quantity={qty}
-                    onIncrease={() => onIncrease?.(prod.id)}
-                    onDecrease={() => onDecrease?.(prod.id)}
-                    onRemove={() => onRemove?.(prod.id)}
-                  />
-                </Box>
-              )
-            })}
-          </Stack>
+          <Box ref={gridContainerRef} w="full">
+            <Grid cols={gridColumns} responsive={false} gap={5} w="full">
+              {filteredProducts.map((prod) => {
+                const qty = getProductQuantity(prod.id)
+                return (
+                  <Box key={prod.id} display="flex" direction="col">
+                    <ProductCard
+                      product={adaptProduct(prod)}
+                      onClick={() => onAddProduct(prod)}
+                      quantity={qty}
+                      onIncrease={() => onIncrease?.(prod.id)}
+                      onDecrease={() => onDecrease?.(prod.id)}
+                      onRemove={() => onRemove?.(prod.id)}
+                    />
+                  </Box>
+                )
+              })}
+            </Grid>
+          </Box>
         ) : (
           /* Lista limpa — thumbnail + nome + preço/unidade */
           <Box display="flex" direction="col" radius="default" border={true} borderColor="border-border" bg="bg-white">

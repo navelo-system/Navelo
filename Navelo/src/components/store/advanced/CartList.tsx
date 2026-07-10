@@ -19,6 +19,8 @@ export interface CartListProps {
   onIncrease: (id: string) => void
   onDecrease: (id: string) => void
   onRemove: (id: string) => void
+  hideHeader?: boolean
+  flushContent?: boolean
 }
 
 export const CartList: React.FC<CartListProps> = ({
@@ -26,17 +28,21 @@ export const CartList: React.FC<CartListProps> = ({
   onIncrease,
   onDecrease,
   onRemove,
+  hideHeader = false,
+  flushContent = false,
 }) => {
   return (
     <Box padding={0} bg="bg-surface" radius="default" flex="1" display="flex" direction="col" overflow="hidden">
-      {/* Header */}
-      <Box padding={5} bg="bg-surface">
-        <Font variant="h3" text="Carrinho" />
-      </Box>
-      <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
+      {!hideHeader && (
+        <>
+          <Box padding={5} bg="bg-surface">
+            <Font variant="h3" text="Carrinho" />
+          </Box>
+          <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
+        </>
+      )}
 
-      {/* Items List (Scrollable) */}
-      <Box flex="1" overflow="x-hidden y-auto" padding={5}>
+      <Box flex="1" overflow="x-hidden y-auto" padding={flushContent ? 0 : 5}>
         <Stack gap={5}>
           {items.length === 0 ? (
             <EmptyState

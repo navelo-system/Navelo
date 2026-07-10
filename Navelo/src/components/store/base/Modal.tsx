@@ -23,6 +23,7 @@ export type ModalProps =
     showCancelButton?: boolean
     variant?: "default" | "bottom" | "sidebar"
     children: React.ReactNode
+    footer?: React.ReactNode
   }
   | {
     isOpen: boolean
@@ -36,6 +37,7 @@ export type ModalProps =
     showCancelButton?: never
     variant?: "default" | "bottom" | "sidebar"
     children: React.ReactNode
+    footer?: React.ReactNode
   }
 /**/
 export function Modal(props: ModalProps) {
@@ -50,31 +52,39 @@ export function Modal(props: ModalProps) {
     isSubmit = false,
     showCancelButton = true,
     variant = "default",
-    children
+    children,
+    footer,
   } = props
 
   // shouldRender: controla se o elemento existe no DOM
-  // isActive: controla o estado visual (dispara a transição CSS)
+  // isActive: controla a posição final do painel (translateX)
+  // enableTransition: habilita CSS transition só após o frame inicial off-screen
   const [shouldRender, setShouldRender] = React.useState(false)
   const [isActive, setIsActive] = React.useState(false)
+  const [enableTransition, setEnableTransition] = React.useState(false)
 
   React.useEffect(() => {
     if (isOpen) {
       setShouldRender(true)
+      setIsActive(false)
+      setEnableTransition(false)
       document.body.style.overflow = "hidden"
-      // Double RAF: garante que o browser pintou o estado inicial (scale 0.9, opacity 0)
-      // antes de aplicar a transição para o estado final
-      requestAnimationFrame(() => {
+
+      const raf1 = requestAnimationFrame(() => {
+        setEnableTransition(true)
         requestAnimationFrame(() => {
           setIsActive(true)
         })
       })
-    } else {
-      setIsActive(false)
-      document.body.style.overflow = ""
-      const timer = setTimeout(() => setShouldRender(false), 220)
-      return () => clearTimeout(timer)
+
+      return () => cancelAnimationFrame(raf1)
     }
+
+    setEnableTransition(true)
+    setIsActive(false)
+    document.body.style.overflow = ""
+    const timer = setTimeout(() => setShouldRender(false), 220)
+    return () => clearTimeout(timer)
   }, [isOpen])
 
   React.useEffect(() => {
@@ -82,6 +92,7 @@ export function Modal(props: ModalProps) {
   }, [])
 
   const handleClose = () => {
+    setEnableTransition(true)
     setIsActive(false)
     document.body.style.overflow = ""
     setTimeout(() => {
@@ -99,9 +110,11 @@ export function Modal(props: ModalProps) {
   const dialogStyle: React.CSSProperties = isSidebar
     ? {
         transform: isActive ? "translateX(0)" : "translateX(100%)",
-        transition: isActive
-          ? "transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)"
-          : "transform 0.22s cubic-bezier(0.4, 0, 0.2, 1)",
+        transition: enableTransition
+          ? isActive
+            ? "transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)"
+            : "transform 0.22s cubic-bezier(0.4, 0, 0.2, 1)"
+          : "none",
       }
     : {
         opacity: isBottom ? 1 : (isActive ? 1 : 0),
@@ -118,7 +131,10 @@ export function Modal(props: ModalProps) {
       }
 
   const backdropStyle: React.CSSProperties = isSidebar
-    ? { opacity: isActive ? 1 : 0, transition: "opacity 0.22s ease" }
+    ? {
+        opacity: isActive ? 1 : 0,
+        transition: enableTransition ? "opacity 0.22s ease" : "none",
+      }
     : {}
 
   // Variant: sidebar (drawer deslizando da direita)
@@ -144,9 +160,17 @@ export function Modal(props: ModalProps) {
             </Stack>
           </div>
           <div className="h-[1px] w-full bg-border" />
-          <div className="flex-1 overflow-y-auto overflow-x-hidden p-5">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 min-h-0">
             {children}
           </div>
+          {footer && (
+            <>
+              <div className="h-[2px] w-full bg-border shrink-0" />
+              <div className="p-5 shrink-0">
+                {footer}
+              </div>
+            </>
+          )}
         </div>
       </div>
     )

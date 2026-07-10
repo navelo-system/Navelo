@@ -267,6 +267,7 @@ export default function Home() {
                       activeComandaId={activeComandaId}
                       onCloseComanda={handleCloseComanda}
                       setCustomBack={setCustomBack}
+                      setCustomActions={setCustomActions}
                     />
                   </Box>
                 )}
@@ -277,6 +278,7 @@ export default function Home() {
                       onSelectComanda={handleSelectComanda}
                       comandas={comandas}
                       onAddComanda={handleAddComanda}
+                      setCustomActions={setCustomActions}
                     />
                   </Box>
                 )}

@@ -8,9 +8,11 @@ import { Stack } from "@/components/store/base/Stack"
 import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { ViewModeToggle } from "@/components/store/intermediary/ViewModeToggle"
-import { Search, Percent, Menu } from "lucide-react"
+import { PdvCatalogToolbar } from "@/components/store/intermediary/PdvCatalogToolbar"
+import { Search, ShoppingCart, Menu } from "lucide-react"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
 import { ExitConfirmModal } from "@/components/store/sections/pdv/modals/ExitConfirmModal"
+import { PdvCartDrawer } from "@/components/store/sections/pdv/modals/PdvCartDrawer"
 
 import { PdvCatalog, MockProduct } from "@/components/store/advanced/PdvCatalog"
 import { PdvCheckoutPayment } from "@/components/store/advanced/PdvCheckoutPayment"
@@ -32,17 +34,18 @@ interface PdvSectionProps {
   activeComandaId?: string | null
   onCloseComanda?: (id: string) => void
   setCustomBack?: (cb: (() => void) | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
 const MOCK_PRODUCTS = [
-  { id: "1", name: "Água mineral sem gás", category: "Bebidas", unitPrice: 4.50, unit: "UN", stock: 15, image: "https://images.unsplash.com/photo-1560011961-4ab41261de01?w=200&auto=format&fit=crop" },
-  { id: "2", name: "Água com gás", category: "Bebidas", unitPrice: 6.00, unit: "UN", stock: 2, image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200&auto=format&fit=crop" },
-  { id: "3", name: "Refrigerante lata", category: "Bebidas", unitPrice: 6.50, unit: "UN", stock: -3, image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200&auto=format&fit=crop" },
-  { id: "4", name: "Cerveja artesanal", category: "Bebidas", unitPrice: 12.00, unit: "UN", stock: 0, image: "https://images.unsplash.com/photo-1608270586620-248524c67de9?w=200&auto=format&fit=crop" },
-  { id: "5", name: "Hambúrguer clássico", category: "Lanches", unitPrice: 28.90, unit: "UN", stock: 10 },
-  { id: "6", name: "Batata frita grande", category: "Acompanhamentos", unitPrice: 15.00, unit: "UN", stock: 20 },
-  { id: "7", name: "Pizza brotinho", category: "Lanches", unitPrice: 22.00, unit: "UN", stock: 5 },
-  { id: "8", name: "Suco natural laranja", category: "Bebidas", unitPrice: 9.00, unit: "UN", stock: 8 }
+  { id: "1", name: "Água mineral sem gás", category: "Bebidas", unitPrice: 4.50, unit: "UN", stock: 15, barcode: "7891000100103", image: "https://images.unsplash.com/photo-1560011961-4ab41261de01?w=200&auto=format&fit=crop" },
+  { id: "2", name: "Água com gás", category: "Bebidas", unitPrice: 6.00, unit: "UN", stock: 2, barcode: "7894900011517", image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200&auto=format&fit=crop" },
+  { id: "3", name: "Refrigerante lata", category: "Bebidas", unitPrice: 6.50, unit: "UN", stock: -3, barcode: "7891293901017", image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200&auto=format&fit=crop" },
+  { id: "4", name: "Cerveja artesanal", category: "Bebidas", unitPrice: 12.00, unit: "UN", stock: 0, barcode: "7891234567890", image: "https://images.unsplash.com/photo-1608270586620-248524c67de9?w=200&auto=format&fit=crop" },
+  { id: "5", name: "Hambúrguer clássico", category: "Lanches", unitPrice: 28.90, unit: "UN", stock: 10, barcode: "7892345678901" },
+  { id: "6", name: "Batata frita grande", category: "Acompanhamentos", unitPrice: 15.00, unit: "UN", stock: 20, barcode: "7893456789012" },
+  { id: "7", name: "Pizza brotinho", category: "Lanches", unitPrice: 22.00, unit: "UN", stock: 5, barcode: "7894567890123" },
+  { id: "8", name: "Suco natural laranja", category: "Bebidas", unitPrice: 9.00, unit: "UN", stock: 8, barcode: "7895678901234" }
 ]
 
 const CATEGORIES = ["Todos", "Bebidas", "Lanches", "Acompanhamentos"]
@@ -52,6 +55,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   activeComandaId,
   onCloseComanda,
   setCustomBack,
+  setCustomActions,
 }) => {
   const [step, setStep] = React.useState<"negociacao" | "pagamento" | "recibo">("negociacao")
   const [cartItems, setCartItems] = React.useState<CartItemType[]>([])
@@ -70,6 +74,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   const [isCardModalOpen, setIsCardModalOpen] = React.useState(false)
   const [isDiscountModalOpen, setIsDiscountModalOpen] = React.useState(false)
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
+  const [isCartDrawerOpen, setIsCartDrawerOpen] = React.useState(false)
   const [isExitConfirmOpen, setIsExitConfirmOpen] = React.useState(false)
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0)
@@ -101,6 +106,23 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
     }
     return () => setCustomBack?.(null)
   }, [step, setCustomBack, cartItems.length])
+
+  React.useEffect(() => {
+    if (step !== "negociacao") {
+      setCustomActions?.(null)
+      return
+    }
+
+    setCustomActions?.(
+      <Button
+        variant="primary-pill-icon"
+        icon={Menu}
+        onClick={() => setIsSidebarOpen(true)}
+      />
+    )
+
+    return () => setCustomActions?.(null)
+  }, [step, setCustomActions])
 
   // Sincroniza o valor de pagamento sugerido com o restante a pagar reativamente
   React.useEffect(() => {
@@ -143,6 +165,15 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
 
   const handleRemove = (id: string) => {
     setCartItems((prev) => prev.filter((item) => item.id !== id))
+  }
+
+  const handleBarcodeScanned = (code: string) => {
+    const product = MOCK_PRODUCTS.find(
+      (prod) => prod.barcode === code || prod.id === code
+    )
+    if (product) {
+      handleAddProduct(product)
+    }
   }
 
   // Filtragem
@@ -215,37 +246,32 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
               {/* Lado Esquerdo - Catálogo */}
               <Box flex="1" w="full" className="min-h-0 flex flex-col">
                 <Stack gap={5} w="full" flex="1" className="min-h-0">
-                  {/* Controles de pesquisa e view toggle (busca cheia no mobile, lado a lado no PC) */}
-                  <Stack direction="col" mobileDirection="row" gap={2.5} align="stretch" mobileAlign="center" justify="between" w="full">
-                    <Box flex="1" padding={0} w="full">
-                      <Input
-                        placeholder="Pesquisar produto pelo nome..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        icon={Search}
-                      />
-                    </Box>
-                    <Stack direction="row" gap={2.5} align="center" justify="between" mobileJustify="end" w="w-full md:w-auto">
-                      {/* Segmented View Toggle */}
+                  {/* Desktop: busca sempre visível */}
+                  <Box display="hidden md:block" w="full">
+                    <Stack direction="row" gap={2.5} align="center" justify="between" w="full">
+                      <Box flex="1" padding={0}>
+                        <Input
+                          placeholder="Pesquisar produto pelo nome..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          icon={Search}
+                        />
+                      </Box>
                       <ViewModeToggle value={viewMode} onChange={setViewMode} />
-                      
-                      {/* Botões de Ação da Direita */}
-                      <Stack direction="row" gap={2.5} align="center">
-                        {/* Desconto */}
-                        <Button
-                          variant="secondary-pill-icon"
-                          icon={Percent}
-                          onClick={() => setIsDiscountModalOpen(true)}
-                        />
-                        {/* Menu Hamburguer */}
-                        <Button
-                          variant="primary-pill-icon"
-                          icon={Menu}
-                          onClick={() => setIsSidebarOpen(true)}
-                        />
-                      </Stack>
                     </Stack>
-                  </Stack>
+                  </Box>
+
+                  {/* Mobile: barra com busca expansível */}
+                  <Box display="block md:hidden" w="full">
+                    <PdvCatalogToolbar
+                      searchQuery={searchQuery}
+                      onSearchQueryChange={setSearchQuery}
+                      viewMode={viewMode}
+                      onViewModeChange={setViewMode}
+                      onOpenCart={() => setIsCartDrawerOpen(true)}
+                      onBarcodeScanned={handleBarcodeScanned}
+                    />
+                  </Box>
 
                   <PdvCatalog
                     activeCategory={activeCategory}
@@ -258,22 +284,41 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
                     onIncrease={handleIncrease}
                     onDecrease={handleDecrease}
                     onRemove={handleRemove}
-                    cartSidebarNode={
-                      <Box display="flex" direction="col" flex="1" className="md:hidden min-h-0">
-                        <PdvCheckoutSidebar
-                          cartItems={cartItems}
-                          discount={discount}
-                          total={total}
-                          formatPrice={formatPrice}
-                          onIncrease={handleIncrease}
-                          onDecrease={handleDecrease}
-                          onRemove={handleRemove}
-                          onGoToPayment={() => setStep("pagamento")}
-                          onSaveComanda={activeComandaId ? onBackToDashboard : undefined}
+                  />
+
+                  <Box
+                    display="block md:hidden"
+                    position="sticky"
+                    bottom={0}
+                    w="full"
+                    shrink="0"
+                    bg="bg-background"
+                    paddingY={2.5}
+                    zIndex="10"
+                  >
+                    <Stack direction="row" gap={2.5} w="full">
+                      <Box flex="1">
+                        <Button
+                          variant="success-lg"
+                          fullWidth
+                          label="F9 - Pagamento"
+                          icon={ShoppingCart}
+                          disabled={cartItems.length === 0}
+                          onClick={() => setStep("pagamento")}
                         />
                       </Box>
-                    }
-                  />
+                      {activeComandaId && (
+                        <Box flex="1">
+                          <Button
+                            variant="outline"
+                            fullWidth
+                            label="Salvar Comanda"
+                            onClick={onBackToDashboard}
+                          />
+                        </Box>
+                      )}
+                    </Stack>
+                  </Box>
                 </Stack>
               </Box>
 
@@ -319,6 +364,20 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
           />
         )}
       </ViewTransition>
+
+      <PdvCartDrawer
+        isOpen={isCartDrawerOpen}
+        onClose={() => setIsCartDrawerOpen(false)}
+        cartItems={cartItems}
+        discount={discount}
+        total={total}
+        formatPrice={formatPrice}
+        onIncrease={handleIncrease}
+        onDecrease={handleDecrease}
+        onRemove={handleRemove}
+        onGoToPayment={() => setStep("pagamento")}
+        onSaveComanda={activeComandaId ? onBackToDashboard : undefined}
+      />
 
       <PdvModals
         isChangeModalOpen={isChangeModalOpen}
