@@ -11,6 +11,7 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   paddingX?: PaddingToken
   paddingY?: PaddingToken
   bg?: string
+  bgGradient?: "fade-up"
   w?: WidthToken | string
   h?: HeightToken | string
   display?: "hidden lg:flex" | "flex" | "block" | "inline-flex" | "hidden" | "block md:hidden" | "hidden md:block"
@@ -158,7 +159,7 @@ const zIndexMap = {
 export const Box = React.forwardRef<HTMLElement, BoxProps>(
   ({ 
     as: Component = "div",
-    className, padding, paddingX, paddingY, bg, w, h, 
+    className, padding, paddingX, paddingY, bg, bgGradient, w, h, 
     display, direction, justify, radius, border,
     borderTop, borderBottom, borderLeft, borderRight,
     borderColor, 
@@ -235,6 +236,9 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
           left: left !== undefined ? left : undefined,
           right: right !== undefined ? right : undefined,
           bottom: bottom !== undefined ? bottom : undefined,
+          background: bgGradient === "fade-up"
+            ? "linear-gradient(to top, var(--background) 0%, var(--background) 45%, transparent 100%)"
+            : undefined,
           animation: animation === "slide-in-right"
             ? "slide-in-right 0.28s cubic-bezier(0.4, 0, 0.2, 1) forwards"
             : animation === "slide-out-right"

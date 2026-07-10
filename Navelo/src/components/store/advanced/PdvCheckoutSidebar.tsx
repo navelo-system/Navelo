@@ -75,7 +75,6 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
                 variant="success-lg"
                 fullWidth
                 label="Pagamento"
-                icon={ShoppingCart}
                 disabled={cartItems.length === 0}
                 onClick={onGoToPayment}
               />
@@ -83,8 +82,7 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
                 <Button
                   variant="outline"
                   fullWidth
-                  icon={SaveAll}
-                  label="Salvar Comanda"
+                  label="Salvar"
                   onClick={onSaveComanda}
                 />
               )}

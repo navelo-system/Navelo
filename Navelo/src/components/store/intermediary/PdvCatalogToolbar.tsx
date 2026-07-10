@@ -46,10 +46,12 @@ export const PdvCatalogToolbar: React.FC<PdvCatalogToolbarProps> = ({
   }
 
   const closeSearch = () => {
+    if (!searchMounted) return
     setIsSearchOpen(false)
     setSearchAnimation("search-collapse-out")
     searchExitTimerRef.current = setTimeout(() => {
       setSearchMounted(false)
+      setSearchAnimation("search-expand-in")
       searchExitTimerRef.current = null
     }, SEARCH_ANIMATION_MS)
   }
@@ -74,8 +76,8 @@ export const PdvCatalogToolbar: React.FC<PdvCatalogToolbarProps> = ({
         <Box
           w="full"
           transition="opacity"
-          opacity={isSearchOpen ? "0" : "100"}
-          className={isSearchOpen ? "pointer-events-none" : undefined}
+          opacity={searchMounted ? "0" : "100"}
+          className={searchMounted ? "pointer-events-none" : undefined}
         >
           <Stack direction="row" align="center" justify="between" w="full" gap={2.5}>
             <Stack direction="row" align="center" gap={2.5}>
@@ -113,7 +115,7 @@ export const PdvCatalogToolbar: React.FC<PdvCatalogToolbarProps> = ({
             animation={searchAnimation}
           >
             <Stack direction="row" align="center" gap={2.5} w="full">
-              <Box flex="1" padding={0}>
+              <Box flex="1" padding={0} minW="min-w-0">
                 <Input
                   ref={searchInputRef}
                   placeholder="Pesquisar produto pelo nome..."
@@ -122,11 +124,13 @@ export const PdvCatalogToolbar: React.FC<PdvCatalogToolbarProps> = ({
                   icon={Search}
                 />
               </Box>
-              <Button
-                variant="outline-pill-icon-xs"
-                icon={X}
-                onClick={closeSearch}
-              />
+              <Box shrink="0">
+                <Button
+                  variant="outline-pill-icon"
+                  icon={X}
+                  onClick={closeSearch}
+                />
+              </Box>
             </Stack>
           </Box>
         )}
