@@ -183,7 +183,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
     >
       <Stack gap={5} w="full">
         {/* Paletas Prontas (Presets) */}
-        <Stack gap={2} w="full">
+        <Stack gap={2.5} w="full">
           <Font variant="body-bold" text="Paletas Prontas" />
           <Grid cols={3} gap={2.5}>
             {PRESET_THEMES.map((p) => {
@@ -202,7 +202,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
                   onClick={() => handleApplyPreset(p.colors)}
                   interactive
                 >
-                  <Stack gap={1.5} align="center">
+                  <Stack gap={1} align="center">
                     <Stack direction="row" gap={1} align="center">
                       <Box
                         w="w-4"
@@ -228,9 +228,9 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
         <Box h="h-[1px]" bg="bg-border" w="full" />
 
         {/* Seletores Individuais de Cor */}
-        <Stack gap={3} w="full">
+        <Stack gap={2.5} w="full">
           <Font variant="body-bold" text="Personalização Fina" />
-          <Grid cols={2} gap={3}>
+          <Grid cols={2} gap={2.5}>
             {fields.map((f) => (
               <Box
                 key={f.key}
@@ -240,7 +240,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
                 border={true}
                 borderColor="border-border"
               >
-                <Stack gap={1.5} w="full">
+                <Stack gap={1} w="full">
                   <Stack direction="row" align="center" justify="between" w="full">
                     <Font variant="body-sm-semibold" text={f.label} />
                     <input
@@ -266,7 +266,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
         </Stack>
 
         {/* Restaurar Padrão */}
-        <Box paddingT={2} w="full">
+        <Box paddingY={2.5} w="full">
           <Button
             variant="outline"
             label="Restaurar Cores Padrão"
