@@ -37,6 +37,7 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   bottom?: string | number
   zIndex?: "0" | "10" | "20" | "30" | "40" | "50" | "auto"
   pointerEvents?: "none" | "auto"
+  customStyle?: React.CSSProperties
   minW?: string
   minH?: "0" | "full"
   objectFit?: "contain" | "cover" | "fill" | "none" | "scale-down"
@@ -270,7 +271,7 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
             : animation === "search-collapse-out"
             ? "search-collapse-out 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards"
             : undefined,
-          ...(props.style || {})
+          ...(customStyle || props.style || {})
         }}
         {...props}
       />

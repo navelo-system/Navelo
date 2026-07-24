@@ -17,7 +17,8 @@ import {
   FileText,
   PlusCircle,
   Upload,
-  Check
+  Check,
+  Filter
 } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 
@@ -35,6 +36,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
 }) => {
   const [estoqueView, setEstoqueView] = React.useState<"menu" | "balanco" | "notas" | "entrada_manual">("menu")
   const [balancoSubMode, setBalancoSubMode] = React.useState<"history" | "resumo">("history")
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
 
   const scrollPositions = React.useRef<Record<string, number>>({})
 
@@ -74,7 +76,6 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
 
   const [successMsg, setSuccessMsg] = React.useState("")
   const [invoiceSearchQuery, setInvoiceSearchQuery] = React.useState("")
-  const [balancoSearchQuery, setBalancoSearchQuery] = React.useState("")
 
   React.useEffect(() => {
     if (estoqueView !== "menu") {
@@ -106,11 +107,13 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
       )
     } else if (estoqueView === "balanco") {
       setCustomActions?.(
-        <MobileHeaderSearch
-          searchQuery={balancoSearchQuery}
-          onSearchQueryChange={setBalancoSearchQuery}
-          placeholder="Buscar por nome do produto ou grupo..."
-        />
+        <Box display="block md:hidden">
+          <Button
+            variant="primary-pill-icon"
+            icon={Filter}
+            onClick={() => setIsFilterDrawerOpen(true)}
+          />
+        </Box>
       )
     } else {
       setCustomActions?.(null)
@@ -121,7 +124,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
       setCustomTitle?.(null)
       setCustomActions?.(null)
     }
-  }, [estoqueView, balancoSubMode, invoiceSearchQuery, balancoSearchQuery, setCustomBack, setCustomTitle, setCustomActions])
+  }, [estoqueView, balancoSubMode, invoiceSearchQuery, setCustomBack, setCustomTitle, setCustomActions])
   const handleSaveBalanco = (updatedProducts: typeof balancoProducts) => {
     setBalancoProducts(updatedProducts)
     setSuccessMsg("Balanço de estoque salvo com sucesso!")
@@ -234,27 +237,28 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
         /* ================= SUB-SEÇÃO: BALANÇO DE ESTOQUE ================= */
         <InventoryAuditTable
           products={balancoProducts}
-          searchQuery={balancoSearchQuery}
+          searchQuery=""
           onCancel={() => setEstoqueView("menu")}
           onSave={handleSaveBalanco}
           onModeChange={(mode) => setBalancoSubMode(mode)}
+          isFilterDrawerOpen={isFilterDrawerOpen}
+          onCloseFilterDrawer={() => setIsFilterDrawerOpen(false)}
         />
       )}
 
       {estoqueView === "notas" && (
         /* ================= SUB-SEÇÃO: NOTAS FISCAIS ================= */
         <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
-          <Stack gap={5}>
-            <Stack direction="row" align="center" justify="end" w="full">
-              <Button
-                variant="primary"
-                label="Importar XML"
-                icon={Upload}
-                onClick={handleUploadXml}
-              />
-            </Stack>
-            <InvoicesTable invoices={filteredInvoices} />
-          </Stack>
+          <InvoicesTable invoices={filteredInvoices} />
+
+          {/* Botão FAB fixo no canto inferior direito */}
+          <Box position="fixed" bottom={6} right={6} zIndex="50">
+            <Button
+              variant="secondary-pill-icon"
+              icon={Upload}
+              onClick={handleUploadXml}
+            />
+          </Box>
         </Box>
       )}
 

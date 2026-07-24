@@ -1,5 +1,7 @@
 "use client"
 
+/* eslint-disable max-lines-per-function */
+
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
 import { Box } from "@/components/store/base/Box"
@@ -7,7 +9,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Grid } from "@/components/store/base/Grid"
 import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
-import { Settings, RotateCcw, Palette, Check } from "lucide-react"
+import { Settings, RotateCcw } from "lucide-react"
 
 export interface ThemeColors {
   primary: string
@@ -123,9 +125,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
 
   React.useEffect(() => {
     if (isOpen) {
-      const saved = loadSavedTheme()
-      setColors(saved)
-      applyThemeColors(saved)
+      applyThemeColors(loadSavedTheme())
     }
   }, [isOpen])
 
@@ -208,13 +208,13 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
                         w="w-4"
                         h="h-4"
                         radius="full"
-                        style={{ backgroundColor: p.colors.primary }}
+                        customStyle={{ backgroundColor: p.colors.primary }}
                       />
                       <Box
                         w="w-4"
                         h="h-4"
                         radius="full"
-                        style={{ backgroundColor: p.colors.secondary }}
+                        customStyle={{ backgroundColor: p.colors.secondary }}
                       />
                     </Stack>
                     <Font variant="auxiliary" text={p.name} align="center" />
@@ -243,20 +243,35 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
                 <Stack gap={1} w="full">
                   <Stack direction="row" align="center" justify="between" w="full">
                     <Font variant="body-sm-semibold" text={f.label} />
-                    <input
+                    <Box
+                      as="input"
                       type="color"
                       value={colors[f.key]}
-                      onChange={(e) => handleColorChange(f.key, e.target.value)}
-                      className="w-7 h-7 rounded-full cursor-pointer border border-slate-300 p-0 bg-transparent"
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleColorChange(f.key, e.target.value)}
+                      w="w-7"
+                      h="h-7"
+                      radius="full"
+                      cursor="pointer"
+                      border={true}
+                      borderColor="border-border"
+                      bg="bg-transparent"
+                      padding={0}
                     />
                   </Stack>
                   <Stack direction="row" align="center" justify="between" w="full">
                     <Font variant="auxiliary" color="muted" text={f.description} />
-                    <input
+                    <Box
+                      as="input"
                       type="text"
                       value={colors[f.key]}
-                      onChange={(e) => handleColorChange(f.key, e.target.value)}
-                      className="w-20 text-xs font-mono px-1.5 py-0.5 rounded border border-slate-300 bg-white text-slate-800 uppercase"
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleColorChange(f.key, e.target.value)}
+                      w="w-20"
+                      radius="default"
+                      border={true}
+                      borderColor="border-border"
+                      bg="bg-white"
+                      paddingX={1}
+                      paddingY={1}
                     />
                   </Stack>
                 </Stack>

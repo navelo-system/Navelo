@@ -1,6 +1,6 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
+/* eslint-disable max-lines-per-function, complexity */
 
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
@@ -10,6 +10,7 @@ import { Button } from "@/components/store/base/Button"
 import { Badge } from "@/components/store/base/Badge"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { FilterPanel } from "@/components/store/intermediary/FilterPanel"
+import { Modal } from "@/components/store/base/Modal"
 import { Plus, ClipboardList } from "lucide-react"
 
 export interface BalancoProduct {
@@ -34,6 +35,8 @@ export interface InventoryAuditTableProps {
   onCancel: () => void
   onSave: (products: BalancoProduct[]) => void
   onModeChange?: (mode: "history" | "resumo") => void
+  isFilterDrawerOpen?: boolean
+  onCloseFilterDrawer?: () => void
 }
 
 const DEFAULT_SESSIONS: BalancoSession[] = [
@@ -70,6 +73,8 @@ export const InventoryAuditTable: React.FC<InventoryAuditTableProps> = ({
   onCancel,
   onSave,
   onModeChange,
+  isFilterDrawerOpen = false,
+  onCloseFilterDrawer,
 }) => {
   void onCancel
   void onModeChange
@@ -175,24 +180,55 @@ export const InventoryAuditTable: React.FC<InventoryAuditTableProps> = ({
             </Box>
           </Box>
 
-          {/* Painel da Direita (Filtros Sidebar) */}
-          <FilterPanel
-            selectedPeriod={selectedPeriod}
-            onPeriodChange={setSelectedPeriod}
-            startDate={startDate}
-            onStartDateChange={setStartDate}
-            endDate={endDate}
-            onEndDateChange={setEndDate}
-            statusOptions={[
-              { id: "pendente", label: "Pendente" },
-              { id: "finalizado", label: "Finalizado" }
-            ]}
-            selectedStatusIds={[
-              ...(statusFilters.pendente ? ["pendente"] : []),
-              ...(statusFilters.finalizado ? ["finalizado"] : [])
-            ]}
-            onStatusToggle={(id) => toggleStatus(id as "pendente" | "finalizado")}
-          />
+          {/* Painel da Direita Desktop (Filtros Sidebar Inline) */}
+          <Box display="hidden md:block">
+            <FilterPanel
+              selectedPeriod={selectedPeriod}
+              onPeriodChange={setSelectedPeriod}
+              startDate={startDate}
+              onStartDateChange={setStartDate}
+              endDate={endDate}
+              onEndDateChange={setEndDate}
+              statusOptions={[
+                { id: "pendente", label: "Pendente" },
+                { id: "finalizado", label: "Finalizado" }
+              ]}
+              selectedStatusIds={[
+                ...(statusFilters.pendente ? ["pendente"] : []),
+                ...(statusFilters.finalizado ? ["finalizado"] : [])
+              ]}
+              onStatusToggle={(id) => toggleStatus(id as "pendente" | "finalizado")}
+            />
+          </Box>
+
+          {/* Drawer Mobile (Filtros Sidebar no Modal) */}
+          <Modal
+            isOpen={isFilterDrawerOpen}
+            onClose={onCloseFilterDrawer || (() => {})}
+            title="Filtros"
+            variant="sidebar"
+          >
+            <FilterPanel
+              hideTitle
+              borderless
+              selectedPeriod={selectedPeriod}
+              onPeriodChange={setSelectedPeriod}
+              startDate={startDate}
+              onStartDateChange={setStartDate}
+              endDate={endDate}
+              onEndDateChange={setEndDate}
+              statusOptions={[
+                { id: "pendente", label: "Pendente" },
+                { id: "finalizado", label: "Finalizado" }
+              ]}
+              selectedStatusIds={[
+                ...(statusFilters.pendente ? ["pendente"] : []),
+                ...(statusFilters.finalizado ? ["finalizado"] : [])
+              ]}
+              onStatusToggle={(id) => toggleStatus(id as "pendente" | "finalizado")}
+              onFilter={onCloseFilterDrawer}
+            />
+          </Modal>
         </Stack>
       ) : (
         /* ================= VISÃO 2: RESUMO DO BALANÇO ================= */
