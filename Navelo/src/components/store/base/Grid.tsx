@@ -10,6 +10,8 @@ export interface GridProps extends React.HTMLAttributes<HTMLDivElement> {
   w?: string
   h?: string
   mobileCols?: 1 | 2 | 3 | 4 | 5 | 6 | 12
+  flex?: "1" | "auto" | "none"
+  minH?: "0" | "full"
 }
 
 const gapMap: Record<string, string> = {
@@ -30,6 +32,7 @@ const colsMap: Record<number, string> = {
   4: "grid-cols-2 md:grid-cols-2 lg:grid-cols-4",
   5: "grid-cols-1 md:grid-cols-5",
   6: "grid-cols-1 md:grid-cols-3 lg:grid-cols-6",
+  8: "grid-cols-2 md:grid-cols-4 lg:grid-cols-8",
   10: "grid-cols-2 md:grid-cols-5 lg:grid-cols-10",
   12: "grid-cols-4 md:grid-cols-6 lg:grid-cols-12",
 }
@@ -41,12 +44,13 @@ const fixedColsMap: Record<number, string> = {
   4: "grid-cols-4",
   5: "grid-cols-5",
   6: "grid-cols-6",
+  8: "grid-cols-8",
   10: "grid-cols-10",
   12: "grid-cols-12",
 }
 
 export const Grid = React.forwardRef<HTMLDivElement, GridProps>(
-  ({ className, cols = 1, gap = 5, responsive = true, w, h, mobileCols, ...props }, ref) => {
+  ({ className, cols = 1, gap = 5, responsive = true, w, h, mobileCols, flex, minH, ...props }, ref) => {
     const colsClass = React.useMemo(() => {
       if (!responsive) return fixedColsMap[cols]
       if (mobileCols !== undefined) {
@@ -73,6 +77,11 @@ export const Grid = React.forwardRef<HTMLDivElement, GridProps>(
           gapMap[String(gap)],
           w,
           h,
+          flex === "1" && "flex-1",
+          flex === "auto" && "flex-auto",
+          flex === "none" && "flex-none",
+          minH === "0" && "min-h-0",
+          minH === "full" && "min-h-full",
           className
         )}
         {...props}

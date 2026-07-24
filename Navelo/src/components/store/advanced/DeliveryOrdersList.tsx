@@ -3,10 +3,8 @@
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
-import { Input } from "@/components/store/base/Input"
 import { Badge } from "@/components/store/base/Badge"
 import { Font } from "@/components/store/base/Font"
-import { Search } from "lucide-react"
 import { DeliveryStatus } from "@/components/store/intermediary/DeliveryTimeline"
 
 export interface DeliveryOrder {
@@ -23,6 +21,7 @@ export interface DeliveryOrdersListProps {
   orders: DeliveryOrder[]
   selectedOrderId: string
   onSelectOrder: (id: string) => void
+  searchQuery?: string
 }
 
 const statusBadgeMap: Record<DeliveryStatus, { variant: "primary" | "secondary" | "success" | "outline" | "default"; label: string }> = {
@@ -37,9 +36,8 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
   orders,
   selectedOrderId,
   onSelectOrder,
+  searchQuery = "",
 }) => {
-  const [searchQuery, setSearchQuery] = React.useState("")
-
   const filtered = orders.filter((o) =>
     o.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
     o.id.includes(searchQuery)
@@ -54,13 +52,6 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
 
   return (
     <Stack gap={5}>
-      <Input
-        placeholder="Buscar por cliente ou ID..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        icon={Search}
-      />
-
       <Box overflow="auto">
         <Stack gap={2.5}>
           {filtered.map((ord) => {
@@ -69,13 +60,13 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
             return (
               <Box
                 key={ord.id}
-                as="button"
                 onClick={() => onSelectOrder(ord.id)}
                 padding={2.5}
                 bg={isSelected ? "bg-brand-primary/10" : "bg-surface"}
                 radius="default"
                 w="full"
                 hoverBg="surface-sunken"
+                cursor="pointer"
               >
                 <Stack gap={1} align="start" w="full">
                   <Stack direction="row" justify="between" align="center" w="full">

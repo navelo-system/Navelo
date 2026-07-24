@@ -2,10 +2,12 @@
 
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
+import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
+import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
-import { PdvCheckoutSidebar } from "@/components/store/advanced/PdvCheckoutSidebar"
-import { SaveAll, ShoppingCart } from "lucide-react"
+import { CartList } from "@/components/store/advanced/CartList"
+import { SaveAll } from "lucide-react"
 import { CartItemType } from "@/components/store/sections/pdv/pages/PdvSection"
 
 interface PdvCartDrawerProps {
@@ -45,6 +47,8 @@ export const PdvCartDrawer: React.FC<PdvCartDrawerProps> = ({
     onSaveComanda?.()
   }
 
+  const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0)
+
   return (
     <Modal
       isOpen={isOpen}
@@ -52,12 +56,26 @@ export const PdvCartDrawer: React.FC<PdvCartDrawerProps> = ({
       title="Carrinho"
       variant="sidebar"
       footer={
-        <Stack direction="col" gap={2.5} w="full">
+        <Stack gap={2.5} w="full">
+          <Stack direction="row" justify="between" align="center">
+            <Font variant="description" color="muted" text="Subtotal" />
+            <Font variant="description" text={formatPrice(subtotal)} />
+          </Stack>
+          <Stack direction="row" justify="between" align="center">
+            <Font variant="description" color="muted" text="Desconto na venda" />
+            <Font variant="description" color="danger" text={`- ${formatPrice(discount)}`} />
+          </Stack>
+          <Stack direction="row" justify="between" align="center">
+            <Font variant="body-bold" text="Total" />
+            <Font variant="body-bold" color="success" text={formatPrice(total)} />
+          </Stack>
+
+          <Box paddingY={1} />
+
           <Button
             variant="primary-lg"
             fullWidth
-            label="Pagamento"
-            icon={ShoppingCart}
+            label="F9 - Pagamento"
             disabled={cartItems.length === 0}
             onClick={handlePayment}
           />
@@ -73,16 +91,13 @@ export const PdvCartDrawer: React.FC<PdvCartDrawerProps> = ({
         </Stack>
       }
     >
-      <PdvCheckoutSidebar
-        cartItems={cartItems}
-        discount={discount}
-        total={total}
-        formatPrice={formatPrice}
+      <CartList
+        items={cartItems}
         onIncrease={onIncrease}
         onDecrease={onDecrease}
         onRemove={onRemove}
-        hideActions
-        compactList
+        hideHeader
+        flushContent
       />
     </Modal>
   )

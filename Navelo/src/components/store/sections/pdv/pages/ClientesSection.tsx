@@ -11,19 +11,17 @@ import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { AddressList } from "@/components/store/advanced/AddressList"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 import { ClientAddressFormModal } from "@/components/store/advanced/ClientAddressFormModal"
 import { CustomerAddress } from "@/src/types/domain"
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/store/base/Table"
 import {
-  Search,
   Plus,
-  Edit2,
-  Trash2,
   Mail,
   Phone,
   FileText,
   User
 } from "lucide-react"
+import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 
 interface ClientItem {
   id: string
@@ -36,21 +34,31 @@ interface ClientItem {
 }
 
 interface ClientesSectionProps {
-  onBackToDashboard: () => void
+  onBackToDashboard?: () => void
   setCustomBack?: (cb: (() => void) | null) => void
+  setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
+  onBack?: () => void
 }
 
 export const ClientesSection: React.FC<ClientesSectionProps> = ({
-  setCustomBack
+  setCustomBack,
+  setCustomTitle,
+  setCustomActions,
+  onBack,
 }) => {
   const [clients, setClients] = React.useState<ClientItem[]>([
-    { id: "1", name: "Filipe Augusto", document: "101.389.219-46", phone: "(11) 98765-4321", email: "filipe@gmail.com", type: "PF", addresses: [
-      { id: "addr_1", customerId: "1", street: "Av. Paulista", number: "1000", neighborhood: "Bela Vista", city: "São Paulo", state: "SP", zipCode: "01310-100", isDefault: true, complement: "Cj 12" }
-    ] },
+    {
+      id: "1", name: "Filipe Augusto", document: "101.389.219-46", phone: "(11) 98765-4321", email: "filipe@gmail.com", type: "PF", addresses: [
+        { id: "addr_1", customerId: "1", street: "Av. Paulista", number: "1000", neighborhood: "Bela Vista", city: "São Paulo", state: "SP", zipCode: "01310-100", isDefault: true, complement: "Cj 12" }
+      ]
+    },
     { id: "2", name: "Maria Eduarda", document: "202.489.102-55", phone: "(11) 97654-3210", email: "maria@hotmail.com", type: "PF", addresses: [] },
-    { id: "3", name: "JS Soluções Tecnológicas", document: "12.345.678/0001-99", phone: "(11) 3210-9876", email: "contato@jssolucoes.com.br", type: "PJ", addresses: [
-      { id: "addr_2", customerId: "3", street: "Rua Augusta", number: "450", neighborhood: "Consolação", city: "São Paulo", state: "SP", zipCode: "01304-000", isDefault: true, complement: "Ap 31" }
-    ] },
+    {
+      id: "3", name: "JS Soluções Tecnológicas", document: "12.345.678/0001-99", phone: "(11) 3210-9876", email: "contato@jssolucoes.com.br", type: "PJ", addresses: [
+        { id: "addr_2", customerId: "3", street: "Rua Augusta", number: "450", neighborhood: "Consolação", city: "São Paulo", state: "SP", zipCode: "01304-000", isDefault: true, complement: "Ap 31" }
+      ]
+    },
   ])
 
   const [mode, setMode] = React.useState<"list" | "form">("list")
@@ -91,13 +99,30 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
   const [editingAddress, setEditingAddress] = React.useState<CustomerAddress | null>(null)
 
   React.useEffect(() => {
+    setCustomTitle?.("Clientes")
     if (mode === "form") {
       setCustomBack?.(() => () => setMode("list"))
+      setCustomActions?.(null)
     } else {
-      setCustomBack?.(null)
+      if (onBack) {
+        setCustomBack?.(() => () => onBack())
+      } else {
+        setCustomBack?.(null)
+      }
+      setCustomActions?.(
+        <MobileHeaderSearch
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          placeholder="Buscar por nome ou CPF/CNPJ..."
+        />
+      )
     }
-    return () => setCustomBack?.(null)
-  }, [mode, setCustomBack])
+    return () => {
+      setCustomTitle?.(null)
+      setCustomBack?.(null)
+      setCustomActions?.(null)
+    }
+  }, [mode, searchQuery, setCustomBack, setCustomTitle, setCustomActions, onBack])
   const handleEdit = (client: ClientItem) => {
     setEditingClient(client)
     setFormName(client.name)
@@ -120,10 +145,6 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
     setMode("form")
   }
 
-  const handleDelete = (id: string) => {
-    setClients((prev) => prev.filter((c) => c.id !== id))
-  }
-
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -132,14 +153,14 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
         prev.map((c) =>
           c.id === editingClient.id
             ? {
-                ...c,
-                name: formName,
-                document: formDocument,
-                phone: formPhone,
-                email: formEmail,
-                type: formType,
-                addresses: clientAddresses
-              }
+              ...c,
+              name: formName,
+              document: formDocument,
+              phone: formPhone,
+              email: formEmail,
+              type: formType,
+              addresses: clientAddresses
+            }
             : c
         )
       )
@@ -187,15 +208,15 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
         prev.map((a) =>
           a.id === editingAddress.id
             ? {
-                ...a,
-                street: addrData.street,
-                number: addrData.number,
-                complement: addrData.complement,
-                neighborhood: addrData.neighborhood,
-                city: addrData.city,
-                state: addrData.state,
-                zipCode: addrData.zip
-              }
+              ...a,
+              street: addrData.street,
+              number: addrData.number,
+              complement: addrData.complement,
+              neighborhood: addrData.neighborhood,
+              city: addrData.city,
+              state: addrData.state,
+              zipCode: addrData.zip
+            }
             : a
         )
       )
@@ -226,75 +247,67 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
   return (
     <Stack gap={5} w="full">
       {mode === "list" ? (
-        /* ================= LISTAGEM DE CLIENTES ================= */
-        <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
-          <Stack gap={5} w="full">
-            <Stack direction="col" mobileDirection="row" gap={2.5} align="stretch" mobileAlign="center" w="full">
-              <Box flex="1" w="full">
-                <Input
-                  placeholder="Buscar por nome ou CPF/CNPJ..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  icon={Search}
-                />
-              </Box>
-              <Button
-                variant="primary"
-                label="Novo Cliente"
-                icon={Plus}
-                onClick={handleCreateNew}
-              />
-            </Stack>
+        /* ================= LISTAGEM DE CLIENTES (MINIMALISTA) ================= */
+        <Box position="relative" w="full">
+          <Box display="flex" direction="col" w="full">
+            {filtered.map((cli, idx) => (
+              <Box key={cli.id}>
+                <Box
+                  w="full"
+                  padding={2.5}
+                  radius="full"
+                  hoverBg="surface-sunken"
+                  cursor="pointer"
+                  onClick={() => handleEdit(cli)}
+                >
+                  <Stack direction="row" align="center" gap={2.5} w="full">
+                    {/* Avatar / Foto */}
+                    <Box
+                      w="w-10"
+                      h="h-10"
+                      bg="bg-surface-sunken"
+                      borderColor="border-border"
+                      border={true}
+                      radius="full"
+                      shrink="0"
+                    >
+                      <Stack w="full" h="full" align="center" justify="center">
+                        <Font
+                          variant="body-bold"
+                          color="muted"
+                          text={cli.name.charAt(0).toUpperCase()}
+                        />
+                      </Stack>
+                    </Box>
 
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead text="Cliente / Razão Social" />
-                  <TableHead text="Tipo" />
-                  <TableHead text="CPF / CNPJ" />
-                  <TableHead text="Telefone" />
-                  <TableHead text="E-mail" />
-                  <TableHead text="Endereços" />
-                  <TableHead text="Ações" align="right" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((cli) => (
-                  <TableRow key={cli.id}>
-                    <TableCell fontWeight="bold">
-                      <Stack direction="row" align="center" gap={2.5}>
-                        <Box w="w-8" h="h-8" bg="bg-brand-primary/10" radius="full">
-                          <Stack w="full" h="full" align="center" justify="center">
-                            <Font variant="body-sm-semibold" color="primary" text={cli.name.charAt(0).toUpperCase()} />
-                          </Stack>
-                        </Box>
-                        <Font variant="body-bold" text={cli.name} />
-                      </Stack>
-                    </TableCell>
-                    <TableCell>{cli.type === "PF" ? "Pessoa Física" : "Pessoa Jurídica"}</TableCell>
-                    <TableCell>{cli.document || "Não informado"}</TableCell>
-                    <TableCell>{cli.phone || "Não informado"}</TableCell>
-                    <TableCell>{cli.email || "Não informado"}</TableCell>
-                    <TableCell>{cli.addresses.length} cadastrados</TableCell>
-                    <TableCell align="right" w="w-24">
-                      <Stack direction="row" gap={2.5} justify="end">
-                        <Button
-                          variant="primary-icon-xs"
-                          icon={Edit2}
-                          onClick={() => handleEdit(cli)}
+                    {/* Nome + Documento */}
+                    <Stack gap={1} align="start" flex="1">
+                      <Font variant="body" text={cli.name} />
+                      {cli.document && (
+                        <Font
+                          variant="auxiliary"
+                          color="muted"
+                          text={cli.document}
                         />
-                        <Button
-                          variant="danger-icon-xs"
-                          icon={Trash2}
-                          onClick={() => handleDelete(cli.id)}
-                        />
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Stack>
+                      )}
+                    </Stack>
+                  </Stack>
+                </Box>
+                {idx < filtered.length - 1 && (
+                  <Box h="h-[1px]" w="full" bg="bg-border" />
+                )}
+              </Box>
+            ))}
+          </Box>
+
+          {/* Botão FAB fixo no canto inferior direito */}
+          <Box position="fixed" bottom={6} right={6} zIndex="50">
+            <Button
+              variant="secondary-pill-icon"
+              icon={Plus}
+              onClick={handleCreateNew}
+            />
+          </Box>
         </Box>
       ) : (
         /* ================= FORMULÁRIO DE CLIENTE ================= */
@@ -354,7 +367,7 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
 
                 {/* Seção de Endereços */}
                 <Stack gap={2.5} w="full">
-                  <Stack direction="row" align="center" justify="between" w="full" gap={5}>
+                  <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" justify="between" w="full" gap={2.5}>
                     <Stack gap={0} align="start">
                       <Font variant="body-bold" text="Endereços de Entrega" />
                       <Font variant="auxiliary" color="muted" text="Gerencie os locais de entrega deste cliente" />
@@ -376,18 +389,12 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
 
                 <Box h="h-[1px]" bg="bg-border" w="full" />
 
-                <Stack direction="row" justify="end" gap={2.5} w="full">
-                  <Button
-                    variant="outline"
-                    label="Cancelar"
-                    onClick={() => setMode("list")}
-                  />
-                  <Button
-                    variant="primary"
-                    label="Salvar Cadastro"
-                    type="submit"
-                  />
-                </Stack>
+                <FormActions
+                  confirmLabel="Salvar Cadastro"
+                  onConfirm={() => {}}
+                  onCancel={() => setMode("list")}
+                  isSubmit={true}
+                />
               </Stack>
             </Box>
           </Box>
@@ -400,14 +407,14 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
             initialData={
               editingAddress
                 ? {
-                    zip: editingAddress.zipCode,
-                    street: editingAddress.street,
-                    number: editingAddress.number,
-                    complement: editingAddress.complement || "",
-                    neighborhood: editingAddress.neighborhood,
-                    city: editingAddress.city,
-                    state: editingAddress.state,
-                  }
+                  zip: editingAddress.zipCode,
+                  street: editingAddress.street,
+                  number: editingAddress.number,
+                  complement: editingAddress.complement || "",
+                  neighborhood: editingAddress.neighborhood,
+                  city: editingAddress.city,
+                  state: editingAddress.state,
+                }
                 : null
             }
           />

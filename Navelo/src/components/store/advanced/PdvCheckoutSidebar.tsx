@@ -40,7 +40,7 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
   const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0)
 
   return (
-    <Stack gap={5} flex="1" className="min-h-0">
+    <Stack gap={5} flex="1" minH="0">
       <CartList
         items={cartItems}
         onIncrease={onIncrease}
@@ -73,7 +73,7 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
               <Button
                 variant="primary-lg"
                 fullWidth
-                label="Pagamento"
+                label="F9 - Pagamento"
                 disabled={cartItems.length === 0}
                 onClick={onGoToPayment}
               />

@@ -3,7 +3,6 @@
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
-import { Grid } from "@/components/store/base/Grid"
 import { Icon } from "@/components/store/base/Icon"
 import { Font } from "@/components/store/base/Font"
 import {
@@ -38,12 +37,17 @@ export const BentoPDVModulesGrid: React.FC<BentoPDVModulesGridProps> = ({ onNavi
       {modules.map((m) => (
         <Stack key={m.id} gap={2.5} align="center" justify="center" w="w-[72px] md:w-20">
           <Box
-            as="button"
             onClick={() => onNavigate(m.id)}
             bg="bg-white"
             radius="lg"
-            className="w-16 h-16 md:w-20 md:h-20 hover:scale-105 active:scale-95 transition-all flex items-center justify-center"
             cursor="pointer"
+            interactive
+            display="flex"
+            w="w-16 md:w-20"
+            h="h-16 md:h-20"
+            direction="col"
+            align="center"
+            justify="center"
           >
             <Icon icon={m.icon} size={28} color="brand-secondary" />
           </Box>

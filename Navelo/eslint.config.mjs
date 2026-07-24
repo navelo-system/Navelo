@@ -5,7 +5,7 @@ import nextTs from "eslint-config-next/typescript";
 const designSystemSyntax = [
   // 1. Prohibit className Usage
   {
-    selector: "JSXAttribute[name.name='className'][value.type='Literal']:not([value.value=/scrollbar|py-20|py-25|z-\\[|grid\\.svg|ambient-light|blur|animate-|min-h-|overflow-hidden|shrink-0|font-mono|ml-auto|border-white\\/10|bg-center|mask-image|bg-transparent|border-0|w-4|h-4|w-5|h-5|w-3\\.5|h-3\\.5|w-full|h-full|active:scale-|outline-none|ring-0|pointer-events-none|bg-gradient-|from-|via-|to-|inset-|group|object-cover|object-contain|-translate-/])",
+    selector: "JSXAttribute[name.name='className']",
     message: "className is strictly prohibited outside of 'src/components/store/base/'. Use composition with base components instead."
   },
   // 2. Prohibit Margins

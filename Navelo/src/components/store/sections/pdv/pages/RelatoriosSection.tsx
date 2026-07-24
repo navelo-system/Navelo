@@ -13,16 +13,21 @@ import { Input } from "@/components/store/base/Input"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/store/base/Table"
 import { KpiCard } from "@/components/store/intermediary/KpiCard"
 import { Badge } from "@/components/store/base/Badge"
+import { FilterPanel } from "@/components/store/intermediary/FilterPanel"
+import { Modal } from "@/components/store/base/Modal"
 import {
   Download,
   ChevronRight,
   X,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Filter
 } from "lucide-react"
 
 interface RelatoriosSectionProps {
   onBackToDashboard: () => void
   setCustomBack?: (cb: (() => void) | null) => void
+  setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
 export type ReportType =
@@ -280,15 +285,18 @@ const getReportDetails = (type: ReportType) => {
 }
 
 export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
-  setCustomBack
+  setCustomBack,
+  setCustomTitle,
+  setCustomActions,
 }) => {
   const [mode, setMode] = React.useState<"list" | "report">("list")
   const [selectedReport, setSelectedReport] = React.useState<ReportType | null>(null)
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
 
   // Filter States
   const [period, setPeriod] = React.useState<"Hoje" | "7D" | "1M" | "3M" | "6M" | "1A">("Hoje")
-  const [startDate, setStartDate] = React.useState("08/07/2026 00:00")
-  const [endDate, setEndDate] = React.useState("08/07/2026 23:59")
+  const [startDate, setStartDate] = React.useState("")
+  const [endDate, setEndDate] = React.useState("")
   const [productGroup, setProductGroup] = React.useState("")
   const [productSubgroup, setProductSubgroup] = React.useState("")
   const [client, setClient] = React.useState("")
@@ -297,28 +305,150 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
   const [cost, setCost] = React.useState<"Vendido" | "Atual">("Vendido")
   const [order, setOrder] = React.useState<"Descrição" | "Margem bruta">("Descrição")
 
+  const reportDetails = selectedReport ? getReportDetails(selectedReport) : null
+
   React.useEffect(() => {
     if (mode === "report") {
       setCustomBack?.(() => () => {
         setMode("list")
         setSelectedReport(null)
       })
+      setCustomTitle?.(reportDetails?.title || "Relatório")
+      setCustomActions?.(
+        <Button
+          variant="primary-pill-icon"
+          icon={Filter}
+          onClick={() => setIsFilterDrawerOpen(true)}
+        />
+      )
     } else {
       setCustomBack?.(null)
+      setCustomTitle?.("Relatórios")
+      setCustomActions?.(null)
     }
-    return () => setCustomBack?.(null)
-  }, [mode, setCustomBack])
+    return () => {
+      setCustomBack?.(null)
+      setCustomTitle?.(null)
+      setCustomActions?.(null)
+    }
+  }, [mode, setCustomBack, setCustomTitle, setCustomActions, reportDetails?.title])
 
   const handleSelectReport = (reportType: ReportType) => {
     setSelectedReport(reportType)
     setMode("report")
   }
 
-
-  const reportDetails = selectedReport ? getReportDetails(selectedReport) : null
-
   // Agrupar relatórios por categoria
   const categories = ["Comercial", "Controle de Crediário", "Operações de Caixa", "Fiscal"] as const
+
+  const renderFilterPanel = (isDrawer = false) => (
+    <FilterPanel
+      hideTitle={isDrawer}
+      borderless={isDrawer}
+      selectedPeriod={period}
+      onPeriodChange={(p: string) => setPeriod(p as "Hoje" | "7D" | "1M" | "3M" | "6M" | "1A")}
+      startDate={startDate}
+      onStartDateChange={setStartDate}
+      endDate={endDate}
+      onEndDateChange={setEndDate}
+      onFilter={() => {
+        if (isDrawer) setIsFilterDrawerOpen(false)
+      }}
+    >
+      {/* Produto */}
+      <Stack gap={2.5} w="full">
+        <Font variant="body-sm-semibold" color="muted" text="Produto" />
+        <Input
+          placeholder="Grupo"
+          value={productGroup}
+          onChange={(e) => setProductGroup(e.target.value)}
+          iconRight={productGroup ? X : undefined}
+        />
+        <Input
+          placeholder="Subgrupo"
+          value={productSubgroup}
+          onChange={(e) => setProductSubgroup(e.target.value)}
+          iconRight={productSubgroup ? X : undefined}
+        />
+      </Stack>
+
+      {/* Cliente */}
+      <Stack gap={2.5} w="full">
+        <Font variant="body-sm-semibold" color="muted" text="Cliente" />
+        <Input
+          placeholder="Cliente"
+          value={client}
+          onChange={(e) => setClient(e.target.value)}
+          iconRight={client ? X : undefined}
+        />
+      </Stack>
+
+      {/* Usuário */}
+      <Stack gap={2.5} w="full">
+        <Font variant="body-sm-semibold" color="muted" text="Usuário" />
+        <Input
+          placeholder="Usuário"
+          value={user}
+          onChange={(e) => setUser(e.target.value)}
+          iconRight={user ? X : undefined}
+        />
+      </Stack>
+
+      {/* Dispositivo */}
+      <Stack gap={2.5} w="full">
+        <Font variant="body-sm-semibold" color="muted" text="Dispositivo" />
+        <Input
+          placeholder="Dispositivo"
+          value={device}
+          onChange={(e) => setDevice(e.target.value)}
+          iconRight={device ? X : undefined}
+        />
+      </Stack>
+
+      {/* Custo */}
+      <Stack gap={2.5} w="full">
+        <Font variant="body-sm-semibold" color="muted" text="Custo" />
+        <Grid cols={2} gap={2.5} w="full">
+          {(["Vendido", "Atual"] as const).map((c) => {
+            const isActive = cost === c
+            return (
+              <Button
+                key={c}
+                variant={isActive ? "primary-pill-xs" : "outline-pill-xs"}
+                label={c}
+                onClick={() => setCost(c)}
+                type="button"
+                fullWidth
+              />
+            )
+          })}
+        </Grid>
+      </Stack>
+
+      {/* Ordenação */}
+      <Stack gap={2.5} w="full">
+        <Stack direction="row" justify="between" align="center" w="full">
+          <Font variant="body-sm-semibold" color="muted" text="Ordenação" />
+          <Button variant="ghost" label="A-Z ▼" />
+        </Stack>
+        <Grid cols={2} gap={2.5} w="full">
+          {(["Descrição", "Margem bruta"] as const).map((o) => {
+            const isActive = order === o
+            return (
+              <Button
+                key={o}
+                variant={isActive ? "primary-pill-xs" : "outline-pill-xs"}
+                label={o}
+                onClick={() => setOrder(o)}
+                type="button"
+                fullWidth
+              />
+            )
+          })}
+        </Grid>
+      </Stack>
+    </FilterPanel>
+  )
 
   return (
     <Stack gap={5} w="full">
@@ -333,7 +463,7 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
               <Box key={cat} border={true} borderColor="border-border" padding={5} bg="bg-surface" radius="default">
                 <Stack gap={2.5} w="full">
                   <Font variant="body-semibold" text={cat} />
-                  <Stack gap={0} w="full" className="divide-y divide-border border border-border rounded-lg overflow-hidden bg-surface">
+                  <Box direction="col" w="full" border={true} borderColor="border-border" radius="lg" overflow="hidden" bg="bg-surface">
                     {filteredReports.map((rep) => (
                       <Box
                         key={rep.id}
@@ -353,7 +483,7 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
                         </Stack>
                       </Box>
                     ))}
-                  </Stack>
+                  </Box>
                 </Stack>
               </Box>
             )
@@ -367,24 +497,14 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
               <Font variant="h3" text={reportDetails?.title || "Relatório"} align="left" />
               <Font variant="description" text={reportDetails?.description || ""} align="left" />
             </Stack>
-
             <Box shrink="0">
-              <Button
-                variant="secondary"
-                label="Exportar CSV"
-                icon={Download}
-                onClick={() => {}}
-              />
+              <Button variant="secondary" label="Exportar CSV" icon={Download} onClick={() => {}} />
             </Box>
           </Stack>
-
-          {/* Layout Principal com Painel de Filtros Lateral */}
-          <Stack direction="col" mobileDirection="row" gap={5} w="full" align="start">
-            {/* Painel Principal (Tabela / Resumos) */}
+          <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch">
             <Box flex="1" w="full">
               {reportDetails && (
                 <Stack gap={5} w="full">
-                  {/* KPIs Acumulados */}
                   {reportDetails.kpis.length > 0 && (
                     <Grid cols={reportDetails.kpis.length as 1 | 2 | 3 | 4 | 5 | 6 | 12} gap={5}>
                       {reportDetails.kpis.map((kpi, idx) => (
@@ -392,27 +512,25 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
                       ))}
                     </Grid>
                   )}
- 
-                  {/* Detalhe de Ação ou Tabela */}
                   {selectedReport === "xml-export" ? (
                     <Box border={true} borderColor="border-border" padding={5} bg="bg-surface" radius="default" w="full">
                       <Stack align="center" justify="center" gap={5} w="full">
-                        <Icon icon={FileSpreadsheet} size={48} color="secondary" />
-                        <Stack align="center" gap={1}>
-                          <Font variant="body-bold" text="Tudo pronto para exportar" />
-                          <Font variant="description" text="O download conterá todos os arquivos XML gerados conforme os parâmetros informados no painel de filtros." />
+                        <Icon icon={FileSpreadsheet} size={48} color="primary" />
+                        <Stack align="center" gap={1} maxWidth="5xl">
+                          <Font variant="h3" text="Exportação de Lote XML" align="center" />
+                          <Font variant="description" text="O download conterá todos os arquivos XML gerados conforme os parâmetros informados no painel de filtros." align="center" />
                         </Stack>
-                        <Button variant="secondary" label="Baixar Lote XML (.zip)" icon={Download} />
+                        <Button variant="primary" label="Gerar e Baixar Lote (ZIP)" icon={Download} onClick={() => {}} />
                       </Stack>
                     </Box>
                   ) : (
                     reportDetails.headers.length > 0 && (
-                      <Box border={true} borderColor="border-border" padding={5} bg="bg-surface" radius="default" w="full">
+                      <Box radius="default" bg="bg-surface" overflow="auto" w="full">
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              {reportDetails.headers.map((h, idx) => (
-                                <TableHead key={idx} text={h} align={idx === reportDetails.headers.length - 2 ? "right" : "left"} />
+                              {reportDetails.headers.map((h, i) => (
+                                <TableHead key={i} text={h} />
                               ))}
                             </TableRow>
                           </TableHeader>
@@ -420,25 +538,14 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
                             {reportDetails.rows.map((row, rIdx) => (
                               <TableRow key={rIdx}>
                                 {row.map((cell, cIdx) => {
-                                  // Destacar status se for o último campo e contiver texto conhecido
-                                  const isStatus = cIdx === row.length - 1 && (cell === "Autorizada" || cell === "Finalizado" || cell === "Aberto" || cell === "Atrasado")
-                                  const isKey = cell.length > 35 // Chave de acesso grande
- 
+                                  const isStatus = cell === "Concluída" || cell === "Pendente" || cell === "Atrasado"
                                   return (
-                                    <TableCell key={cIdx} align={cIdx === row.length - 2 ? "right" : "left"}>
+                                    <TableCell key={cIdx}>
                                       {isStatus ? (
                                         <Badge
-                                          variant={
-                                            cell === "Autorizada" || cell === "Finalizado"
-                                              ? "success"
-                                              : cell === "Atrasado"
-                                              ? "danger"
-                                              : "default"
-                                          }
+                                          variant={cell === "Concluída" ? "success" : cell === "Atrasado" ? "danger" : "default"}
                                           label={cell}
                                         />
-                                      ) : isKey ? (
-                                        <Font variant="sub-tiny" color="muted" text={cell} />
                                       ) : (
                                         cell
                                       )}
@@ -455,145 +562,12 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
                 </Stack>
               )}
             </Box>
- 
-            {/* Painel Lateral de Filtros (Fidelidade ao Print) */}
-            <Box bg="bg-surface" padding={5} radius="default" border={true} borderColor="border-border" w="w-full lg:w-80" shrink="0">
-              <Stack gap={5} w="full">
-                <Font variant="body-semibold" text="Filtros" />
-
-                {/* Período */}
-                <Stack gap={2.5} w="full">
-                  <Font variant="body-sm-semibold" color="muted" text="Período" />
-                  <Grid cols={3} gap={2.5} w="full">
-                    {(["Hoje", "7D", "1M", "3M", "6M", "1A"] as const).map((p) => {
-                      const isActive = period === p
-                      return (
-                        <Button
-                          key={p}
-                          variant={isActive ? "primary" : "outline"}
-                          label={p}
-                          onClick={() => setPeriod(p)}
-                          type="button"
-                          fullWidth
-                        />
-                      )
-                    })}
-                  </Grid>
-                  <Stack gap={2.5} w="full">
-                    <Input
-                      label="Inicial"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      iconRight={X}
-                    />
-                    <Input
-                      label="Final"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      iconRight={X}
-                    />
-                  </Stack>
-                </Stack>
-
-                {/* Produto */}
-                <Stack gap={2.5} w="full">
-                  <Font variant="body-sm-semibold" color="muted" text="Produto" />
-                  <Input
-                    placeholder="Grupo"
-                    value={productGroup}
-                    onChange={(e) => setProductGroup(e.target.value)}
-                    iconRight={productGroup ? X : undefined}
-                  />
-                  <Input
-                    placeholder="Subgrupo"
-                    value={productSubgroup}
-                    onChange={(e) => setProductSubgroup(e.target.value)}
-                    iconRight={productSubgroup ? X : undefined}
-                  />
-                </Stack>
-
-                {/* Cliente */}
-                <Stack gap={2.5} w="full">
-                  <Font variant="body-sm-semibold" color="muted" text="Cliente" />
-                  <Input
-                    placeholder="Cliente"
-                    value={client}
-                    onChange={(e) => setClient(e.target.value)}
-                    iconRight={client ? X : undefined}
-                  />
-                </Stack>
-
-                {/* Usuário */}
-                <Stack gap={2.5} w="full">
-                  <Font variant="body-sm-semibold" color="muted" text="Usuário" />
-                  <Input
-                    placeholder="Usuário"
-                    value={user}
-                    onChange={(e) => setUser(e.target.value)}
-                    iconRight={user ? X : undefined}
-                  />
-                </Stack>
-
-                {/* Dispositivo */}
-                <Stack gap={2.5} w="full">
-                  <Font variant="body-sm-semibold" color="muted" text="Dispositivo" />
-                  <Input
-                    placeholder="Dispositivo"
-                    value={device}
-                    onChange={(e) => setDevice(e.target.value)}
-                    iconRight={device ? X : undefined}
-                  />
-                </Stack>
-
-                {/* Custo */}
-                <Stack gap={2.5} w="full">
-                  <Font variant="body-sm-semibold" color="muted" text="Custo" />
-                  <Grid cols={2} gap={2.5} w="full">
-                    {(["Vendido", "Atual"] as const).map((c) => {
-                      const isActive = cost === c
-                      return (
-                        <Button
-                          key={c}
-                          variant={isActive ? "primary" : "outline"}
-                          label={c}
-                          onClick={() => setCost(c)}
-                          type="button"
-                          fullWidth
-                        />
-                      )
-                    })}
-                  </Grid>
-                </Stack>
-
-                {/* Ordenação */}
-                <Stack gap={2.5} w="full">
-                  <Stack direction="row" justify="between" align="center" w="full">
-                    <Font variant="body-sm-semibold" color="muted" text="Ordenação" />
-                    <Box cursor="pointer">
-                      <Font variant="body-xs-semibold" color="muted" text="A-Z ▼" />
-                    </Box>
-                  </Stack>
-                  <Grid cols={2} gap={2.5} w="full">
-                    {(["Descrição", "Margem bruta"] as const).map((o) => {
-                      const isActive = order === o
-                      return (
-                        <Button
-                          key={o}
-                          variant={isActive ? "primary" : "outline"}
-                          label={o}
-                          onClick={() => setOrder(o)}
-                          type="button"
-                          fullWidth
-                        />
-                      )
-                    })}
-                  </Grid>
-                </Stack>
-
-                {/* Botão Filtrar */}
-                <Button variant="primary" label="Filtrar" fullWidth type="button" />
-              </Stack>
+            <Box display="hidden md:block">
+              {renderFilterPanel(false)}
             </Box>
+            <Modal isOpen={isFilterDrawerOpen} onClose={() => setIsFilterDrawerOpen(false)} title="Filtros" variant="sidebar">
+              {renderFilterPanel(true)}
+            </Modal>
           </Stack>
         </Stack>
       )}

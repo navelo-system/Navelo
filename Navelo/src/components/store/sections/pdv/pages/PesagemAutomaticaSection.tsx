@@ -192,9 +192,7 @@ export const PesagemAutomaticaSection: React.FC<PesagemAutomaticaSectionProps> =
                               <Font variant="description" text={`Código: ${device.code}`} />
                             </Stack>
                           </Stack>
-                          <Box cursor="pointer" onClick={() => handleRemoveDevice(device.id)}>
-                            <Icon icon={Trash2} size={16} color="danger" />
-                          </Box>
+                          <Button variant="danger-icon-xs" icon={Trash2} onClick={() => handleRemoveDevice(device.id)} />
                         </Stack>
                       </Box>
                     </React.Fragment>

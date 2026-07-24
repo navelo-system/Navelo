@@ -18,6 +18,8 @@ export interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
   paddingX?: 5 | 12 | 2.5 | 0 | "5" | "12" | "2.5" | "0"
   flex?: "1" | "auto" | "none"
   minW?: "0"
+  minH?: "0" | "full"
+  overflow?: "hidden" | "auto" | "x-hidden y-auto"
   order?: "1" | "2"
   mdOrder?: "1" | "2"
   cursor?: "pointer"
@@ -113,7 +115,7 @@ const mdOrderMap = {
 }
 
 export const Stack = React.forwardRef<HTMLDivElement, StackProps>(
-  ({ className, direction = "col", mobileDirection, gap = 5, align, mobileAlign, justify, mobileJustify, wrap, w, h, maxWidth, paddingX, flex, minW, order, mdOrder, cursor, ...props }, ref) => {
+  ({ className, direction = "col", mobileDirection, gap = 5, align, mobileAlign, justify, mobileJustify, wrap, w, h, maxWidth, paddingX, flex, minW, minH, overflow, order, mdOrder, cursor, ...props }, ref) => {
     return (
       <div
         ref={ref}
@@ -133,6 +135,11 @@ export const Stack = React.forwardRef<HTMLDivElement, StackProps>(
           paddingX && paddingXMap[paddingX],
           flex && flexMap[flex],
           minW && minWMap[minW],
+          minH === "0" && "min-h-0",
+          minH === "full" && "min-h-full",
+          overflow === "hidden" && "overflow-hidden",
+          overflow === "auto" && "overflow-auto",
+          overflow === "x-hidden y-auto" && "overflow-x-hidden overflow-y-auto",
           order && orderMap[order],
           mdOrder && mdOrderMap[mdOrder],
           cursor === "pointer" && "cursor-pointer",
@@ -144,3 +151,4 @@ export const Stack = React.forwardRef<HTMLDivElement, StackProps>(
   }
 )
 Stack.displayName = "Stack"
+

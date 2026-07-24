@@ -36,14 +36,19 @@ export const ContaDigitalSection: React.FC<ContaDigitalSectionProps> = ({
   const [entregadorPix, setEntregadorPix] = React.useState(false)
   const [autoatendimentoPix, setAutoatendimentoPix] = React.useState(false)
 
+  const onCancelRef = React.useRef(onCancel)
   React.useEffect(() => {
-    setCustomBack?.(() => () => onCancel())
+    onCancelRef.current = onCancel
+  }, [onCancel])
+
+  React.useEffect(() => {
+    setCustomBack?.(() => () => onCancelRef.current())
     setCustomTitle?.("Conta Digital")
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle])
 
   const handleSave = () => {
     // Simulação de salvamento

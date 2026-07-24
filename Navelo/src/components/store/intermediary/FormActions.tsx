@@ -33,7 +33,7 @@ export const FormActions: React.FC<FormActionsProps> = ({
       w="full"
     >
       {leftAction && (
-        <Box shrink="0" className="w-full md:w-auto">
+        <Box shrink="0" w="w-full md:w-auto">
           {leftAction}
         </Box>
       )}

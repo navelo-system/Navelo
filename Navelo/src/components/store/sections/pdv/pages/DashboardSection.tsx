@@ -40,24 +40,28 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({ onNavigate }
           value="R$ 0,00"
           subtitle="Hoje - 0 vendas realizadas"
           hideValues={hideValues}
+          onClick={() => onNavigate("vendas")}
         />
         <KpiCard
           title="Totais em caixa"
           value="R$ 45,00"
           subtitle="16/06/26 16:00"
           hideValues={hideValues}
+          onClick={() => onNavigate("totais-em-caixa")}
         />
         <KpiCard
           title="Total a receber"
           value="R$ 0,00"
           subtitle="0 parcelas em aberto"
           hideValues={hideValues}
+          onClick={() => onNavigate("contas-a-receber")}
         />
         <KpiCard
           title="Conta Digital"
           value="R$ 0,00"
           subtitle="Saldo disponível"
           hideValues={hideValues}
+          onClick={() => onNavigate("conta-digital")}
         />
       </Grid>
 

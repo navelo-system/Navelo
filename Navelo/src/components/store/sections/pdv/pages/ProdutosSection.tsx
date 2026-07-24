@@ -1,95 +1,162 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
+/* eslint-disable max-lines-per-function, complexity */
 
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
+import { Icon } from "@/components/store/base/Icon"
 import { Button } from "@/components/store/base/Button"
-import { Input } from "@/components/store/base/Input"
 import { ProductForm, ProductFormData } from "@/components/store/advanced/ProductForm"
 import { FiscalConfigForm, FiscalConfigData } from "@/components/store/advanced/FiscalConfigForm"
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableHead,
-  TableCell
-} from "@/components/store/base/Table"
-import {
-  Search,
-  Plus,
-  Edit2,
-  Trash2
-} from "lucide-react"
+import { EmptyState } from "@/components/store/intermediary/EmptyState"
+import { Plus, Package, PackageX } from "lucide-react"
+import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 
 interface ProductItem extends ProductFormData {
   id: string
 }
 
 interface ProdutosSectionProps {
-  onBackToDashboard: () => void
+  onBackToDashboard?: () => void
   setCustomBack?: (cb: (() => void) | null) => void
+  setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
-export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
-  setCustomBack
-}) => {
-  const [products, setProducts] = React.useState<ProductItem[]>([
-    {
-      id: "1",
-      name: "ÁGUA MINERAL SEM GÁS",
-      category: "Bebidas",
-      unitPrice: 4.50,
-      stock: 15,
-      unit: "UN",
-      ncm: "2201.10.00",
-      cest: "17.110.00",
-      cfop: "5.102",
-      icmsOrigem: "0 - Nacional"
-    },
-    {
-      id: "2",
-      name: "ÁGUA COM GÁS",
-      category: "Bebidas",
-      unitPrice: 6.00,
-      stock: 2,
-      unit: "UN",
-      ncm: "2201.10.00",
-      cest: "17.110.00",
-      cfop: "5.102",
-      icmsOrigem: "0 - Nacional"
-    },
-    {
-      id: "3",
-      name: "REFRIGERANTE LATA",
-      category: "Bebidas",
-      unitPrice: 6.50,
-      stock: -3,
-      unit: "UN",
-      ncm: "2202.10.00",
-      cest: "17.111.00",
-      cfop: "5.405",
-      icmsOrigem: "0 - Nacional"
-    },
-    {
-      id: "5",
-      name: "HAMBÚRGUER CLÁSSICO",
-      category: "Lanches",
-      unitPrice: 28.90,
-      stock: 10,
-      unit: "UN",
-      ncm: "1602.50.00",
-      cest: "17.085.00",
-      cfop: "5.102",
-      icmsOrigem: "0 - Nacional"
-    },
-  ])
+const DEFAULT_PRODUCTS: ProductItem[] = [
+  {
+    id: "1",
+    name: "ÁGUA COM GÁS",
+    category: "BEBIDAS - ÁGUA",
+    unitPrice: 6.00,
+    stock: 2,
+    unit: "UN",
+    ncm: "2201.10.00",
+    cest: "17.110.00",
+    cfop: "5.102",
+    icmsOrigem: "0 - Nacional"
+  },
+  {
+    id: "2",
+    name: "ÁGUA SEM GÁS",
+    category: "BEBIDAS - ÁGUA",
+    unitPrice: 3.00,
+    stock: -2,
+    unit: "UN",
+    ncm: "2201.10.00",
+    cest: "17.110.00",
+    cfop: "5.102",
+    icmsOrigem: "0 - Nacional"
+  },
+  {
+    id: "3",
+    name: "ÁGUA TÔNICA 350ML",
+    category: "BEBIDAS - ÁGUA",
+    unitPrice: 6.00,
+    stock: -1,
+    unit: "UN",
+    ncm: "2202.10.00",
+    cest: "17.111.00",
+    cfop: "5.405",
+    icmsOrigem: "0 - Nacional"
+  },
+  {
+    id: "4",
+    name: "BADEN BADEN CRISTAL 600ML",
+    category: "CERVEJAS ARTESANAIS - UNICO",
+    unitPrice: 18.00,
+    stock: 0,
+    unit: "UN",
+    ncm: "2203.00.00",
+    cest: "17.022.00",
+    cfop: "5.102",
+    icmsOrigem: "0 - Nacional"
+  },
+  {
+    id: "5",
+    name: "BADEN BADEN GOLDEN 600ML",
+    category: "CERVEJAS ARTESANAIS - UNICO",
+    unitPrice: 18.00,
+    stock: 0,
+    unit: "UN",
+    ncm: "2203.00.00",
+    cest: "17.022.00",
+    cfop: "5.102",
+    icmsOrigem: "0 - Nacional"
+  },
+  {
+    id: "6",
+    name: "BADEN BADEN IPA 600ML",
+    category: "CERVEJAS ARTESANAIS - UNICO",
+    unitPrice: 18.00,
+    stock: 0,
+    unit: "UN",
+    ncm: "2203.00.00",
+    cest: "17.022.00",
+    cfop: "5.102",
+    icmsOrigem: "0 - Nacional"
+  },
+  {
+    id: "7",
+    name: "BADEN BADEN PEACH 600ML",
+    category: "CERVEJAS ARTESANAIS - UNICO",
+    unitPrice: 18.00,
+    stock: -1,
+    unit: "UN",
+    ncm: "2203.00.00",
+    cest: "17.022.00",
+    cfop: "5.102",
+    icmsOrigem: "0 - Nacional"
+  },
+  {
+    id: "8",
+    name: "BADEN BADEN WITBIER 600ML",
+    category: "CERVEJAS ARTESANAIS - UNICO",
+    unitPrice: 18.00,
+    stock: 0,
+    unit: "UN",
+    ncm: "2203.00.00",
+    cest: "17.022.00",
+    cfop: "5.102",
+    icmsOrigem: "0 - Nacional"
+  },
+  {
+    id: "9",
+    name: "BOI",
+    category: "CHURRASCO - BOVINA",
+    unitPrice: 10.00,
+    stock: 0,
+    unit: "UN",
+    ncm: "0201.30.00",
+    cest: "17.010.00",
+    cfop: "5.102",
+    icmsOrigem: "0 - Nacional"
+  },
+  {
+    id: "10",
+    name: "BRAHMA 600ML",
+    category: "CERVEJAS - UNICO",
+    unitPrice: 10.00,
+    stock: 15,
+    unit: "UN",
+    ncm: "2203.00.00",
+    cest: "17.022.00",
+    cfop: "5.102",
+    icmsOrigem: "0 - Nacional"
+  },
+]
 
+export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
+  setCustomBack,
+  setCustomTitle,
+  setCustomActions
+}) => {
+  const [products, setProducts] = React.useState<ProductItem[]>(DEFAULT_PRODUCTS)
   const [mode, setMode] = React.useState<"list" | "form" | "fiscal-config">("list")
   const [editingProduct, setEditingProduct] = React.useState<ProductItem | null>(null)
+  const [searchQuery, setSearchQuery] = React.useState("")
 
   const scrollPositions = React.useRef<Record<string, number>>({})
 
@@ -111,7 +178,7 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
       })
     })
   }, [mode])
-  const [searchQuery, setSearchQuery] = React.useState("")
+
   const [defaultFiscalConfig, setDefaultFiscalConfig] = React.useState<FiscalConfigData>({
     csosn: "500",
     reduction: 0,
@@ -122,13 +189,29 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
   React.useEffect(() => {
     if (mode === "form") {
       setCustomBack?.(() => () => setMode("list"))
+      setCustomTitle?.(editingProduct ? "Editar Produto" : "Novo Produto")
+      setCustomActions?.(null)
     } else if (mode === "fiscal-config") {
       setCustomBack?.(() => () => setMode("form"))
+      setCustomTitle?.("Configuração Fiscal Padrão")
+      setCustomActions?.(null)
     } else {
       setCustomBack?.(null)
+      setCustomTitle?.("Produtos")
+      setCustomActions?.(
+        <MobileHeaderSearch
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          placeholder="Buscar produto pelo nome..."
+        />
+      )
     }
-    return () => setCustomBack?.(null)
-  }, [mode, setCustomBack])
+    return () => {
+      setCustomBack?.(null)
+      setCustomTitle?.(null)
+      setCustomActions?.(null)
+    }
+  }, [mode, searchQuery, editingProduct, setCustomBack, setCustomTitle, setCustomActions])
 
   const handleEdit = (prod: ProductItem) => {
     setEditingProduct(prod)
@@ -138,10 +221,6 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
   const handleCreateNew = () => {
     setEditingProduct(null)
     setMode("form")
-  }
-
-  const handleDelete = (id: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id))
   }
 
   const handleSave = (data: ProductFormData) => {
@@ -170,7 +249,8 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
   }
 
   const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.category.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const formatPrice = (value: number) => {
@@ -183,74 +263,90 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
   return (
     <Stack gap={5} w="full">
       {mode === "list" && (
-        /* ================= LISTAGEM DE PRODUTOS ================= */
-        <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
-          <Stack gap={5} w="full">
-            <Stack direction="col" mobileDirection="row" gap={2.5} align="stretch" mobileAlign="center" w="full">
-              <Box flex="1" w="full">
-                <Input
-                  placeholder="Buscar por nome do produto..."
-                  value={searchQuery}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                  icon={Search}
-                />
-              </Box>
-              <Button
-                variant="primary"
-                label="Novo Produto"
-                icon={Plus}
-                onClick={handleCreateNew}
-              />
-            </Stack>
+        /* ================= LISTAGEM DE PRODUTOS (MINIMALISTA) ================= */
+        <Box position="relative" w="full">
+          {filtered.length > 0 ? (
+            <Box display="flex" direction="col" w="full">
+              {filtered.map((prod, idx) => (
+                <Box key={prod.id}>
+                  <Box
+                    w="full"
+                    paddingY={2.5}
+                    paddingX={2.5}
+                    radius="full"
+                    hoverBg="surface-sunken"
+                    cursor="pointer"
+                    onClick={() => handleEdit(prod)}
+                  >
+                    <Stack direction="row" align="center" justify="between" w="full">
+                      {/* Lado Esquerdo: Ícone/Thumbnail + Nome e Categoria */}
+                      <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
+                        <Box
+                          w="w-10"
+                          h="h-10"
+                          bg="bg-surface-sunken"
+                          borderColor="border-border"
+                          border={true}
+                          radius="default"
+                          shrink="0"
+                        >
+                          <Stack w="full" h="full" align="center" justify="center">
+                            <Icon icon={Package} size={20} color="muted" />
+                          </Stack>
+                        </Box>
 
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead text="Nome do Produto" />
-                  <TableHead text="Categoria" />
-                  <TableHead text="Unidade" />
-                  <TableHead text="Preço de Venda" />
-                  <TableHead text="Estoque" />
-                  <TableHead text="NCM Fiscal" />
-                  <TableHead text="Ações" align="right" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((prod) => (
-                  <TableRow key={prod.id}>
-                    <TableCell fontWeight="bold">{prod.name}</TableCell>
-                    <TableCell>{prod.category}</TableCell>
-                    <TableCell>{prod.unit}</TableCell>
-                    <TableCell>{formatPrice(prod.unitPrice)}</TableCell>
-                    <TableCell>
-                      <Font
-                        variant="body-bold"
-                        color={prod.stock < 0 ? "danger" : prod.stock === 0 ? "muted" : "success"}
-                        text={`${prod.stock} UN`}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Font variant="sub-tiny" color="muted" text={prod.ncm || "Não informado"} />
-                    </TableCell>
-                    <TableCell align="right" w="w-24">
-                      <Stack direction="row" gap={2.5} justify="end">
-                        <Button
-                          variant="primary-icon-xs"
-                          icon={Edit2}
-                          onClick={() => handleEdit(prod)}
-                        />
-                        <Button
-                          variant="danger-icon-xs"
-                          icon={Trash2}
-                          onClick={() => handleDelete(prod.id)}
-                        />
+                        <Stack gap={1} align="start" flex="1" minW="0">
+                          <Font
+                            variant="body"
+                            text={prod.name}
+                          />
+                          <Font
+                            variant="auxiliary"
+                            color="muted"
+                            truncate={true}
+                            text={(prod.category || "GERAL").toUpperCase()}
+                          />
+                        </Stack>
                       </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Stack>
+
+                      {/* Lado Direito: Preço de Venda + Quantidade de Estoque */}
+                      <Box shrink="0">
+                        <Stack gap={1} align="end">
+                          <Font
+                            variant="body"
+                            text={formatPrice(prod.unitPrice)}
+                          />
+                          <Font
+                            variant="auxiliary"
+                            color="muted"
+                            text={`${prod.stock} UN`}
+                          />
+                        </Stack>
+                      </Box>
+                    </Stack>
+                  </Box>
+                  {idx < filtered.length - 1 && (
+                    <Box h="h-[1px]" w="full" bg="bg-border" />
+                  )}
+                </Box>
+              ))}
+            </Box>
+          ) : (
+            <EmptyState
+              icon={PackageX}
+              title="Nenhum produto encontrado"
+              subtitle="Tente pesquisar com outro termo ou adicione um novo produto."
+            />
+          )}
+
+          {/* Botão FAB Flutuante no Canto Inferior Direito */}
+          <Box position="fixed" bottom={6} right={6} zIndex="50">
+            <Button
+              variant="secondary-pill-icon"
+              icon={Plus}
+              onClick={handleCreateNew}
+            />
+          </Box>
         </Box>
       )}
 

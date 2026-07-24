@@ -9,13 +9,18 @@ export type ButtonVariant =
   | "primary"
   | "primary-lg"
   | "primary-sm"
+  | "primary-xs"
+  | "primary-icon"
   | "primary-icon-xs"
   | "primary-pill-icon"
+  | "primary-pill-xs"
   | "secondary"
   | "secondary-lg"
   | "secondary-sm"
+  | "secondary-xs"
   | "secondary-pill-icon"
   | "secondary-pill-icon-xs"
+  | "secondary-pill-xs"
   | "danger-sm"
   | "danger-icon"
   | "danger-icon-xs"
@@ -23,17 +28,22 @@ export type ButtonVariant =
   | "success-sm"
   | "outline"
   | "outline-lg"
+  | "outline-sm"
+  | "outline-xs"
   | "outline-pill-icon"
   | "outline-pill-icon-xs"
+  | "outline-pill-xs"
   | "ghost"
   | "ghost-primary"
   | "ghost-secondary"
+  | "ghost-menu"
 
-export interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "children" | "className" | "style"> {
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
   fullWidth?: boolean
-  justify?: "center" | "start" | "end"
+  justify?: "center" | "start" | "end" | "between"
   label?: string
+  rightLabel?: string
   icon?: LucideIcon
   iconRight?: LucideIcon
   href?: string
@@ -46,25 +56,28 @@ const variantStyles: Record<string, string> = {
   outline: "bg-brand-secondary/10 text-brand-primary hover:bg-brand-secondary/20",
   success: "bg-brand-success text-white hover:opacity-90",
   danger: "bg-brand-danger text-white hover:opacity-90",
-  ghost: "bg-transparent text-foreground border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",
-  "ghost-secondary": "bg-transparent text-brand-secondary border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",
-  "ghost-primary": "bg-transparent text-brand-primary border-none hover:bg-transparent shadow-none p-0 min-h-0 min-w-0",
+  ghost: "bg-transparent text-foreground border-none hover:bg-transparent hover:opacity-80 shadow-none p-0 min-h-0 min-w-0",
+  "ghost-secondary": "bg-transparent text-brand-secondary border-none hover:bg-transparent hover:opacity-80 shadow-none p-0 min-h-0 min-w-0",
+  "ghost-primary": "bg-transparent text-brand-primary border-none hover:bg-transparent hover:opacity-80 shadow-none p-0 min-h-0 min-w-0",
+  "ghost-menu": "bg-transparent text-foreground border-none hover:bg-transparent hover:opacity-80 shadow-none",
 }
 
-const justifyStyles = {
+const justifyStyles: Record<string, string> = {
   center: "justify-center",
   start: "justify-start",
   end: "justify-end",
+  between: "justify-between",
 }
 
 const sizeStyles = {
   default: "py-2.5 px-5 min-h-[40px] h-auto",
   sm: "py-2 px-3 min-h-[32px] h-auto",
-  xs: "py-1.5 px-3 min-h-[28px] h-auto",
+  xs: "py-1 px-2.5 min-h-[26px] text-xs h-auto",
   lg: "py-3.5 px-6 min-h-[48px] h-auto",
   icon: "h-10 w-10 p-0 flex items-center justify-center shrink-0",
   "icon-xs": "h-7 w-7 p-0 flex items-center justify-center shrink-0",
-  ghost: "min-h-0 p-0 h-auto w-auto flex items-center justify-center",
+  ghost: "p-0 min-h-0 min-w-0 h-auto w-auto flex items-center justify-center",
+  "ghost-menu": "py-2.5 px-3 min-h-[40px] h-auto flex items-center justify-center",
 }
 
 const roundedStyles = {
@@ -73,15 +86,17 @@ const roundedStyles = {
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = "primary", justify = "center", fullWidth, label, icon: IconComponent, iconRight: IconRightComponent, href, modalTarget, ...props }, ref) => {
+  ({ variant = "primary", justify = "center", fullWidth, label, rightLabel, icon: IconComponent, iconRight: IconRightComponent, href, modalTarget, className, ...props }, ref) => {
 
-    let activeVariant = variant
+    const activeVariant = variant
 
     const isPill = activeVariant.includes("-pill")
 
     let logicalSize: keyof typeof sizeStyles = "default"
     if (activeVariant === "ghost" || activeVariant === "ghost-secondary" || activeVariant === "ghost-primary") {
       logicalSize = "ghost"
+    } else if (activeVariant === "ghost-menu") {
+      logicalSize = "ghost-menu"
     } else if (activeVariant.includes("-icon-xs")) logicalSize = "icon-xs"
     else if (activeVariant.includes("-icon")) logicalSize = "icon"
     else if (activeVariant.includes("-xs")) logicalSize = "xs"
@@ -95,23 +110,24 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       baseColor = baseColor.replace(mod, "")
     })
 
-    const isGhost = baseColor === "ghost" || baseColor === "ghost-secondary" || baseColor === "ghost-primary"
+    const isGhost = baseColor === "ghost" || baseColor === "ghost-secondary" || baseColor === "ghost-primary" || baseColor === "ghost-menu"
 
     const classes = cn(
       !isGhost && "btn-shimmer",
-      "inline-flex flex-nowrap whitespace-nowrap text-center items-center gap-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary disabled:pointer-events-none disabled:opacity-50",
+      "inline-flex flex-nowrap whitespace-nowrap text-center items-center gap-2.5 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary disabled:pointer-events-none disabled:opacity-50",
       justifyStyles[justify],
       variantStyles[baseColor] || variantStyles.primary,
       sizeStyles[logicalSize],
-      roundedStyles[isPill ? "full" : "default"],
-      !logicalSize.includes("icon") && logicalSize !== "ghost" && !fullWidth && "w-full md:w-auto",
-      fullWidth && "w-full"
+      roundedStyles[isPill ? "full" : (isGhost ? "full" : "default")],
+      !isPill && !logicalSize.includes("icon") && logicalSize !== "ghost" && !fullWidth && "w-full md:w-auto",
+      fullWidth && "w-full",
+      className
     )
 
     const getFontVariant = () => {
-      if (logicalSize === "xs") return "body-xs-semibold"
-      if (logicalSize === "sm") return "body-sm-semibold"
-      return "body-semibold"
+      if (logicalSize === "xs") return "body-xs"
+      if (logicalSize === "sm") return "body-sm-medium"
+      return "body-medium"
     }
 
     const getIconSize = () => {
@@ -124,6 +140,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <>
         {IconComponent && <BaseIcon icon={IconComponent} size={getIconSize()} color="inherit" />}
         {label && <Font variant={getFontVariant()} color="inherit" text={label} align="center" />}
+        {rightLabel && <Font variant="sub-tiny" color="muted" text={rightLabel} />}
         {IconRightComponent && <BaseIcon icon={IconRightComponent} size={getIconSize()} color="inherit" />}
       </>
     )

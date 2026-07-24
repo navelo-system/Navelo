@@ -34,7 +34,7 @@ export interface NotaFiscalSectionProps {
 }
 
 const CustomCheckbox = ({ checked, onChange, label }: { checked: boolean, onChange: () => void, label: string }) => (
-  <Box as="button" type="button" onClick={onChange} display="flex" w="full" cursor="pointer">
+  <Box onClick={onChange} display="flex" w="full" cursor="pointer">
     <Stack direction="row" align="center" gap={2.5} w="full">
       <Box
         w="w-5"
@@ -268,8 +268,6 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
         {/* CPF/CNPJ autorizada a obter o XML Accordion */}
         <Box border={true} borderColor="border-border" radius="default" overflow="hidden">
           <Box
-            as="button"
-            type="button"
             onClick={() => setXmlAccordionOpen(!xmlAccordionOpen)}
             padding={5}
             bg="bg-surface"
@@ -340,8 +338,6 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
         {/* Informações POS Accordion */}
         <Box border={true} borderColor="border-border" radius="default" overflow="hidden">
           <Box
-            as="button"
-            type="button"
             onClick={() => setPosAccordionOpen(!posAccordionOpen)}
             padding={5}
             bg="bg-surface"

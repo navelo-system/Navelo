@@ -72,7 +72,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const inputElement = (
       <div className="relative flex items-center w-full">
         {IconComponent && (
-          <div className="absolute left-3 flex items-center justify-center pointer-events-none text-text-muted">
+          <div className="absolute left-1 flex items-center justify-center pointer-events-none text-text-muted">
             <IconComponent size={16} />
           </div>
         )}
@@ -81,10 +81,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           placeholder={placeholder}
           onChange={handleChange}
           className={cn(
-            "flex h-10 w-full rounded-[5px] border-2 border-border bg-surface px-5 py-2.5 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-text-muted focus:outline-none focus:border-brand-primary disabled:cursor-not-allowed disabled:opacity-50 transition-colors",
-            IconComponent && "pl-10",
-            (IconRightComponent || isPassword) && "pr-10",
-            (hasError || error) && "border-red-500 focus:border-red-500",
+            "flex h-10 w-full rounded-none border-0 border-b-2 border-b-border bg-transparent px-1 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-text-muted focus:outline-none focus:border-b-brand-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 transition-colors",
+            IconComponent && "pl-7",
+            (IconRightComponent || isPassword) && "pr-7",
+            (hasError || error) && "border-b-red-500 focus:border-b-red-500",
             className
           )}
           ref={ref}
@@ -95,7 +95,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             type="button"
             onClick={isPassword ? () => setShowPassword(prev => !prev) : undefined}
             className={cn(
-              "absolute right-3 flex items-center justify-center text-text-muted hover:text-foreground focus:outline-none",
+              "absolute right-1 flex items-center justify-center text-text-muted hover:text-foreground focus:outline-none",
               isPassword ? "cursor-pointer" : "pointer-events-none"
             )}
           >

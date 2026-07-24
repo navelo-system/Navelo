@@ -9,9 +9,12 @@ import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
-import { Search, Plus, Edit2, Trash2, MapPin, Globe } from "lucide-react"
+import { Plus, Edit2, Trash2, MapPin, Globe } from "lucide-react"
 
-export interface CityItem {
+import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
+import { FormActions } from "@/components/store/intermediary/FormActions"
+
+interface CityItem {
   id: string
   name: string
   uf: string
@@ -21,6 +24,7 @@ export interface CidadesSectionProps {
   onCancel: () => void
   setCustomBack?: (cb: (() => void) | null) => void
   setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
 const BRAZIL_UFS = [
@@ -32,7 +36,8 @@ const BRAZIL_UFS = [
 export const CidadesSection: React.FC<CidadesSectionProps> = ({
   onCancel,
   setCustomBack,
-  setCustomTitle
+  setCustomTitle,
+  setCustomActions
 }) => {
   const [cities, setCities] = React.useState<CityItem[]>([
     { id: "1", name: "Abadia de Goiás", uf: "GO" },
@@ -68,11 +73,24 @@ export const CidadesSection: React.FC<CidadesSectionProps> = ({
     setCustomBack?.(() => handleBack)
     setCustomTitle?.(mode === "form" ? (editingCity ? "Editar Cidade" : "Nova Cidade") : "Cidades")
 
+    if (mode === "list") {
+      setCustomActions?.(
+        <MobileHeaderSearch
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          placeholder="Buscar por cidade ou UF..."
+        />
+      )
+    } else {
+      setCustomActions?.(null)
+    }
+
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
+      setCustomActions?.(null)
     }
-  }, [mode, editingCity, setCustomBack, setCustomTitle, handleBack])
+  }, [mode, editingCity, searchQuery, setCustomBack, setCustomTitle, setCustomActions, handleBack])
 
   const handleCreateNew = () => {
     setEditingCity(null)
@@ -127,16 +145,8 @@ export const CidadesSection: React.FC<CidadesSectionProps> = ({
     <Box position="relative" w="full">
       {mode === "list" ? (
         <Stack gap={5} w="full">
-          {/* Barra de Busca e Botão de Adição no topo */}
-          <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" gap={5} w="full">
-            <Box flex="1">
-              <Input
-                placeholder="Buscar por cidade ou UF..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                icon={Search}
-              />
-            </Box>
+          {/* Botão de Adição no topo */}
+          <Stack direction="row" align="center" justify="end" w="full">
             <Button
               variant="primary"
               label="Adicionar cidade"
@@ -176,7 +186,7 @@ export const CidadesSection: React.FC<CidadesSectionProps> = ({
                       {/* Ações de Edição/Deleção */}
                       <Stack direction="row" gap={2.5} justify="end">
                         <Button
-                          variant="primary-icon-xs"
+                          variant="primary-xs"
                           icon={Edit2}
                           onClick={() => handleEdit(city)}
                         />
@@ -228,21 +238,12 @@ export const CidadesSection: React.FC<CidadesSectionProps> = ({
             </Stack>
 
             {/* Ações de Formulário */}
-            <Box paddingY={2.5} w="full">
-              <Stack direction="row" justify="end" gap={2.5} w="full">
-                <Button
-                  type="button"
-                  variant="outline"
-                  label="Cancelar"
-                  onClick={() => setMode("list")}
-                />
-                <Button
-                  type="submit"
-                  variant="primary"
-                  label={editingCity ? "Salvar alterações" : "Salvar cidade"}
-                />
-              </Stack>
-            </Box>
+            <FormActions
+              confirmLabel={editingCity ? "Salvar alterações" : "Salvar cidade"}
+              onConfirm={() => {}}
+              onCancel={() => setMode("list")}
+              isSubmit={true}
+            />
           </Stack>
         </Box>
       )}

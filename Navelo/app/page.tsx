@@ -14,6 +14,10 @@ import { ProdutosSection } from "@/components/store/sections/pdv/pages/ProdutosS
 import { ClientesSection } from "@/components/store/sections/pdv/pages/ClientesSection"
 import { RelatoriosSection } from "@/components/store/sections/pdv/pages/RelatoriosSection"
 import { ConfiguracoesSection } from "@/components/store/sections/pdv/pages/ConfiguracoesSection"
+import { VendasSection } from "@/components/store/sections/pdv/pages/VendasSection"
+import { TotaisEmCaixaSection } from "@/components/store/sections/pdv/pages/TotaisEmCaixaSection"
+import { ContasAReceberSection } from "@/components/store/sections/pdv/pages/ContasAReceberSection"
+import { ContaDigitalSection } from "@/components/store/sections/pdv/pages/ContaDigitalSection"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
 import {
   ShoppingBag,
@@ -72,6 +76,7 @@ export default function Home() {
     })
     setCustomTitle(null)
     setCustomActions(null)
+    setCustomBack(null)
     if (typeof window !== "undefined") {
       const newHash = view === "login" ? "" : `#${view}`
       if (window.location.hash !== newHash) {
@@ -191,7 +196,7 @@ export default function Home() {
   }
 
   return (
-    <Box w="full" h={currentView === "caixa" ? "h-auto md:h-screen" : "auto"} display="flex" direction="col" className={`min-h-screen bg-slate-200 ${currentView === "caixa" ? "md:overflow-hidden" : ""}`}>
+    <Box w="full" h={currentView === "caixa" ? "screen" : "auto"} display="flex" direction="col" className={`min-h-screen bg-slate-200 ${currentView === "caixa" ? "overflow-hidden" : ""}`}>
       {/* Header full width (only for dashboard) */}
       {currentView === "dashboard" && (
         <Box w="full" shrink="0">
@@ -213,7 +218,7 @@ export default function Home() {
         </Box>
       )}
       {/* Main content area */}
-      <Box flex="1" w="full" className={`flex flex-col ${currentView === "caixa" ? "min-h-0 overflow-y-auto md:overflow-hidden" : ""}`}>
+      <Box flex="1" w="full" className={`flex flex-col ${currentView === "caixa" ? "min-h-0 overflow-hidden" : ""}`}>
         <RegistryMain
           title={
             customTitle
@@ -235,14 +240,14 @@ export default function Home() {
               : viewIconMap[currentView] || Terminal
           }
           onBack={
-            customBack
-              ? customBack
-              : currentView !== "dashboard"
-                ? () => {
+            currentView === "dashboard"
+              ? undefined
+              : customBack
+                ? customBack
+                : () => {
                     setActiveComandaId(null)
                     setCurrentView("dashboard", true)
                   }
-                : undefined
           }
           customActions={currentView === "dashboard" ? undefined : customActions}
           className={`flex-1 flex flex-col ${currentView === "caixa" ? "min-h-0" : ""}`}
@@ -267,6 +272,7 @@ export default function Home() {
                       activeComandaId={activeComandaId}
                       onCloseComanda={handleCloseComanda}
                       setCustomBack={setCustomBack}
+                      setCustomTitle={setCustomTitle}
                       setCustomActions={setCustomActions}
                     />
                   </Box>
@@ -321,6 +327,8 @@ export default function Home() {
                     <RelatoriosSection
                       onBackToDashboard={() => setCurrentView("dashboard", true)}
                       setCustomBack={setCustomBack}
+                      setCustomTitle={setCustomTitle}
+                      setCustomActions={setCustomActions}
                     />
                   </Box>
                 )}
@@ -332,6 +340,43 @@ export default function Home() {
                       setCustomBack={setCustomBack}
                       setCustomTitle={setCustomTitle}
                       setCustomActions={setCustomActions}
+                    />
+                  </Box>
+                )}
+
+                {currentView === "vendas" && (
+                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                    <VendasSection
+                      onBackToDashboard={() => setCurrentView("dashboard", true)}
+                      setCustomBack={setCustomBack}
+                    />
+                  </Box>
+                )}
+
+                {currentView === "totais-em-caixa" && (
+                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                    <TotaisEmCaixaSection
+                      onBackToDashboard={() => setCurrentView("dashboard", true)}
+                      setCustomBack={setCustomBack}
+                    />
+                  </Box>
+                )}
+
+                {currentView === "contas-a-receber" && (
+                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                    <ContasAReceberSection
+                      onBackToDashboard={() => setCurrentView("dashboard", true)}
+                      setCustomBack={setCustomBack}
+                    />
+                  </Box>
+                )}
+
+                {currentView === "conta-digital" && (
+                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                    <ContaDigitalSection
+                      onCancel={() => setCurrentView("dashboard", true)}
+                      setCustomBack={setCustomBack}
+                      setCustomTitle={setCustomTitle}
                     />
                   </Box>
                 )}

@@ -6,6 +6,7 @@ import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
+import { Button } from "@/components/store/base/Button"
 import { Switch } from "@/components/store/base/Switch"
 import { Icon } from "@/components/store/base/Icon"
 import {
@@ -96,20 +97,18 @@ export const MenuDigitalSection: React.FC<MenuDigitalSectionProps> = ({
             />
           </Stack>
           <Stack direction="row" align="center" gap={2.5}>
-            <Box
-              cursor="pointer"
+            <Button
+              variant="ghost"
+              icon={ExternalLink}
               onClick={handleOpenUrl}
               title="Abrir no navegador"
-            >
-              <Icon icon={ExternalLink} size={16} color={enabled ? "primary" : "muted"} />
-            </Box>
-            <Box
-              cursor="pointer"
+            />
+            <Button
+              variant="ghost"
+              icon={Copy}
               onClick={handleCopy}
               title={copied ? "Copiado!" : "Copiar URL"}
-            >
-              <Icon icon={Copy} size={16} color={enabled ? "primary" : "muted"} />
-            </Box>
+            />
           </Stack>
         </Stack>
       </Box>

@@ -289,11 +289,11 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     <Box as="form" onSubmit={handleSubmit} w="full">
       <Stack gap={5} w="full">
         <Tabs defaultValue="basico">
-          <TabsList className="flex-col md:flex-row gap-2.5 w-full md:w-auto">
-            <TabsTrigger value="basico" className="w-full md:w-auto">
+          <TabsList grid cols={2}>
+            <TabsTrigger value="basico" fullWidth>
               Dados Básicos
             </TabsTrigger>
-            <TabsTrigger value="avancado" className="w-full md:w-auto">
+            <TabsTrigger value="avancado" fullWidth>
               Recursos Avançados
             </TabsTrigger>
           </TabsList>

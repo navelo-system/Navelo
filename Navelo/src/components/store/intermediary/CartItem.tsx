@@ -44,7 +44,7 @@ export const CartItem: React.FC<CartItemProps> = ({
         <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
           <Avatar image={image} fallback={name.substring(0, 2)} />
           <Stack gap={1} flex="1" minW="0">
-            <Font variant="body-bold" text={name} truncate />
+            <Font variant="body" text={name} truncate />
             <Font variant="description" text={formatPrice(unitPrice)} />
           </Stack>
         </Stack>

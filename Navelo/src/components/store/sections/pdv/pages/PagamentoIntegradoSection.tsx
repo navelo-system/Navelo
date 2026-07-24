@@ -140,7 +140,7 @@ export const PagamentoIntegradoSection: React.FC<PagamentoIntegradoSectionProps>
                 />
               </Box>
             </Box>
-            <Box shrink="0" className="w-full md:w-auto" display="flex">
+            <Box shrink="0" w="full" display="flex">
               <Button
                 variant="primary"
                 label={isEditingName ? "SALVAR" : "EDITAR"}

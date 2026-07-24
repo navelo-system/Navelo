@@ -14,8 +14,9 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   bgGradient?: "fade-up"
   w?: WidthToken | string
   h?: HeightToken | string
-  display?: "hidden lg:flex" | "flex" | "block" | "inline-flex" | "hidden" | "block md:hidden" | "hidden md:block"
+  display?: "hidden lg:flex" | "flex" | "flex md:hidden" | "block" | "inline-flex" | "hidden" | "block md:hidden" | "hidden md:block"
   direction?: "col" | "row"
+  align?: "center" | "start" | "end" | "stretch"
   justify?: "between" | "center" | "start" | "end"
   radius?: "default" | "full" | "none" | "lg"
   border?: boolean
@@ -37,6 +38,7 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   zIndex?: "0" | "10" | "20" | "30" | "40" | "50" | "auto"
   pointerEvents?: "none" | "auto"
   minW?: string
+  minH?: "0" | "full"
   objectFit?: "contain" | "cover" | "fill" | "none" | "scale-down"
   borderStyle?: "solid" | "dashed"
   shadow?: "default" | "inner" | "none"
@@ -47,6 +49,7 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   animation?: "slide-in-right" | "slide-out-right" | "slide-up" | "slide-down" | "search-expand-in" | "search-collapse-out"
   order?: "1" | "2"
   mdOrder?: "1" | "2"
+  interactive?: boolean
 }
 
 const paddingMap: Record<string, string> = {
@@ -97,6 +100,7 @@ const displayMap = {
   "inline-flex": "inline-flex",
   "hidden": "hidden",
   "block md:hidden": "block md:hidden",
+  "flex md:hidden": "flex md:hidden",
   "hidden md:block": "hidden md:block",
 }
 
@@ -157,16 +161,23 @@ const zIndexMap = {
   "auto": "z-auto",
 }
 
+const alignMap = {
+  "center": "items-center",
+  "start": "items-start",
+  "end": "items-end",
+  "stretch": "items-stretch",
+}
+
 export const Box = React.forwardRef<HTMLElement, BoxProps>(
   ({ 
     as: Component = "div",
     className, padding, paddingX, paddingY, bg, bgGradient, w, h, 
-    display, direction, justify, radius, border,
+    display, direction, align, justify, radius, border,
     borderTop, borderBottom, borderLeft, borderRight,
     borderColor, 
     borderStyle, shadow, transition, opacity, maxH, animation,
-    overflow, hoverBg, cursor, flex, position, top, left, right, bottom, zIndex, pointerEvents, minW, objectFit, shrink,
-    order, mdOrder, ...props 
+     overflow, hoverBg, cursor, flex, position, top, left, right, bottom, zIndex, pointerEvents, minW, minH, objectFit, shrink,
+    order, mdOrder, interactive, ...props 
   }, ref) => {
     return (
       <Component
@@ -179,6 +190,7 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
           h && (heightMap[h] || h),
           display && displayMap[display],
           direction && directionMap[direction],
+          align && alignMap[align],
           justify && justifyMap[justify],
           radius && radiusMap[radius],
           border && "border-2",
@@ -201,6 +213,8 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
           position,
           zIndex && zIndexMap[zIndex],
           minW,
+          minH === "0" && "min-h-0",
+          minH === "full" && "min-h-full",
           objectFit && {
             "contain": "object-contain",
             "cover": "object-cover",
@@ -229,6 +243,7 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
             "fit-content": "max-h-fit"
           }[maxH],
           shrink && { "0": "shrink-0", "1": "shrink" }[shrink],
+          interactive && "hover:scale-105 active:scale-95 transition-all",
           bg,
           className
         )}

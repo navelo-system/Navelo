@@ -9,11 +9,11 @@ import { Grid } from "@/components/store/base/Grid"
 import { Font } from "@/components/store/base/Font"
 import { TagFoldSvg } from "@/components/store/base/TagFoldSvg"
 import { Button } from "@/components/store/base/Button"
-import { Input } from "@/components/store/base/Input"
 import { CreateComandaModal } from "@/components/store/sections/pdv/modals/CreateComandaModal"
 import { ComandasMenuSidebar } from "@/components/store/sections/pdv/modals/ComandasMenuSidebar"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
-import { Search, Receipt, Menu } from "lucide-react"
+import { Receipt, Menu } from "lucide-react"
+import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 
 interface ComandaItem {
   id: string
@@ -83,7 +83,7 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
   const [gridColumns, gridContainerRef] = useGridColumnCount(130, 20)
 
   const filtered = comandas.filter((c) =>
-    c.label.toLowerCase().includes(searchQuery.toLowerCase())
+    c.label.toLowerCase().includes(searchQuery.toLowerCase()) || c.id.includes(searchQuery)
   )
 
   const handleCreate = (name: string) => {
@@ -94,27 +94,25 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
 
   React.useEffect(() => {
     setCustomActions?.(
-      <Button
-        variant="primary-pill-icon"
-        icon={Menu}
-        onClick={() => setIsSidebarOpen(true)}
-      />
+      <MobileHeaderSearch
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        placeholder="Pesquisar comanda ativa..."
+      >
+        <Button
+          variant="primary-pill-icon"
+          icon={Menu}
+          onClick={() => setIsSidebarOpen(true)}
+        />
+      </MobileHeaderSearch>
     )
 
     return () => setCustomActions?.(null)
-  }, [setCustomActions])
+  }, [setCustomActions, searchQuery])
 
 
   return (
     <Stack gap={5} w="full">
-      <Box flex="1" padding={0} w="full">
-        <Input
-          placeholder="Pesquisar comanda ativa..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          icon={Search}
-        />
-      </Box>
 
       {/* Grade de Comandas Ativas */}
       {filtered.length === 0 ? (
@@ -129,7 +127,6 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
             {filtered.map((comanda) => (
               <Box
                 key={comanda.id}
-                as="button"
                 onClick={() => onSelectComanda(comanda.id)}
                 position="relative"
                 padding={0}
@@ -143,6 +140,7 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
                 hoverBg="secondary/10"
                 display="flex"
                 direction="col"
+                cursor="pointer"
               >
                 {/* Tag fold */}
                 <TagFoldSvg />

@@ -35,30 +35,33 @@ export function AddressList({ addresses, onEdit, onDelete }: AddressListProps) {
           border
           borderColor="border-border"
           radius="default"
+          w="full"
         >
-          <Stack direction="row" justify="between" align="center" gap={5}>
-            <Stack direction="row" align="start" gap={5}>
+          <Stack gap={2.5} w="full">
+            {/* Linha Superior: Ícone à esquerda, Ações (Editar/Deletar) à direita */}
+            <Stack direction="row" justify="between" align="center" w="full">
               <Box padding={2.5} bg="bg-brand-primary/10" radius="full">
                 <Icon icon={MapPin} size={20} color="primary" />
               </Box>
-              <Stack gap={1}>
-                <Stack direction="row" align="center" gap={2.5}>
-                  <Font variant="body-bold" text={`${addr.street}, ${addr.number}`} />
-                  {addr.isDefault && <Badge variant="primary" label="Padrão" />}
-                </Stack>
-                <Font
-                  variant="description"
-                  text={`${addr.neighborhood} - ${addr.city}/${addr.state} | CEP: ${addr.zipCode}`}
-                />
-                {addr.complement && (
-                  <Font variant="auxiliary" color="muted" text={`Complemento: ${addr.complement}`} />
-                )}
+              <Stack direction="row" gap={2.5} align="center">
+                <Button variant="primary-icon-xs" icon={Edit2} onClick={() => onEdit?.(addr)} />
+                {onDelete && <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onDelete?.(addr)} />}
               </Stack>
             </Stack>
 
-            <Stack direction="row" gap={2.5}>
-              <Button variant="primary-icon-xs" icon={Edit2} onClick={() => onEdit?.(addr)} />
-              <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onDelete?.(addr)} />
+            {/* Detalhes do Endereço abaixo */}
+            <Stack gap={1} w="full" align="start">
+              <Stack direction="row" align="center" gap={2.5} wrap={true}>
+                <Font variant="body-bold" text={`${addr.street}, ${addr.number}`} />
+                {addr.isDefault && <Badge variant="primary" label="Padrão" />}
+              </Stack>
+              <Font
+                variant="description"
+                text={`${addr.neighborhood} - ${addr.city}/${addr.state} | CEP: ${addr.zipCode}`}
+              />
+              {addr.complement && (
+                <Font variant="auxiliary" color="muted" text={`Complemento: ${addr.complement}`} />
+              )}
             </Stack>
           </Stack>
         </Box>

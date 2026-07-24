@@ -1,6 +1,6 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
+/* eslint-disable max-lines-per-function, complexity */
 
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
@@ -8,8 +8,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Icon } from "@/components/store/base/Icon"
 import { Button } from "@/components/store/base/Button"
-import { Input } from "@/components/store/base/Input"
-import { InventoryAuditTable } from "@/components/store/advanced/InventoryAuditTable"
+import { InventoryAuditTable, BalancoProduct } from "@/components/store/advanced/InventoryAuditTable"
 import { InvoicesTable } from "@/components/store/advanced/InvoicesTable"
 import { ManualMovementForm } from "@/components/store/advanced/ManualMovementForm"
 import {
@@ -18,19 +17,24 @@ import {
   FileText,
   PlusCircle,
   Upload,
-  Check,
-  Search
+  Check
 } from "lucide-react"
+import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 
 interface EstoqueSectionProps {
   onBackToDashboard: () => void
   setCustomBack?: (cb: (() => void) | null) => void
+  setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
 export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
-  setCustomBack
+  setCustomBack,
+  setCustomTitle,
+  setCustomActions
 }) => {
   const [estoqueView, setEstoqueView] = React.useState<"menu" | "balanco" | "notas" | "entrada_manual">("menu")
+  const [balancoSubMode, setBalancoSubMode] = React.useState<"history" | "resumo">("history")
 
   const scrollPositions = React.useRef<Record<string, number>>({})
 
@@ -54,7 +58,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
   }, [estoqueView])
 
   // Mock de dados para o Balanço
-  const [balancoProducts, setBalancoProducts] = React.useState([
+  const [balancoProducts, setBalancoProducts] = React.useState<BalancoProduct[]>([
     { id: "1", name: "ÁGUA MINERAL SEM GÁS", category: "Bebidas", systemStock: 15, counted: "" },
     { id: "2", name: "ÁGUA COM GÁS", category: "Bebidas", systemStock: 2, counted: "" },
     { id: "3", name: "REFRIGERANTE LATA", category: "Bebidas", systemStock: -3, counted: "" },
@@ -70,6 +74,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
 
   const [successMsg, setSuccessMsg] = React.useState("")
   const [invoiceSearchQuery, setInvoiceSearchQuery] = React.useState("")
+  const [balancoSearchQuery, setBalancoSearchQuery] = React.useState("")
 
   React.useEffect(() => {
     if (estoqueView !== "menu") {
@@ -80,8 +85,43 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
     } else {
       setCustomBack?.(null)
     }
-    return () => setCustomBack?.(null)
-  }, [estoqueView, setCustomBack])
+
+    if (estoqueView === "balanco") {
+      setCustomTitle?.(balancoSubMode === "resumo" ? "Resumo do balanço" : "Balanços de estoque")
+    } else if (estoqueView === "notas") {
+      setCustomTitle?.("Notas Fiscais")
+    } else if (estoqueView === "entrada_manual") {
+      setCustomTitle?.("Entrada / Saída Manual")
+    } else {
+      setCustomTitle?.(null)
+    }
+
+    if (estoqueView === "notas") {
+      setCustomActions?.(
+        <MobileHeaderSearch
+          searchQuery={invoiceSearchQuery}
+          onSearchQueryChange={setInvoiceSearchQuery}
+          placeholder="Buscar por número ou fornecedor..."
+        />
+      )
+    } else if (estoqueView === "balanco") {
+      setCustomActions?.(
+        <MobileHeaderSearch
+          searchQuery={balancoSearchQuery}
+          onSearchQueryChange={setBalancoSearchQuery}
+          placeholder="Buscar por nome do produto ou grupo..."
+        />
+      )
+    } else {
+      setCustomActions?.(null)
+    }
+
+    return () => {
+      setCustomBack?.(null)
+      setCustomTitle?.(null)
+      setCustomActions?.(null)
+    }
+  }, [estoqueView, balancoSubMode, invoiceSearchQuery, balancoSearchQuery, setCustomBack, setCustomTitle, setCustomActions])
   const handleSaveBalanco = (updatedProducts: typeof balancoProducts) => {
     setBalancoProducts(updatedProducts)
     setSuccessMsg("Balanço de estoque salvo com sucesso!")
@@ -118,11 +158,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
         <Stack gap={5} w="full">
           {/* Balanço de estoque */}
           <Box
-            as="button"
-            onClick={() => {
-              setSuccessMsg("")
-              setEstoqueView("balanco")
-            }}
+            onClick={() => { setSuccessMsg(""); setEstoqueView("balanco") }}
             padding={5}
             bg="bg-surface"
             radius="default"
@@ -130,6 +166,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
             borderColor="border-border"
             w="full"
             hoverBg="surface-sunken"
+            cursor="pointer"
           >
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
               <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" gap={5} flex="1">
@@ -145,11 +182,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
 
           {/* Notas Fiscais */}
           <Box
-            as="button"
-            onClick={() => {
-              setSuccessMsg("")
-              setEstoqueView("notas")
-            }}
+            onClick={() => { setSuccessMsg(""); setEstoqueView("notas") }}
             padding={5}
             bg="bg-surface"
             radius="default"
@@ -157,6 +190,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
             borderColor="border-border"
             w="full"
             hoverBg="surface-sunken"
+            cursor="pointer"
           >
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
               <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" gap={5} flex="1">
@@ -172,11 +206,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
 
           {/* Entrada Manual */}
           <Box
-            as="button"
-            onClick={() => {
-              setSuccessMsg("")
-              setEstoqueView("entrada_manual")
-            }}
+            onClick={() => { setSuccessMsg(""); setEstoqueView("entrada_manual") }}
             padding={5}
             bg="bg-surface"
             radius="default"
@@ -184,6 +214,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
             borderColor="border-border"
             w="full"
             hoverBg="surface-sunken"
+            cursor="pointer"
           >
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
               <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" gap={5} flex="1">
@@ -201,28 +232,20 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
 
       {estoqueView === "balanco" && (
         /* ================= SUB-SEÇÃO: BALANÇO DE ESTOQUE ================= */
-        <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
-          <InventoryAuditTable
-            products={balancoProducts}
-            onCancel={() => setEstoqueView("menu")}
-            onSave={handleSaveBalanco}
-          />
-        </Box>
+        <InventoryAuditTable
+          products={balancoProducts}
+          searchQuery={balancoSearchQuery}
+          onCancel={() => setEstoqueView("menu")}
+          onSave={handleSaveBalanco}
+          onModeChange={(mode) => setBalancoSubMode(mode)}
+        />
       )}
 
       {estoqueView === "notas" && (
         /* ================= SUB-SEÇÃO: NOTAS FISCAIS ================= */
         <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
           <Stack gap={5}>
-            <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
-              <Box flex="1" w="full">
-                <Input
-                  placeholder="Buscar por número ou fornecedor..."
-                  value={invoiceSearchQuery}
-                  onChange={(e) => setInvoiceSearchQuery(e.target.value)}
-                  icon={Search}
-                />
-              </Box>
+            <Stack direction="row" align="center" justify="end" w="full">
               <Button
                 variant="primary"
                 label="Importar XML"

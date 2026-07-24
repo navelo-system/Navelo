@@ -19,7 +19,7 @@ export function CartItemRow({ item, onIncrease, onDecrease, onRemove }: CartItem
       <Stack gap={2.5}>
         <Stack direction="row" justify="between" align="start" gap={2.5}>
           <Box flex="1" overflow="hidden">
-            <Font variant="body-bold" text={item.productNameSnapshot} truncate />
+            <Font variant="body" text={item.productNameSnapshot} truncate />
           </Box>
           <Font
             variant="body-bold"

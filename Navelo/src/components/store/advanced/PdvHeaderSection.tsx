@@ -3,7 +3,6 @@
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
-import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Cloud, Eye, EyeOff, LogOut, AlertTriangle } from "lucide-react"
 
@@ -60,9 +59,11 @@ export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
         >
           <Box shrink="0">
             <Stack gap={1} align="start">
-              <Box as="button" onClick={() => onNavigate("dashboard")} shrink="0" display="flex">
-                <Font variant="h3" as="h1" color="brand-secondary" text="Navelo - PDV" />
-              </Box>
+              <Button
+                variant="ghost-secondary"
+                label="Navelo - PDV"
+                onClick={() => onNavigate("dashboard")}
+              />
               <Button
                 variant="ghost-secondary"
                 label={operatorName || "Administrador"}

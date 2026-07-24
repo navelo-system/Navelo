@@ -107,7 +107,7 @@ export const FormasPagamentoSection: React.FC<FormasPagamentoSectionProps> = ({
                   </Stack>
                 </Stack>
                 {pixEnabled && (
-                  <Box display="flex" justify="end" className="w-full md:w-auto">
+                  <Box display="flex" justify="end" w="full">
                     <Badge variant="success" label="habilitado" icon={Check} />
                   </Box>
                 )}

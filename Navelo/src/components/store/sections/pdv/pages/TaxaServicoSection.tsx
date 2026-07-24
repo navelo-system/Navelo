@@ -11,9 +11,9 @@ import { Form } from "@/components/store/base/Form"
 import { Button } from "@/components/store/base/Button"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/store/base/Table"
-import { Icon } from "@/components/store/base/Icon"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Plus, Edit2, Trash2, Coins, Percent } from "lucide-react"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 
 export interface ServiceFeeItem {
   id: string
@@ -150,24 +150,15 @@ export const TaxaServicoSection: React.FC<TaxaServicoSectionProps> = ({
               />
 
               {/* Botões de Ações no Rodapé do Formulário */}
-              <Box paddingY={2.5} w="full">
-                <Stack direction="row" justify="end" gap={2.5} w="full">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    label="Cancelar"
-                    onClick={() => {
-                      setMode("list")
-                      setEditingFee(null)
-                    }}
-                  />
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    label={editingFee ? "Salvar alterações" : "Adicionar taxa"}
-                  />
-                </Stack>
-              </Box>
+              <FormActions
+                confirmLabel={editingFee ? "Salvar alterações" : "Adicionar taxa"}
+                onConfirm={() => {}}
+                onCancel={() => {
+                  setMode("list")
+                  setEditingFee(null)
+                }}
+                isSubmit={true}
+              />
             </Stack>
           </Form>
         </Box>
@@ -251,32 +242,16 @@ export const TaxaServicoSection: React.FC<TaxaServicoSectionProps> = ({
                     </TableCell>
                     <TableCell>
                       <Stack direction="row" gap={2.5} justify="end">
-                        <Box
-                          as="button"
-                          type="button"
+                        <Button
+                          variant="ghost-primary"
+                          icon={Edit2}
                           onClick={() => handleEditClick(fee)}
-                          cursor="pointer"
-                          padding={1}
-                          radius="default"
-                          hoverBg="primary/10"
-                          display="flex"
-                          justify="center"
-                        >
-                          <Icon icon={Edit2} size={16} color="muted" />
-                        </Box>
-                        <Box
-                          as="button"
-                          type="button"
+                        />
+                        <Button
+                          variant="danger-icon-xs"
+                          icon={Trash2}
                           onClick={() => handleDeleteClick(fee.id)}
-                          cursor="pointer"
-                          padding={1}
-                          radius="default"
-                          hoverBg="primary/10"
-                          display="flex"
-                          justify="center"
-                        >
-                          <Icon icon={Trash2} size={16} color="danger" />
-                        </Box>
+                        />
                       </Stack>
                     </TableCell>
                   </TableRow>

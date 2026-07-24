@@ -2,6 +2,7 @@ import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
+import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { Modal } from "@/components/store/base/Modal"
 
@@ -45,24 +46,8 @@ export const LinkPosModal: React.FC<LinkPosModalProps> = ({
             placeholder="Digite o código de vinculação"
           />
           <Stack direction="row" justify="end" gap={5} w="full">
-            <Box
-              as="button"
-              type="button"
-              onClick={onClose}
-              padding={2.5}
-              cursor="pointer"
-            >
-              <Font variant="body-bold" color="primary" text="CANCELAR" />
-            </Box>
-            <Box
-              as="button"
-              type="button"
-              onClick={handleLinkClick}
-              padding={2.5}
-              cursor="pointer"
-            >
-              <Font variant="body-bold" color="primary" text="VINCULAR" />
-            </Box>
+            <Button variant="ghost-primary" label="CANCELAR" onClick={onClose} />
+            <Button variant="ghost-primary" label="VINCULAR" onClick={handleLinkClick} />
           </Stack>
         </Stack>
       </Box>

@@ -14,8 +14,10 @@ import { Checkbox } from "@/components/store/base/Checkbox"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Icon } from "@/components/store/base/Icon"
 import { Badge } from "@/components/store/base/Badge"
-import { Search, Plus, Edit2, Trash2, Printer, LayoutGrid, ChevronRight, Check } from "lucide-react"
+import { Plus, Edit2, Trash2, Printer, LayoutGrid, ChevronRight, Check } from "lucide-react"
+import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { PrintStatusModal } from "@/components/store/sections/pdv/modals/PrintStatusModal"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 
 export interface PrintPointItem {
   id: string
@@ -34,6 +36,7 @@ export interface PontosImpressaoSectionProps {
   onCancel: () => void
   setCustomBack?: (cb: (() => void) | null) => void
   setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
   onNavigate: (subView: string) => void
 }
 
@@ -41,6 +44,7 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
   onCancel,
   setCustomBack,
   setCustomTitle,
+  setCustomActions,
   onNavigate
 }) => {
   const [points, setPoints] = React.useState<PrintPointItem[]>([
@@ -87,11 +91,24 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
     setCustomBack?.(() => handleBack)
     setCustomTitle?.(mode === "form" ? (editingPoint ? "Editar ponto de impressão" : "Novo ponto de impressão") : "Pontos de impressão")
 
+    if (mode === "list") {
+      setCustomActions?.(
+        <MobileHeaderSearch
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          placeholder="Buscar ponto de impressão..."
+        />
+      )
+    } else {
+      setCustomActions?.(null)
+    }
+
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
+      setCustomActions?.(null)
     }
-  }, [mode, editingPoint, setCustomBack, setCustomTitle, handleBack])
+  }, [mode, editingPoint, searchQuery, setCustomBack, setCustomTitle, setCustomActions, handleBack])
 
   const handleCreateNew = () => {
     setEditingPoint(null)
@@ -169,15 +186,7 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
       {mode === "list" ? (
         <Stack gap={5} w="full">
           {/* Barra de Busca e Botão de Adição no topo */}
-          <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" gap={2.5} w="full">
-            <Box flex="1" w="full">
-              <Input
-                placeholder="Buscar ponto de impressão..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                icon={Search}
-              />
-            </Box>
+          <Stack direction="row" align="center" justify="end" w="full">
             <Button
               variant="primary"
               label="Adicionar ponto"
@@ -448,10 +457,13 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
             </Box>
 
             {/* Ações de Formulário */}
-            <Box paddingY={2.5} w="full">
-              <Stack direction="col" mobileDirection="row" justify="between" align="stretch" mobileAlign="center" w="full" gap={2.5}>
-                {editingPoint ? (
-                  <Box w="w-full md:w-auto" order="2" mdOrder="1" display="flex">
+            <FormActions
+                confirmLabel={editingPoint ? "Salvar alterações" : "Salvar ponto"}
+                onConfirm={() => {}}
+                onCancel={() => setMode("list")}
+                isSubmit={true}
+                leftAction={
+                  editingPoint ? (
                     <Button
                       type="button"
                       variant="outline"
@@ -459,25 +471,9 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
                       icon={Trash2}
                       onClick={() => handleDelete(editingPoint.id)}
                     />
-                  </Box>
-                ) : (
-                  <Box display="hidden md:block" mdOrder="1" />
-                )}
-                <Stack direction="col" mobileDirection="row" gap={2.5} w="w-full md:w-auto" order="1" mdOrder="2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    label="Cancelar"
-                    onClick={() => setMode("list")}
-                  />
-                  <Button
-                    type="submit"
-                    variant="primary"
-                    label={editingPoint ? "Salvar alterações" : "Salvar ponto"}
-                  />
-                </Stack>
-              </Stack>
-            </Box>
+                  ) : undefined
+                }
+              />
           </Stack>
         </Box>
       )}

@@ -4,6 +4,7 @@ import * as React from "react"
 import { Stack } from "@/components/store/base/Stack"
 import { Box } from "@/components/store/base/Box"
 import { Font } from "@/components/store/base/Font"
+import { Button } from "@/components/store/base/Button"
 import { Icon } from "@/components/store/base/Icon"
 import { Modal } from "@/components/store/base/Modal"
 import { Cloud } from "lucide-react"
@@ -39,35 +40,21 @@ export const ComandasMenuSidebar: React.FC<ComandasMenuSidebarProps> = ({
         <Stack gap={2.5}>
           <Font variant="body-xs-bold" color="muted" text="ATENDIMENTO" />
           <Box display="flex" direction="col" bg="bg-surface" border={true} borderColor="border-border" radius="default" overflow="hidden">
-            <Box
-              as="button"
-              w="full"
-              padding={2.5}
-              hoverBg="surface-sunken"
-              display="flex"
+            <Button
+              variant="ghost-menu"
+              fullWidth
               justify="start"
-              onClick={() => {
-                onClose()
-                onNewComanda()
-              }}
-            >
-              <Font variant="body-sm-semibold" text="Novo atendimento avulso" />
-            </Box>
+              label="Novo atendimento avulso"
+              onClick={() => { onClose(); onNewComanda() }}
+            />
             <Box h="h-[1px]" w="full" bg="bg-border" />
-            <Box
-              as="button"
-              w="full"
-              padding={2.5}
-              hoverBg="surface-sunken"
-              display="flex"
+            <Button
+              variant="ghost-menu"
+              fullWidth
               justify="start"
-              onClick={() => {
-                onClose()
-                onFinishAll()
-              }}
-            >
-              <Font variant="body-sm-semibold" text="Finalizar atendimentos" />
-            </Box>
+              label="Finalizar atendimentos"
+              onClick={() => { onClose(); onFinishAll() }}
+            />
           </Box>
         </Stack>
       </Stack>

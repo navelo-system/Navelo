@@ -8,6 +8,10 @@ interface ViewTransitionProps {
   children: React.ReactNode
   viewKey: string
   className?: string
+  flex?: "1" | "auto" | "none"
+  direction?: "col" | "row"
+  minH?: "0" | "full"
+  overflow?: "hidden" | "auto" | "x-hidden y-auto"
 }
 
 /**
@@ -20,7 +24,7 @@ interface ViewTransitionProps {
  *     {children}
  *   </ViewTransition>
  */
-export const ViewTransition: React.FC<ViewTransitionProps> = ({ children, viewKey, className }) => {
+export const ViewTransition: React.FC<ViewTransitionProps> = ({ children, viewKey, className, flex, direction, minH, overflow }) => {
   const [isActive, setIsActive] = React.useState(false)
   // animDone: quando true, remove o transform para eliminar o stacking context
   // que impediria elementos position:fixed (modais) de cobrirem a viewport inteira
@@ -50,7 +54,19 @@ export const ViewTransition: React.FC<ViewTransitionProps> = ({ children, viewKe
   return (
     <div
       style={style}
-      className={cn(className)}
+      className={cn(
+        flex === "1" && "flex-1",
+        flex === "auto" && "flex-auto",
+        flex === "none" && "flex-none",
+        direction === "col" && "flex flex-col",
+        direction === "row" && "flex flex-row",
+        minH === "0" && "min-h-0",
+        minH === "full" && "min-h-full",
+        overflow === "hidden" && "overflow-hidden",
+        overflow === "auto" && "overflow-auto",
+        overflow === "x-hidden y-auto" && "overflow-x-hidden overflow-y-auto",
+        className
+      )}
       onTransitionEnd={(e) => {
         // Garante que só processa quando a transição principal (transform) completou
         if (e.propertyName === "transform" && isActive) {
@@ -62,3 +78,4 @@ export const ViewTransition: React.FC<ViewTransitionProps> = ({ children, viewKe
     </div>
   )
 }
+

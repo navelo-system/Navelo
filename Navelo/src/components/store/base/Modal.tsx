@@ -60,33 +60,26 @@ export function Modal(props: ModalProps) {
   } = props
 
   // shouldRender: controla se o elemento existe no DOM
-  // isActive: controla a posição final do painel (translateX)
-  // enableTransition: habilita CSS transition só após o frame inicial off-screen
+  // isActive: controla a animação CSS (0% -> 100%)
   const [shouldRender, setShouldRender] = React.useState(false)
   const [isActive, setIsActive] = React.useState(false)
-  const [enableTransition, setEnableTransition] = React.useState(false)
 
   React.useEffect(() => {
     if (isOpen) {
       setShouldRender(true)
       setIsActive(false)
-      setEnableTransition(false)
       document.body.style.overflow = "hidden"
 
-      const raf1 = requestAnimationFrame(() => {
-        setEnableTransition(true)
-        requestAnimationFrame(() => {
-          setIsActive(true)
-        })
-      })
+      const timer = setTimeout(() => {
+        setIsActive(true)
+      }, 16)
 
-      return () => cancelAnimationFrame(raf1)
+      return () => clearTimeout(timer)
     }
 
-    setEnableTransition(true)
     setIsActive(false)
     document.body.style.overflow = ""
-    const timer = setTimeout(() => setShouldRender(false), 220)
+    const timer = setTimeout(() => setShouldRender(false), 250)
     return () => clearTimeout(timer)
   }, [isOpen])
 
@@ -95,13 +88,12 @@ export function Modal(props: ModalProps) {
   }, [])
 
   const handleClose = () => {
-    setEnableTransition(true)
     setIsActive(false)
     document.body.style.overflow = ""
     setTimeout(() => {
       setShouldRender(false)
       onClose()
-    }, 220)
+    }, 250)
   }
 
   if (!shouldRender) return null
@@ -109,36 +101,25 @@ export function Modal(props: ModalProps) {
   const isSidebar = variant === "sidebar"
   const isBottom = variant === "bottom"
 
-  // Animado de baixo para cima na variante bottom, senão em scale centralizado
   const dialogStyle: React.CSSProperties = isSidebar
     ? {
       transform: isActive ? "translateX(0)" : "translateX(100%)",
-      transition: enableTransition
-        ? isActive
-          ? "transform 0.28s cubic-bezier(0.4, 0, 0.2, 1)"
-          : "transform 0.22s cubic-bezier(0.4, 0, 0.2, 1)"
-        : "none",
+      transition: "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)",
     }
     : {
       opacity: isBottom ? 1 : (isActive ? 1 : 0),
       transform: isBottom
         ? (isActive ? "translateY(0)" : "translateY(100%)")
-        : (isActive ? "scale(1)" : "scale(0.9)"),
-      transition: isActive
-        ? (isBottom
-          ? "transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)"
-          : "opacity 0.2s ease, transform 0.25s cubic-bezier(0.34, 1.4, 0.64, 1)")
-        : (isBottom
-          ? "transform 0.22s ease-in"
-          : "opacity 0.18s ease, transform 0.18s ease")
+        : (isActive ? "scale(1)" : "scale(0.95)"),
+      transition: isBottom
+        ? "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)"
+        : "opacity 0.2s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
     }
 
-  const backdropStyle: React.CSSProperties = isSidebar
-    ? {
-      opacity: isActive ? 1 : 0,
-      transition: enableTransition ? "opacity 0.22s ease" : "none",
-    }
-    : {}
+  const backdropStyle: React.CSSProperties = {
+    opacity: isActive ? 1 : 0,
+    transition: "opacity 0.28s ease",
+  }
 
   // Variant: sidebar (drawer deslizando da direita)
   if (isSidebar) {
@@ -195,34 +176,40 @@ export function Modal(props: ModalProps) {
             style={dialogStyle}
             className="relative z-[101] w-full bg-surface shadow-2xl rounded-t-[24px] border-t-2 border-border p-6"
           >
-            <Stack direction="col" mobileDirection="row" align="center" mobileAlign="center" justify="between" w="full" gap={5}>
-              <Box flex="1" className="text-center md:text-left">
-                <Font variant="body-bold" text={title} color="muted" />
-              </Box>
+            <Stack gap={5} w="full">
+              <Stack direction="col" mobileDirection="row" align="center" mobileAlign="center" justify="between" w="full" gap={5}>
+                <Box flex="1" className="text-center md:text-left">
+                  <Font variant="body-bold" text={title} color="muted" />
+                </Box>
 
-              <Stack direction="row" align="center" justify="center" w="full" mobileJustify="end" gap={5} className="md:w-auto">
-                {showCancelButton && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    label="Cancelar"
-                    onClick={handleClose}
-                  />
-                )}
-                {showCancelButton && successText && (
-                  <Box h="24px" w="1px" bg="bg-border" opacity="50" />
-                )}
-                {successText && (
-                  <Button
-                    type={isSubmit ? "submit" : "button"}
-                    variant="ghost-secondary"
-                    label={successText}
-                    onClick={onSuccess}
-                  />
-                )}
+                <Stack direction="row" align="center" justify="center" w="full" mobileJustify="end" gap={5} className="md:w-auto">
+                  {showCancelButton && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      label="Cancelar"
+                      onClick={handleClose}
+                    />
+                  )}
+                  {showCancelButton && successText && (
+                    <Box h="h-6" w="w-[1px]" bg="bg-border" opacity="50" />
+                  )}
+                  {successText && (
+                    <Button
+                      type={isSubmit ? "submit" : "button"}
+                      variant="ghost-secondary"
+                      label={successText}
+                      onClick={onSuccess}
+                    />
+                  )}
+                </Stack>
               </Stack>
+              {Boolean(React.Children.toArray(children).filter(child => {
+                if (!child) return false
+                if (React.isValidElement(child) && child.type === Box && (!child.props || Object.keys(child.props).length === 0)) return false
+                return true
+              }).length) && children}
             </Stack>
-            {children}
           </div>
         </div>
       )

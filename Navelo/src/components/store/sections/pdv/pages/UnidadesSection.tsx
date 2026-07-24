@@ -9,7 +9,9 @@ import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
-import { Search, Plus, Edit2, Trash2, Binary, Clipboard } from "lucide-react"
+import { Plus, Edit2, Trash2, Binary, Clipboard } from "lucide-react"
+import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 
 export interface UnitItem {
   id: string
@@ -21,12 +23,14 @@ export interface UnidadesSectionProps {
   onCancel: () => void
   setCustomBack?: (cb: (() => void) | null) => void
   setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
 export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
   onCancel,
   setCustomBack,
-  setCustomTitle
+  setCustomTitle,
+  setCustomActions
 }) => {
   const [units, setUnits] = React.useState<UnitItem[]>([
     { id: "1", name: "KG", decimals: 3 },
@@ -60,11 +64,24 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
     setCustomBack?.(() => handleBack)
     setCustomTitle?.(mode === "form" ? (editingUnit ? "Editar Unidade" : "Nova Unidade") : "Unidades")
 
+    if (mode === "list") {
+      setCustomActions?.(
+        <MobileHeaderSearch
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          placeholder="Buscar por unidade..."
+        />
+      )
+    } else {
+      setCustomActions?.(null)
+    }
+
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
+      setCustomActions?.(null)
     }
-  }, [mode, editingUnit, setCustomBack, setCustomTitle, handleBack])
+  }, [mode, editingUnit, searchQuery, setCustomBack, setCustomTitle, setCustomActions, handleBack])
 
   const handleCreateNew = () => {
     setEditingUnit(null)
@@ -126,15 +143,7 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
       {mode === "list" ? (
         <Stack gap={5} w="full">
           {/* Barra de Busca e Botão de Adição no topo */}
-          <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" gap={5} w="full">
-            <Box flex="1">
-              <Input
-                placeholder="Buscar por unidade..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                icon={Search}
-              />
-            </Box>
+          <Stack direction="row" align="center" justify="end" w="full">
             <Button
               variant="primary"
               label="Adicionar unidade"
@@ -227,21 +236,12 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
             </Stack>
 
             {/* Ações de Formulário */}
-            <Box paddingY={2.5} w="full">
-              <Stack direction="row" justify="end" gap={2.5} w="full">
-                <Button
-                  type="button"
-                  variant="outline"
-                  label="Cancelar"
-                  onClick={() => setMode("list")}
-                />
-                <Button
-                  type="submit"
-                  variant="primary"
-                  label={editingUnit ? "Salvar alterações" : "Salvar unidade"}
-                />
-              </Stack>
-            </Box>
+            <FormActions
+              confirmLabel={editingUnit ? "Salvar alterações" : "Salvar unidade"}
+              onConfirm={() => {}}
+              onCancel={() => setMode("list")}
+              isSubmit={true}
+            />
           </Stack>
         </Box>
       )}

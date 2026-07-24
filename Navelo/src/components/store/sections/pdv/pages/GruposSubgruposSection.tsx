@@ -9,7 +9,9 @@ import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { Icon } from "@/components/store/base/Icon"
-import { Search, Plus, Edit2, Trash2, Folder, Layers, X } from "lucide-react"
+import { Plus, Edit2, Trash2, Folder, Layers, X } from "lucide-react"
+import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 
 export interface GroupItem {
   id: string
@@ -21,12 +23,14 @@ export interface GruposSubgruposSectionProps {
   onCancel: () => void
   setCustomBack?: (cb: (() => void) | null) => void
   setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
 export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
   onCancel,
   setCustomBack,
-  setCustomTitle
+  setCustomTitle,
+  setCustomActions
 }) => {
   const [groups, setGroups] = React.useState<GroupItem[]>([
     { id: "1", name: "BEBIDAS", subgroups: ["ÁGUA", "REFRIGERANTE", "SUCO", "ENERGÉTICO"] },
@@ -58,11 +62,24 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
     setCustomBack?.(() => handleBack)
     setCustomTitle?.(mode === "form" ? (editingGroup ? "Editar Grupo" : "Novo Grupo") : "Grupos e subgrupos")
 
+    if (mode === "list") {
+      setCustomActions?.(
+        <MobileHeaderSearch
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          placeholder="Buscar por grupo ou subgrupo..."
+        />
+      )
+    } else {
+      setCustomActions?.(null)
+    }
+
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
+      setCustomActions?.(null)
     }
-  }, [mode, editingGroup, setCustomBack, setCustomTitle, handleBack])
+  }, [mode, editingGroup, searchQuery, setCustomBack, setCustomTitle, setCustomActions, handleBack])
 
   const handleCreateNew = () => {
     setEditingGroup(null)
@@ -138,15 +155,7 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
       {mode === "list" ? (
         <Stack gap={5} w="full">
           {/* Barra de Busca e Botão de Adição no topo */}
-          <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" gap={5} w="full">
-            <Box flex="1">
-              <Input
-                placeholder="Buscar por grupo ou subgrupo..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                icon={Search}
-              />
-            </Box>
+          <Stack direction="row" align="center" justify="end" w="full">
             <Button
               variant="primary"
               label="Adicionar grupo"
@@ -271,21 +280,12 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
             </Stack>
 
             {/* Ações de Formulário */}
-            <Box paddingY={2.5} w="full">
-              <Stack direction="row" justify="end" gap={2.5} w="full">
-                <Button
-                  type="button"
-                  variant="outline"
-                  label="Cancelar"
-                  onClick={() => setMode("list")}
-                />
-                <Button
-                  type="submit"
-                  variant="primary"
-                  label={editingGroup ? "Salvar alterações" : "Salvar grupo"}
-                />
-              </Stack>
-            </Box>
+            <FormActions
+              confirmLabel={editingGroup ? "Salvar alterações" : "Salvar grupo"}
+              onConfirm={() => {}}
+              onCancel={() => setMode("list")}
+              isSubmit={true}
+            />
           </Stack>
         </Box>
       )}

@@ -71,12 +71,16 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ onLoginSuccess }) =>
 
                   {/* Links de navegação secundária */}
                   <Stack direction="row" justify="between" w="full" gap={2.5}>
-                    <Box as="button" type="button" onClick={() => setMessage("Simulado: Instruções enviadas ao e-mail cadastrado.")}>
-                      <Font variant="auxiliary" color="muted" text="Esquecer senha" />
-                    </Box>
-                    <Box as="button" type="button" onClick={() => setMessage("Simulado: Contate o suporte para redefinir sua senha.")}>
-                      <Font variant="auxiliary" color="muted" text="Redefinir senha" />
-                    </Box>
+                    <Button
+                      variant="ghost"
+                      label="Esquecer senha"
+                      onClick={() => setMessage("Simulado: Instruções enviadas ao e-mail cadastrado.")}
+                    />
+                    <Button
+                      variant="ghost"
+                      label="Redefinir senha"
+                      onClick={() => setMessage("Simulado: Contate o suporte para redefinir sua senha.")}
+                    />
                   </Stack>
 
                   {/* Botão de Entrar */}

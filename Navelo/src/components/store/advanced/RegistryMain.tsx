@@ -36,33 +36,35 @@ export const RegistryMain: React.FC<RegistryMainProps> = ({
   });
 
   return (
-    <Box padding={5} w="full" flex="1" bg="bg-background" className="min-h-0 flex flex-col" {...props}>
-      <Stack gap={5} w="full" flex="1" className="min-h-0">
+    <Box padding={5} w="full" flex="1" bg="bg-background" direction="col" overflow="hidden" minH="0" {...props}>
+      <Stack gap={5} w="full" flex="1" minH="0" overflow="hidden">
         {(onBack || customActions) && (
-          <Stack direction="row" align="center" justify="between" w="full" gap={5} flex="none">
-            {onBack ? (
-              <Button
-                variant="ghost-primary"
-                label={_title || "Voltar"}
-                icon={ArrowLeft}
-                onClick={onBack}
-                justify="start"
-              />
-            ) : (
-              <Box />
-            )}
-            {customActions ? (
-              <Stack direction="row" align="center" gap={2.5} flex="none">
-                {customActions}
-              </Stack>
-            ) : (
-              <Box />
-            )}
-          </Stack>
+          <Box position="relative" w="full" shrink="0">
+            <Stack direction="row" align="center" justify="between" w="full" gap={5}>
+              {onBack ? (
+                <Button
+                  variant="ghost-primary"
+                  label={_title || "Voltar"}
+                  icon={ArrowLeft}
+                  onClick={onBack}
+                  justify="start"
+                />
+              ) : (
+                <Box />
+              )}
+              {customActions ? (
+                <Stack direction="row" align="center" gap={2.5} flex="1" justify="end">
+                  {customActions}
+                </Stack>
+              ) : (
+                <Box />
+              )}
+            </Stack>
+          </Box>
         )}
 
         {/* Content (RegistrySections) */}
-        <Stack gap={'section'} w="full" flex="1" className="min-h-0">
+        <Stack w="full" flex="1" gap={1} minH="0" overflow="hidden">
           {children}
         </Stack>
       </Stack>

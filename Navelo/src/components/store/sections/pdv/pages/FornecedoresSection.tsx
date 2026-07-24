@@ -9,7 +9,8 @@ import { Grid } from "@/components/store/base/Grid"
 import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
-import { Search, Plus, Edit2, Trash2, Building, ShieldCheck, CreditCard, Phone, MapPin } from "lucide-react"
+import { Plus, Edit2, Trash2, Building, ShieldCheck, CreditCard, Phone, MapPin } from "lucide-react"
+import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 
 export interface SupplierItem {
@@ -33,12 +34,14 @@ export interface FornecedoresSectionProps {
   onCancel: () => void
   setCustomBack?: (cb: (() => void) | null) => void
   setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
 export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
   onCancel,
   setCustomBack,
-  setCustomTitle
+  setCustomTitle,
+  setCustomActions
 }) => {
   const [suppliers, setSuppliers] = React.useState<SupplierItem[]>([
     {
@@ -89,11 +92,24 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
     setCustomBack?.(() => handleBack)
     setCustomTitle?.(mode === "form" ? (editingSupplier ? "Editar Fornecedor" : "Novo Fornecedor") : "Fornecedores")
 
+    if (mode === "list") {
+      setCustomActions?.(
+        <MobileHeaderSearch
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          placeholder="Buscar por fornecedor..."
+        />
+      )
+    } else {
+      setCustomActions?.(null)
+    }
+
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
+      setCustomActions?.(null)
     }
-  }, [mode, editingSupplier, setCustomBack, setCustomTitle, handleBack])
+  }, [mode, editingSupplier, searchQuery, setCustomBack, setCustomTitle, setCustomActions, handleBack])
 
   const handleCreateNew = () => {
     setEditingSupplier(null)
@@ -181,15 +197,7 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
       {mode === "list" ? (
         <Stack gap={5} w="full">
           {/* Barra de Busca e Botão de Adição no topo */}
-          <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" gap={5} w="full">
-            <Box flex="1">
-              <Input
-                placeholder="Buscar por fornecedor..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                icon={Search}
-              />
-            </Box>
+          <Stack direction="row" align="center" justify="end" w="full">
             <Button
               variant="primary"
               label="Adicionar fornecedor"

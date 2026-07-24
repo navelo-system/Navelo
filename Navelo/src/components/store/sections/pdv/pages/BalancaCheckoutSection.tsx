@@ -117,17 +117,16 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
           </Box>
 
           {/* Link: Não encontrei a porta de comunicação */}
-          <Box opacity={enabled ? "100" : "50"} cursor={enabled ? "pointer" : undefined} onClick={() => {
-            if (enabled) {
-              setModalMsg("Certifique-se de que a balança está ligada e os drivers estão instalados.");
-            }
-          }}>
-            <Font
-              variant="description"
-              text="Não encontrei a porta de comunicação da minha balança"
-              color={enabled ? "primary" : "muted"}
-            />
-          </Box>
+          <Button
+            variant="ghost-primary"
+            label="Não encontrei a porta de comunicação da minha balança"
+            disabled={!enabled}
+            onClick={() => {
+              if (enabled) {
+                setModalMsg("Certifique-se de que a balança está ligada e os drivers estão instalados.");
+              }
+            }}
+          />
 
           {/* Velocidade de comunicação */}
           <Box opacity={enabled ? "100" : "50"} w="full">

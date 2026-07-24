@@ -122,7 +122,7 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
 
   React.useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 768px)")
-    const updateMinWidth = () => setMinCardWidth(mediaQuery.matches ? 120 : 105)
+    const updateMinWidth = () => setMinCardWidth(mediaQuery.matches ? 135 : 110)
     updateMinWidth()
     mediaQuery.addEventListener("change", updateMinWidth)
     return () => mediaQuery.removeEventListener("change", updateMinWidth)
@@ -133,7 +133,7 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
   }
 
   return (
-    <Stack gap={5} className="flex-1 min-h-0">
+    <Stack gap={5} flex="1" minH="0">
 
       {/* Abas de Categorias */}
       <Box w="full" overflow="auto" paddingY={1} shrink="0">
@@ -149,7 +149,7 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
       </Box>
 
       {/* Grade/Lista de Produtos ou Carrinho */}
-      <Box padding={0} flex="1" className="min-h-0 overflow-y-auto">
+      <Box padding={0} flex="1" minH="0" overflow="x-hidden y-auto">
         {filteredProducts.length === 0 ? (
           <EmptyState
             icon={Package}

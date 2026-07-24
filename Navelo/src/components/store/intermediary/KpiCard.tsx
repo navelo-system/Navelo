@@ -13,6 +13,7 @@ export interface KpiCardProps {
   hideValues?: boolean
   onToggleHide?: () => void
   icon?: LucideIcon
+  onClick?: () => void
 }
 
 export const KpiCard: React.FC<KpiCardProps> = ({
@@ -21,10 +22,18 @@ export const KpiCard: React.FC<KpiCardProps> = ({
   subtitle,
   hideValues = false,
   onToggleHide,
-  icon
+  icon,
+  onClick
 }) => {
   return (
-    <Box padding={2.5} bg="bg-surface" radius="default">
+    <Box 
+      padding={2.5} 
+      bg="bg-surface" 
+      radius="default" 
+      cursor={onClick ? "pointer" : undefined}
+      hoverBg={onClick ? "surface-sunken" : undefined}
+      onClick={onClick}
+    >
       <Stack gap={2.5}>
         <Stack direction="row" align="center" justify="between" gap={1}>
           <Font variant="body-sm-semibold" color="secondary" text={title} />

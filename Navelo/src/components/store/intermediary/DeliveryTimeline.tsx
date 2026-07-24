@@ -30,7 +30,7 @@ export function TimelineStep({ step, isActive, isCompleted, isLast }: TimelineSt
   }
 
   const styles: Record<"active" | "completed" | "pending", StyleEntry> = {
-    active: { bg: "bg-brand-primary", border: "border-brand-primary", iconColor: "white", fontVar: "body-bold", fontColor: "primary" },
+    active: { bg: "bg-brand-primary", border: "border-brand-primary", iconColor: "white", fontVar: "auxiliary", fontColor: "primary" },
     completed: { bg: "bg-emerald-500/10", border: "border-emerald-500/80", iconColor: "success", fontVar: "auxiliary", fontColor: "foreground" },
     pending: { bg: "bg-surface-sunken", border: "border-border", iconColor: "muted", fontVar: "auxiliary", fontColor: "muted" },
   }
@@ -120,7 +120,10 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
             <Icon icon={Clock} color="primary" size={18} />
             <Font variant="body-bold" text={`Entrega Estimada: ${estimatedTime}`} />
           </Stack>
-          <Font variant="description" text="Pedido #8942" />
+          <Stack align="end" gap={0}>
+            <Font variant="description" color="muted" text="Pedido" align="right" />
+            <Font variant="body-bold" text="#8942" align="right" />
+          </Stack>
         </Stack>
 
         <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />

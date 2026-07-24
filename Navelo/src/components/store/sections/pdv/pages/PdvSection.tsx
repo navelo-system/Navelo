@@ -1,15 +1,13 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
+/* eslint-disable max-lines-per-function, complexity */
 
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Button } from "@/components/store/base/Button"
-import { Input } from "@/components/store/base/Input"
-import { ViewModeToggle } from "@/components/store/intermediary/ViewModeToggle"
-import { PdvCatalogToolbar } from "@/components/store/intermediary/PdvCatalogToolbar"
-import { Search, Menu } from "lucide-react"
+import { PdvCatalogToolbar, MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
+import { Menu } from "lucide-react"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
 import { ExitConfirmModal } from "@/components/store/sections/pdv/modals/ExitConfirmModal"
 import { PdvCartDrawer } from "@/components/store/sections/pdv/modals/PdvCartDrawer"
@@ -19,6 +17,15 @@ import { PdvCheckoutPayment } from "@/components/store/advanced/PdvCheckoutPayme
 import { PdvCheckoutReceipt } from "@/components/store/advanced/PdvCheckoutReceipt"
 import { PdvCheckoutSidebar } from "@/components/store/advanced/PdvCheckoutSidebar"
 import { PdvModals } from "@/components/store/advanced/PdvModals"
+import { Font } from "../../../base/Font"
+
+import { NegociacoesSection } from "@/components/store/sections/pdv/pages/NegociacoesSection"
+import { ClientesSection } from "@/components/store/sections/pdv/pages/ClientesSection"
+import { DevolucaoSection } from "@/components/store/sections/pdv/pages/DevolucaoSection"
+import { TotaisEmCaixaSection } from "@/components/store/sections/pdv/pages/TotaisEmCaixaSection"
+import { ContasAReceberSection } from "@/components/store/sections/pdv/pages/ContasAReceberSection"
+import { PdvObservacaoModal } from "@/components/store/sections/pdv/modals/PdvObservacaoModal"
+import { PdvSangriaModal } from "@/components/store/sections/pdv/modals/PdvSangriaModal"
 
 // Interface dos itens do carrinho
 export interface CartItemType {
@@ -35,6 +42,7 @@ interface PdvSectionProps {
   onCloseComanda?: (id: string) => void
   setCustomBack?: (cb: (() => void) | null) => void
   setCustomActions?: (actions: React.ReactNode | null) => void
+  setCustomTitle?: (title: string | null) => void
 }
 
 const MOCK_PRODUCTS = [
@@ -56,8 +64,10 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   onCloseComanda,
   setCustomBack,
   setCustomActions,
+  setCustomTitle,
 }) => {
   const [step, setStep] = React.useState<"negociacao" | "pagamento" | "recibo">("negociacao")
+  const [subView, setSubView] = React.useState<"none" | "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos">("none")
   const [cartItems, setCartItems] = React.useState<CartItemType[]>([])
   const [activeCategory, setActiveCategory] = React.useState("Todos")
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -76,6 +86,10 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
   const [isCartDrawerOpen, setIsCartDrawerOpen] = React.useState(false)
   const [isExitConfirmOpen, setIsExitConfirmOpen] = React.useState(false)
+  const [isObservationModalOpen, setIsObservationModalOpen] = React.useState(false)
+  const [isSangriaModalOpen, setIsSangriaModalOpen] = React.useState(false)
+  const [sangriaModalMode, setSangriaModalMode] = React.useState<"sangria" | "suprimento">("sangria")
+  const [observationText, setObservationText] = React.useState("")
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0)
   const total = Math.max(0, subtotal - discount)
@@ -88,8 +102,12 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
     onBackToDashboardRef.current = onBackToDashboard
   }, [onBackToDashboard])
 
-  // Registra o back correto de acordo com o step atual
+  // Registra o back e o título corretos de acordo com o step atual e a subView ativa
   React.useEffect(() => {
+    if (subView !== "none") return
+
+    setCustomTitle?.(null)
+
     if (step === "negociacao") {
       // Se o carrinho estiver vazio, volta direto; se tiver itens, confirma saída
       setCustomBack?.(() => () => {
@@ -104,25 +122,37 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
     } else if (step === "recibo") {
       setCustomBack?.(() => () => setStep("pagamento"))
     }
-    return () => setCustomBack?.(null)
-  }, [step, setCustomBack, cartItems.length])
+  }, [step, subView, setCustomBack, setCustomTitle, cartItems.length])
 
   React.useEffect(() => {
-    if (step !== "negociacao") {
+    if (subView !== "none") return
+
+    if (step === "negociacao") {
+      setCustomActions?.(
+        <MobileHeaderSearch
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          placeholder="Pesquisar produto pelo nome..."
+        >
+          <Button
+            variant="primary-pill-icon"
+            icon={Menu}
+            onClick={() => setIsSidebarOpen(true)}
+          />
+        </MobileHeaderSearch>
+      )
+    } else if (step === "pagamento") {
+      setCustomActions?.(
+        <Font
+          variant="body-sm-medium"
+          color="primary"
+          text="F12 - Opções"
+        />
+      )
+    } else {
       setCustomActions?.(null)
-      return
     }
-
-    setCustomActions?.(
-      <Button
-        variant="primary-pill-icon"
-        icon={Menu}
-        onClick={() => setIsSidebarOpen(true)}
-      />
-    )
-
-    return () => setCustomActions?.(null)
-  }, [step, setCustomActions])
+  }, [step, subView, searchQuery, setCustomActions])
 
   // Sincroniza o valor de pagamento sugerido com o restante a pagar reativamente
   React.useEffect(() => {
@@ -224,6 +254,73 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
     }).format(value)
   }
 
+  if (subView === "negociacoes") {
+    return (
+      <NegociacoesSection
+        setCustomBack={setCustomBack}
+        setCustomTitle={setCustomTitle}
+        setCustomActions={setCustomActions}
+        onBack={() => setSubView("none")}
+      />
+    )
+  }
+
+  if (subView === "clientes") {
+    return (
+      <ClientesSection
+        setCustomBack={setCustomBack}
+        setCustomTitle={setCustomTitle}
+        setCustomActions={setCustomActions}
+        onBack={() => setSubView("none")}
+      />
+    )
+  }
+
+  if (subView === "devolucao") {
+    return (
+      <DevolucaoSection
+        setCustomBack={setCustomBack}
+        setCustomTitle={setCustomTitle}
+        setCustomActions={setCustomActions}
+        onBack={() => setSubView("none")}
+      />
+    )
+  }
+
+  if (subView === "totais-em-caixa") {
+    return (
+      <TotaisEmCaixaSection
+        setCustomBack={setCustomBack}
+        setCustomTitle={setCustomTitle}
+        setCustomActions={setCustomActions}
+        onBack={() => setSubView("none")}
+      />
+    )
+  }
+
+  if (subView === "recebimentos") {
+    return (
+      <ContasAReceberSection
+        onBackToDashboard={() => setSubView("none")}
+        setCustomBack={setCustomBack}
+        setCustomTitle={setCustomTitle}
+        setCustomActions={setCustomActions}
+      />
+    )
+  }
+
+  if (subView === "sangrias-suprimentos") {
+    return (
+      <NegociacoesSection
+        title="Sangrias e suprimentos"
+        setCustomBack={setCustomBack}
+        setCustomTitle={setCustomTitle}
+        setCustomActions={setCustomActions}
+        onBack={() => setSubView("none")}
+      />
+    )
+  }
+
   if (step === "recibo") {
     return (
       <ViewTransition viewKey={step}>
@@ -237,32 +334,17 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   }
 
   return (
-    <Stack gap={5} w="full" flex="1" className="min-h-0">
-      <ViewTransition viewKey={step} className="flex-1 flex flex-col min-h-0">
+    <Stack gap={5} w="full" flex="1" minH="0" overflow="hidden">
+      <ViewTransition viewKey={step} flex="1" direction="col" minH="0" overflow="hidden">
         {step === "negociacao" ? (
-          <Stack gap={5} w="full" flex="1" className="min-h-0">
+          <Stack gap={5} w="full" flex="1" minH="0">
             {/* Container do Catálogo e do Carrinho (verticalizado no mobile, lado a lado no PC) */}
-            <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" className="min-h-0">
+            <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" minH="0">
               {/* Lado Esquerdo - Catálogo */}
-              <Box flex="1" w="full" className="min-h-0 flex flex-col">
-                <Stack gap={5} w="full" flex="1" className="min-h-0">
-                  {/* Desktop: busca sempre visível */}
-                  <Box display="hidden md:block" w="full">
-                    <Stack direction="row" gap={2.5} align="center" justify="between" w="full">
-                      <Box flex="1" padding={0}>
-                        <Input
-                          placeholder="Pesquisar produto pelo nome..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          icon={Search}
-                        />
-                      </Box>
-                      <ViewModeToggle value={viewMode} onChange={setViewMode} />
-                    </Stack>
-                  </Box>
-
-                  {/* Mobile: barra com busca expansível */}
-                  <Box display="block md:hidden" w="full">
+              <Box display="flex" flex="1" w="full" direction="col" minH="0">
+                <Stack gap={5} w="full" flex="1" minH="0" overflow="hidden">
+                  {/* Barra com a bolinha de busca expansível para Desktop e Mobile */}
+                  <Box w="full">
                     <PdvCatalogToolbar
                       searchQuery={searchQuery}
                       onSearchQueryChange={setSearchQuery}
@@ -286,12 +368,12 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
                     onRemove={handleRemove}
                   />
 
-                  <Box display="block md:hidden" h="h-28" shrink="0" />
+                  <Box display="block md:hidden" h="h-16" shrink="0" />
                 </Stack>
               </Box>
 
               {/* Lado Direito - Carrinho e Totais (Visível apenas no Desktop) */}
-              <Box w="w-full md:w-1/4" className="hidden md:flex flex-col min-h-0">
+              <Box display="hidden md:block" w="1/4" direction="col" minH="0">
                 <PdvCheckoutSidebar
                   cartItems={cartItems}
                   discount={discount}
@@ -343,13 +425,12 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
           w="full"
           zIndex="20"
         >
-          <Box h="h-14" w="full" bgGradient="fade-up" shrink="0" />
           <Box w="full" bg="bg-background" paddingX={5} paddingY={2.5}>
             <Stack direction="row" gap={2.5} w="full">
               <Button
                 variant="primary-lg"
                 fullWidth
-                label="Pagamento"
+                label="F9 - Pagamento"
                 disabled={cartItems.length === 0}
                 onClick={() => setStep("pagamento")}
               />
@@ -398,6 +479,24 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         onBackToDashboard={onBackToDashboard}
         launchAmount={launchAmount}
         subtotal={subtotal}
+        onNavigate={(view) => setSubView(view)}
+        onOpenObservationModal={() => setIsObservationModalOpen(true)}
+        onOpenSangriaModal={(mode = "sangria") => { setSangriaModalMode(mode); setIsSangriaModalOpen(true); }}
+      />
+
+      <PdvObservacaoModal
+        isOpen={isObservationModalOpen}
+        onClose={() => setIsObservationModalOpen(false)}
+        initialObservation={observationText}
+        onSaveObservation={(obs) => setObservationText(obs)}
+      />
+
+      <PdvSangriaModal
+        isOpen={isSangriaModalOpen}
+        onClose={() => setIsSangriaModalOpen(false)}
+        mode={sangriaModalMode}
+        cashAvailable={39.00}
+        onConfirmSangria={() => {}}
       />
 
       {/* Modal de confirmação de saída */}

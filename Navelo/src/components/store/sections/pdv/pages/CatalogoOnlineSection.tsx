@@ -234,7 +234,7 @@ export const CatalogoOnlineSection: React.FC<CatalogoOnlineSectionProps> = ({
               />
             </Stack>
           </Stack>
-          <Stack direction="row" align="center" justify="end" mobileJustify="end" gap={2.5} className="w-full md:w-auto">
+          <Stack direction="row" align="center" justify="end" mobileJustify="end" gap={2.5} w="full">
             <Badge variant="success" label="habilitado" icon={Check} />
             <Icon icon={ChevronRight} size={16} color="muted" />
           </Stack>

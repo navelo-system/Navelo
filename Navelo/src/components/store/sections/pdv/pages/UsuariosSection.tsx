@@ -12,7 +12,9 @@ import { Input } from "@/components/store/base/Input"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Badge } from "@/components/store/base/Badge"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/store/base/Table"
-import { Search, Plus, Edit2, Trash2, Mail, Phone, Lock, User, Shield } from "lucide-react"
+import { Plus, Edit2, Trash2, Mail, Phone, Lock, User, Shield } from "lucide-react"
+import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
+import { FormActions } from "@/components/store/intermediary/FormActions"
 
 interface UserItem {
   id: string
@@ -27,12 +29,14 @@ export interface UsuariosSectionProps {
   onCancel: () => void
   setCustomBack?: (cb: (() => void) | null) => void
   setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
 export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
   onCancel,
   setCustomBack,
-  setCustomTitle
+  setCustomTitle,
+  setCustomActions
 }) => {
   const [users, setUsers] = React.useState<UserItem[]>([
     { id: "1", name: "Administrador", role: "Administrador", phone: "(33) 99956-5081", email: "admin@navelo.com", isCurrent: true },
@@ -55,15 +59,24 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
     if (mode === "form") {
       setCustomBack?.(() => () => setMode("list"))
       setCustomTitle?.(editingUser ? "Editar Usuário" : "Novo Usuário")
+      setCustomActions?.(null)
     } else {
       setCustomBack?.(() => () => onCancel())
       setCustomTitle?.("Usuários")
+      setCustomActions?.(
+        <MobileHeaderSearch
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          placeholder="Buscar por nome ou perfil..."
+        />
+      )
     }
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
+      setCustomActions?.(null)
     }
-  }, [mode, editingUser, setCustomBack, setCustomTitle, onCancel])
+  }, [mode, editingUser, searchQuery, setCustomBack, setCustomTitle, setCustomActions, onCancel])
 
   const handleEdit = (user: UserItem) => {
     setEditingUser(user)
@@ -132,15 +145,7 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
         /* ================= LISTAGEM DE USUÁRIOS ================= */
         <Box padding={5} bg="bg-white" radius="default" border={true} borderColor="border-border" w="full">
           <Stack gap={5} w="full">
-            <Stack direction="col" mobileDirection="row" gap={2.5} align="stretch" mobileAlign="center" w="full">
-              <Box flex="1" w="full">
-                <Input
-                  placeholder="Buscar por nome ou perfil..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  icon={Search}
-                />
-              </Box>
+            <Stack direction="row" align="center" justify="end" w="full">
               <Button
                 variant="primary"
                 label="Novo Usuário"
@@ -269,20 +274,12 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
             </Grid>
 
             {/* Ações */}
-            <Box paddingY={2.5} w="full">
-              <Stack direction="row" justify="end" gap={2.5} w="full">
-                <Button
-                  variant="outline"
-                  label="Cancelar"
-                  onClick={() => setMode("list")}
-                />
-                <Button
-                  type="submit"
-                  variant="primary"
-                  label={editingUser ? "Salvar alterações" : "Adicionar usuário"}
-                />
-              </Stack>
-            </Box>
+            <FormActions
+              confirmLabel={editingUser ? "Salvar alterações" : "Adicionar usuário"}
+              onConfirm={() => {}}
+              onCancel={() => setMode("list")}
+              isSubmit={true}
+            />
           </Stack>
         </Box>
       )}

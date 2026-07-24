@@ -24,6 +24,9 @@ interface PdvModalsProps {
   onBackToDashboard: () => void
   launchAmount: number
   subtotal: number
+  onNavigate: (view: "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos") => void
+  onOpenObservationModal: () => void
+  onOpenSangriaModal: (mode?: "sangria" | "suprimento") => void
 }
 
 export const PdvModals: React.FC<PdvModalsProps> = ({
@@ -43,6 +46,9 @@ export const PdvModals: React.FC<PdvModalsProps> = ({
   onBackToDashboard,
   launchAmount,
   subtotal,
+  onNavigate,
+  onOpenObservationModal,
+  onOpenSangriaModal,
 }) => {
   return (
     <>
@@ -73,6 +79,13 @@ export const PdvModals: React.FC<PdvModalsProps> = ({
         isOpen={isSidebarOpen}
         onClose={onCloseSidebar}
         onBackToDashboard={onBackToDashboard}
+        onNavigate={onNavigate}
+        onOpenObservationModal={onOpenObservationModal}
+        onOpenSangriaModal={onOpenSangriaModal}
+        onOpenDiscountModal={() => {
+          onCloseSidebar()
+          onCloseDiscountModal()
+        }}
       />
     </>
   )

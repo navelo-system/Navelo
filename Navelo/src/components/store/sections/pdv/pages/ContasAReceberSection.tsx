@@ -8,48 +8,40 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
-import { Switch } from "@/components/store/base/Switch"
-import { Search, Filter } from "lucide-react"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { FilterPanel } from "@/components/store/intermediary/FilterPanel"
 import { Modal } from "@/components/store/base/Modal"
+import { PackageSearch, Filter } from "lucide-react"
 
-export interface AutorizacoesSectionProps {
-  onCancel: () => void
+export interface ContasAReceberSectionProps {
+  onBackToDashboard: () => void
   setCustomBack?: (cb: (() => void) | null) => void
   setCustomTitle?: (title: string | null) => void
   setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
-const CustomCheckbox = ({ checked, onChange, label }: { checked: boolean, onChange: () => void, label: string }) => (
-  <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
-    <Box order="2" mdOrder="1">
-      <Font variant="body-sm-medium" text={label} align="left" />
-    </Box>
-    <Box order="1" mdOrder="2">
-      <Switch checked={checked} onChange={onChange} />
-    </Box>
-  </Stack>
-)
-
-export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
-  onCancel,
+export const ContasAReceberSection: React.FC<ContasAReceberSectionProps> = ({
+  onBackToDashboard,
   setCustomBack,
   setCustomTitle,
   setCustomActions,
 }) => {
   const [period, setPeriod] = React.useState("Hoje")
-  const [dateStart, setDateStart] = React.useState("08/07/2026 00:00")
-  const [dateEnd, setDateEnd] = React.useState("08/07/2026 23:59")
-  const [operator, setOperator] = React.useState("")
-  const [authorizer, setAuthorizer] = React.useState("")
-  const [device, setDevice] = React.useState("")
-  const [showDenied, setShowDenied] = React.useState(false)
+  const [periodType, setPeriodType] = React.useState<"Emissão" | "Vencimento" | "Liquidação">("Emissão")
+  const [startDate, setStartDate] = React.useState("")
+  const [endDate, setEndDate] = React.useState("")
+  const [cliente, setCliente] = React.useState("")
+  const [dispositivo, setDispositivo] = React.useState("")
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
 
+  const onBackToDashboardRef = React.useRef(onBackToDashboard)
   React.useEffect(() => {
-    setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Registro de autorizações")
+    onBackToDashboardRef.current = onBackToDashboard
+  }, [onBackToDashboard])
+
+  React.useEffect(() => {
+    setCustomBack?.(() => () => onBackToDashboardRef.current())
+    setCustomTitle?.("Contas a receber")
     setCustomActions?.(
       <Box display="block md:hidden">
         <Button
@@ -65,32 +57,41 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
       setCustomTitle?.(null)
       setCustomActions?.(null)
     }
-  }, [setCustomBack, setCustomTitle, setCustomActions, onCancel])
+  }, [setCustomBack, setCustomTitle, setCustomActions])
+
+  const periodTypes: Array<"Emissão" | "Vencimento" | "Liquidação"> = [
+    "Emissão", "Vencimento", "Liquidação"
+  ]
 
   const renderFilterInputs = () => (
     <>
+      {/* Tipo de Período */}
+      <Stack gap={2.5} w="full">
+        <Font variant="auxiliary" color="muted" text="Tipo de período" />
+        <Stack direction="row" wrap gap={2.5} w="full">
+          {periodTypes.map((pt) => (
+            <Button
+              key={pt}
+              variant={periodType === pt ? "primary-pill-xs" : "outline-pill-xs"}
+              label={pt}
+              onClick={() => setPeriodType(pt)}
+              type="button"
+            />
+          ))}
+        </Stack>
+      </Stack>
+
       <Input
-        label="Operador"
-        placeholder="Operador"
-        value={operator}
-        onChange={(e) => setOperator(e.target.value)}
-      />
-      <Input
-        label="Autorizador"
-        placeholder="Autorizador"
-        value={authorizer}
-        onChange={(e) => setAuthorizer(e.target.value)}
+        label="Cliente"
+        placeholder="Cliente"
+        value={cliente}
+        onChange={(e) => setCliente(e.target.value)}
       />
       <Input
         label="Dispositivo"
         placeholder="Dispositivo"
-        value={device}
-        onChange={(e) => setDevice(e.target.value)}
-      />
-      <CustomCheckbox
-        checked={showDenied}
-        onChange={() => setShowDenied(!showDenied)}
-        label="Mostrar tentativas de autorização negadas"
+        value={dispositivo}
+        onChange={(e) => setDispositivo(e.target.value)}
       />
     </>
   )
@@ -98,36 +99,26 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
   return (
     <Stack direction="col" gap={5} w="full" flex="1" minH="0">
       <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" minH="0" h="full">
-        {/* Painel Principal (Esquerda) */}
-        <Box
-          flex="1"
-          w="full"
-          h="full"
-          bg="bg-surface"
-          radius="default"
-          padding={5}
-          direction="col"
-          justify="center"
-          minH="0"
-        >
+        {/* Painel Esquerdo: Lista Vazia */}
+        <Box flex="1" w="full" h="full" bg="bg-surface" padding={5} radius="default" direction="col" justify="center" minH="0">
           <EmptyState
             variant="transparent"
-            icon={Search}
+            icon={PackageSearch}
             title="Nenhum registro encontrado."
-            subtitle="Tente ajustar os filtros ao lado."
+            subtitle="Utilize os filtros ao lado para pesquisar lançamentos de contas a receber."
           />
         </Box>
 
-        {/* Painel de Filtros Desktop (Direita) */}
+        {/* Sidebar Direita Desktop: FilterPanel Inline */}
         <Box display="hidden md:block">
           <FilterPanel
             title="Filtros"
             selectedPeriod={period}
             onPeriodChange={setPeriod}
-            startDate={dateStart}
-            onStartDateChange={setDateStart}
-            endDate={dateEnd}
-            onEndDateChange={setDateEnd}
+            startDate={startDate}
+            onStartDateChange={setStartDate}
+            endDate={endDate}
+            onEndDateChange={setEndDate}
             onFilter={() => {}}
           >
             {renderFilterInputs()}
@@ -146,10 +137,10 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
             borderless
             selectedPeriod={period}
             onPeriodChange={setPeriod}
-            startDate={dateStart}
-            onStartDateChange={setDateStart}
-            endDate={dateEnd}
-            onEndDateChange={setDateEnd}
+            startDate={startDate}
+            onStartDateChange={setStartDate}
+            endDate={endDate}
+            onEndDateChange={setEndDate}
             onFilter={() => setIsFilterDrawerOpen(false)}
           >
             {renderFilterInputs()}

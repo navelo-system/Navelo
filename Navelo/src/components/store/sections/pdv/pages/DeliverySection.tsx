@@ -11,9 +11,14 @@ import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { DeliveryTimeline, DeliveryStatus } from "@/components/store/intermediary/DeliveryTimeline"
 import { DeliveryForm } from "@/components/store/advanced/DeliveryForm"
 import { DeliveryOrdersList, DeliveryOrder } from "@/components/store/advanced/DeliveryOrdersList"
+import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { Truck } from "lucide-react"
 
-export const DeliverySection: React.FC = () => {
+export interface DeliverySectionProps {
+  setCustomActions?: (actions: React.ReactNode) => void
+}
+
+export const DeliverySection: React.FC<DeliverySectionProps> = ({ setCustomActions }) => {
   const [orders, setOrders] = React.useState<DeliveryOrder[]>([
     { id: "8942", clientName: "Filipe Augusto", address: "Av. Paulista, 1000 - Cj 12 - São Paulo/SP", status: "preparing", estimatedTime: "25 min", total: 45.00, motoboy: "Carlos Silva" },
     { id: "8943", clientName: "Maria Eduarda", address: "Rua Augusta, 450 - Ap 31 - São Paulo/SP", status: "ready", estimatedTime: "10 min", total: 68.50, motoboy: "Pedro Souza" },
@@ -21,6 +26,20 @@ export const DeliverySection: React.FC = () => {
   ])
 
   const [selectedOrderId, setSelectedOrderId] = React.useState<string>("8942")
+  const [searchQuery, setSearchQuery] = React.useState("")
+
+  React.useEffect(() => {
+    setCustomActions?.(
+      <MobileHeaderSearch
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
+        placeholder="Buscar por cliente ou ID..."
+      />
+    )
+    return () => {
+      setCustomActions?.(null)
+    }
+  }, [searchQuery, setCustomActions])
 
   const selectedOrder = orders.find((o) => o.id === selectedOrderId)
 
@@ -59,12 +78,13 @@ export const DeliverySection: React.FC = () => {
               <DeliveryForm onSubmit={handleCreateOrder} />
             </Box>
 
-            {/* Busca e Lista de Rastreamento */}
+            {/* Lista de Rastreamento */}
             <Box padding={5} bg="bg-surface" radius="default">
               <DeliveryOrdersList
                 orders={orders}
                 selectedOrderId={selectedOrderId}
                 onSelectOrder={setSelectedOrderId}
+                searchQuery={searchQuery}
               />
             </Box>
           </Stack>
@@ -87,15 +107,17 @@ export const DeliverySection: React.FC = () => {
                 <Box padding={5} bg="bg-surface" radius="default">
                   <Stack gap={2.5}>
                     <Font variant="body-bold" text="Mudar Status do Pedido" />
-                    <Tabs value={selectedOrder.status} onValueChange={(val) => handleUpdateStatus(val as DeliveryStatus)}>
-                      <TabsList className="grid grid-cols-3 gap-2.5 w-full">
-                        <TabsTrigger value="confirmed" className="w-full">Confirmar</TabsTrigger>
-                        <TabsTrigger value="preparing" className="w-full">Preparando</TabsTrigger>
-                        <TabsTrigger value="ready" className="w-full">Pronto</TabsTrigger>
-                        <TabsTrigger value="dispatched" className="w-full">Despachar</TabsTrigger>
-                        <TabsTrigger value="delivered" className="w-full">Entregar</TabsTrigger>
-                      </TabsList>
-                    </Tabs>
+                    <Box w="full" overflow="auto">
+                      <Tabs value={selectedOrder.status} onValueChange={(val) => handleUpdateStatus(val as DeliveryStatus)}>
+                        <Stack direction="row" gap={2.5}>
+                          <TabsTrigger value="confirmed">Confirmar</TabsTrigger>
+                          <TabsTrigger value="preparing">Preparando</TabsTrigger>
+                          <TabsTrigger value="ready">Pronto</TabsTrigger>
+                          <TabsTrigger value="dispatched">Despachar</TabsTrigger>
+                          <TabsTrigger value="delivered">Entregar</TabsTrigger>
+                        </Stack>
+                      </Tabs>
+                    </Box>
                   </Stack>
                 </Box>
               </Stack>

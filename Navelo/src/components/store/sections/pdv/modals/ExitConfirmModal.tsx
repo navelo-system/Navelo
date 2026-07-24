@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
-import { Box } from "@/components/store/base/Box"
 
 interface ExitConfirmModalProps {
   isOpen: boolean
@@ -26,7 +25,7 @@ export const ExitConfirmModal: React.FC<ExitConfirmModalProps> = ({
       cancelVariant="outline"
       variant="bottom"
     >
-      <Box />
+      {null}
     </Modal>
   )
 }

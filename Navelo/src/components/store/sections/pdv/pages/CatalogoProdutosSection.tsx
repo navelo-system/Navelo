@@ -7,9 +7,10 @@ import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Checkbox } from "@/components/store/base/Checkbox"
-import { Input } from "@/components/store/base/Input"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { Search } from "lucide-react"
+
+import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 
 interface CatalogProduct {
   id: string
@@ -47,12 +48,14 @@ export interface CatalogoProdutosSectionProps {
   onCancel: () => void
   setCustomBack?: (cb: (() => void) | null) => void
   setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode) => void
 }
 
 export const CatalogoProdutosSection: React.FC<CatalogoProdutosSectionProps> = ({
   onCancel,
   setCustomBack,
-  setCustomTitle
+  setCustomTitle,
+  setCustomActions
 }) => {
   const [selectedIds, setSelectedIds] = React.useState<Set<string>>(
     new Set(MOCK_PRODUCTS.slice(0, 11).map((p) => p.id))
@@ -62,11 +65,19 @@ export const CatalogoProdutosSection: React.FC<CatalogoProdutosSectionProps> = (
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
     setCustomTitle?.("Produtos")
+    setCustomActions?.(
+      <MobileHeaderSearch
+        searchQuery={search}
+        onSearchQueryChange={setSearch}
+        placeholder="Buscar produto ou categoria..."
+      />
+    )
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
+      setCustomActions?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, setCustomActions, search, onCancel])
 
   const filtered = MOCK_PRODUCTS.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -111,18 +122,12 @@ export const CatalogoProdutosSection: React.FC<CatalogoProdutosSectionProps> = (
 
   return (
     <Stack gap={5} w="full">
-      {/* Subtítulo + busca */}
+      {/* Subtítulo */}
       <Stack gap={2.5} w="full">
         <Font
           variant="description"
           text="Selecione os produtos para vender no Catálogo Online."
           color="muted"
-        />
-        <Input
-          placeholder="Buscar produto ou categoria..."
-          icon={Search}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
         />
       </Stack>
 
