@@ -9,6 +9,8 @@ import { Stack } from "@/components/store/base/Stack"
 import { Grid } from "@/components/store/base/Grid"
 import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
+import { ColorDot } from "@/components/store/base/ColorDot"
+import { ColorInput } from "@/components/store/base/ColorInput"
 import { Settings, RotateCcw } from "lucide-react"
 
 export interface ThemeColors {
@@ -204,18 +206,8 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
                 >
                   <Stack gap={1} align="center">
                     <Stack direction="row" gap={1} align="center">
-                      <Box
-                        w="w-4"
-                        h="h-4"
-                        radius="full"
-                        customStyle={{ backgroundColor: p.colors.primary }}
-                      />
-                      <Box
-                        w="w-4"
-                        h="h-4"
-                        radius="full"
-                        customStyle={{ backgroundColor: p.colors.secondary }}
-                      />
+                      <ColorDot color={p.colors.primary} />
+                      <ColorDot color={p.colors.secondary} />
                     </Stack>
                     <Font variant="auxiliary" text={p.name} align="center" />
                   </Stack>
@@ -243,19 +235,9 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
                 <Stack gap={1} w="full">
                   <Stack direction="row" align="center" justify="between" w="full">
                     <Font variant="body-sm-semibold" text={f.label} />
-                    <Box
-                      as="input"
-                      type="color"
+                    <ColorInput
                       value={colors[f.key]}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleColorChange(f.key, e.target.value)}
-                      w="w-7"
-                      h="h-7"
-                      radius="full"
-                      cursor="pointer"
-                      border={true}
-                      borderColor="border-border"
-                      bg="bg-transparent"
-                      padding={0}
+                      onChange={(val) => handleColorChange(f.key, val)}
                     />
                   </Stack>
                   <Stack direction="row" align="center" justify="between" w="full">
