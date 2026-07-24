@@ -18,7 +18,9 @@ import { VendasSection } from "@/components/store/sections/pdv/pages/VendasSecti
 import { TotaisEmCaixaSection } from "@/components/store/sections/pdv/pages/TotaisEmCaixaSection"
 import { ContasAReceberSection } from "@/components/store/sections/pdv/pages/ContasAReceberSection"
 import { ContaDigitalSection } from "@/components/store/sections/pdv/pages/ContaDigitalSection"
+import { Button } from "@/components/store/base/Button"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
+import { ThemeCustomizerModal, applyThemeColors, loadSavedTheme } from "@/components/store/sections/pdv/modals/ThemeCustomizerModal"
 import {
   ShoppingBag,
   Receipt,
@@ -60,6 +62,7 @@ export default function Home() {
   const [customBack, setCustomBack] = React.useState<(() => void) | null>(null)
   const [customTitle, setCustomTitle] = React.useState<string | null>(null)
   const [customActions, setCustomActions] = React.useState<React.ReactNode | null>(null)
+  const [isThemeModalOpen, setIsThemeModalOpen] = React.useState<boolean>(false)
 
   // Armazena posições de scroll por view
   const scrollPositions = React.useRef<Record<string, number>>({})
@@ -88,6 +91,7 @@ export default function Home() {
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setIsMounted(true)
+      applyThemeColors(loadSavedTheme())
       const savedOperator = sessionStorage.getItem("pdv-operator")
       if (savedOperator) {
         setOperator(savedOperator)
@@ -385,6 +389,20 @@ export default function Home() {
           </Box>
         </RegistryMain>
       </Box>
+
+      {/* Botão Fixo no Canto Inferior Esquerdo para Personalizar Tema */}
+      <Box position="fixed" bottom={6} left={6} zIndex="50">
+        <Button
+          variant="secondary-pill-icon"
+          icon={Settings}
+          onClick={() => setIsThemeModalOpen(true)}
+        />
+      </Box>
+
+      <ThemeCustomizerModal
+        isOpen={isThemeModalOpen}
+        onClose={() => setIsThemeModalOpen(false)}
+      />
     </Box>
   )
 }

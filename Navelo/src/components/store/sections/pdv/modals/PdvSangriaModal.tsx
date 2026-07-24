@@ -63,6 +63,9 @@ export const PdvSangriaModal: React.FC<PdvSangriaModalProps> = ({
 
   const isSuprimento = mode === "suprimento"
   const titleText = isSuprimento ? "Suprimento" : "Sangria"
+  const subtitleText = isSuprimento
+    ? "Informe o valor a ser adicionado ao caixa"
+    : "Informe o valor a ser retirado do caixa"
   const successLabel = isSuprimento ? "Confirmar suprimento" : "Confirmar sangria"
   const valuePrefix = isSuprimento ? "R$" : "-R$"
   const IconComp = isSuprimento ? Wallet : Banknote
@@ -75,6 +78,7 @@ export const PdvSangriaModal: React.FC<PdvSangriaModalProps> = ({
       onClose={onClose}
       icon={IconComp}
       title={titleText}
+      subtitle={subtitleText}
       variant="default"
       showCancelButton={true}
       successText={successLabel}
@@ -97,7 +101,7 @@ export const PdvSangriaModal: React.FC<PdvSangriaModalProps> = ({
 
         {/* Teclado Numérico Interativo */}
         <Box w="full">
-          <Grid cols={3} gap={2.5}>
+          <Grid cols={3} responsive={false} gap={2.5}>
             {keys.map((k) => (
               <Button
                 key={k}
