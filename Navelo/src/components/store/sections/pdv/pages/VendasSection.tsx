@@ -82,8 +82,8 @@ export const VendasSection: React.FC<VendasSectionProps> = ({
   )
 
   return (
-    <Stack direction="col" gap={5} w="full" flex="1" minH="0">
-      <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" minH="0" h="full">
+    <Stack direction="col" gap={5} w="full" flex="1" minH="0" h="full" overflow="hidden">
+      <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" minH="0" h="full" overflow="hidden">
         {/* Painel Esquerdo: Lista Vazia */}
         <Box flex="1" w="full" h="full" bg="bg-surface" padding={5} radius="default" direction="col" justify="center" minH="0">
           <EmptyState
@@ -95,7 +95,7 @@ export const VendasSection: React.FC<VendasSectionProps> = ({
         </Box>
 
         {/* Sidebar Direita Desktop: FilterPanel Inline */}
-        <Box display="hidden md:block">
+        <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
           <FilterPanel
             title="Filtros"
             selectedPeriod={period}

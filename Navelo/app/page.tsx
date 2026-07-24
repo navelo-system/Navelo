@@ -200,7 +200,7 @@ export default function Home() {
   }
 
   return (
-    <Box w="full" h={currentView === "caixa" ? "screen" : "auto"} display="flex" direction="col" className={`min-h-screen bg-slate-200 ${currentView === "caixa" ? "overflow-hidden" : ""}`}>
+    <Box w="full" h="screen" display="flex" direction="col" className="min-h-screen bg-slate-200 overflow-hidden">
       {/* Header full width (only for dashboard) */}
       {currentView === "dashboard" && (
         <Box w="full" shrink="0">
@@ -222,7 +222,7 @@ export default function Home() {
         </Box>
       )}
       {/* Main content area */}
-      <Box flex="1" w="full" className={`flex flex-col ${currentView === "caixa" ? "min-h-0 overflow-hidden" : ""}`}>
+      <Box flex="1" w="full" className="flex flex-col min-h-0 overflow-hidden">
         <RegistryMain
           title={
             customTitle
@@ -254,7 +254,7 @@ export default function Home() {
                   }
           }
           customActions={currentView === "dashboard" ? undefined : customActions}
-          className={`flex-1 flex flex-col ${currentView === "caixa" ? "min-h-0" : ""}`}
+          className="flex-1 flex flex-col min-h-0"
         >
           {/* Container centralizado com largura limitada para o conteúdo (apenas no dashboard) */}
           <Box display="flex" justify="center" w="full" flex="1" className="min-h-0">

@@ -146,7 +146,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
   )
 
   return (
-    <Stack gap={5} w="full">
+    <Stack gap={5} w="full" flex="1" minH="0" h="full">
       {successMsg && (
         <Box padding={2.5} bg="bg-brand-success/10" radius="default" w="full">
           <Stack direction="row" align="center" gap={2.5}>

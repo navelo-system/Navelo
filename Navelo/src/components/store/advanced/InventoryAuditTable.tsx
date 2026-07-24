@@ -126,10 +126,10 @@ export const InventoryAuditTable: React.FC<InventoryAuditTableProps> = ({
   })
 
   return (
-    <Box position="relative" w="full" h="full">
+    <Box position="relative" w="full" h="full" display="flex" direction="col" flex="1" minH="0">
       {viewMode === "history" ? (
         /* ================= VISÃO 1: BALANÇOS DE ESTOQUE (HISTÓRICO + FILTROS) ================= */
-        <Stack direction="col" mobileDirection="row" gap={5} w="full" h="full" align="stretch">
+        <Stack direction="col" mobileDirection="row" gap={5} w="full" h="full" align="stretch" flex="1" minH="0">
           {/* Painel da Esquerda (Lista de Balanços com Scroll Interno) */}
           <Box flex="1" position="relative" h="full" overflow="x-hidden y-auto">
             <Stack gap={2.5} w="full">
@@ -181,7 +181,7 @@ export const InventoryAuditTable: React.FC<InventoryAuditTableProps> = ({
           </Box>
 
           {/* Painel da Direita Desktop (Filtros Sidebar Inline) */}
-          <Box display="hidden md:block">
+          <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
             <FilterPanel
               selectedPeriod={selectedPeriod}
               onPeriodChange={setSelectedPeriod}

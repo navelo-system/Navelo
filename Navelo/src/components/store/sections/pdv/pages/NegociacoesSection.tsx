@@ -108,7 +108,7 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
         </Box>
 
         {/* Painel Direito Desktop: FilterPanel Inline */}
-        <Box display="hidden md:block">
+        <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
           <FilterPanel
             title="Filtros"
             selectedPeriod={period}

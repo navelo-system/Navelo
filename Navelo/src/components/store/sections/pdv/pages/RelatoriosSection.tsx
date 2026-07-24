@@ -315,11 +315,13 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
       })
       setCustomTitle?.(reportDetails?.title || "Relatório")
       setCustomActions?.(
-        <Button
-          variant="primary-pill-icon"
-          icon={Filter}
-          onClick={() => setIsFilterDrawerOpen(true)}
-        />
+        <Box display="block md:hidden">
+          <Button
+            variant="primary-pill-icon"
+            icon={Filter}
+            onClick={() => setIsFilterDrawerOpen(true)}
+          />
+        </Box>
       )
     } else {
       setCustomBack?.(null)
@@ -357,15 +359,16 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
     >
       {/* Produto */}
       <Stack gap={2.5} w="full">
-        <Font variant="body-sm-semibold" color="muted" text="Produto" />
         <Input
-          placeholder="Grupo"
+          label="Grupo"
+          placeholder="Selecione ou digite..."
           value={productGroup}
           onChange={(e) => setProductGroup(e.target.value)}
           iconRight={productGroup ? X : undefined}
         />
         <Input
-          placeholder="Subgrupo"
+          label="Subgrupo"
+          placeholder="Selecione ou digite..."
           value={productSubgroup}
           onChange={(e) => setProductSubgroup(e.target.value)}
           iconRight={productSubgroup ? X : undefined}
@@ -373,37 +376,31 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
       </Stack>
 
       {/* Cliente */}
-      <Stack gap={2.5} w="full">
-        <Font variant="body-sm-semibold" color="muted" text="Cliente" />
-        <Input
-          placeholder="Cliente"
-          value={client}
-          onChange={(e) => setClient(e.target.value)}
-          iconRight={client ? X : undefined}
-        />
-      </Stack>
+      <Input
+        label="Cliente"
+        placeholder="Selecione o cliente..."
+        value={client}
+        onChange={(e) => setClient(e.target.value)}
+        iconRight={client ? X : undefined}
+      />
 
       {/* Usuário */}
-      <Stack gap={2.5} w="full">
-        <Font variant="body-sm-semibold" color="muted" text="Usuário" />
-        <Input
-          placeholder="Usuário"
-          value={user}
-          onChange={(e) => setUser(e.target.value)}
-          iconRight={user ? X : undefined}
-        />
-      </Stack>
+      <Input
+        label="Usuário"
+        placeholder="Selecione o usuário..."
+        value={user}
+        onChange={(e) => setUser(e.target.value)}
+        iconRight={user ? X : undefined}
+      />
 
       {/* Dispositivo */}
-      <Stack gap={2.5} w="full">
-        <Font variant="body-sm-semibold" color="muted" text="Dispositivo" />
-        <Input
-          placeholder="Dispositivo"
-          value={device}
-          onChange={(e) => setDevice(e.target.value)}
-          iconRight={device ? X : undefined}
-        />
-      </Stack>
+      <Input
+        label="Dispositivo"
+        placeholder="Selecione o dispositivo..."
+        value={device}
+        onChange={(e) => setDevice(e.target.value)}
+        iconRight={device ? X : undefined}
+      />
 
       {/* Custo */}
       <Stack gap={2.5} w="full">
@@ -451,7 +448,7 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
   )
 
   return (
-    <Stack gap={5} w="full">
+    <Stack gap={5} w="full" flex="1" minH="0" h="full">
       {mode === "list" ? (
         /* ================= LISTA DE CATEGORIAS E RELATÓRIOS ================= */
         <Stack gap={5} w="full">
@@ -491,18 +488,20 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
         </Stack>
       ) : (
         /* ================= VISUALIZAÇÃO DE RELATÓRIO E FILTROS ================= */
-        <Stack direction="col" gap={5} w="full">
-          <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
-            <Stack gap={1} flex="1" minW="0">
-              <Font variant="h3" text={reportDetails?.title || "Relatório"} align="left" />
-              <Font variant="description" text={reportDetails?.description || ""} align="left" />
+        <Stack direction="col" gap={5} w="full" flex="1" minH="0" h="full" overflow="hidden">
+          <Box shrink="0" w="full">
+            <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
+              <Stack gap={1} flex="1" minW="0">
+                <Font variant="h3" text={reportDetails?.title || "Relatório"} align="left" />
+                <Font variant="description" text={reportDetails?.description || ""} align="left" />
+              </Stack>
+              <Box shrink="0">
+                <Button variant="secondary" label="Exportar CSV" icon={Download} onClick={() => {}} />
+              </Box>
             </Stack>
-            <Box shrink="0">
-              <Button variant="secondary" label="Exportar CSV" icon={Download} onClick={() => {}} />
-            </Box>
-          </Stack>
-          <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch">
-            <Box flex="1" w="full">
+          </Box>
+          <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" minH="0" overflow="hidden">
+            <Box flex="1" w="full" h="full" minH="0" overflow="x-hidden y-auto">
               {reportDetails && (
                 <Stack gap={5} w="full">
                   {reportDetails.kpis.length > 0 && (
@@ -562,7 +561,7 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
                 </Stack>
               )}
             </Box>
-            <Box display="hidden md:block">
+            <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
               {renderFilterPanel(false)}
             </Box>
             <Modal isOpen={isFilterDrawerOpen} onClose={() => setIsFilterDrawerOpen(false)} title="Filtros" variant="sidebar">

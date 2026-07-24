@@ -64,6 +64,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       w="w-full lg:w-80"
       shrink="0"
       h="full"
+      display="flex"
       direction="col"
       overflow="hidden"
       minH="0"
@@ -99,6 +100,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             <Stack gap={2.5} w="full">
               {startDate !== undefined && (
                 <Input
+                  variant="date"
                   label="Inicial"
                   value={startDate}
                   onChange={(e) => onStartDateChange?.(e.target.value)}
@@ -107,6 +109,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               )}
               {endDate !== undefined && (
                 <Input
+                  variant="date"
                   label="Final"
                   value={endDate}
                   onChange={(e) => onEndDateChange?.(e.target.value)}
@@ -142,9 +145,10 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           {children}
         </Stack>
 
-        {/* Botão de Filtrar Fixo no Rodapé */}
+        {/* Botão de Filtrar Fixo no Rodapé com Divisória e Gap */}
         {!hideFilterButton && (
-          <Box w="full" shrink="0" borderTop={true} borderColor="border-border" paddingY={1} bg="bg-surface">
+          <Stack gap={5} w="full" shrink="0">
+            <Box h="h-[1px]" bg="bg-border" w="full" />
             <Button
               variant="primary"
               label="Filtrar"
@@ -152,7 +156,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               onClick={onFilter}
               type="button"
             />
-          </Box>
+          </Stack>
         )}
       </Stack>
     </Box>
