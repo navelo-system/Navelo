@@ -408,6 +408,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
           onCancel={popSubView}
           setCustomBack={setCustomBack}
           setCustomTitle={setCustomTitle}
+          setCustomActions={setCustomActions}
         />
       )
     }
@@ -583,6 +584,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
           onCancel={popSubView}
           setCustomBack={setCustomBack}
           setCustomTitle={setCustomTitle}
+          setCustomActions={setCustomActions}
         />
       )
     }
@@ -736,6 +738,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
           onCancel={popSubView}
           setCustomBack={setCustomBack}
           setCustomTitle={setCustomTitle}
+          setCustomActions={setCustomActions}
         />
       )
     }
@@ -746,6 +749,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
           onCancel={popSubView}
           setCustomBack={setCustomBack}
           setCustomTitle={setCustomTitle}
+          setCustomActions={setCustomActions}
         />
       )
     }
@@ -756,6 +760,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
           onCancel={popSubView}
           setCustomBack={setCustomBack}
           setCustomTitle={setCustomTitle}
+          setCustomActions={setCustomActions}
         />
       )
     }
@@ -766,6 +771,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
           onCancel={popSubView}
           setCustomBack={setCustomBack}
           setCustomTitle={setCustomTitle}
+          setCustomActions={setCustomActions}
         />
       )
     }
@@ -786,6 +792,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
           onCancel={popSubView}
           setCustomBack={setCustomBack}
           setCustomTitle={setCustomTitle}
+          setCustomActions={setCustomActions}
           onNavigate={pushSubView}
         />
       )

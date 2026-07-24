@@ -304,6 +304,8 @@ export default function Home() {
                     <EstoqueSection
                       onBackToDashboard={() => setCurrentView("dashboard", true)}
                       setCustomBack={setCustomBack}
+                      setCustomTitle={setCustomTitle}
+                      setCustomActions={setCustomActions}
                     />
                   </Box>
                 )}
@@ -313,6 +315,8 @@ export default function Home() {
                     <ProdutosSection
                       onBackToDashboard={() => setCurrentView("dashboard", true)}
                       setCustomBack={setCustomBack}
+                      setCustomTitle={setCustomTitle}
+                      setCustomActions={setCustomActions}
                     />
                   </Box>
                 )}
@@ -322,6 +326,8 @@ export default function Home() {
                     <ClientesSection
                       onBackToDashboard={() => setCurrentView("dashboard", true)}
                       setCustomBack={setCustomBack}
+                      setCustomTitle={setCustomTitle}
+                      setCustomActions={setCustomActions}
                     />
                   </Box>
                 )}
@@ -353,6 +359,8 @@ export default function Home() {
                     <VendasSection
                       onBackToDashboard={() => setCurrentView("dashboard", true)}
                       setCustomBack={setCustomBack}
+                      setCustomTitle={setCustomTitle}
+                      setCustomActions={setCustomActions}
                     />
                   </Box>
                 )}
@@ -362,6 +370,8 @@ export default function Home() {
                     <TotaisEmCaixaSection
                       onBackToDashboard={() => setCurrentView("dashboard", true)}
                       setCustomBack={setCustomBack}
+                      setCustomTitle={setCustomTitle}
+                      setCustomActions={setCustomActions}
                     />
                   </Box>
                 )}
@@ -371,6 +381,8 @@ export default function Home() {
                     <ContasAReceberSection
                       onBackToDashboard={() => setCurrentView("dashboard", true)}
                       setCustomBack={setCustomBack}
+                      setCustomTitle={setCustomTitle}
+                      setCustomActions={setCustomActions}
                     />
                   </Box>
                 )}
