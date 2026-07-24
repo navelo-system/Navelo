@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, complexity */
-
 import * as React from "react"
 import { Modal } from "./Modal"
 import { Box } from "./Box"
@@ -60,14 +58,18 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
 }) => {
   const [selectedDate, setSelectedDate] = React.useState<Date>(() => parseDateString(initialDateString))
   const [viewDate, setViewDate] = React.useState<Date>(() => parseDateString(initialDateString))
+  const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen)
+  const [prevInitialDateString, setPrevInitialDateString] = React.useState(initialDateString)
 
-  React.useEffect(() => {
+  if (isOpen !== prevIsOpen || initialDateString !== prevInitialDateString) {
+    setPrevIsOpen(isOpen)
+    setPrevInitialDateString(initialDateString)
     if (isOpen) {
       const parsed = parseDateString(initialDateString)
       setSelectedDate(parsed)
       setViewDate(parsed)
     }
-  }, [isOpen, initialDateString])
+  }
 
   const year = viewDate.getFullYear()
   const month = viewDate.getMonth()

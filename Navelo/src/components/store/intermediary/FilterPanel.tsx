@@ -147,16 +147,18 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
 
         {/* Botão de Filtrar Fixo no Rodapé com Divisória e Gap */}
         {!hideFilterButton && (
-          <Stack gap={5} w="full" shrink="0">
-            <Box h="h-[1px]" bg="bg-border" w="full" />
-            <Button
-              variant="primary"
-              label="Filtrar"
-              fullWidth
-              onClick={onFilter}
-              type="button"
-            />
-          </Stack>
+          <Box shrink="0" w="full">
+            <Stack gap={5} w="full">
+              <Box h="h-[1px]" bg="bg-border" w="full" />
+              <Button
+                variant="primary"
+                label="Filtrar"
+                fullWidth
+                onClick={onFilter}
+                type="button"
+              />
+            </Stack>
+          </Box>
         )}
       </Stack>
     </Box>
