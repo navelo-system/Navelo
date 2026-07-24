@@ -373,7 +373,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
               </Box>
 
               {/* Lado Direito - Carrinho e Totais (Visível apenas no Desktop) */}
-              <Box display="hidden md:block" w="1/4" direction="col" minH="0">
+              <Box display="hidden md:flex" w="1/4" direction="col" minH="0">
                 <PdvCheckoutSidebar
                   cartItems={cartItems}
                   discount={discount}

@@ -14,7 +14,7 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   bgGradient?: "fade-up"
   w?: WidthToken | string
   h?: HeightToken | string
-  display?: "hidden lg:flex" | "flex" | "flex md:hidden" | "block" | "inline-flex" | "hidden" | "block md:hidden" | "hidden md:block"
+  display?: "hidden lg:flex" | "flex" | "flex md:hidden" | "block" | "inline-flex" | "hidden" | "block md:hidden" | "hidden md:block" | "hidden md:flex"
   direction?: "col" | "row"
   align?: "center" | "start" | "end" | "stretch"
   justify?: "between" | "center" | "start" | "end"
@@ -102,6 +102,7 @@ const displayMap = {
   "block md:hidden": "block md:hidden",
   "flex md:hidden": "flex md:hidden",
   "hidden md:block": "hidden md:block",
+  "hidden md:flex": "hidden md:flex",
 }
 
 const directionMap = {

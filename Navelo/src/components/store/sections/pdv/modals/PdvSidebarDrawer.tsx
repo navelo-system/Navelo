@@ -47,37 +47,45 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
         <Stack gap={2.5}>
           <Font variant="body-xs-bold" color="muted" text="NEGOCIACAO" />
           <Box display="flex" direction="col" bg="bg-surface" border={true} borderColor="border-border" radius="default" overflow="hidden">
-            <Button
-              variant="ghost-menu"
-              fullWidth
-              justify="start"
-              label="Buscar negociacoes"
+            <Box
+              padding={2.5}
+              w="full"
+              cursor="pointer"
+              hoverBg="surface-sunken"
               onClick={() => { onClose(); onNavigate("negociacoes") }}
-            />
+            >
+              <Font variant="body-sm-semibold" text="Buscar negociacoes" align="left" />
+            </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
-            <Button
-              variant="ghost-menu"
-              fullWidth
-              justify="start"
-              label="Ultimas negociacoes"
+            <Box
+              padding={2.5}
+              w="full"
+              cursor="pointer"
+              hoverBg="surface-sunken"
               onClick={() => { onClose(); onNavigate("clientes") }}
-            />
+            >
+              <Font variant="body-sm-semibold" text="Ultimas negociacoes" align="left" />
+            </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
-            <Button
-              variant="ghost-menu"
-              fullWidth
-              justify="start"
-              label="Finalizar atendimentos"
+            <Box
+              padding={2.5}
+              w="full"
+              cursor="pointer"
+              hoverBg="surface-sunken"
               onClick={() => { onClose() }}
-            />
+            >
+              <Font variant="body-sm-semibold" text="Finalizar atendimentos" align="left" />
+            </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
-            <Button
-              variant="ghost-menu"
-              fullWidth
-              justify="start"
-              label="Cancelar operacao"
+            <Box
+              padding={2.5}
+              w="full"
+              cursor="pointer"
+              hoverBg="surface-sunken"
               onClick={() => { onClose() }}
-            />
+            >
+              <Font variant="body-sm-semibold" text="Cancelar operacao" align="left" />
+            </Box>
           </Box>
         </Stack>
 
@@ -92,7 +100,7 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
               onClick={() => { onClose(); onNavigate("clientes") }}
             >
               <Stack direction="row" align="center" justify="between" w="full">
-                <Font variant="body-sm-semibold" text="Cliente" />
+                <Font variant="body-sm-semibold" text="Cliente" align="left" />
                 <Font variant="body-sm-medium" color="muted" text="Nao selecionado" />
               </Stack>
             </Box>
@@ -105,34 +113,40 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
               onClick={() => { onClose(); onOpenDiscountModal() }}
             >
               <Stack direction="row" align="center" justify="between" w="full">
-                <Font variant="body-sm-semibold" text="Desconto na venda" />
+                <Font variant="body-sm-semibold" text="Desconto na venda" align="left" />
                 <Font variant="body-sm-medium" color="muted" text="0,00%" />
               </Stack>
             </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
-            <Button
-              variant="ghost-menu"
-              fullWidth
-              justify="start"
-              label="Observacao"
+            <Box
+              padding={2.5}
+              w="full"
+              cursor="pointer"
+              hoverBg="surface-sunken"
               onClick={() => { onClose(); onOpenObservationModal() }}
-            />
+            >
+              <Font variant="body-sm-semibold" text="Observacao" align="left" />
+            </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
-            <Button
-              variant="ghost-menu"
-              fullWidth
-              justify="start"
-              label="Recebimentos"
+            <Box
+              padding={2.5}
+              w="full"
+              cursor="pointer"
+              hoverBg="surface-sunken"
               onClick={() => { onClose(); onNavigate("recebimentos") }}
-            />
+            >
+              <Font variant="body-sm-semibold" text="Recebimentos" align="left" />
+            </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
-            <Button
-              variant="ghost-menu"
-              fullWidth
-              justify="start"
-              label="Devolucao"
+            <Box
+              padding={2.5}
+              w="full"
+              cursor="pointer"
+              hoverBg="surface-sunken"
               onClick={() => { onClose(); onNavigate("devolucao") }}
-            />
+            >
+              <Font variant="body-sm-semibold" text="Devolucao" align="left" />
+            </Box>
           </Box>
         </Stack>
 
@@ -140,37 +154,45 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
         <Stack gap={2.5}>
           <Font variant="body-xs-bold" color="muted" text="OUTRAS OPERACOES" />
           <Box display="flex" direction="col" bg="bg-surface" border={true} borderColor="border-border" radius="default" overflow="hidden">
-            <Button
-              variant="ghost-menu"
-              fullWidth
-              justify="start"
-              label="Sangria"
+            <Box
+              padding={2.5}
+              w="full"
+              cursor="pointer"
+              hoverBg="surface-sunken"
               onClick={() => { onClose(); onOpenSangriaModal("sangria") }}
-            />
+            >
+              <Font variant="body-sm-semibold" text="Sangria" align="left" />
+            </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
-            <Button
-              variant="ghost-menu"
-              fullWidth
-              justify="start"
-              label="Suprimento"
+            <Box
+              padding={2.5}
+              w="full"
+              cursor="pointer"
+              hoverBg="surface-sunken"
               onClick={() => { onClose(); onOpenSangriaModal("suprimento") }}
-            />
+            >
+              <Font variant="body-sm-semibold" text="Suprimento" align="left" />
+            </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
-            <Button
-              variant="ghost-menu"
-              fullWidth
-              justify="start"
-              label="Buscar sangrias/suprimentos"
+            <Box
+              padding={2.5}
+              w="full"
+              cursor="pointer"
+              hoverBg="surface-sunken"
               onClick={() => { onClose(); onNavigate("sangrias-suprimentos") }}
-            />
+            >
+              <Font variant="body-sm-semibold" text="Buscar sangrias/suprimentos" align="left" />
+            </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
-            <Button
-              variant="ghost-menu"
-              fullWidth
-              justify="start"
-              label="Totais em caixa"
+            <Box
+              padding={2.5}
+              w="full"
+              cursor="pointer"
+              hoverBg="surface-sunken"
               onClick={() => { onClose(); onNavigate("totais-em-caixa") }}
-            />
+            >
+              <Font variant="body-sm-semibold" text="Totais em caixa" align="left" />
+            </Box>
           </Box>
         </Stack>
 
@@ -178,13 +200,15 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
         <Stack gap={2.5}>
           <Font variant="body-xs-bold" color="muted" text="OPCOES" />
           <Box display="flex" direction="col" bg="bg-surface" border={true} borderColor="border-border" radius="default" overflow="hidden">
-            <Button
-              variant="ghost-menu"
-              label="Voltar ao Painel Geral"
-              fullWidth
-              justify="start"
+            <Box
+              padding={2.5}
+              w="full"
+              cursor="pointer"
+              hoverBg="surface-sunken"
               onClick={onBackToDashboard}
-            />
+            >
+              <Font variant="body-sm-semibold" text="Voltar ao Painel Geral" align="left" />
+            </Box>
           </Box>
         </Stack>
       </Stack>

@@ -63,10 +63,10 @@ const variantStyles: Record<string, string> = {
 }
 
 const justifyStyles: Record<string, string> = {
-  center: "justify-center",
-  start: "justify-start",
-  end: "justify-end",
-  between: "justify-between",
+  center: "justify-center text-center",
+  start: "justify-start text-left",
+  end: "justify-end text-right",
+  between: "justify-between text-left",
 }
 
 const sizeStyles = {
@@ -114,7 +114,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const classes = cn(
       !isGhost && "btn-shimmer",
-      "inline-flex flex-nowrap whitespace-nowrap text-center items-center gap-2.5 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary disabled:pointer-events-none disabled:opacity-50",
+      "inline-flex flex-nowrap whitespace-nowrap items-center gap-2.5 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary disabled:pointer-events-none disabled:opacity-50",
       justifyStyles[justify],
       variantStyles[baseColor] || variantStyles.primary,
       sizeStyles[logicalSize],
@@ -139,7 +139,14 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const content = (
       <>
         {IconComponent && <BaseIcon icon={IconComponent} size={getIconSize()} color="inherit" />}
-        {label && <Font variant={getFontVariant()} color="inherit" text={label} align="center" />}
+        {label && (
+          <Font
+            variant={getFontVariant()}
+            color="inherit"
+            text={label}
+            align={justify === "start" || justify === "between" ? "left" : justify === "end" ? "right" : "center"}
+          />
+        )}
         {rightLabel && <Font variant="sub-tiny" color="muted" text={rightLabel} />}
         {IconRightComponent && <BaseIcon icon={IconRightComponent} size={getIconSize()} color="inherit" />}
       </>

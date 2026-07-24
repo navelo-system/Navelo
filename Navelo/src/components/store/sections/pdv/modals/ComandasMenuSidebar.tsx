@@ -40,21 +40,25 @@ export const ComandasMenuSidebar: React.FC<ComandasMenuSidebarProps> = ({
         <Stack gap={2.5}>
           <Font variant="body-xs-bold" color="muted" text="ATENDIMENTO" />
           <Box display="flex" direction="col" bg="bg-surface" border={true} borderColor="border-border" radius="default" overflow="hidden">
-            <Button
-              variant="ghost-menu"
-              fullWidth
-              justify="start"
-              label="Novo atendimento avulso"
+            <Box
+              padding={2.5}
+              w="full"
+              cursor="pointer"
+              hoverBg="surface-sunken"
               onClick={() => { onClose(); onNewComanda() }}
-            />
+            >
+              <Font variant="body-sm-semibold" text="Novo atendimento avulso" align="left" />
+            </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
-            <Button
-              variant="ghost-menu"
-              fullWidth
-              justify="start"
-              label="Finalizar atendimentos"
+            <Box
+              padding={2.5}
+              w="full"
+              cursor="pointer"
+              hoverBg="surface-sunken"
               onClick={() => { onClose(); onFinishAll() }}
-            />
+            >
+              <Font variant="body-sm-semibold" text="Finalizar atendimentos" align="left" />
+            </Box>
           </Box>
         </Stack>
       </Stack>

@@ -32,7 +32,7 @@ export const CartList: React.FC<CartListProps> = ({
   flushContent = false,
 }) => {
   return (
-    <Box padding={0} bg="bg-surface" radius="default" flex="1" display="flex" direction="col" overflow="hidden">
+    <Box padding={0} bg="bg-surface" radius="default" flex="1" display="flex" direction="col" overflow="hidden" minH="0">
       {!hideHeader && (
         <>
           <Box padding={5} bg="bg-surface">
@@ -42,7 +42,7 @@ export const CartList: React.FC<CartListProps> = ({
         </>
       )}
 
-      <Box flex="1" overflow="x-hidden y-auto" padding={flushContent ? 0 : 5}>
+      <Box flex="1" overflow="x-hidden y-auto" minH="0" padding={flushContent ? 0 : 5}>
         <Stack gap={5}>
           {items.length === 0 ? (
             <EmptyState
