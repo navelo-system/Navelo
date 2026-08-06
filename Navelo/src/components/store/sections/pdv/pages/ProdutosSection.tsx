@@ -213,7 +213,7 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
   }
 
   return (
-    <Box className="max-h-[calc(100vh-140px)] overflow-y-auto pr-1">
+    <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
     <Stack gap={5} w="full">
       {mode === "list" && (
         /* ================= LISTAGEM DE PRODUTOS (MINIMALISTA) ================= */

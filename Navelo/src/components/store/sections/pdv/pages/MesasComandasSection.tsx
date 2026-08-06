@@ -41,7 +41,7 @@ export const MesasComandasSection: React.FC<MesasComandasSectionProps> = ({
   }, [setCustomBack, setCustomTitle, onCancel])
 
   return (
-    <Box className="max-h-[calc(100vh-140px)] overflow-y-auto pr-1">
+    <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
       <Stack gap={5} w="full">
         {/* Card 1: Habilitação e Tipo */}
         <Box
@@ -63,7 +63,7 @@ export const MesasComandasSection: React.FC<MesasComandasSectionProps> = ({
                   color="muted"
                 />
               </Stack>
-              <Switch checked={enabled} onChange={setEnabled} />
+              <Switch checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
             </Stack>
           </Box>
 
@@ -74,12 +74,12 @@ export const MesasComandasSection: React.FC<MesasComandasSectionProps> = ({
               <Box padding={5} w="full">
                 <Stack gap={2.5} w="full">
                   <CustomSelect
-                    label="Tipo de atendimento"
+                    placeholder="Tipo de atendimento"
                     value={tipoAtendimento}
                     onChange={(val) => setTipoAtendimento(val as "mesas" | "comandas")}
                   >
-                    <CustomSelectItem value="comandas">Mesas e Comandas</CustomSelectItem>
-                    <CustomSelectItem value="mesas">Somente Mesas</CustomSelectItem>
+                    <CustomSelectItem value="comandas" text="Mesas e Comandas" icon={ClipboardList} />
+                    <CustomSelectItem value="mesas" text="Somente Mesas" icon={LayoutGrid} />
                   </CustomSelect>
                 </Stack>
               </Box>
@@ -145,7 +145,7 @@ export const MesasComandasSection: React.FC<MesasComandasSectionProps> = ({
               <Stack gap={5} w="full">
                 <Font variant="body-bold" text="Regras de Consumo" />
 
-                <Stack direction="row" align="start" gap={3.5} w="full">
+                <Stack direction="row" align="start" gap={2.5} w="full">
                   <Checkbox
                     checked={limitarConsumo}
                     onChange={(e) => setLimitarConsumo(e.target.checked)}

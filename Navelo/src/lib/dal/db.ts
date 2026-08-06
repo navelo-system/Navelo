@@ -69,6 +69,7 @@ export interface Category {
   tenant_id?: string;
   name: string;
   active: boolean;
+  subgroups?: string[];
 }
 
 export interface Sale {
@@ -193,6 +194,22 @@ export interface Unit {
   tenant_id?: string;
   symbol: string;
   name: string;
+  decimals?: number;
+}
+
+export interface PrintPoint {
+  id: string;
+  company_id: string;
+  tenant_id?: string;
+  name: string;
+  serverIp?: string;
+  port?: string;
+  enabled?: boolean;
+  bobbinSize?: string;
+  increaseFont?: boolean;
+  columns?: number;
+  kitchenMonitorEnabled?: boolean;
+  linkingCode?: string;
 }
 
 export interface ContingencyNote {
@@ -290,6 +307,7 @@ export class NaveloLocalDB extends Dexie {
   delivery_rates!: EntityTable<DeliveryRate, 'id'>;
   delivery_orders!: EntityTable<DeliveryOrderEntity, 'id'>;
   audit_logs!: EntityTable<AuditLog, 'id'>;
+  print_points!: EntityTable<PrintPoint, 'id'>;
   
   // Fila de Sincronização (Sync Queue)
   sync_queue!: EntityTable<SyncQueueItem, 'id'>;
@@ -297,8 +315,8 @@ export class NaveloLocalDB extends Dexie {
   constructor() {
     super('NaveloLocalDB');
     
-    // Schema v6 com tabela delivery_orders
-    this.version(6).stores({
+    // Schema v7 com print_points, subgroups e decimals
+    this.version(7).stores({
       platform_settings: 'id',
       companies: 'id',
       branches: 'id, company_id, tenant_id',
@@ -319,6 +337,7 @@ export class NaveloLocalDB extends Dexie {
       delivery_rates: 'id, company_id, tenant_id',
       delivery_orders: 'id, company_id, tenant_id, status',
       audit_logs: 'id, company_id, tenant_id',
+      print_points: 'id, company_id, tenant_id',
       sync_queue: 'id, table, tenant_id, created_at'
     });
   }

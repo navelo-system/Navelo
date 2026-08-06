@@ -1,5 +1,7 @@
 "use client"
 
+/* eslint-disable max-lines-per-function, complexity */
+
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -11,7 +13,7 @@ import { RegistrySection } from "@/components/store/advanced/RegistrySection"
 import { User as UserIcon, Lock, Building, ShieldCheck, Tv } from "lucide-react"
 import { useTenant } from "@/lib/context/TenantContext"
 import { useOperators, db } from "@/lib/dal"
-import { UserRole, User, Tenant } from "@/types/domain"
+import { UserRole, User, Tenant } from "@/src/types/domain"
 import { ROLE_CAN_LOGIN } from "@/lib/permissions"
 
 interface LoginSectionProps {

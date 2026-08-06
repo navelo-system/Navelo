@@ -66,6 +66,13 @@ export function useUnits(tenantId?: string) {
   }, [tenantId]);
 }
 
+export function usePrintPoints(tenantId?: string) {
+  return useLiveQuery(() => {
+    if (!tenantId) return db.print_points.toArray();
+    return db.print_points.where('company_id').equals(tenantId).or('tenant_id').equals(tenantId).toArray();
+  }, [tenantId]);
+}
+
 export function useContingencyNotes(tenantId?: string) {
   return useLiveQuery(() => {
     if (!tenantId) return db.contingency_notes.toArray();
@@ -134,6 +141,11 @@ export const dal = {
     create: async (item: DalPayload) => mutateLocalFirst('units', item, 'INSERT'),
     update: async (item: DalPayload) => mutateLocalFirst('units', item, 'UPDATE'),
     delete: async (id: string, tenantId?: string) => mutateLocalFirst('units', { id, company_id: tenantId, tenant_id: tenantId }, 'DELETE')
+  },
+  printPoints: {
+    create: async (item: DalPayload) => mutateLocalFirst('print_points', item, 'INSERT'),
+    update: async (item: DalPayload) => mutateLocalFirst('print_points', item, 'UPDATE'),
+    delete: async (id: string, tenantId?: string) => mutateLocalFirst('print_points', { id, company_id: tenantId, tenant_id: tenantId }, 'DELETE')
   },
   cashRegisters: {
     create: async (item: DalPayload) => mutateLocalFirst('cash_registers', item, 'INSERT'),

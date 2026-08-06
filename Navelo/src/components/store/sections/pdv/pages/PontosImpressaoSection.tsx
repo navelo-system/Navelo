@@ -18,6 +18,8 @@ import { Plus, Edit2, Trash2, Printer, LayoutGrid, ChevronRight, Check } from "l
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { PrintStatusModal } from "@/components/store/sections/pdv/modals/PrintStatusModal"
 import { FormActions } from "@/components/store/intermediary/FormActions"
+import { usePrintPoints, dal } from "@/lib/dal"
+import { useTenant } from "@/lib/context/TenantContext"
 
 export interface PrintPointItem {
   id: string
@@ -47,20 +49,28 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
   setCustomActions,
   onNavigate
 }) => {
-  const [points, setPoints] = React.useState<PrintPointItem[]>([
-    {
-      id: "1",
-      name: "Ponto 1",
-      serverIp: "192.168.1.101",
-      port: "3030",
-      enabled: true,
-      bobbinSize: "80MM",
-      increaseFont: false,
-      columns: 48,
-      kitchenMonitorEnabled: false,
-      linkingCode: ""
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id
+
+  const dbPoints = usePrintPoints(tenantId)
+
+  const points: PrintPointItem[] = React.useMemo(() => {
+    if (dbPoints && dbPoints.length > 0) {
+      return dbPoints.map(p => ({
+        id: p.id,
+        name: p.name,
+        serverIp: p.serverIp || "",
+        port: p.port || "3030",
+        enabled: p.enabled ?? true,
+        bobbinSize: p.bobbinSize || "80MM",
+        increaseFont: p.increaseFont ?? false,
+        columns: p.columns ?? 48,
+        kitchenMonitorEnabled: p.kitchenMonitorEnabled ?? false,
+        linkingCode: p.linkingCode || ""
+      }))
     }
-  ])
+    return []
+  }, [dbPoints])
 
   const [mode, setMode] = React.useState<"list" | "form">("list")
   const [editingPoint, setEditingPoint] = React.useState<PrintPointItem | null>(null)
@@ -138,39 +148,35 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
     setMode("form")
   }
 
-  const handleDelete = (id: string) => {
-    setPoints((prev) => prev.filter((p) => p.id !== id))
-    if (mode === "form") {
-      setMode("list")
-      setEditingPoint(null)
-    }
+  const handleDelete = async (id: string) => {
+    await dal.printPoints.delete(id, tenantId)
   }
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formName.trim()) return
 
-    const pointData: Omit<PrintPointItem, "id"> = {
+    const pointId = editingPoint ? editingPoint.id : `pt-${Date.now()}`
+    
+    const pointPayload = {
+      id: pointId,
       name: formName,
-      enabled: formEnabled,
       serverIp: formServerIp,
       port: formPort,
+      enabled: formEnabled,
       bobbinSize: formBobbinSize,
       increaseFont: formIncreaseFont,
       columns: formColumns,
       kitchenMonitorEnabled: formKitchenEnabled,
-      linkingCode: formLinkingCode
+      linkingCode: formLinkingCode,
+      company_id: tenantId || "demo-tenant",
+      tenant_id: tenantId || "demo-tenant"
     }
 
     if (editingPoint) {
-      setPoints((prev) =>
-        prev.map((p) => (p.id === editingPoint.id ? { ...p, ...pointData } : p))
-      )
+      await dal.printPoints.update(pointPayload)
     } else {
-      setPoints((prev) => [
-        ...prev,
-        { id: Date.now().toString(), ...pointData }
-      ])
+      await dal.printPoints.create(pointPayload)
     }
 
     setMode("list")

@@ -448,7 +448,7 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
   )
 
   return (
-    <Box className="max-h-[calc(100vh-140px)] overflow-y-auto pr-1">
+    <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
       <Stack gap={5} w="full" flex="1" minH="0" h="full">
         {mode === "list" ? (
           /* ================= LISTA DE CATEGORIAS E RELATÓRIOS ================= */

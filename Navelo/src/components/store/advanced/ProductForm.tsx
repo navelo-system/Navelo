@@ -14,6 +14,8 @@ import { FormActions } from "@/components/store/intermediary/FormActions"
 import { Switch } from "@/components/store/base/Switch"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/store/base/Tabs"
+import { useCategories, useUnits, usePrintPoints } from "@/lib/dal"
+import { useTenant } from "@/lib/context/TenantContext"
 import {
   Package,
   FileSpreadsheet,
@@ -85,6 +87,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   onSave,
   onAccessFiscalConfig,
 }) => {
+  // Tenant & DAL
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id
+  const dbCategories = useCategories(tenantId)
+  const dbUnits = useUnits(tenantId)
+  const dbPrintPoints = usePrintPoints(tenantId)
+
   // Accordion state
   const [isMultissaborOpen, setIsMultissaborOpen] = React.useState(false)
   const [isComplementosOpen, setIsComplementosOpen] = React.useState(false)
@@ -96,17 +105,17 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
   // Form states
   const [name, setName] = React.useState("")
-  const [category, setCategory] = React.useState("Bebidas")
+  const [category, setCategory] = React.useState("")
   const [price, setPrice] = React.useState("")
   const [stock, setStock] = React.useState("")
-  const [unit, setUnit] = React.useState("UN")
+  const [unit, setUnit] = React.useState("")
   const [ncm, setNcm] = React.useState("")
   const [cest, setCest] = React.useState("")
   const [cfop, setCfop] = React.useState("5.102")
   const [icmsOrigem, setIcmsOrigem] = React.useState("0 - Nacional")
 
   const [detailedDescription, setDetailedDescription] = React.useState("")
-  const [subgroup, setSubgroup] = React.useState("UNICO")
+  const [subgroup, setSubgroup] = React.useState("")
   const [minStock, setMinStock] = React.useState("")
   const [costPrice, setCostPrice] = React.useState("")
   const [otherCosts, setOtherCosts] = React.useState("")
@@ -124,7 +133,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const [barcodes, setBarcodes] = React.useState<string[]>([])
   const [newBarcode, setNewBarcode] = React.useState("")
 
-  const [printPoint, setPrintPoint] = React.useState("Sem Impressão")
+  const [printPoint, setPrintPoint] = React.useState("")
 
   const [producaoPropria, setProducaoPropria] = React.useState(false)
   const [ingredients, setIngredients] = React.useState("")
@@ -144,17 +153,17 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     setPrevInitialData(initialData)
     if (initialData) {
       setName(initialData.name || "")
-      setCategory(initialData.category || "Bebidas")
+      setCategory(initialData.category || "")
       setPrice(initialData.unitPrice?.toString() || "")
       setStock(initialData.stock?.toString() || "")
-      setUnit(initialData.unit || "UN")
+      setUnit(initialData.unit || "")
       setNcm(initialData.ncm || "")
       setCest(initialData.cest || "")
       setCfop(initialData.cfop || "5.102")
       setIcmsOrigem(initialData.icmsOrigem || "0 - Nacional")
 
       setDetailedDescription(initialData.detailedDescription || "")
-      setSubgroup(initialData.subgroup || "UNICO")
+      setSubgroup(initialData.subgroup || "")
       setMinStock(initialData.minStock?.toString() || "")
       setCostPrice(initialData.costPrice?.toString() || "")
       setOtherCosts(initialData.otherCosts?.toString() || "")
@@ -171,7 +180,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
       setBarcodes(initialData.barcodes || [])
 
-      setPrintPoint(initialData.printPoint || "Sem Impressão")
+      setPrintPoint(initialData.printPoint || "")
 
       setProducaoPropria(!!initialData.producaoPropria)
       setIngredients(initialData.ingredients || "")
@@ -196,7 +205,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       setIcmsOrigem("0 - Nacional")
 
       setDetailedDescription("")
-      setSubgroup("UNICO")
+      setSubgroup("")
       setMinStock("")
       setCostPrice("")
       setOtherCosts("")
@@ -213,7 +222,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
       setBarcodes([])
 
-      setPrintPoint("Sem Impressão")
+      setPrintPoint("")
 
       setProducaoPropria(false)
       setIngredients("")
@@ -284,6 +293,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       pisCofinsCst,
     })
   }
+  // Subgroup items computed from selected category
+  const subgroupItems = React.useMemo(() => {
+    const selectedCat = dbCategories?.find(c => c.name === category)
+    if (selectedCat?.subgroups && selectedCat.subgroups.length > 0) {
+      return selectedCat.subgroups
+    }
+    return [] as string[]
+  }, [dbCategories, category])
 
   return (
     <Box as="form" onSubmit={handleSubmit} w="full">
@@ -334,26 +351,37 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     <Stack gap={1}>
                       <Font variant="body-sm-semibold" text="Unidade *" />
                       <CustomSelect value={unit} onChange={(val) => setUnit(val)}>
-                        <CustomSelectItem value="UN" text="UN - Unidade" icon={Package} />
-                        <CustomSelectItem value="KG" text="KG - Quilograma" icon={Package} />
-                        <CustomSelectItem value="LT" text="LT - Litro" icon={Package} />
+                        {dbUnits && dbUnits.length > 0
+                          ? dbUnits.map(u => (
+                              <CustomSelectItem key={u.id} value={u.name} text={u.name} icon={Package} />
+                            ))
+                          : [
+                              <CustomSelectItem key="__empty__" value="" text="Nenhuma unidade cadastrada" icon={Package} />
+                            ]}
                       </CustomSelect>
                     </Stack>
 
                     <Stack gap={1}>
                       <Font variant="body-sm-semibold" text="Grupo *" />
-                      <CustomSelect value={category} onChange={(val) => setCategory(val)}>
-                        <CustomSelectItem value="Bebidas" text="Bebidas" icon={Layers} />
-                        <CustomSelectItem value="Lanches" text="Lanches" icon={Layers} />
-                        <CustomSelectItem value="Acompanhamentos" text="Acompanhamentos" icon={Layers} />
+                      <CustomSelect value={category} onChange={(val) => { setCategory(val); setSubgroup("") }}>
+                        {dbCategories && dbCategories.length > 0
+                          ? dbCategories.map(c => (
+                              <CustomSelectItem key={c.id} value={c.name} text={c.name} icon={Layers} />
+                            ))
+                          : [
+                              <CustomSelectItem key="__empty__" value="" text="Nenhum grupo cadastrado" icon={Layers} />
+                            ]}
                       </CustomSelect>
                     </Stack>
 
                     <Stack gap={1}>
                       <Font variant="body-sm-semibold" text="Subgrupo *" />
                       <CustomSelect value={subgroup} onChange={(val) => setSubgroup(val)}>
-                        <CustomSelectItem value="UNICO" text="Único" icon={Layers} />
-                        <CustomSelectItem value="PADRAO" text="Padrão" icon={Layers} />
+                        {subgroupItems.length > 0
+                          ? subgroupItems.map(s => (
+                              <CustomSelectItem key={s} value={s} text={s} icon={Layers} />
+                            ))
+                          : [<CustomSelectItem key="__empty__" value="" text="Nenhum subgrupo cadastrado" icon={Layers} />]}
                       </CustomSelect>
                     </Stack>
                   </Grid>
@@ -374,6 +402,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   <Grid cols={3} gap={5}>
                     <Input
                       label="Estoque *"
+                      variant="outlined-label"
                       placeholder="0"
                       value={stock}
                       onChange={(e) => setStock(e.target.value)}
@@ -381,30 +410,35 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     />
                     <Input
                       label="Estoque Mínimo"
+                      variant="outlined-label"
                       placeholder="0"
                       value={minStock}
                       onChange={(e) => setMinStock(e.target.value)}
                     />
                     <Input
                       label="Preço de Custo (R$)"
+                      variant="outlined-label"
                       placeholder="0,00"
                       value={costPrice}
                       onChange={(e) => setCostPrice(e.target.value)}
                     />
                     <Input
                       label="Outros Custos (%)"
+                      variant="outlined-label"
                       placeholder="0,00"
                       value={otherCosts}
                       onChange={(e) => setOtherCosts(e.target.value)}
                     />
                     <Input
                       label="Margem (%)"
+                      variant="outlined-label"
                       placeholder="0,00"
                       value={margin}
                       onChange={(e) => setMargin(e.target.value)}
                     />
                     <Input
                       label="Preço de Venda (R$) *"
+                      variant="outlined-label"
                       placeholder="0,00"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
@@ -439,7 +473,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     <Icon icon={isMultissaborOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
                   </Stack>
                 </Box>
-                {isMultissaborOpen && (
+                <Box
+                  transition="all"
+                  overflow="hidden"
+                  maxH={isMultissaborOpen ? "2000px" : "0"}
+                  opacity={isMultissaborOpen ? "100" : "0"}
+                  w="full"
+                >
                   <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
                     <Stack gap={5} w="full">
                       <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
@@ -470,7 +510,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       )}
                     </Stack>
                   </Box>
-                )}
+                </Box>
               </Stack>
 
               {/* ACCORDION: Complementos */}
@@ -493,7 +533,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     <Icon icon={isComplementosOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
                   </Stack>
                 </Box>
-                {isComplementosOpen && (
+                <Box
+                  transition="all"
+                  overflow="hidden"
+                  maxH={isComplementosOpen ? "2000px" : "0"}
+                  opacity={isComplementosOpen ? "100" : "0"}
+                  w="full"
+                >
                   <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
                     <Stack gap={5} w="full">
                       <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
@@ -507,7 +553,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       </Stack>
                     </Stack>
                   </Box>
-                )}
+                </Box>
               </Stack>
 
               {/* ACCORDION: Plataformas de Venda */}
@@ -530,7 +576,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     <Icon icon={isPlataformasOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
                   </Stack>
                 </Box>
-                {isPlataformasOpen && (
+                <Box
+                  transition="all"
+                  overflow="hidden"
+                  maxH={isPlataformasOpen ? "2000px" : "0"}
+                  opacity={isPlataformasOpen ? "100" : "0"}
+                  w="full"
+                >
                   <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
                     <Stack gap={5} w="full">
                       <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
@@ -554,7 +606,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       )}
                     </Stack>
                   </Box>
-                )}
+                </Box>
               </Stack>
 
               {/* ACCORDION: Códigos de barras */}
@@ -577,7 +629,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     <Icon icon={isBarcodesOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
                   </Stack>
                 </Box>
-                {isBarcodesOpen && (
+                <Box
+                  transition="all"
+                  overflow="hidden"
+                  maxH={isBarcodesOpen ? "2000px" : "0"}
+                  opacity={isBarcodesOpen ? "100" : "0"}
+                  w="full"
+                >
                   <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
                     <Stack gap={5} w="full">
                       <Stack direction="col" mobileDirection="row" gap={2.5} align="stretch" mobileAlign="end" w="full">
@@ -619,7 +677,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       )}
                     </Stack>
                   </Box>
-                )}
+                </Box>
               </Stack>
 
               {/* ACCORDION: Ponto de impressão */}
@@ -642,19 +700,27 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     <Icon icon={isPrintPointOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
                   </Stack>
                 </Box>
-                {isPrintPointOpen && (
+                <Box
+                  transition="all"
+                  overflow="hidden"
+                  maxH={isPrintPointOpen ? "2000px" : "0"}
+                  opacity={isPrintPointOpen ? "100" : "0"}
+                  w="full"
+                >
                   <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
                     <Stack gap={1} w="full">
                       <Font variant="body-sm-semibold" text="Destino de Impressão" />
                       <CustomSelect value={printPoint} onChange={setPrintPoint}>
-                        <CustomSelectItem value="Sem Impressão" text="Sem Impressão" icon={Printer} />
-                        <CustomSelectItem value="Cozinha" text="Cozinha" icon={Printer} />
-                        <CustomSelectItem value="Copa" text="Copa" icon={Printer} />
-                        <CustomSelectItem value="Caixa" text="Caixa" icon={Printer} />
+                        {[
+                          <CustomSelectItem key="__none__" value="" text="Sem Impressão" icon={Printer} />,
+                          ...(dbPrintPoints ?? []).map(p => (
+                            <CustomSelectItem key={p.id} value={p.name} text={p.name} icon={Printer} />
+                          ))
+                        ]}
                       </CustomSelect>
                     </Stack>
                   </Box>
-                )}
+                </Box>
               </Stack>
 
               {/* ACCORDION: Produção */}
@@ -677,7 +743,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     <Icon icon={isProducaoOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
                   </Stack>
                 </Box>
-                {isProducaoOpen && (
+                <Box
+                  transition="all"
+                  overflow="hidden"
+                  maxH={isProducaoOpen ? "2000px" : "0"}
+                  opacity={isProducaoOpen ? "100" : "0"}
+                  w="full"
+                >
                   <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
                     <Stack gap={5} w="full">
                       <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
@@ -707,7 +779,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       )}
                     </Stack>
                   </Box>
-                )}
+                </Box>
               </Stack>
 
               {/* ACCORDION: Fiscal */}
@@ -730,7 +802,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     <Icon icon={isFiscalOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
                   </Stack>
                 </Box>
-                {isFiscalOpen && (
+                <Box
+                  transition="all"
+                  overflow="hidden"
+                  maxH={isFiscalOpen ? "2000px" : "0"}
+                  opacity={isFiscalOpen ? "100" : "0"}
+                  w="full"
+                >
                   <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
                     <Stack gap={5} w="full">
                       <Grid cols={2} gap={5}>
@@ -838,7 +916,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       )}
                     </Stack>
                   </Box>
-                )}
+                </Box>
               </Stack>
             </Stack>
           </TabsContent>

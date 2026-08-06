@@ -45,3 +45,11 @@ export const maskCEP = (value: string) => {
     .replace(/(\d{5})(\d)/, "$1-$2")
     .replace(/(-\d{3})\d+?$/, "$1")
 }
+
+export const maskCpfCnpj = (value: string) => {
+  const digits = value.replace(/\D/g, "")
+  if (digits.length <= 11) {
+    return maskCPF(digits)
+  }
+  return maskCNPJ(digits)
+}

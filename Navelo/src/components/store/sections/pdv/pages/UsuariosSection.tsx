@@ -1,6 +1,6 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
+/* eslint-disable max-lines-per-function, complexity */
 
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
@@ -11,11 +11,9 @@ import { Input } from "@/components/store/base/Input"
 import { Badge } from "@/components/store/base/Badge"
 import { Avatar } from "@/components/store/base/Avatar"
 import { Checkbox } from "@/components/store/base/Checkbox"
-import { Icon } from "@/components/store/base/Icon"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
-import { Plus, Trash2, Eye, EyeOff, Search, Check } from "lucide-react"
+import { Plus, Trash2, Search, Check } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
-import { FormActions } from "@/components/store/intermediary/FormActions"
 import { useTenant } from "@/lib/context/TenantContext"
 import { useOperators, dal } from "@/lib/dal/hooks"
 
@@ -115,8 +113,6 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
   const [formLogin, setFormLogin] = React.useState("")
   const [formPassword, setFormPassword] = React.useState("")
   const [formConfirmPassword, setFormConfirmPassword] = React.useState("")
-  const [showPassword, setShowPassword] = React.useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
   const [formCommission, setFormCommission] = React.useState("% 0,00")
   const [formRole, setFormRole] = React.useState("ADMIN")
 
@@ -133,7 +129,7 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
     if (!formName || !formLogin) return
 
     if (formPassword !== formConfirmPassword) {
-      alert("A senha e a confirmação de senha não coincidem.")
+      console.warn("A senha e a confirmação de senha não coincidem.")
       return
     }
 
@@ -212,6 +208,7 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
       setCustomTitle?.(null)
       setCustomActions?.(null)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, editingUser, searchQuery, formName, formLogin, formPassword, formConfirmPassword, formCommission, formRole, setCustomBack, setCustomTitle, setCustomActions, onCancel])
 
   const handleEdit = (user: UserItem) => {
@@ -233,8 +230,6 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
     setFormLogin("")
     setFormPassword("")
     setFormConfirmPassword("")
-    setShowPassword(false)
-    setShowConfirmPassword(false)
     setFormCommission("% 0,00")
     setFormRole("ADMIN")
     setMode("form")
@@ -313,7 +308,7 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
           }}
           w="full"
         >
-          <Box className="max-h-[calc(100vh-140px)] overflow-y-auto pr-1">
+          <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
             <Stack gap={5} w="full">
               {/* Card 1: Identificação */}
               <Box

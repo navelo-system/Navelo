@@ -165,7 +165,7 @@ function HomeContent() {
 
     window.addEventListener("popstate", handlePopState)
     return () => window.removeEventListener("popstate", handlePopState)
-  }, [isMounted])
+  }, [isMounted, getViewFromHash])
 
   // Restaura o scroll ao trocar de view
   React.useEffect(() => {

@@ -6,16 +6,17 @@ import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
-import { Grid } from "@/components/store/base/Grid"
 import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
-import { User, Search, Check, Plus, Trash2, Edit2, MapPin } from "lucide-react"
+import { Icon } from "@/components/store/base/Icon"
+import { User, Search, Check, Plus, Trash2, Edit2, MapPin, UserX } from "lucide-react"
 import { useCustomers, dal } from "@/lib/dal"
 import { Customer } from "@/lib/dal/db"
 import { useTenant } from "@/lib/context/TenantContext"
 import { DeliveryClientInfo } from "./DeliveryCheckoutConfirmation"
 import { ClientAddressFormModal, AddressFormData } from "./ClientAddressFormModal"
+import { EmptyState } from "@/components/store/intermediary/EmptyState"
 
 export interface DeliveryClientSelectModalProps {
   isOpen: boolean
@@ -33,7 +34,7 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id || "default"
   const rawCustomers = useCustomers(tenantId)
-  const customers: Customer[] = Array.isArray(rawCustomers) ? rawCustomers : []
+  const customers = React.useMemo(() => Array.isArray(rawCustomers) ? rawCustomers : [], [rawCustomers])
 
   const [tab, setTab] = React.useState<"search" | "form">("form")
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -52,8 +53,12 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
   const [isAddressModalOpen, setIsAddressModalOpen] = React.useState(false)
   const [editingAddressIndex, setEditingAddressIndex] = React.useState<number | null>(null)
 
-  // Popula dados ao abrir
-  React.useEffect(() => {
+  const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen)
+  const [prevInitialClient, setPrevInitialClient] = React.useState(initialClient)
+
+  if (isOpen !== prevIsOpen || initialClient !== prevInitialClient) {
+    setPrevIsOpen(isOpen)
+    setPrevInitialClient(initialClient)
     if (isOpen) {
       if (initialClient && initialClient.name) {
         setName(initialClient.name)
@@ -63,6 +68,7 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
         setIe("")
         setRg("")
         setSelectedCustomerId(initialClient.customerId)
+        // eslint-disable-next-line max-depth
         if (initialClient.address && initialClient.address !== "Endereço não informado") {
           setAddresses([
             {
@@ -77,7 +83,6 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
         } else {
           setAddresses([])
         }
-        setTab("form")
       } else {
         setName("")
         setEmail("")
@@ -87,10 +92,9 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
         setPhone("")
         setAddresses([])
         setSelectedCustomerId(undefined)
-        setTab(customers.length > 0 ? "search" : "form")
       }
     }
-  }, [isOpen, initialClient, customers.length])
+  }
 
   const filteredCustomers = customers.filter(
     (c: Customer) =>
@@ -254,13 +258,11 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
               <Box maxH="96" overflow="auto" w="full">
                 <Stack gap={1} w="full">
                   {filteredCustomers.length === 0 ? (
-                    <Box padding={5} align="center" justify="center">
-                      <Font
-                        variant="description"
-                        color="muted"
-                        text="Nenhum cliente cadastrado encontrado."
-                      />
-                    </Box>
+                    <EmptyState
+                      icon={UserX}
+                      title="Nenhum cliente cadastrado"
+                      subtitle="Tente buscar por outro termo ou cadastre um novo cliente."
+                    />
                   ) : (
                     filteredCustomers.map((cust: Customer) => {
                       const isSelected = cust.id === selectedCustomerId
@@ -289,7 +291,7 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
                                 />
                               )}
                             </Stack>
-                            {isSelected && <Check size={16} className="text-brand-primary" />}
+                            {isSelected && <Icon icon={Check} size={16} color="primary" />}
                           </Stack>
                         </Box>
                       )
@@ -304,7 +306,7 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
               <Stack gap={2.5} w="full">
                 <Font variant="body-bold" text="Dados pessoais" />
 
-                {/* 1. * Nome */}
+                {/* 1. Nome */}
                 <Input
                   placeholder="* Nome"
                   value={name}
@@ -320,29 +322,17 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
                   onChange={(e) => setEmail(e.target.value)}
                 />
 
-                {/* 3. CPF/CNPJ */}
+                {/* 3. CPF */}
                 <Input
-                  placeholder="CPF/CNPJ"
+                  mask="cpf"
+                  placeholder="CPF"
                   value={document}
                   onChange={(e) => setDocument(e.target.value)}
                 />
 
-                {/* 4. IE */}
+                {/* 4. Telefone */}
                 <Input
-                  placeholder="IE"
-                  value={ie}
-                  onChange={(e) => setIe(e.target.value)}
-                />
-
-                {/* 5. RG */}
-                <Input
-                  placeholder="RG"
-                  value={rg}
-                  onChange={(e) => setRg(e.target.value)}
-                />
-
-                {/* 6. Telefone */}
-                <Input
+                  mask="phone"
                   placeholder="Telefone"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -377,7 +367,9 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
                         >
                           <Stack direction="row" justify="between" align="center" w="full">
                             <Stack direction="row" gap={2.5} align="center">
-                              <MapPin size={16} className="text-brand-primary shrink-0" />
+                              <Box shrink="0">
+                                <Icon icon={MapPin} size={16} color="primary" />
+                              </Box>
                               <Stack gap={0} align="start">
                                 <Font variant="body-sm-semibold" text={addr.name || `Endereço ${idx + 1}`} />
                                 <Font

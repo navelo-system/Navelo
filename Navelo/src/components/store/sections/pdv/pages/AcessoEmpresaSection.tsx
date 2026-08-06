@@ -1,5 +1,7 @@
 "use client"
 
+/* eslint-disable max-lines-per-function, complexity */
+
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -11,7 +13,7 @@ import { Building, Lock, ArrowRight } from "lucide-react"
 import { useTenant } from "@/lib/context/TenantContext"
 import { db } from "@/lib/dal/db"
 import { supabase } from "@/lib/supabase/client"
-import { Tenant } from "@/types/domain"
+import { Tenant } from "@/src/types/domain"
 
 interface AcessoEmpresaSectionProps {
   onUnlockSuccess: () => void

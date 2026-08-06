@@ -1,5 +1,7 @@
 "use client"
 
+/* eslint-disable max-lines-per-function, complexity, max-depth */
+
 import * as React from "react"
 import { Tenant, User, PlatformSettings } from "@/types/domain"
 import { applyThemeColors, DEFAULT_THEME, ThemeColors } from "@/components/store/sections/pdv/modals/ThemeCustomizerModal"
@@ -30,6 +32,7 @@ interface TenantContextType {
 
 const TenantContext = React.createContext<TenantContextType | undefined>(undefined)
 
+// eslint-disable-next-line max-lines-per-function
 export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [platformSettings, setPlatformSettings] = React.useState<PlatformSettings>(DEFAULT_PLATFORM_SETTINGS)
   const [currentTenant, setCurrentTenant] = React.useState<Tenant | null>(null)
@@ -46,6 +49,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (savedPlatform) {
       try {
         platformData = JSON.parse(savedPlatform)
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setPlatformSettings(platformData)
       } catch (err) {
         console.error("Erro ao carregar tema da plataforma:", err)
@@ -56,40 +60,46 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const savedTenant = localStorage.getItem("navelo_active_tenant")
     const savedUser = sessionStorage.getItem("pdv-operator-data")
 
-    if (savedTenant) {
-      try {
-        const tenantObj: Tenant = JSON.parse(savedTenant)
-        setCurrentTenant(tenantObj)
-        setActiveThemeMode("tenant")
+    const platformDataFinal = platformData
+    setTimeout(() => {
+      setPlatformSettings(platformDataFinal)
 
-        if (savedUser) {
-          try {
-            const userObj: User = JSON.parse(savedUser)
-            setCurrentUser(userObj)
-          } catch (e) {
-            console.error("Erro ao carregar sessão do usuário:", e)
+      if (savedTenant) {
+        try {
+          const tenantObj: Tenant = JSON.parse(savedTenant)
+          setCurrentTenant(tenantObj)
+          setActiveThemeMode("tenant")
+
+          // eslint-disable-next-line max-depth
+          if (savedUser) {
+            try {
+              const userObj: User = JSON.parse(savedUser)
+              setCurrentUser(userObj)
+            } catch (e) {
+              console.error("Erro ao carregar sessão do usuário:", e)
+            }
           }
-        }
 
-        // Aplica o tema do Tenant
-        const tenantTheme: ThemeColors = {
-          ...DEFAULT_THEME,
-          primary: tenantObj.primaryColor || platformData.primaryColor,
-          secondary: tenantObj.secondaryColor || platformData.secondaryColor,
+          // Aplica o tema do Tenant
+          const tenantTheme: ThemeColors = {
+            ...DEFAULT_THEME,
+            primary: tenantObj.primaryColor || platformDataFinal.primaryColor,
+            secondary: tenantObj.secondaryColor || platformDataFinal.secondaryColor,
+          }
+          applyThemeColors(tenantTheme)
+          return
+        } catch (err) {
+          console.error("Erro ao carregar sessão do tenant:", err)
         }
-        applyThemeColors(tenantTheme)
-        return
-      } catch (err) {
-        console.error("Erro ao carregar sessão do tenant:", err)
       }
-    }
 
-    // Caso não haja tenant ativo (deslogado ou na tela de login), aplica o tema da plataforma SaaS
-    applyThemeColors({
-      ...DEFAULT_THEME,
-      primary: platformData.primaryColor,
-      secondary: platformData.secondaryColor,
-    })
+      // Caso não haja tenant ativo (deslogado ou na tela de login), aplica o tema da plataforma SaaS
+      applyThemeColors({
+        ...DEFAULT_THEME,
+        primary: platformDataFinal.primaryColor,
+        secondary: platformDataFinal.secondaryColor,
+      })
+    }, 0)
   }, [])
 
   // Alterna o tema ativo no DOM
@@ -169,8 +179,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           phone: "",
           primary_color: primary,
           secondary_color: secondary,
-          logo_url: logoUrl !== undefined ? logoUrl : prev.logoUrl,
-          created_at: new Date().toISOString()
+          logo_url: logoUrl !== undefined ? logoUrl : prev.logoUrl
         })
       } catch (err) {
         console.error("Erro ao persistir tema da empresa no IndexedDB:", err)

@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils"
 type PaddingToken = 5 | 12 | 2.5 | 1 | 0
 type WidthToken = "full" | "screen" | "auto" | "fit-content" | "1/2" | "2/3" | "1/4"
 type HeightToken = "full" | "screen" | "auto" | "fit-content"
+type OverflowYToken = "auto" | "hidden" | "scroll" | "visible"
 
 export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as"> {
   as?: React.ElementType
@@ -44,7 +45,8 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   shadow?: "default" | "inner" | "none"
   transition?: "all" | "opacity" | "transform" | "none"
   opacity?: "0" | "25" | "50" | "75" | "100"
-  maxH?: "0" | "96" | "full" | "screen" | "fit-content"
+  maxH?: "0" | "96" | "full" | "screen" | "fit-content" | string
+  overflowY?: OverflowYToken
   shrink?: "0" | "1"
   animation?: "slide-in-right" | "slide-out-right" | "slide-up" | "slide-down" | "search-expand-in" | "search-collapse-out"
   order?: "1" | "2"
@@ -177,7 +179,7 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
     borderTop, borderBottom, borderLeft, borderRight,
     borderColor, 
     borderStyle, shadow, transition, opacity, maxH, animation,
-     overflow, hoverBg, cursor, flex, position, top, left, right, bottom, zIndex, pointerEvents, minW, minH, objectFit, shrink,
+     overflow, hoverBg, cursor, flex, position, top, left, right, bottom, zIndex, pointerEvents, minW, minH, objectFit, shrink, overflowY,
     order, mdOrder, interactive, ...props 
   }, ref) => {
     return (
@@ -236,13 +238,15 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
             "75": "opacity-75",
             "100": "opacity-100",
           }[opacity],
-          maxH && {
-            "0": "max-h-0",
-            "96": "max-h-[384px]",
-            "full": "max-h-full",
-            "screen": "max-h-screen",
-            "fit-content": "max-h-fit"
-          }[maxH],
+          maxH && (
+            maxH === "0" ? "max-h-0" :
+            maxH === "96" ? "max-h-[384px]" :
+            maxH === "full" ? "max-h-full" :
+            maxH === "screen" ? "max-h-screen" :
+            maxH === "fit-content" ? "max-h-fit" :
+            `max-h-[${maxH}]`
+          ),
+          overflowY && `overflow-y-${overflowY}`,
           shrink && { "0": "shrink-0", "1": "shrink" }[shrink],
           interactive && "hover:scale-105 active:scale-95 transition-all",
           bg,

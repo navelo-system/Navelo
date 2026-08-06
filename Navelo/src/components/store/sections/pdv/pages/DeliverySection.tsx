@@ -1,6 +1,6 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
+/* eslint-disable max-lines-per-function, complexity */
 
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
@@ -58,7 +58,9 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
   const [selectedClient, setSelectedClient] = React.useState<DeliveryClientInfo | null>(null)
 
   // Atualiza selectedOrderId quando a lista de pedidos carregar
-  React.useEffect(() => {
+  const [prevOrders, setPrevOrders] = React.useState(orders)
+  if (orders !== prevOrders) {
+    setPrevOrders(orders)
     if (orders.length > 0) {
       if (!selectedOrderId || !orders.some((o) => o.id === selectedOrderId)) {
         setSelectedOrderId(orders[0].id)
@@ -66,20 +68,29 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
     } else {
       setSelectedOrderId("")
     }
-  }, [orders, selectedOrderId])
+  }
 
   // Refs estáveis para callbacks do Header para evitar loops de render
   const onBackRef = React.useRef(onBackToDashboard)
-  onBackRef.current = onBackToDashboard
-
   const setCustomTitleRef = React.useRef(setCustomTitle)
-  setCustomTitleRef.current = setCustomTitle
-
   const setCustomBackRef = React.useRef(setCustomBack)
-  setCustomBackRef.current = setCustomBack
-
   const setCustomActionsRef = React.useRef(setCustomActions)
-  setCustomActionsRef.current = setCustomActions
+
+  React.useEffect(() => {
+    onBackRef.current = onBackToDashboard
+  }, [onBackToDashboard])
+
+  React.useEffect(() => {
+    setCustomTitleRef.current = setCustomTitle
+  }, [setCustomTitle])
+
+  React.useEffect(() => {
+    setCustomBackRef.current = setCustomBack
+  }, [setCustomBack])
+
+  React.useEffect(() => {
+    setCustomActionsRef.current = setCustomActions
+  }, [setCustomActions])
 
   // Header no modo listagem
   React.useEffect(() => {

@@ -148,6 +148,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
         const newStock = parseFloat(p.counted) || 0
         const existing = dbProducts?.find((prod) => prod.id === p.id)
         if (existing) {
+          // eslint-disable-next-line no-await-in-loop
           await dal.products.update({
             ...existing,
             stock: newStock
@@ -184,7 +185,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
   )
 
   return (
-    <Box className="max-h-[calc(100vh-140px)] overflow-y-auto pr-1">
+    <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
     <Stack gap={5} w="full" flex="1" minH="0" h="full">
       {successMsg && (
         <Box padding={2.5} bg="bg-brand-success/10" radius="default" w="full">

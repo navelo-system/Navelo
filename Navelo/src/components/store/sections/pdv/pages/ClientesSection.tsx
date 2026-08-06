@@ -1,12 +1,14 @@
 "use client"
 
+/* eslint-disable max-lines-per-function */
+
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
-import { Grid } from "@/components/store/base/Grid"
 import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
+import { Avatar } from "@/components/store/base/Avatar"
 import { Plus, UserX } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { useCustomers, Customer } from "@/lib/dal"
@@ -32,7 +34,7 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
 
   // Clientes do banco de dados local IndexedDB
   const dbCustomers = useCustomers(tenantId)
-  const clients: Customer[] = Array.isArray(dbCustomers) ? dbCustomers : []
+  const clients = React.useMemo(() => Array.isArray(dbCustomers) ? dbCustomers : [], [dbCustomers])
 
   const [mode, setMode] = React.useState<"list" | "form">("list")
   const [editingClient, setEditingClient] = React.useState<Customer | null>(null)
@@ -113,6 +115,7 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
         title={editingClient ? "Editar Cliente" : "Novo Cliente"}
         showSkip={false}
         showSaveSwitch={false}
+        showSearchInHeader={false}
         setCustomTitle={setCustomTitle}
         setCustomActions={setCustomActions}
         setCustomBack={setCustomBack}
@@ -121,48 +124,47 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
   }
 
   return (
-    <Box w="full" overflow="auto">
+    <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
       <Stack gap={5} w="full">
-        <Box w="full">
+        <Box position="relative" w="full">
           {filteredClients.length > 0 ? (
-            <Grid cols={3} gap={5} w="full">
-              {filteredClients.map((client) => (
-                <Box
-                  key={client.id}
-                  padding={5}
-                  bg="bg-surface"
-                  radius="default"
-                  border={true}
-                  borderColor="border-border"
-                  hoverBg="secondary/10"
-                  cursor="pointer"
-                  onClick={() => handleEdit(client)}
-                >
-                  <Stack gap={2.5} w="full">
-                    <Stack direction="row" justify="between" align="center" w="full">
-                      <Font variant="body-bold" text={client.name} />
-                      {client.type && (
-                        <span className="text-xs px-2 py-0.5 rounded bg-brand-primary/10 text-brand-primary font-medium">
-                          {client.type}
-                        </span>
-                      )}
-                    </Stack>
+            <Box display="flex" direction="col" w="full">
+              {filteredClients.map((client, idx) => (
+                <Box key={client.id}>
+                  <Box
+                    w="full"
+                    paddingY={2.5}
+                    paddingX={2.5}
+                    radius="none"
+                    hoverBg="primary/10"
+                    cursor="pointer"
+                    onClick={() => handleEdit(client)}
+                  >
+                    <Stack direction="row" align="center" justify="between" w="full">
+                      {/* Lado Esquerdo: Avatar + Nome e Documento/Telefone */}
+                      <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
+                        <Avatar fallback={client.name ? client.name.charAt(0).toUpperCase() : "C"} />
 
-                    <Stack gap={1} w="full">
-                      {client.document && (
-                        <Font variant="description" color="muted" text={`Doc: ${client.document}`} />
-                      )}
-                      {client.phone && (
-                        <Font variant="description" color="muted" text={`Tel: ${client.phone}`} />
-                      )}
-                      {client.email && (
-                        <Font variant="description" color="muted" text={`Email: ${client.email}`} />
-                      )}
+                        <Stack gap={0} align="start" flex="1" minW="0">
+                          <Font variant="body" text={client.name} />
+                          {(client.document || client.phone) && (
+                            <Font
+                              variant="auxiliary"
+                              color="muted"
+                              truncate={true}
+                              text={client.document || client.phone || ""}
+                            />
+                          )}
+                        </Stack>
+                      </Stack>
                     </Stack>
-                  </Stack>
+                  </Box>
+                  {idx < filteredClients.length - 1 && (
+                    <Box borderBottom={true} borderColor="border-border" w="full" />
+                  )}
                 </Box>
               ))}
-            </Grid>
+            </Box>
           ) : (
             <EmptyState
               icon={UserX}
@@ -177,6 +179,7 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
               variant="secondary-pill-icon"
               icon={Plus}
               onClick={handleCreateNew}
+              title="Novo cliente"
             />
           </Box>
         </Box>

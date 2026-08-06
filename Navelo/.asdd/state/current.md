@@ -1,7 +1,7 @@
 # Current State
 
 ## Última atualização
-Ciclo #321 — Feature: Integração funcional CRUD completa de Produtos, Clientes, Comandas e Estoque com Dexie (Local-First DAL) — 2026-08-06
+Ciclo #322 — Feature: Integração dos CRUDs secundários (Grupos, Unidades, Pontos de Impressão) no formulário de Produtos — 2026-08-06
 
 ## Status do ciclo ativo
 IDLE
@@ -10,7 +10,13 @@ IDLE
 ATIVO — truth/ preenchido com contexto real do projeto Navelo
 
 ## Implementado
-- Integração funcional do CRUD completo de Produtos (`ProdutosSection.tsx` conectado a `useProducts` e `dal.products` com IndexedDB reativo, modal de edição, criação e exclusão)
+- Integração dos CRUDs de Grupos/Subgrupos, Unidades e Pontos de Impressão no `ProductForm.tsx`: seleção dinâmica via DAL (Dexie IndexedDB) com empty state quando o banco está vazio
+- Botões "+ Novo" / "+ Nova" nos selects de Grupo, Unidade e Ponto de Impressão abrem modal sidebar com as respectivas Sections para CRUD inline
+- `GruposSubgruposSection.tsx` agora persiste `subgroups[]` no `dal.categories` (campo `subgroups` adicionado à interface `Category` no `db.ts`)
+- `UnidadesSection.tsx` integrada ao `dal.units` com suporte a `decimals` (campo adicionado à interface `Unit`)
+- `PontosImpressaoSection.tsx` integrada ao `dal.print_points` — nova entidade `PrintPoint` + tabela Dexie v7
+- `dal/hooks.ts` e `dal/index.ts` expandidos com `usePrintPoints`, `dal.printPoints` e exports de `Unit`, `PrintPoint`
+- `dal/sync.ts` atualizado com `print_points` na union type de `mutateLocalFirst`
 - Integração funcional do CRUD completo de Clientes (`ClientesSection.tsx` conectado a `useCustomers` e `dal.customers` com suporte a múltiplos endereços e tipo PF/PJ)
 - Integração funcional das Comandas ativas (`ComandasSection.tsx` e `app/page.tsx` conectados a `useTabs` e `dal.tabs`)
 - Integração funcional do módulo de Estoque (`EstoqueSection.tsx` conectado a `useProducts` e `dal.products` para Balanço de Estoque e movimentação manual)

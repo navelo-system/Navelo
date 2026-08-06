@@ -1,6 +1,6 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, complexity */
+/* eslint-disable max-lines-per-function */
 
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
@@ -94,13 +94,13 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
   return (
     <Box w="full" direction="col" align="center" justify="center" paddingY={5} paddingX={2.5}>
       <Box
-        w="full"
         padding={5}
         bg="bg-surface"
         radius="default"
         border={true}
         borderColor="border-border"
-        className="max-w-2xl shadow-sm"
+        shadow="default"
+        w="full"
       >
         <Stack gap={5} w="full">
           
@@ -145,7 +145,7 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
                           color={currentStatus === st ? "primary" : "foreground"}
                           text={st}
                         />
-                        {currentStatus === st && <ChevronRight size={14} className="text-brand-primary" />}
+                        {currentStatus === st && <Icon icon={ChevronRight} size={14} color="primary" />}
                       </Stack>
                     </Box>
                   ))}

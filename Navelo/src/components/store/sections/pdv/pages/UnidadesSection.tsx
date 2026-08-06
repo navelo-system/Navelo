@@ -12,6 +12,8 @@ import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSe
 import { Plus, Edit2, Trash2, Binary, Clipboard } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { FormActions } from "@/components/store/intermediary/FormActions"
+import { useUnits, dal } from "@/lib/dal"
+import { useTenant } from "@/lib/context/TenantContext"
 
 export interface UnitItem {
   id: string
@@ -32,16 +34,21 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
   setCustomTitle,
   setCustomActions
 }) => {
-  const [units, setUnits] = React.useState<UnitItem[]>([
-    { id: "1", name: "KG", decimals: 3 },
-    { id: "2", name: "LT", decimals: 3 },
-    { id: "3", name: "MT", decimals: 2 },
-    { id: "4", name: "MT²", decimals: 2 },
-    { id: "5", name: "MT³", decimals: 2 },
-    { id: "6", name: "PC", decimals: 0 },
-    { id: "7", name: "PR", decimals: 0 },
-    { id: "8", name: "UN", decimals: 0 }
-  ])
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id
+
+  const dbUnits = useUnits(tenantId)
+
+  const units: UnitItem[] = React.useMemo(() => {
+    if (dbUnits && dbUnits.length > 0) {
+      return dbUnits.map(u => ({
+        id: u.id,
+        name: u.name,
+        decimals: u.decimals ?? 0
+      }))
+    }
+    return []
+  }, [dbUnits])
 
   const [mode, setMode] = React.useState<"list" | "form">("list")
   const [editingUnit, setEditingUnit] = React.useState<UnitItem | null>(null)
@@ -97,31 +104,30 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
     setMode("form")
   }
 
-  const handleDelete = (id: string) => {
-    setUnits((prev) => prev.filter((u) => u.id !== id))
+  const handleDelete = async (id: string) => {
+    await dal.units.delete(id, tenantId)
   }
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formName.trim()) return
 
     const decimalsVal = parseInt(formDecimals, 10) || 0
+    const unitId = editingUnit ? editingUnit.id : `uni-${Date.now()}`
+    
+    const unitPayload = {
+      id: unitId,
+      name: formName.toUpperCase(),
+      symbol: formName.toUpperCase().substring(0, 3), // default fallback
+      company_id: tenantId || "demo-tenant",
+      tenant_id: tenantId || "demo-tenant",
+      decimals: decimalsVal
+    }
 
     if (editingUnit) {
-      setUnits((prev) =>
-        prev.map((u) =>
-          u.id === editingUnit.id
-            ? { ...u, name: formName.toUpperCase(), decimals: decimalsVal }
-            : u
-        )
-      )
+      await dal.units.update(unitPayload)
     } else {
-      const newUnit: UnitItem = {
-        id: Date.now().toString(),
-        name: formName.toUpperCase(),
-        decimals: decimalsVal
-      }
-      setUnits((prev) => [...prev, newUnit])
+      await dal.units.create(unitPayload)
     }
 
     setMode("list")

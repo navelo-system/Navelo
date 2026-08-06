@@ -42,11 +42,11 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
   const [complement, setComplement] = React.useState("")
   const [neighborhood, setNeighborhood] = React.useState("")
   const [city, setCity] = React.useState("")
-  const [referencePoint, setReferencePoint] = React.useState("")
 
   React.useEffect(() => {
     if (isOpen) {
       if (initialData) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setName(initialData.name || "")
         setZip(initialData.zip || "")
         setStreet(initialData.street || "")
@@ -54,7 +54,6 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
         setComplement(initialData.complement || "")
         setNeighborhood(initialData.neighborhood || "")
         setCity(initialData.city || "")
-        setReferencePoint(initialData.reference_point || "")
       } else {
         setName("")
         setZip("")
@@ -63,10 +62,30 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
         setComplement("")
         setNeighborhood("")
         setCity("")
-        setReferencePoint("")
       }
     }
   }, [isOpen, initialData])
+
+  const handleZipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setZip(val)
+    const cleanZip = val.replace(/\D/g, "")
+    if (cleanZip.length === 8) {
+      fetch(`https://viacep.com.br/ws/${cleanZip}/json/`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (!data.erro) {
+            if (data.logradouro) setStreet(data.logradouro)
+            if (data.bairro) setNeighborhood(data.bairro)
+            if (data.localidade) {
+              const formattedCity = data.uf ? `${data.localidade} - ${data.uf}` : data.localidade
+              setCity(formattedCity)
+            }
+          }
+        })
+        .catch((err) => console.error("Erro ao buscar CEP:", err))
+    }
+  }
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
@@ -81,7 +100,6 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
       complement: complement.trim(),
       neighborhood: neighborhood.trim(),
       city: city.trim(),
-      reference_point: referencePoint.trim(),
     })
 
     onClose()
@@ -115,7 +133,7 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
               variant="cep"
               placeholder="00000-000"
               value={zip}
-              onChange={(e) => setZip(e.target.value)}
+              onChange={handleZipChange}
             />
           </Grid>
 
@@ -158,14 +176,6 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
             value={city}
             onChange={(e) => setCity(e.target.value)}
             required
-          />
-
-          {/* 7. Ponto de referência */}
-          <Input
-            label="Ponto de referência"
-            placeholder="Próximo a..."
-            value={referencePoint}
-            onChange={(e) => setReferencePoint(e.target.value)}
           />
         </Stack>
       </Modal>

@@ -9,6 +9,8 @@ export {
   useTables,
   useTabs,
   useSuppliers,
+  useUnits,
+  usePrintPoints,
   useSales,
   useDeliveryOrders,
   dal
@@ -16,6 +18,8 @@ export {
 export type {
   Product,
   Category,
+  Unit,
+  PrintPoint,
   Sale,
   SaleItem,
   Customer,

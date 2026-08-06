@@ -39,7 +39,7 @@ export const DashboardSection: React.FC<DashboardSectionProps> = ({ onNavigate }
   }, [])
 
   return (
-    <Box className="max-h-[calc(100vh-140px)] overflow-y-auto pr-1">
+    <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
       <Stack gap={12} w="full">
         {/* Seção 1: Indicadores (apenas para ADMIN/MANAGER) */}
         {showKpis && (

@@ -10,11 +10,12 @@ import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
 import { Switch } from "@/components/store/base/Switch"
+import { Badge } from "@/components/store/base/Badge"
 import { AddressList } from "@/components/store/advanced/AddressList"
 import { ClientAddressFormModal, AddressFormData } from "@/components/store/advanced/ClientAddressFormModal"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
-import { Plus, Check, UserX, ArrowRight } from "lucide-react"
+import { Plus, Check, UserX, ArrowRight, Trash2 } from "lucide-react"
 import { useCustomers, dal, Customer, CustomerAddress } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
 import { DeliveryClientInfo } from "./DeliveryCheckoutConfirmation"
@@ -27,6 +28,7 @@ export interface DeliveryClientFormScreenProps {
   title?: string
   showSkip?: boolean
   showSaveSwitch?: boolean
+  showSearchInHeader?: boolean
   setCustomActions?: (actions: React.ReactNode | null) => void
   setCustomTitle?: (title: string | null) => void
   setCustomBack?: (cb: (() => void) | null) => void
@@ -40,6 +42,7 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
   title = "Identificar Cliente",
   showSkip = true,
   showSaveSwitch = true,
+  showSearchInHeader = true,
   setCustomActions,
   setCustomTitle,
   setCustomBack,
@@ -47,7 +50,7 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id || "default"
   const rawCustomers = useCustomers(tenantId)
-  const customers: Customer[] = Array.isArray(rawCustomers) ? rawCustomers : []
+  const customers = React.useMemo(() => Array.isArray(rawCustomers) ? rawCustomers : [], [rawCustomers])
 
   // Busca de clientes no cabeçalho
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -72,9 +75,9 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
   // Referência do formulário para validação HTML5 nativa
   const formRef = React.useRef<HTMLFormElement>(null)
 
-  // Popula dados ao montar / abrir
   React.useEffect(() => {
     if (initialCustomer) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setName(initialCustomer.name || "")
       setEmail(initialCustomer.email || "")
       setDocument(initialCustomer.document || "")
@@ -114,7 +117,7 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
       setClientAddresses([])
       setSelectedCustomerId(undefined)
     }
-  }, [initialClient, initialCustomer])
+  }, [initialCustomer, initialClient])
 
   const filteredCustomers = React.useMemo(() => {
     if (!searchQuery.trim()) return []
@@ -204,7 +207,8 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
     return parts
   }
 
-  const handleSubmit = async (e?: React.FormEvent) => {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleSubmit = React.useCallback(async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
 
     // Validação estrita dos campos obrigatórios do formulário
@@ -274,7 +278,7 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
       address: formattedAddress,
       customerId: finalCustomerId,
     })
-  }
+  }, [name, phone, email, document, rg, ie, selectedCustomerId, tenantId, clientAddresses, saveClient, showSaveSwitch, onSelectClient, formatPrimaryAddress])
 
   const handleSkip = () => {
     const formattedAddress = formatPrimaryAddress()
@@ -286,22 +290,46 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
     })
   }
 
+  const handleDeleteCustomer = async () => {
+    if (selectedCustomerId && tenantId) {
+      try {
+        await dal.customers.delete(selectedCustomerId, tenantId)
+      } catch (err) {
+        console.error("Erro ao excluir cliente:", err)
+      }
+    }
+    onBackRef.current?.()
+  }
+
   // Configurações do cabeçalho com MobileHeaderSearch e botão Primário no Check
   const onBackRef = React.useRef(onBack)
-  onBackRef.current = onBack
-
   const handleSubmitRef = React.useRef(handleSubmit)
-  handleSubmitRef.current = handleSubmit
+
+  React.useEffect(() => {
+    onBackRef.current = onBack
+  }, [onBack])
+
+  React.useEffect(() => {
+    handleSubmitRef.current = handleSubmit
+  }, [handleSubmit])
+
+  const isEditMode = Boolean(initialCustomer || selectedCustomerId)
 
   React.useEffect(() => {
     setCustomTitle?.(title)
     setCustomBack?.(() => () => onBackRef.current?.())
-    setCustomActions?.(
-      <MobileHeaderSearch
-        searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
-        placeholder="Buscar cliente cadastrado..."
-      >
+
+    const actionsContent = (
+      <Stack direction="row" align="center" gap={2.5}>
+        {isEditMode && (
+          <Button
+            type="button"
+            variant="danger-pill-icon"
+            icon={Trash2}
+            onClick={handleDeleteCustomer}
+            title="Excluir cliente"
+          />
+        )}
         <Button
           type="button"
           variant="primary-pill-icon"
@@ -309,13 +337,27 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
           onClick={() => handleSubmitRef.current?.()}
           title="Confirmar"
         />
-      </MobileHeaderSearch>
+      </Stack>
+    )
+
+    setCustomActions?.(
+      showSearchInHeader ? (
+        <MobileHeaderSearch
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          placeholder="Buscar cliente cadastrado..."
+        >
+          {actionsContent}
+        </MobileHeaderSearch>
+      ) : (
+        actionsContent
+      )
     )
 
     return () => {
       setCustomActions?.(null)
     }
-  }, [setCustomActions, setCustomTitle, setCustomBack, searchQuery, title])
+  }, [setCustomActions, setCustomTitle, setCustomBack, searchQuery, title, showSearchInHeader, isEditMode])
 
   return (
     <Box w="full" overflow="auto">
@@ -330,26 +372,27 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
                   checked={saveClient}
                   onChange={(e) => setSaveClient(e.target.checked)}
                 />
-                <label
-                  htmlFor="save-client-switch"
-                  className="text-sm font-medium text-foreground cursor-pointer select-none"
-                >
-                  Salvar cliente na lista
-                </label>
+                <Box cursor="pointer" onClick={() => setSaveClient((prev) => !prev)}>
+                  <Font
+                    variant="body-sm-semibold"
+                    text="Salvar cliente na lista"
+                  />
+                </Box>
               </Stack>
             ) : (
               <Box />
             )}
 
             {showSkip && (
-              <Button
-                type="button"
-                variant="outline-sm"
-                className="w-auto shrink-0"
-                label="Pular"
-                iconRight={ArrowRight}
-                onClick={handleSkip}
-              />
+              <Box w="auto" shrink="0">
+                <Button
+                  type="button"
+                  variant="outline-sm"
+                  label="Pular"
+                  iconRight={ArrowRight}
+                  onClick={handleSkip}
+                />
+              </Box>
             )}
           </Stack>
         )}
@@ -378,9 +421,7 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
                       <Stack direction="row" justify="between" align="center" w="full">
                         <Font variant="body-bold" text={client.name} />
                         {client.type && (
-                          <span className="text-xs px-2 py-0.5 rounded bg-brand-primary/10 text-brand-primary font-medium">
-                            {client.type}
-                          </span>
+                          <Badge variant="primary" label={client.type} />
                         )}
                       </Stack>
 
@@ -417,7 +458,6 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
                 {/* Lista vertical de campos bordered */}
                 <Stack gap={2.5} w="full">
                   <Input
-                    variant="bordered"
                     placeholder="* Nome"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
@@ -425,7 +465,6 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
                   />
 
                   <Input
-                    variant="bordered"
                     placeholder="E-mail"
                     type="email"
                     value={email}
@@ -433,28 +472,14 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
                   />
 
                   <Input
-                    variant="bordered"
-                    placeholder="CPF/CNPJ"
+                    mask="cpf"
+                    placeholder="CPF"
                     value={document}
                     onChange={(e) => setDocument(e.target.value)}
                   />
 
                   <Input
-                    variant="bordered"
-                    placeholder="IE"
-                    value={ie}
-                    onChange={(e) => setIe(e.target.value)}
-                  />
-
-                  <Input
-                    variant="bordered"
-                    placeholder="RG"
-                    value={rg}
-                    onChange={(e) => setRg(e.target.value)}
-                  />
-
-                  <Input
-                    variant="bordered"
+                    mask="phone"
                     placeholder="Telefone"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -512,7 +537,6 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
               neighborhood: editingAddress.neighborhood,
               city: editingAddress.city,
               zip: editingAddress.zipCode,
-              reference_point: editingAddress.reference_point,
             }
             : null
         }

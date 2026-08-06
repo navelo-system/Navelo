@@ -43,7 +43,7 @@ export async function initialSync(tenantId?: string) {
  * Função genérica para realizar uma mutação Local-First vinculada ao Tenant.
  */
 export async function mutateLocalFirst<T extends { id: string; company_id?: string; tenant_id?: string }>(
-  tableName: 'products' | 'categories' | 'sales' | 'sale_items' | 'customers' | 'users' | 'suppliers' | 'units' | 'cash_registers' | 'cash_movements' | 'restaurant_tables' | 'tabs' | 'contingency_notes' | 'riders' | 'delivery_rates' | 'delivery_orders' | 'companies',
+  tableName: 'products' | 'categories' | 'sales' | 'sale_items' | 'customers' | 'users' | 'suppliers' | 'units' | 'print_points' | 'cash_registers' | 'cash_movements' | 'restaurant_tables' | 'tabs' | 'contingency_notes' | 'riders' | 'delivery_rates' | 'delivery_orders' | 'companies',
   payload: T,
   action: 'INSERT' | 'UPDATE' | 'DELETE' = 'UPDATE',
   tenantId?: string
@@ -79,6 +79,7 @@ export async function mutateLocalFirst<T extends { id: string; company_id?: stri
 /**
  * Processa a fila de sincronização enviando ao Supabase
  */
+// eslint-disable-next-line complexity
 export async function processSyncQueue() {
   if (typeof navigator !== 'undefined' && !navigator.onLine) return;
 

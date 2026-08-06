@@ -841,7 +841,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
 
     // Lista de configurações (root)
     return (
-      <Box className="max-h-[calc(100vh-140px)] overflow-y-auto pr-1">
+      <Box w="full">
         <Stack gap={5} w="full">
         {SETTINGS_GROUPS.map((group) => (
           <Box
@@ -953,8 +953,10 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   }
 
   return (
-    <ViewTransition viewKey={currentSubView ?? "root"}>
-      {renderCurrentView()}
-    </ViewTransition>
+    <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
+      <ViewTransition viewKey={currentSubView ?? "root"} flex="1" minH="0">
+        {renderCurrentView()}
+      </ViewTransition>
+    </Box>
   )
 }
