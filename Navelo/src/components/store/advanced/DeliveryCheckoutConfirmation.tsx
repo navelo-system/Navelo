@@ -8,7 +8,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Icon } from "@/components/store/base/Icon"
-import { Truck, Store, Utensils, UserCheck, CreditCard, ChevronRight } from "lucide-react"
+import { Truck, Store, Utensils, UserCheck, CreditCard, ChevronRight, RefreshCw, Trash2 } from "lucide-react"
 
 export type DeliveryType = "delivery" | "pickup" | "dine_in"
 export type PaymentMoment = "on_delivery" | "advance"
@@ -92,7 +92,7 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
   ]
 
   return (
-    <Box w="full" direction="col" align="center" justify="center" paddingY={5} paddingX={2.5}>
+    <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
       <Box
         padding={5}
         bg="bg-surface"
@@ -103,14 +103,17 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
         w="full"
       >
         <Stack gap={5} w="full">
-          
+
           {/* 1. SEÇÃO STATUS */}
           <Stack gap={2.5} w="full">
             <Stack direction="row" justify="between" align="center" w="full">
               <Font variant="body-bold" text="* Status" />
               <Button
-                variant="ghost"
-                label="ALTERAR"
+                variant="secondary-icon-xs"
+                icon={RefreshCw}
+                spinOnClick={true}
+                title="Alterar status"
+                type="button"
                 onClick={() => {
                   if (onAlterStatus) {
                     onAlterStatus()
@@ -123,35 +126,37 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
 
             <Font variant="description" color="muted" text={currentStatus} />
 
-            {isStatusSelectorOpen && (
-              <Box padding={2.5} bg="surface-sunken" radius="default" w="full">
-                <Stack gap={1} w="full">
-                  {statusOptions.map((st) => (
-                    <Box
-                      key={st}
-                      padding={2.5}
-                      cursor="pointer"
-                      radius="default"
-                      bg={currentStatus === st ? "primary/10" : "transparent"}
-                      hoverBg="surface-sunken"
-                      onClick={() => {
-                        setCurrentStatus(st)
-                        setIsStatusSelectorOpen(false)
-                      }}
-                    >
-                      <Stack direction="row" justify="between" align="center" w="full">
-                        <Font
-                          variant="body-sm-semibold"
-                          color={currentStatus === st ? "primary" : "foreground"}
-                          text={st}
-                        />
-                        {currentStatus === st && <Icon icon={ChevronRight} size={14} color="primary" />}
-                      </Stack>
-                    </Box>
-                  ))}
-                </Stack>
-              </Box>
-            )}
+            <div className={`grid transition-all duration-300 ease-in-out ${isStatusSelectorOpen ? "grid-rows-[1fr] opacity-100 mt-1" : "grid-rows-[0fr] opacity-0 mt-0"}`}>
+              <div className="overflow-hidden">
+                <Box padding={2.5} bg="surface-sunken" radius="default" w="full">
+                  <Stack gap={1} w="full">
+                    {statusOptions.map((st) => (
+                      <Box
+                        key={st}
+                        padding={2.5}
+                        cursor="pointer"
+                        radius="default"
+                        bg={currentStatus === st ? "primary/10" : "transparent"}
+                        hoverBg="surface-sunken"
+                        onClick={() => {
+                          setCurrentStatus(st)
+                          setIsStatusSelectorOpen(false)
+                        }}
+                      >
+                        <Stack direction="row" justify="between" align="center" w="full">
+                          <Font
+                            variant="body-sm-semibold"
+                            color={currentStatus === st ? "primary" : "foreground"}
+                            text={st}
+                          />
+                          {currentStatus === st && <Icon icon={ChevronRight} size={14} color="primary" />}
+                        </Stack>
+                      </Box>
+                    ))}
+                  </Stack>
+                </Box>
+              </div>
+            </div>
           </Stack>
 
           {/* 2. SEÇÃO TIPO DE ENTREGA */}
@@ -193,18 +198,23 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
           <Stack gap={2.5} w="full">
             <Stack direction="row" justify="between" align="center" w="full">
               <Font variant="body-bold" text="* Cliente" />
-              <Stack direction="row" gap={2.5}>
+              <Stack direction="row" gap={2.5} align="center">
                 {onAlterClient && (
                   <Button
-                    variant="ghost"
-                    label="ALTERAR"
+                    variant="secondary-icon-xs"
+                    icon={RefreshCw}
+                    spinOnClick={true}
+                    title="Alterar cliente"
+                    type="button"
                     onClick={onAlterClient}
                   />
                 )}
                 {onClearClient && (
                   <Button
-                    variant="ghost"
-                    label="LIMPAR"
+                    variant="danger-icon-xs"
+                    icon={Trash2}
+                    title="Remover cliente"
+                    type="button"
                     onClick={onClearClient}
                   />
                 )}

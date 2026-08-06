@@ -9,9 +9,9 @@ import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
-import { Plus, Edit2, Trash2, Binary, Clipboard } from "lucide-react"
-import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
-import { FormActions } from "@/components/store/intermediary/FormActions"
+import { Trash2, Binary, Clipboard, Check, Scale } from "lucide-react"
+import { ListSectionLayout } from "@/components/store/intermediary/ListSectionLayout"
+import { ViewTransition } from "@/components/store/base/ViewTransition"
 import { useUnits, dal } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
 
@@ -52,7 +52,6 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
 
   const [mode, setMode] = React.useState<"list" | "form">("list")
   const [editingUnit, setEditingUnit] = React.useState<UnitItem | null>(null)
-  const [searchQuery, setSearchQuery] = React.useState("")
 
   // Form states
   const [formName, setFormName] = React.useState("")
@@ -68,27 +67,35 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
   }, [mode, onCancel])
 
   React.useEffect(() => {
-    setCustomBack?.(() => handleBack)
-    setCustomTitle?.(mode === "form" ? (editingUnit ? "Editar Unidade" : "Nova Unidade") : "Unidades")
-
-    if (mode === "list") {
+    if (mode === "form") {
+      setCustomBack?.(() => handleBack)
+      setCustomTitle?.(editingUnit ? "Editar Unidade" : "Nova Unidade")
       setCustomActions?.(
-        <MobileHeaderSearch
-          searchQuery={searchQuery}
-          onSearchQueryChange={setSearchQuery}
-          placeholder="Buscar por unidade..."
-        />
+        <Stack direction="row" gap={2.5} align="center">
+          {editingUnit && (
+            <Button
+              type="button"
+              variant="danger-pill-icon"
+              icon={Trash2}
+              onClick={async () => {
+                await dal.units.delete(editingUnit.id, tenantId)
+                setMode("list")
+                setEditingUnit(null)
+              }}
+              title="Excluir unidade"
+            />
+          )}
+          <Button
+            type="submit"
+            form="unit-form"
+            variant="primary-pill-icon"
+            icon={Check}
+            title="Salvar unidade"
+          />
+        </Stack>
       )
-    } else {
-      setCustomActions?.(null)
     }
-
-    return () => {
-      setCustomBack?.(null)
-      setCustomTitle?.(null)
-      setCustomActions?.(null)
-    }
-  }, [mode, editingUnit, searchQuery, setCustomBack, setCustomTitle, setCustomActions, handleBack])
+  }, [mode, editingUnit, tenantId, setCustomBack, setCustomTitle, setCustomActions, handleBack])
 
   const handleCreateNew = () => {
     setEditingUnit(null)
@@ -104,7 +111,8 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
     setMode("form")
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
     await dal.units.delete(id, tenantId)
   }
 
@@ -114,11 +122,11 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
 
     const decimalsVal = parseInt(formDecimals, 10) || 0
     const unitId = editingUnit ? editingUnit.id : `uni-${Date.now()}`
-    
+
     const unitPayload = {
       id: unitId,
       name: formName.toUpperCase(),
-      symbol: formName.toUpperCase().substring(0, 3), // default fallback
+      symbol: formName.toUpperCase().substring(0, 3),
       company_id: tenantId || "demo-tenant",
       tenant_id: tenantId || "demo-tenant",
       decimals: decimalsVal
@@ -134,10 +142,6 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
     setEditingUnit(null)
   }
 
-  const filtered = units.filter((u) =>
-    u.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
   const getDecimalText = (decimals: number) => {
     if (decimals === 0) return "Nenhuma casa decimal"
     if (decimals === 1) return "1 casa decimal"
@@ -145,71 +149,11 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
   }
 
   return (
-    <Box position="relative" w="full">
-      {mode === "list" ? (
-        <Stack gap={5} w="full">
-          {/* Barra de Busca e Botão de Adição no topo */}
-          <Stack direction="row" align="center" justify="end" w="full">
-            <Button
-              variant="primary"
-              label="Adicionar unidade"
-              icon={Plus}
-              onClick={handleCreateNew}
-            />
-          </Stack>
-
-          {/* Listagem de Unidades */}
-          <Box
-            bg="bg-white"
-            border={true}
-            borderColor="border-border"
-            radius="default"
-            w="full"
-            overflow="hidden"
-          >
-            <Stack gap={0} w="full">
-              {filtered.map((unit, idx) => (
-                <React.Fragment key={unit.id}>
-                  {idx > 0 && <Box h="h-[1px]" w="full" bg="bg-border" />}
-                  <Box
-                    padding={5}
-                    hoverBg="primary/10"
-                    w="full"
-                  >
-                    <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-                      <Stack gap={1} flex="1">
-                        <Font variant="body-bold" text={unit.name} />
-                        <Font
-                          variant="description"
-                          text={getDecimalText(unit.decimals)}
-                          color="muted"
-                        />
-                      </Stack>
-
-                      {/* Ações de Edição/Deleção */}
-                      <Stack direction="row" gap={2.5} justify="end">
-                        <Button
-                          variant="primary-icon-xs"
-                          icon={Edit2}
-                          onClick={() => handleEdit(unit)}
-                        />
-                        <Button
-                          variant="danger-icon-xs"
-                          icon={Trash2}
-                          onClick={() => handleDelete(unit.id)}
-                        />
-                      </Stack>
-                    </Stack>
-                  </Box>
-                </React.Fragment>
-              ))}
-            </Stack>
-          </Box>
-        </Stack>
-      ) : (
-        /* Form de Cadastro / Edição */
+    <ViewTransition viewKey={mode} flex="1" minH="0">
+      {mode === "form" ? (
         <Box
           as="form"
+          id="unit-form"
           onSubmit={handleSave}
           bg="bg-white"
           border={true}
@@ -240,17 +184,44 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
                 <CustomSelectItem value="3" text="3 casas decimais" icon={Binary} />
               </CustomSelect>
             </Stack>
-
-            {/* Ações de Formulário */}
-            <FormActions
-              confirmLabel={editingUnit ? "Salvar alterações" : "Salvar unidade"}
-              onConfirm={() => {}}
-              onCancel={() => setMode("list")}
-              isSubmit={true}
-            />
           </Stack>
         </Box>
+      ) : (
+        <ListSectionLayout<UnitItem>
+          title="Unidades"
+          items={units}
+          searchPlaceholder="Buscar por unidade..."
+          searchFilterFn={(unit, query) => unit.name.toLowerCase().includes(query.toLowerCase())}
+          emptyIcon={Scale}
+          emptyTitle="Nenhuma unidade cadastrada"
+          emptySubtitle="Adicione novas unidades de medida para seus produtos."
+          onAdd={handleCreateNew}
+          getItemKey={(unit) => unit.id}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+          setCustomActions={setCustomActions}
+          onBackToDashboard={onCancel}
+          renderItem={(unit) => (
+            <Box
+              paddingY={2.5}
+              paddingX={2.5}
+              hoverBg="primary/10"
+              w="full"
+              cursor="pointer"
+              onClick={() => handleEdit(unit)}
+            >
+              <Stack gap={1} w="full">
+                <Font variant="body" text={unit.name} />
+                <Font
+                  variant="auxiliary"
+                  text={getDecimalText(unit.decimals)}
+                  color="muted"
+                />
+              </Stack>
+            </Box>
+          )}
+        />
       )}
-    </Box>
+    </ViewTransition>
   )
 }

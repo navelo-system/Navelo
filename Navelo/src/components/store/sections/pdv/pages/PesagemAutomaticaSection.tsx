@@ -192,7 +192,13 @@ export const PesagemAutomaticaSection: React.FC<PesagemAutomaticaSectionProps> =
                               <Font variant="description" text={`Código: ${device.code}`} />
                             </Stack>
                           </Stack>
-                          <Button variant="danger-icon-xs" icon={Trash2} onClick={() => handleRemoveDevice(device.id)} />
+                          <Button
+                            variant="danger-icon-xs-confirm"
+                            confirmTitle="Remover Balança"
+                            confirmSubtitle="Confirmar remoção de dispositivo"
+                            confirmParagraph="Tem certeza que deseja desvincular este dispositivo de pesagem?"
+                            onConfirm={() => handleRemoveDevice(device.id)}
+                          />
                         </Stack>
                       </Box>
                     </React.Fragment>

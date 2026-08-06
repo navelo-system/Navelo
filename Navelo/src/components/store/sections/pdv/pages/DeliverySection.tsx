@@ -18,6 +18,7 @@ import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogTo
 import { Truck, Plus } from "lucide-react"
 import { useTenant } from "@/lib/context/TenantContext"
 import { useDeliveryOrders, dal, DeliveryOrderEntity } from "@/lib/dal"
+import { ViewTransition } from "@/components/store/base/ViewTransition"
 
 export interface DeliverySectionProps {
   setCustomActions?: (actions: React.ReactNode) => void
@@ -35,8 +36,17 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id || "default"
 
-  // Modo de exibição: listagem/timeline, tela de cliente ou caixa do delivery
-  const [viewMode, setViewMode] = React.useState<"list" | "client-form" | "pos">("list")
+  // Pilha de histórico de navegação interna do Delivery
+  const [viewHistory, setViewHistory] = React.useState<("list" | "client-form" | "pos")[]>(["list"])
+  const viewMode = viewHistory[viewHistory.length - 1] || "list"
+
+  const pushView = React.useCallback((newView: "list" | "client-form" | "pos") => {
+    setViewHistory((prev) => [...prev, newView])
+  }, [])
+
+  const popView = React.useCallback(() => {
+    setViewHistory((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev))
+  }, [])
 
   // Pedidos reais obtidos da DAL via Dexie
   const rawOrders = useDeliveryOrders(tenantId)
@@ -96,7 +106,9 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
   React.useEffect(() => {
     if (viewMode === "list") {
       setCustomTitleRef.current?.("Delivery")
-      if (onBackRef.current) {
+      if (viewHistory.length > 1) {
+        setCustomBackRef.current?.(() => popView)
+      } else if (onBackRef.current) {
         setCustomBackRef.current?.(() => () => onBackRef.current?.())
       } else {
         setCustomBackRef.current?.(null)
@@ -115,18 +127,18 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
         setCustomActionsRef.current?.(null)
       }
     }
-  }, [viewMode, searchQuery])
+  }, [viewMode, searchQuery, viewHistory.length, popView])
 
   const selectedOrder = orders.find((o) => o.id === selectedOrderId)
 
   const handleOpenNewOrder = () => {
     setSelectedClient(null)
-    setViewMode("client-form")
+    pushView("client-form")
   }
 
   const handleSelectClient = (client: DeliveryClientInfo) => {
     setSelectedClient(client)
-    setViewMode("pos")
+    pushView("pos")
   }
 
   const handleUpdateStatus = async (status: DeliveryStatus) => {
@@ -204,130 +216,126 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
     }
 
     setSelectedOrderId(orderId)
-    setViewMode("list")
-  }
-
-  // Se o usuário está na tela de cadastro/identificação de cliente
-  if (viewMode === "client-form") {
-    return (
-      <DeliveryClientFormScreen
-        onBack={() => setViewMode("list")}
-        onSelectClient={handleSelectClient}
-        initialClient={selectedClient}
-        setCustomActions={setCustomActions}
-        setCustomTitle={setCustomTitle}
-        setCustomBack={setCustomBack}
-      />
-    )
-  }
-
-  // Se o usuário está no fluxo de lançamento pelo Caixa do Delivery
-  if (viewMode === "pos") {
-    return (
-      <PdvSection
-        onBackToDashboard={() => setViewMode("list")}
-        setCustomActions={setCustomActions}
-        setCustomTitle={setCustomTitle}
-        setCustomBack={setCustomBack}
-        deliveryContext={{
-          client: selectedClient || { name: "Cliente Delivery", phone: "", address: "" },
-          onAlterClient: () => setViewMode("client-form"),
-          onConfirmDelivery: handleConfirmDeliveryOrder,
-        }}
-      />
-    )
-  }
-
-  if (orders.length === 0) {
-    return (
-      <Box w="full" h="full" position="relative">
-        <EmptyState
-          icon={Truck}
-          title="Nenhum pedido de delivery"
-          subtitle="Clique no botão + abaixo para iniciar um novo pedido pelo caixa."
-        />
-
-        {/* Botão FAB fixo no canto inferior direito para adicionar novo pedido */}
-        <Box position="fixed" bottom={6} right={6} zIndex="50">
-          <Button
-            variant="secondary-pill-icon"
-            icon={Plus}
-            onClick={handleOpenNewOrder}
-          />
-        </Box>
-      </Box>
-    )
+    setViewHistory(["list"])
   }
 
   return (
-    <Box w="full" overflow="auto" position="relative">
-      {/* Layout lado a lado: Lista de pedidos à esquerda (1/3) e Timeline/Detalhes à direita */}
-      <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch">
-        {/* Painel Esquerdo: Lista de Pedidos */}
-        <Box w="w-full md:w-1/3">
-          <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
-            <DeliveryOrdersList
-              orders={orders}
-              selectedOrderId={selectedOrderId}
-              onSelectOrder={setSelectedOrderId}
-              searchQuery={searchQuery}
-            />
-          </Box>
-        </Box>
-
-        {/* Painel Direito: Timeline do Pedido Selecionado */}
-        <Box flex="1">
-          <Stack gap={5} w="full">
-            {selectedOrder ? (
-              <Stack gap={5} w="full">
-                <DeliveryTimeline
-                  orderId={selectedOrder.id}
-                  status={selectedOrder.status}
-                  estimatedTime={selectedOrder.estimatedTime}
-                  motoboyName={selectedOrder.motoboy}
-                  address={selectedOrder.address}
-                />
-
-                {/* Controle de Status */}
-                <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
-                  <Stack gap={2.5}>
-                    <Font variant="body-bold" text="Mudar Status do Pedido" />
-                    <Box w="full" overflow="auto">
-                      <Tabs
-                        value={selectedOrder.status}
-                        onValueChange={(val) => handleUpdateStatus(val as DeliveryStatus)}
-                      >
-                        <Stack direction="row" gap={2.5}>
-                          <TabsTrigger value="confirmed">Confirmar</TabsTrigger>
-                          <TabsTrigger value="preparing">Preparando</TabsTrigger>
-                          <TabsTrigger value="ready">Pronto</TabsTrigger>
-                          <TabsTrigger value="dispatched">Despachar</TabsTrigger>
-                          <TabsTrigger value="delivered">Entregar</TabsTrigger>
-                        </Stack>
-                      </Tabs>
-                    </Box>
-                  </Stack>
-                </Box>
-              </Stack>
-            ) : (
-              <EmptyState
-                icon={Truck}
-                title="Sem pedido selecionado"
-                subtitle="Selecione um pedido de delivery para rastrear."
-              />
-            )}
-          </Stack>
-        </Box>
-      </Stack>
-
-      {/* Botão FAB fixo no canto inferior direito para adicionar novo pedido */}
-      <Box position="fixed" bottom={6} right={6} zIndex="50">
-        <Button
-          variant="secondary-pill-icon"
-          icon={Plus}
-          onClick={handleOpenNewOrder}
+    <ViewTransition viewKey={viewMode} flex="1" minH="0">
+      {viewMode === "client-form" && (
+        <DeliveryClientFormScreen
+          onBack={popView}
+          onSelectClient={handleSelectClient}
+          initialClient={selectedClient}
+          setCustomActions={setCustomActions}
+          setCustomTitle={setCustomTitle}
+          setCustomBack={setCustomBack}
         />
-      </Box>
-    </Box>
+      )}
+
+      {viewMode === "pos" && (
+        <PdvSection
+          onBackToDashboard={popView}
+          setCustomActions={setCustomActions}
+          setCustomTitle={setCustomTitle}
+          setCustomBack={setCustomBack}
+          deliveryContext={{
+            client: selectedClient || { name: "Cliente Delivery", phone: "", address: "" },
+            onAlterClient: () => pushView("client-form"),
+            onConfirmDelivery: handleConfirmDeliveryOrder,
+          }}
+        />
+      )}
+
+      {viewMode === "list" && (
+        orders.length === 0 ? (
+          <Box w="full" h="full" position="relative">
+            <EmptyState
+              icon={Truck}
+              title="Nenhum pedido de delivery"
+              subtitle="Clique no botão + abaixo para iniciar um novo pedido pelo caixa."
+            />
+
+            {/* Botão FAB fixo no canto inferior direito para adicionar novo pedido */}
+            <Box position="fixed" bottom={6} right={6} zIndex="50">
+              <Button
+                variant="secondary-pill-icon"
+                icon={Plus}
+                onClick={handleOpenNewOrder}
+              />
+            </Box>
+          </Box>
+        ) : (
+          <Box w="full" overflow="auto" position="relative">
+            {/* Layout lado a lado: Lista de pedidos à esquerda (1/3) e Timeline/Detalhes à direita */}
+            <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch">
+              {/* Painel Esquerdo: Lista de Pedidos */}
+              <Box w="w-full md:w-1/3">
+                <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
+                  <DeliveryOrdersList
+                    orders={orders}
+                    selectedOrderId={selectedOrderId}
+                    onSelectOrder={setSelectedOrderId}
+                    searchQuery={searchQuery}
+                  />
+                </Box>
+              </Box>
+
+              {/* Painel Direito: Timeline do Pedido Selecionado */}
+              <Box flex="1">
+                <Stack gap={5} w="full">
+                  {selectedOrder ? (
+                    <Stack gap={5} w="full">
+                      <DeliveryTimeline
+                        orderId={selectedOrder.id}
+                        status={selectedOrder.status}
+                        estimatedTime={selectedOrder.estimatedTime}
+                        motoboyName={selectedOrder.motoboy}
+                        address={selectedOrder.address}
+                      />
+
+                      {/* Controle de Status */}
+                      <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
+                        <Stack gap={2.5}>
+                          <Font variant="body-bold" text="Mudar Status do Pedido" />
+                          <Box w="full" overflow="auto">
+                            <Tabs
+                              value={selectedOrder.status}
+                              onValueChange={(val) => handleUpdateStatus(val as DeliveryStatus)}
+                            >
+                              <Stack direction="row" gap={2.5}>
+                                <TabsTrigger value="confirmed">Confirmar</TabsTrigger>
+                                <TabsTrigger value="preparing">Preparando</TabsTrigger>
+                                <TabsTrigger value="ready">Pronto</TabsTrigger>
+                                <TabsTrigger value="dispatched">Despachar</TabsTrigger>
+                                <TabsTrigger value="delivered">Entregar</TabsTrigger>
+                              </Stack>
+                            </Tabs>
+                          </Box>
+                        </Stack>
+                      </Box>
+                    </Stack>
+                  ) : (
+                    <EmptyState
+                      icon={Truck}
+                      title="Sem pedido selecionado"
+                      subtitle="Selecione um pedido de delivery para rastrear."
+                    />
+                  )}
+                </Stack>
+              </Box>
+            </Stack>
+
+            {/* Botão FAB fixo no canto inferior direito para adicionar novo pedido */}
+            <Box position="fixed" bottom={6} right={6} zIndex="50">
+              <Button
+                variant="secondary-pill-icon"
+                icon={Plus}
+                onClick={handleOpenNewOrder}
+              />
+            </Box>
+          </Box>
+        )
+      )}
+    </ViewTransition>
   )
 }

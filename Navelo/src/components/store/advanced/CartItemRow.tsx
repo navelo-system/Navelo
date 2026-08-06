@@ -37,7 +37,13 @@ export function CartItemRow({ item, onIncrease, onDecrease, onRemove }: CartItem
             {item.quantity > 1 ? (
               <Button variant="primary-icon-xs" icon={Minus} onClick={() => onDecrease?.(item)} />
             ) : (
-              <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onRemove?.(item)} />
+              <Button
+                variant="danger-icon-xs-confirm"
+                confirmTitle="Remover do Carrinho"
+                confirmSubtitle="Confirmar remoção de item"
+                confirmParagraph="Tem certeza que deseja remover este produto do carrinho?"
+                onConfirm={() => onRemove?.(item)}
+              />
             )}
 
             <Box w="fit-content" paddingX={2.5}>

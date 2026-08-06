@@ -1,9 +1,10 @@
 import * as React from "react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
-import { LucideIcon } from "lucide-react"
+import { LucideIcon, Trash2 } from "lucide-react"
 import { Icon as BaseIcon } from "./Icon"
 import { Font } from "./Font"
+import { Modal } from "./Modal"
 
 export type ButtonVariant =
   | "primary"
@@ -18,6 +19,8 @@ export type ButtonVariant =
   | "secondary-lg"
   | "secondary-sm"
   | "secondary-xs"
+  | "secondary-icon"
+  | "secondary-icon-xs"
   | "secondary-pill-icon"
   | "secondary-pill-icon-xs"
   | "secondary-pill-xs"
@@ -25,6 +28,13 @@ export type ButtonVariant =
   | "danger-icon"
   | "danger-icon-xs"
   | "danger-pill-icon"
+  | "danger-confirm"
+  | "danger-confirm-sm"
+  | "danger-confirm-xs"
+  | "danger-icon-confirm"
+  | "danger-icon-xs-confirm"
+  | "danger-pill-icon-confirm"
+  | "danger-pill-confirm-xs"
   | "success-sm"
   | "outline"
   | "outline-lg"
@@ -38,6 +48,15 @@ export type ButtonVariant =
   | "ghost-secondary"
   | "ghost-menu"
 
+export interface ConfirmModalProps {
+  title: string
+  subtitle: string
+  paragraph: string
+  icon?: LucideIcon
+  successText?: string
+  cancelText?: string
+}
+
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant
   fullWidth?: boolean
@@ -48,6 +67,15 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   iconRight?: LucideIcon
   href?: string
   modalTarget?: string
+  spinOnClick?: boolean
+  confirmModal?: ConfirmModalProps
+  confirmTitle?: string
+  confirmSubtitle?: string
+  confirmParagraph?: string
+  confirmIcon?: LucideIcon
+  confirmSuccessText?: string
+  confirmCancelText?: string
+  onConfirm?: () => void
 }
 
 const variantStyles: Record<string, string> = {
@@ -86,9 +114,42 @@ const roundedStyles = {
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = "primary", justify = "center", fullWidth, label, rightLabel, icon: IconComponent, iconRight: IconRightComponent, href, modalTarget, className, ...props }, ref) => {
+  (
+    {
+      variant = "primary",
+      justify = "center",
+      fullWidth,
+      label,
+      rightLabel,
+      icon: PassedIconComponent,
+      iconRight: IconRightComponent,
+      href,
+      modalTarget,
+      spinOnClick,
+      confirmModal,
+      confirmTitle,
+      confirmSubtitle,
+      confirmParagraph,
+      confirmIcon,
+      confirmSuccessText,
+      confirmCancelText,
+      onConfirm,
+      className,
+      onClick,
+      ...props
+    },
+    ref
+  ) => {
+    const [isSpinning, setIsSpinning] = React.useState(false)
+    const [isConfirmOpen, setIsConfirmOpen] = React.useState(false)
+    const clickEventRef = React.useRef<React.MouseEvent<HTMLButtonElement> | null>(null)
 
     const activeVariant = variant
+    const isConfirmVariant = activeVariant.includes("-confirm")
+    const isConfirmButton = isConfirmVariant || Boolean(confirmModal) || Boolean(confirmTitle)
+
+    // Define o ícone padrão como Trash2 se for um botão de confirmação de exclusão
+    const IconComponent = PassedIconComponent || (isConfirmVariant || confirmModal || confirmTitle ? Trash2 : undefined)
 
     const isPill = activeVariant.includes("-pill")
 
@@ -105,20 +166,46 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     else if (activeVariant.includes("-ghost")) logicalSize = "ghost"
 
     let baseColor = activeVariant as string
-    const modifiers = ["-pill", "-icon-xs", "-icon", "-xs", "-sm", "-lg", "-ghost"]
-    modifiers.forEach(mod => {
+    const modifiers = ["-confirm", "-pill", "-icon-xs", "-icon", "-xs", "-sm", "-lg", "-ghost"]
+    modifiers.forEach((mod) => {
       baseColor = baseColor.replace(mod, "")
     })
 
-    const isGhost = baseColor === "ghost" || baseColor === "ghost-secondary" || baseColor === "ghost-primary" || baseColor === "ghost-menu"
+    const isGhost =
+      baseColor === "ghost" || baseColor === "ghost-secondary" || baseColor === "ghost-primary" || baseColor === "ghost-menu"
+
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (spinOnClick) {
+        setIsSpinning(true)
+        setTimeout(() => setIsSpinning(false), 450)
+      }
+
+      if (isConfirmButton) {
+        e.preventDefault()
+        e.stopPropagation()
+        clickEventRef.current = e
+        setIsConfirmOpen(true)
+        return
+      }
+
+      onClick?.(e)
+    }
+
+    const handleConfirmSuccess = () => {
+      setIsConfirmOpen(false)
+      onConfirm?.()
+      if (clickEventRef.current) {
+        onClick?.(clickEventRef.current)
+      }
+    }
 
     const classes = cn(
       !isGhost && "btn-shimmer",
-      "inline-flex flex-nowrap whitespace-nowrap items-center gap-2.5 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary disabled:pointer-events-none disabled:opacity-50",
+      "inline-flex flex-nowrap whitespace-nowrap items-center gap-2.5 cursor-pointer transition-transform duration-150 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary disabled:pointer-events-none disabled:opacity-50",
       justifyStyles[justify],
       variantStyles[baseColor] || variantStyles.primary,
       sizeStyles[logicalSize],
-      roundedStyles[isPill ? "full" : (isGhost ? "full" : "default")],
+      roundedStyles[isPill ? "full" : isGhost ? "full" : "default"],
       !isPill && !logicalSize.includes("icon") && logicalSize !== "ghost" && !fullWidth && "w-full md:w-auto",
       fullWidth && "w-full",
       className
@@ -138,7 +225,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const content = (
       <>
-        {IconComponent && <BaseIcon icon={IconComponent} size={getIconSize()} color="inherit" />}
+        {IconComponent && (
+          <span className={cn("inline-flex transition-transform duration-500 ease-out", isSpinning && "rotate-[360deg]")}>
+            <BaseIcon icon={IconComponent} size={getIconSize()} color="inherit" />
+          </span>
+        )}
         {label && (
           <Font
             variant={getFontVariant()}
@@ -152,23 +243,54 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       </>
     )
 
+    const modalTitle = confirmTitle || confirmModal?.title || "Excluir Item"
+    const modalSubtitle = confirmSubtitle || confirmModal?.subtitle || "Confirmar ação de exclusão"
+    const modalParagraph =
+      confirmParagraph ||
+      confirmModal?.paragraph ||
+      "Tem certeza de que deseja realizar esta exclusão? Esta ação não poderá ser desfeita."
+    const modalIcon = confirmIcon || confirmModal?.icon || IconComponent || Trash2
+    const modalSuccessText = confirmSuccessText || confirmModal?.successText || "Confirmar Exclusão"
+
+    const confirmModalElement = isConfirmButton ? (
+      <Modal
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        title={modalTitle}
+        subtitle={modalSubtitle}
+        icon={modalIcon}
+        successText={modalSuccessText}
+        onSuccess={handleConfirmSuccess}
+        showCancelButton={true}
+      >
+        <Font variant="body-sm-medium" text={modalParagraph} />
+      </Modal>
+    ) : null
+
     if (href) {
       return (
-        <Link href={href} className={classes} data-modal-target={modalTarget}>
-          {content}
-        </Link>
+        <>
+          <Link href={href} className={classes} data-modal-target={modalTarget}>
+            {content}
+          </Link>
+          {confirmModalElement}
+        </>
       )
     }
 
     return (
-      <button
-        ref={ref}
-        className={classes}
-        data-modal-target={modalTarget}
-        {...props}
-      >
-        {content}
-      </button>
+      <>
+        <button
+          ref={ref}
+          className={classes}
+          data-modal-target={modalTarget}
+          onClick={handleClick}
+          {...props}
+        >
+          {content}
+        </button>
+        {confirmModalElement}
+      </>
     )
   }
 )

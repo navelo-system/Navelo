@@ -65,6 +65,7 @@ export interface ProductFormData {
   ingredients?: string
   preparationMode?: string
 
+  image?: string
   exTipi?: string
   icmsDefault?: boolean
   icmsCsosn?: string
@@ -79,6 +80,36 @@ export interface ProductFormProps {
   onCancel: () => void
   onSave: (data: ProductFormData) => void
   onAccessFiscalConfig?: () => void
+}
+
+const parseBrFloat = (val: string | number | undefined | null): number => {
+  if (val === undefined || val === null || val === "") return 0
+  if (typeof val === "number") return val
+  const clean = val.toString().replace(/\./g, "").replace(",", ".")
+  const parsed = parseFloat(clean)
+  return isNaN(parsed) ? 0 : parsed
+}
+
+const formatBrDecimal = (num: number): string => {
+  if (isNaN(num) || num === 0) return ""
+  return num.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })
+}
+
+const maskCurrencyInput = (val: string): string => {
+  const clean = val.replace(/[^\d,. ]/g, "").replace(/\./g, ",")
+  const parts = clean.split(",")
+  if (parts.length > 2) return parts[0] + "," + parts.slice(1).join("")
+  if (parts[1] && parts[1].length > 2) {
+    return parts[0] + "," + parts[1].slice(0, 2)
+  }
+  return clean
+}
+
+const maskNumberInput = (val: string): string => {
+  return val.replace(/\D/g, "")
 }
 
 export const ProductForm: React.FC<ProductFormProps> = ({
@@ -103,60 +134,80 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   const [isProducaoOpen, setIsProducaoOpen] = React.useState(false)
   const [isFiscalOpen, setIsFiscalOpen] = React.useState(false)
 
-  // Form states
-  const [name, setName] = React.useState("")
-  const [category, setCategory] = React.useState("")
-  const [price, setPrice] = React.useState("")
-  const [stock, setStock] = React.useState("")
-  const [unit, setUnit] = React.useState("")
-  const [ncm, setNcm] = React.useState("")
-  const [cest, setCest] = React.useState("")
-  const [cfop, setCfop] = React.useState("5.102")
-  const [icmsOrigem, setIcmsOrigem] = React.useState("0 - Nacional")
+  // Form states initialized directly from initialData
+  const [name, setName] = React.useState(() => initialData?.name || "")
+  const [category, setCategory] = React.useState(() => initialData?.category || "")
+  const [price, setPrice] = React.useState(() => (initialData?.unitPrice ? formatBrDecimal(initialData.unitPrice) : ""))
+  const [stock, setStock] = React.useState(() => initialData?.stock?.toString() || "")
+  const [unit, setUnit] = React.useState(() => initialData?.unit || "UN")
+  const [ncm, setNcm] = React.useState(() => initialData?.ncm || "")
+  const [cest, setCest] = React.useState(() => initialData?.cest || "")
+  const [cfop, setCfop] = React.useState(() => initialData?.cfop || "5.102")
+  const [icmsOrigem, setIcmsOrigem] = React.useState(() => initialData?.icmsOrigem || "0 - Nacional")
 
-  const [detailedDescription, setDetailedDescription] = React.useState("")
-  const [subgroup, setSubgroup] = React.useState("")
-  const [minStock, setMinStock] = React.useState("")
-  const [costPrice, setCostPrice] = React.useState("")
-  const [otherCosts, setOtherCosts] = React.useState("")
-  const [margin, setMargin] = React.useState("")
+  const [detailedDescription, setDetailedDescription] = React.useState(() => initialData?.detailedDescription || "")
+  const [subgroup, setSubgroup] = React.useState(() => initialData?.subgroup || "")
+  const [minStock, setMinStock] = React.useState(() => initialData?.minStock?.toString() || "")
+  const [costPrice, setCostPrice] = React.useState(() => (initialData?.costPrice ? formatBrDecimal(initialData.costPrice) : ""))
+  const [otherCosts, setOtherCosts] = React.useState(() => (initialData?.otherCosts ? formatBrDecimal(initialData.otherCosts) : ""))
+  const [margin, setMargin] = React.useState(() => (initialData?.margin ? formatBrDecimal(initialData.margin) : ""))
 
-  const [multissaborEnabled, setMultissaborEnabled] = React.useState(false)
-  const [multissaborLimit, setMultissaborLimit] = React.useState("2")
-  const [multissaborPricingMode, setMultissaborPricingMode] = React.useState<"proporcional" | "maior">("proporcional")
+  const [image, setImage] = React.useState<string | null>(() => initialData?.image || null)
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
 
-  const [complementosEnabled, setComplementosEnabled] = React.useState(false)
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImage(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
-  const [plataformasEnabled, setPlataformasEnabled] = React.useState(false)
-  const [plataformasPriceDifferent, setPlataformasPriceDifferent] = React.useState("")
+  const [multissaborEnabled, setMultissaborEnabled] = React.useState(() => !!initialData?.multissaborEnabled)
+  const [multissaborLimit, setMultissaborLimit] = React.useState(() => initialData?.multissaborLimit?.toString() || "2")
+  const [multissaborPricingMode, setMultissaborPricingMode] = React.useState<"proporcional" | "maior">(
+    () => initialData?.multissaborPricingMode || "proporcional"
+  )
 
-  const [barcodes, setBarcodes] = React.useState<string[]>([])
+  const [complementosEnabled, setComplementosEnabled] = React.useState(() => !!initialData?.complementosEnabled)
+
+  const [plataformasEnabled, setPlataformasEnabled] = React.useState(() => !!initialData?.plataformasEnabled)
+  const [plataformasPriceDifferent, setPlataformasPriceDifferent] = React.useState(
+    () => (initialData?.plataformasPriceDifferent ? formatBrDecimal(initialData.plataformasPriceDifferent) : "")
+  )
+
+  const [barcodes, setBarcodes] = React.useState<string[]>(() => initialData?.barcodes || [])
   const [newBarcode, setNewBarcode] = React.useState("")
 
-  const [printPoint, setPrintPoint] = React.useState("")
+  const [printPoint, setPrintPoint] = React.useState(() => initialData?.printPoint || "")
 
-  const [producaoPropria, setProducaoPropria] = React.useState(false)
-  const [ingredients, setIngredients] = React.useState("")
-  const [preparationMode, setPreparationMode] = React.useState("")
+  const [producaoPropria, setProducaoPropria] = React.useState(() => !!initialData?.producaoPropria)
+  const [ingredients, setIngredients] = React.useState(() => initialData?.ingredients || "")
+  const [preparationMode, setPreparationMode] = React.useState(() => initialData?.preparationMode || "")
 
-  const [exTipi, setExTipi] = React.useState("")
-  const [icmsDefault, setIcmsDefault] = React.useState(true)
-  const [icmsCsosn, setIcmsCsosn] = React.useState("500")
-  const [icmsReduction, setIcmsReduction] = React.useState("")
-  const [icmsAliquot, setIcmsAliquot] = React.useState("")
-  const [pisCofinsDefault, setPisCofinsDefault] = React.useState(true)
-  const [pisCofinsCst, setPisCofinsCst] = React.useState("99")
+  const [exTipi, setExTipi] = React.useState(() => initialData?.exTipi || "")
+  const [icmsDefault, setIcmsDefault] = React.useState(() => initialData?.icmsDefault !== false)
+  const [icmsCsosn, setIcmsCsosn] = React.useState(() => initialData?.icmsCsosn || "500")
+  const [icmsReduction, setIcmsReduction] = React.useState(
+    () => (initialData?.icmsReduction ? formatBrDecimal(initialData.icmsReduction) : "")
+  )
+  const [icmsAliquot, setIcmsAliquot] = React.useState(
+    () => (initialData?.icmsAliquot ? formatBrDecimal(initialData.icmsAliquot) : "")
+  )
+  const [pisCofinsDefault, setPisCofinsDefault] = React.useState(() => initialData?.pisCofinsDefault !== false)
+  const [pisCofinsCst, setPisCofinsCst] = React.useState(() => initialData?.pisCofinsCst || "99")
 
-  const [prevInitialData, setPrevInitialData] = React.useState(initialData)
-
-  if (initialData !== prevInitialData) {
-    setPrevInitialData(initialData)
+  // Sincroniza estado apenas quando a referência de initialData muda via useEffect
+  React.useEffect(() => {
     if (initialData) {
       setName(initialData.name || "")
       setCategory(initialData.category || "")
-      setPrice(initialData.unitPrice?.toString() || "")
+      setPrice(initialData.unitPrice ? formatBrDecimal(initialData.unitPrice) : "")
       setStock(initialData.stock?.toString() || "")
-      setUnit(initialData.unit || "")
+      setUnit(initialData.unit || "UN")
       setNcm(initialData.ncm || "")
       setCest(initialData.cest || "")
       setCfop(initialData.cfop || "5.102")
@@ -165,9 +216,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       setDetailedDescription(initialData.detailedDescription || "")
       setSubgroup(initialData.subgroup || "")
       setMinStock(initialData.minStock?.toString() || "")
-      setCostPrice(initialData.costPrice?.toString() || "")
-      setOtherCosts(initialData.otherCosts?.toString() || "")
-      setMargin(initialData.margin?.toString() || "")
+      setCostPrice(initialData.costPrice ? formatBrDecimal(initialData.costPrice) : "")
+      setOtherCosts(initialData.otherCosts ? formatBrDecimal(initialData.otherCosts) : "")
+      setMargin(initialData.margin ? formatBrDecimal(initialData.margin) : "")
+      setImage(initialData.image || null)
 
       setMultissaborEnabled(!!initialData.multissaborEnabled)
       setMultissaborLimit(initialData.multissaborLimit?.toString() || "2")
@@ -176,10 +228,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       setComplementosEnabled(!!initialData.complementosEnabled)
 
       setPlataformasEnabled(!!initialData.plataformasEnabled)
-      setPlataformasPriceDifferent(initialData.plataformasPriceDifferent?.toString() || "")
+      setPlataformasPriceDifferent(initialData.plataformasPriceDifferent ? formatBrDecimal(initialData.plataformasPriceDifferent) : "")
 
       setBarcodes(initialData.barcodes || [])
-
       setPrintPoint(initialData.printPoint || "")
 
       setProducaoPropria(!!initialData.producaoPropria)
@@ -189,52 +240,87 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       setExTipi(initialData.exTipi || "")
       setIcmsDefault(initialData.icmsDefault !== false)
       setIcmsCsosn(initialData.icmsCsosn || "500")
-      setIcmsReduction(initialData.icmsReduction?.toString() || "")
-      setIcmsAliquot(initialData.icmsAliquot?.toString() || "")
+      setIcmsReduction(initialData.icmsReduction ? formatBrDecimal(initialData.icmsReduction) : "")
+      setIcmsAliquot(initialData.icmsAliquot ? formatBrDecimal(initialData.icmsAliquot) : "")
       setPisCofinsDefault(initialData.pisCofinsDefault !== false)
       setPisCofinsCst(initialData.pisCofinsCst || "99")
-    } else {
-      setName("")
-      setCategory("Bebidas")
-      setPrice("")
-      setStock("")
-      setUnit("UN")
-      setNcm("")
-      setCest("")
-      setCfop("5.102")
-      setIcmsOrigem("0 - Nacional")
+    }
+  }, [initialData])
 
-      setDetailedDescription("")
-      setSubgroup("")
-      setMinStock("")
-      setCostPrice("")
-      setOtherCosts("")
-      setMargin("")
+  // Handlers para cálculo bidirecional entre Preço de Custo, Outros Custos, Margem e Preço de Venda
+  const handleCostPriceChange = (val: string) => {
+    const formatted = maskCurrencyInput(val)
+    setCostPrice(formatted)
 
-      setMultissaborEnabled(false)
-      setMultissaborLimit("2")
-      setMultissaborPricingMode("proporcional")
+    const costNum = parseBrFloat(formatted)
+    const otherNum = parseBrFloat(otherCosts)
+    const marginNum = parseBrFloat(margin)
+    const priceNum = parseBrFloat(price)
 
-      setComplementosEnabled(false)
+    const totalCost = costNum > 0 ? costNum * (1 + otherNum / 100) : 0
 
-      setPlataformasEnabled(false)
-      setPlataformasPriceDifferent("")
+    if (totalCost > 0) {
+      if (marginNum > 0) {
+        const calcPrice = totalCost * (1 + marginNum / 100)
+        setPrice(formatBrDecimal(calcPrice))
+      } else if (priceNum > 0) {
+        const calcMargin = ((priceNum / totalCost) - 1) * 100
+        setMargin(formatBrDecimal(calcMargin))
+      }
+    }
+  }
 
-      setBarcodes([])
+  const handleOtherCostsChange = (val: string) => {
+    const formatted = maskCurrencyInput(val)
+    setOtherCosts(formatted)
 
-      setPrintPoint("")
+    const costNum = parseBrFloat(costPrice)
+    const otherNum = parseBrFloat(formatted)
+    const marginNum = parseBrFloat(margin)
+    const priceNum = parseBrFloat(price)
 
-      setProducaoPropria(false)
-      setIngredients("")
-      setPreparationMode("")
+    const totalCost = costNum > 0 ? costNum * (1 + otherNum / 100) : 0
 
-      setExTipi("")
-      setIcmsDefault(true)
-      setIcmsCsosn("500")
-      setIcmsReduction("")
-      setIcmsAliquot("")
-      setPisCofinsDefault(true)
-      setPisCofinsCst("99")
+    if (totalCost > 0) {
+      if (marginNum > 0) {
+        const calcPrice = totalCost * (1 + marginNum / 100)
+        setPrice(formatBrDecimal(calcPrice))
+      } else if (priceNum > 0) {
+        const calcMargin = ((priceNum / totalCost) - 1) * 100
+        setMargin(formatBrDecimal(calcMargin))
+      }
+    }
+  }
+
+  const handleMarginChange = (val: string) => {
+    const formatted = maskCurrencyInput(val)
+    setMargin(formatted)
+
+    const costNum = parseBrFloat(costPrice)
+    const otherNum = parseBrFloat(otherCosts)
+    const marginNum = parseBrFloat(formatted)
+
+    const totalCost = costNum > 0 ? costNum * (1 + otherNum / 100) : 0
+
+    if (totalCost > 0 && marginNum > 0) {
+      const calcPrice = totalCost * (1 + marginNum / 100)
+      setPrice(formatBrDecimal(calcPrice))
+    }
+  }
+
+  const handlePriceChange = (val: string) => {
+    const formatted = maskCurrencyInput(val)
+    setPrice(formatted)
+
+    const costNum = parseBrFloat(costPrice)
+    const otherNum = parseBrFloat(otherCosts)
+    const priceNum = parseBrFloat(formatted)
+
+    const totalCost = costNum > 0 ? costNum * (1 + otherNum / 100) : 0
+
+    if (totalCost > 0 && priceNum > 0) {
+      const calcMargin = ((priceNum / totalCost) - 1) * 100
+      setMargin(formatBrDecimal(calcMargin))
     }
   }
 
@@ -253,20 +339,21 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     onSave({
       name,
       category,
-      unitPrice: parseFloat(price.replace(",", ".")) || 0,
-      stock: parseInt(stock) || 0,
+      unitPrice: parseBrFloat(price),
+      stock: parseBrFloat(stock),
       unit,
       ncm,
       cest,
       cfop,
       icmsOrigem,
+      image: image || undefined,
 
       detailedDescription,
       subgroup,
-      minStock: parseInt(minStock) || 0,
-      costPrice: parseFloat(costPrice) || 0,
-      otherCosts: parseFloat(otherCosts) || 0,
-      margin: parseFloat(margin) || 0,
+      minStock: parseBrFloat(minStock),
+      costPrice: parseBrFloat(costPrice),
+      otherCosts: parseBrFloat(otherCosts),
+      margin: parseBrFloat(margin),
 
       multissaborEnabled,
       multissaborLimit: parseInt(multissaborLimit) || 2,
@@ -275,7 +362,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       complementosEnabled,
 
       plataformasEnabled,
-      plataformasPriceDifferent: parseFloat(plataformasPriceDifferent) || 0,
+      plataformasPriceDifferent: parseBrFloat(plataformasPriceDifferent),
 
       barcodes,
       printPoint,
@@ -287,8 +374,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       exTipi,
       icmsDefault,
       icmsCsosn,
-      icmsReduction: parseFloat(icmsReduction) || 0,
-      icmsAliquot: parseFloat(icmsAliquot) || 0,
+      icmsReduction: parseBrFloat(icmsReduction),
+      icmsAliquot: parseBrFloat(icmsAliquot),
       pisCofinsDefault,
       pisCofinsCst,
     })
@@ -303,7 +390,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   }, [dbCategories, category])
 
   return (
-    <Box as="form" onSubmit={handleSubmit} w="full">
+    <Box as="form" id="product-form" onSubmit={handleSubmit} w="full">
       <Stack gap={5} w="full">
         <Tabs defaultValue="basico">
           <TabsList grid cols={2}>
@@ -322,6 +409,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
                 <Stack gap={5} w="full">
                   {/* Visual Preview da Foto */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    style={{ display: "none" }}
+                  />
                   <Stack align="center" gap={2.5} w="full">
                     <Box
                       w="w-24"
@@ -331,12 +425,31 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       borderColor="border-brand-secondary"
                       bg="bg-slate-100"
                       overflow="hidden"
+                      cursor="pointer"
+                      onClick={() => fileInputRef.current?.click()}
+                      title="Clique para enviar ou alterar a imagem"
                     >
-                      <Stack align="center" justify="center" w="full" h="full">
-                        <Icon icon={Package} size={32} color="secondary" />
-                      </Stack>
+                      {image ? (
+                        <Box
+                          as="img"
+                          src={image}
+                          alt="Foto do produto"
+                          w="full"
+                          h="full"
+                          objectFit="cover"
+                        />
+                      ) : (
+                        <Stack align="center" justify="center" w="full" h="full">
+                          <Icon icon={Package} size={32} color="secondary" />
+                        </Stack>
+                      )}
                     </Box>
-                    <Button variant="ghost" label="Adicionar Imagem" type="button" />
+                    <Button
+                      variant="ghost"
+                      label={image ? "Alterar Imagem" : "Adicionar Imagem"}
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                    />
                   </Stack>
 
                   <Grid cols={2} gap={5}>
@@ -405,7 +518,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       variant="outlined-label"
                       placeholder="0"
                       value={stock}
-                      onChange={(e) => setStock(e.target.value)}
+                      onChange={(e) => setStock(maskNumberInput(e.target.value))}
                       required
                     />
                     <Input
@@ -413,35 +526,35 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       variant="outlined-label"
                       placeholder="0"
                       value={minStock}
-                      onChange={(e) => setMinStock(e.target.value)}
+                      onChange={(e) => setMinStock(maskNumberInput(e.target.value))}
                     />
                     <Input
                       label="Preço de Custo (R$)"
                       variant="outlined-label"
                       placeholder="0,00"
                       value={costPrice}
-                      onChange={(e) => setCostPrice(e.target.value)}
+                      onChange={(e) => handleCostPriceChange(e.target.value)}
                     />
                     <Input
                       label="Outros Custos (%)"
                       variant="outlined-label"
                       placeholder="0,00"
                       value={otherCosts}
-                      onChange={(e) => setOtherCosts(e.target.value)}
+                      onChange={(e) => handleOtherCostsChange(e.target.value)}
                     />
                     <Input
                       label="Margem (%)"
                       variant="outlined-label"
                       placeholder="0,00"
                       value={margin}
-                      onChange={(e) => setMargin(e.target.value)}
+                      onChange={(e) => handleMarginChange(e.target.value)}
                     />
                     <Input
                       label="Preço de Venda (R$) *"
                       variant="outlined-label"
                       placeholder="0,00"
                       value={price}
-                      onChange={(e) => setPrice(e.target.value)}
+                      onChange={(e) => handlePriceChange(e.target.value)}
                       required
                     />
                   </Grid>
@@ -921,14 +1034,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             </Stack>
           </TabsContent>
         </Tabs>
-
-        {/* Ações do Formulário */}
-              <FormActions
-        confirmLabel="Salvar Produto"
-        onConfirm={() => {}}
-        isSubmit={true}
-        onCancel={onCancel}
-      />
       </Stack>
     </Box>
   )

@@ -117,7 +117,13 @@ export const PlansCrudSection: React.FC = () => {
                     <TableCell align="right">
                       <Stack direction="row" gap={2.5} justify="end">
                         <Button variant="primary-icon-xs" icon={Edit2} onClick={() => handleOpenEdit(plan)} />
-                        <Button variant="danger-icon-xs" icon={Trash2} onClick={() => handleDelete(plan.id)} />
+                        <Button
+                          variant="danger-icon-xs-confirm"
+                          confirmTitle="Excluir Plano"
+                          confirmSubtitle="Confirmar exclusão de plano"
+                          confirmParagraph="Tem certeza que deseja excluir este plano de assinatura?"
+                          onConfirm={() => handleDelete(plan.id)}
+                        />
                       </Stack>
                     </TableCell>
                   </TableRow>

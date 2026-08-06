@@ -34,6 +34,57 @@ export interface DeliveryClientFormScreenProps {
   setCustomBack?: (cb: (() => void) | null) => void
 }
 
+export function parseAddressString(address: string) {
+  if (!address || address === "Endereço não informado") {
+    return { name: "Principal", street: "", number: "", complement: "", neighborhood: "", city: "", zip: "" }
+  }
+
+  let str = address
+  let zip = ""
+  const cepMatch = str.match(/\(CEP:\s*([\d\-]+)\)/i)
+  if (cepMatch) {
+    zip = cepMatch[1]
+    str = str.replace(/\(CEP:\s*[\d\-]+\)/i, "").trim()
+  }
+
+  const parts = str.split(",").map((p) => p.trim()).filter(Boolean)
+  let street = ""
+  let number = ""
+  let complement = ""
+  let neighborhood = ""
+  let city = ""
+
+  if (parts.length >= 1) {
+    street = parts[0]
+  }
+
+  if (parts.length >= 2) {
+    const subParts2 = parts[1].split("-").map((p) => p.trim())
+    number = subParts2[0] || ""
+    if (subParts2.length > 1) {
+      complement = subParts2.slice(1).join(" - ")
+    }
+  }
+
+  if (parts.length >= 3) {
+    const subParts3 = parts[2].split("-").map((p) => p.trim())
+    neighborhood = subParts3[0] || ""
+    if (subParts3.length > 1) {
+      city = subParts3[1] || ""
+    }
+  }
+
+  return {
+    name: "Principal",
+    street: street || address,
+    number: number || "S/N",
+    complement: complement || "",
+    neighborhood: neighborhood || "",
+    city: city || "",
+    zip: zip || "",
+  }
+}
+
 export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> = ({
   onBack,
   onSelectClient,
@@ -91,16 +142,18 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
       setPhone(initialClient.phone || "")
       setSelectedCustomerId(initialClient.customerId)
       if (initialClient.address && initialClient.address !== "Endereço não informado") {
+        const parsed = parseAddressString(initialClient.address)
         setClientAddresses([
           {
             id: `addr-init-${Date.now()}`,
             customerId: initialClient.customerId || "",
-            street: initialClient.address,
-            number: "S/N",
-            neighborhood: "",
-            city: "",
+            street: parsed.street,
+            number: parsed.number,
+            complement: parsed.complement,
+            neighborhood: parsed.neighborhood,
+            city: parsed.city,
             state: "",
-            zipCode: "",
+            zipCode: parsed.zip,
             isDefault: true,
           },
         ])
@@ -140,7 +193,22 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
     setIe(customer.ie || "")
 
     if (customer.addresses && customer.addresses.length > 0) {
-      setClientAddresses(customer.addresses)
+      const cleanAddresses = customer.addresses.map((a) => {
+        if (a.street && (a.street.includes("(CEP:") || a.street.includes(" - "))) {
+          const p = parseAddressString(a.street)
+          return {
+            ...a,
+            street: p.street,
+            number: p.number !== "S/N" ? p.number : a.number,
+            complement: p.complement || a.complement,
+            neighborhood: p.neighborhood || a.neighborhood,
+            city: p.city || a.city,
+            zipCode: p.zip || a.zipCode,
+          }
+        }
+        return a
+      })
+      setClientAddresses(cleanAddresses)
     } else {
       setClientAddresses([])
     }
@@ -198,12 +266,27 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
   const formatPrimaryAddress = () => {
     if (clientAddresses.length === 0) return "Endereço não informado"
     const primaryAddr = clientAddresses.find((a) => a.isDefault) || clientAddresses[0]
+
+    if (primaryAddr.street.includes("(CEP:") || (primaryAddr.street.includes(" - ") && primaryAddr.street.includes(","))) {
+      return primaryAddr.street
+    }
+
     let parts = primaryAddr.street
-    if (primaryAddr.number) parts += `, ${primaryAddr.number}`
-    if (primaryAddr.complement) parts += ` - ${primaryAddr.complement}`
-    if (primaryAddr.neighborhood) parts += `, ${primaryAddr.neighborhood}`
-    if (primaryAddr.city) parts += ` - ${primaryAddr.city}`
-    if (primaryAddr.zipCode) parts += ` (CEP: ${primaryAddr.zipCode})`
+    if (primaryAddr.number && primaryAddr.number !== "S/N" && !primaryAddr.street.includes(primaryAddr.number)) {
+      parts += `, ${primaryAddr.number}`
+    }
+    if (primaryAddr.complement && !primaryAddr.street.includes(primaryAddr.complement)) {
+      parts += ` - ${primaryAddr.complement}`
+    }
+    if (primaryAddr.neighborhood && !primaryAddr.street.includes(primaryAddr.neighborhood)) {
+      parts += `, ${primaryAddr.neighborhood}`
+    }
+    if (primaryAddr.city && !primaryAddr.street.includes(primaryAddr.city)) {
+      parts += ` - ${primaryAddr.city}`
+    }
+    if (primaryAddr.zipCode && !primaryAddr.street.includes(primaryAddr.zipCode)) {
+      parts += ` (CEP: ${primaryAddr.zipCode})`
+    }
     return parts
   }
 
@@ -313,7 +396,8 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
     handleSubmitRef.current = handleSubmit
   }, [handleSubmit])
 
-  const isEditMode = Boolean(initialCustomer || selectedCustomerId)
+  // Botão de deletar deve ser exibido EXCLUSIVAMENTE na tela de EDITAR cliente existente
+  const showDeleteButton = Boolean(initialCustomer) && !title.toLowerCase().includes("identificar") && !title.toLowerCase().includes("novo")
 
   React.useEffect(() => {
     setCustomTitle?.(title)
@@ -321,12 +405,14 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
 
     const actionsContent = (
       <Stack direction="row" align="center" gap={2.5}>
-        {isEditMode && (
+        {showDeleteButton && (
           <Button
             type="button"
-            variant="danger-pill-icon"
-            icon={Trash2}
-            onClick={handleDeleteCustomer}
+            variant="danger-pill-icon-confirm"
+            confirmTitle="Excluir Cliente"
+            confirmSubtitle="Confirmar exclusão de cadastro"
+            confirmParagraph="Tem certeza de que deseja excluir este cliente do sistema? Esta ação não poderá ser desfeita."
+            onConfirm={handleDeleteCustomer}
             title="Excluir cliente"
           />
         )}
@@ -357,10 +443,10 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
     return () => {
       setCustomActions?.(null)
     }
-  }, [setCustomActions, setCustomTitle, setCustomBack, searchQuery, title, showSearchInHeader, isEditMode])
+  }, [setCustomActions, setCustomTitle, setCustomBack, searchQuery, title, showSearchInHeader, showDeleteButton])
 
   return (
-    <Box w="full" overflow="auto">
+    <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
       <Stack gap={5} w="full">
         {/* Barra superior: Switch salvar na lista (esquerda) e Botão Pular (direita) */}
         {(showSaveSwitch || showSkip) && (
@@ -486,20 +572,22 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
                   />
                 </Stack>
 
-                {/* Seção de Endereço com botão Pill + */}
+                {/* Seção de Endereço com botão Pill + (visível apenas se não houver endereço cadastrado) */}
                 <Stack gap={2.5} w="full">
                   <Stack direction="row" align="center" gap={2.5}>
                     <Font variant="body-bold" text="Endereço" />
-                    <Button
-                      type="button"
-                      variant="primary-icon-xs"
-                      icon={Plus}
-                      onClick={() => {
-                        setEditingAddress(null)
-                        setIsAddressModalOpen(true)
-                      }}
-                      title="Adicionar endereço"
-                    />
+                    {clientAddresses.length === 0 && (
+                      <Button
+                        type="button"
+                        variant="primary-icon-xs"
+                        icon={Plus}
+                        onClick={() => {
+                          setEditingAddress(null)
+                          setIsAddressModalOpen(true)
+                        }}
+                        title="Adicionar endereço"
+                      />
+                    )}
                   </Stack>
 
                   {clientAddresses.length > 0 && (

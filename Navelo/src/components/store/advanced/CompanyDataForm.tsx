@@ -35,6 +35,8 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
   const [contatoNome, setContatoNome] = React.useState("Navelo")
   const [contatoTelefone, setContatoTelefone] = React.useState("(33) 999565081")
 
+  const logoFileInputRef = React.useRef<HTMLInputElement>(null)
+
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -76,6 +78,13 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
       padding={5}
       w="full"
     >
+      <input
+        type="file"
+        ref={logoFileInputRef}
+        accept="image/*"
+        onChange={handleLogoChange}
+        style={{ display: "none" }}
+      />
       <Stack gap={5} w="full">
         {/* Logo / Upload */}
         <Box padding={5} w="full">
@@ -89,6 +98,9 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
                   w="h-16"
                   h="h-16"
                   objectFit="contain"
+                  cursor="pointer"
+                  onClick={() => logoFileInputRef.current?.click()}
+                  title="Clique na imagem para alterar o logotipo"
                 />
                 <Button
                   variant="secondary"

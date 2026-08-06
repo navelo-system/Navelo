@@ -28,44 +28,79 @@ export function AddressList({ addresses, onEdit, onDelete }: AddressListProps) {
 
   return (
     <Stack gap={2.5}>
-      {addresses.map((addr) => (
-        <Box
-          key={addr.id}
-          padding={5}
-          border
-          borderColor="border-border"
-          radius="default"
-          w="full"
-        >
-          <Stack gap={2.5} w="full">
-            {/* Linha Superior: Ícone à esquerda, Ações (Editar/Deletar) à direita */}
-            <Stack direction="row" justify="between" align="center" w="full">
-              <Box padding={2.5} bg="bg-brand-primary/10" radius="full">
-                <Icon icon={MapPin} size={20} color="primary" />
-              </Box>
-              <Stack direction="row" gap={2.5} align="center">
-                <Button variant="primary-icon-xs" icon={Edit2} onClick={() => onEdit?.(addr)} />
-                {onDelete && <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onDelete?.(addr)} />}
-              </Stack>
-            </Stack>
+      {addresses.map((addr) => {
+        const hasDetails = Boolean(addr.neighborhood || addr.city || addr.zipCode)
+        const streetText = addr.number && addr.number !== "S/N" && !addr.street.includes(addr.number)
+          ? `${addr.street}, ${addr.number}`
+          : addr.street
 
-            {/* Detalhes do Endereço abaixo */}
-            <Stack gap={1} w="full" align="start">
-              <Stack direction="row" align="center" gap={2.5} wrap={true}>
-                <Font variant="body-bold" text={`${addr.street}, ${addr.number}`} />
-                {addr.isDefault && <Badge variant="primary" label="Padrão" />}
+        const detailsText = [
+          addr.neighborhood,
+          addr.city && addr.state ? `${addr.city}/${addr.state}` : addr.city,
+          addr.zipCode ? `CEP: ${addr.zipCode}` : null,
+        ].filter(Boolean).join(" - ")
+
+        return (
+          <Box
+            key={addr.id}
+            padding={5}
+            border
+            borderColor="border-border"
+            radius="default"
+            w="full"
+          >
+            <Stack gap={2.5} w="full">
+              {/* Linha Superior: Ícone à esquerda, Ações (Editar/Deletar) à direita */}
+              <Stack direction="row" justify="between" align="center" w="full">
+                <Box padding={2.5} bg="bg-brand-primary/10" radius="full">
+                  <Icon icon={MapPin} size={20} color="primary" />
+                </Box>
+                <Stack direction="row" gap={2.5} align="center">
+                  <Button
+                    type="button"
+                    variant="primary-icon-xs"
+                    icon={Edit2}
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      onEdit?.(addr)
+                    }}
+                    title="Editar endereço"
+                  />
+                  {onDelete && (
+                    <Button
+                      type="button"
+                      variant="danger-icon-xs-confirm"
+                      confirmTitle="Excluir Endereço"
+                      confirmSubtitle="Confirmar exclusão de endereço"
+                      confirmParagraph="Tem certeza que deseja remover este endereço do cliente? Esta ação não poderá ser desfeita."
+                      onConfirm={() => onDelete?.(addr)}
+                      title="Excluir endereço"
+                    />
+                  )}
+                </Stack>
               </Stack>
-              <Font
-                variant="description"
-                text={`${addr.neighborhood} - ${addr.city}/${addr.state} | CEP: ${addr.zipCode}`}
-              />
-              {addr.complement && (
-                <Font variant="auxiliary" color="muted" text={`Complemento: ${addr.complement}`} />
-              )}
+
+              {/* Detalhes do Endereço abaixo */}
+              <Stack gap={1} w="full" align="start">
+                <Stack direction="row" align="center" gap={2.5} wrap={true}>
+                  <Font variant="body-bold" text={streetText} />
+                  {addresses.length > 1 && addr.isDefault && <Badge variant="primary" label="Padrão" />}
+                </Stack>
+                {hasDetails && (
+                  <Font
+                    variant="description"
+                    text={detailsText}
+                  />
+                )}
+                {addr.complement && (
+                  <Font variant="auxiliary" color="muted" text={`Complemento: ${addr.complement}`} />
+                )}
+              </Stack>
             </Stack>
-          </Stack>
-        </Box>
-      ))}
+          </Box>
+        )
+      })}
     </Stack>
   );
 }

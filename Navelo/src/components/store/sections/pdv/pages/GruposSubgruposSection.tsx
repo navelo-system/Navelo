@@ -15,6 +15,7 @@ import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogTo
 
 import { useCategories, dal } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
+import { ViewTransition } from "@/components/store/base/ViewTransition"
 
 export interface GroupItem {
   id: string
@@ -170,156 +171,152 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
     )
   })
 
-  // FORM MODE
-  if (mode === "form") {
-    return (
-      <Box
-        as="form"
-        onSubmit={handleSave}
-        bg="bg-white"
-        border={true}
-        borderColor="border-border"
-        radius="default"
-        padding={5}
-        w="full"
-      >
-        <Stack gap={5} w="full">
-          <Input
-            label="* Nome do Grupo"
-            placeholder="Ex: BEBIDAS"
-            value={formName}
-            onChange={(e) => setFormName(e.target.value)}
-            icon={Folder}
-            required
-          />
-
-          <Stack gap={2.5} w="full">
-            <Stack direction="row" align="center" justify="between" w="full">
-              <Stack gap={1} flex="1">
-                <Font variant="body-bold" text="Subgrupos" />
-                <Font
-                  variant="description"
-                  text="Cadastre os subgrupos associados a este grupo principal."
-                  color="muted"
-                />
-              </Stack>
-              <Button
-                type="button"
-                variant="primary-icon-xs"
-                icon={Plus}
-                onClick={handleAddSubgroupField}
-                title="Adicionar subgrupo"
-              />
-            </Stack>
+  return (
+    <ViewTransition viewKey={mode} flex="1" minH="0">
+      {mode === "form" ? (
+        <Box
+          as="form"
+          onSubmit={handleSave}
+          bg="bg-white"
+          border={true}
+          borderColor="border-border"
+          radius="default"
+          padding={5}
+          w="full"
+        >
+          <Stack gap={5} w="full">
+            <Input
+              label="* Nome do Grupo"
+              placeholder="Ex: BEBIDAS"
+              value={formName}
+              onChange={(e) => setFormName(e.target.value)}
+              icon={Folder}
+              required
+            />
 
             <Stack gap={2.5} w="full">
-              {formSubgroups.map((subgroup, idx) => (
-                <Stack key={idx} direction="row" align="center" gap={2.5} w="full">
-                  <Box flex="1">
-                    <Input
-                      placeholder={`Subgrupo ${idx + 1}`}
-                      value={subgroup}
-                      onChange={(e) => handleSubgroupChange(idx, e.target.value)}
-                      icon={Layers}
-                    />
-                  </Box>
-                  <Button
-                    type="button"
-                    variant="danger-icon-xs"
-                    icon={X}
-                    onClick={() => handleRemoveSubgroupField(idx)}
-                    title="Remover subgrupo"
+              <Stack direction="row" align="center" justify="between" w="full">
+                <Stack gap={1} flex="1">
+                  <Font variant="body-bold" text="Subgrupos" />
+                  <Font
+                    variant="description"
+                    text="Cadastre os subgrupos associados a este grupo principal."
+                    color="muted"
                   />
                 </Stack>
-              ))}
+                <Button
+                  type="button"
+                  variant="primary-icon-xs"
+                  icon={Plus}
+                  onClick={handleAddSubgroupField}
+                  title="Adicionar subgrupo"
+                />
+              </Stack>
+
+              <Stack gap={2.5} w="full">
+                {formSubgroups.map((subgroup, idx) => (
+                  <Stack key={idx} direction="row" align="center" gap={2.5} w="full">
+                    <Box flex="1">
+                      <Input
+                        placeholder={`Subgrupo ${idx + 1}`}
+                        value={subgroup}
+                        onChange={(e) => handleSubgroupChange(idx, e.target.value)}
+                        icon={Layers}
+                      />
+                    </Box>
+                    <Button
+                      type="button"
+                      variant="danger-icon-xs"
+                      icon={X}
+                      onClick={() => handleRemoveSubgroupField(idx)}
+                      title="Remover subgrupo"
+                    />
+                  </Stack>
+                ))}
+              </Stack>
             </Stack>
           </Stack>
-        </Stack>
-      </Box>
-    )
-  }
-
-  // LIST MODE — estilo idêntico à ClientesSection
-  return (
-    <Box position="relative" w="full">
-      <Stack gap={5} w="full">
+        </Box>
+      ) : (
         <Box position="relative" w="full">
-          {filtered.length > 0 ? (
-            <Box display="flex" direction="col" w="full">
-              {filtered.map((group, idx) => (
-                <Box key={group.id}>
-                  <Box
-                    w="full"
-                    paddingY={2.5}
-                    paddingX={2.5}
-                    radius="none"
-                    hoverBg="primary/10"
-                    cursor="pointer"
-                    onClick={() => handleEdit(group)}
-                  >
-                    <Stack direction="row" align="center" justify="between" w="full">
-                      {/* Lado Esquerdo: Ícone + Nome e Subgrupos */}
-                      <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
-                        <Icon icon={Folder} variant="circular-secondary" />
+          <Stack gap={5} w="full">
+            <Box position="relative" w="full">
+              {filtered.length > 0 ? (
+                <Box display="flex" direction="col" w="full">
+                  {filtered.map((group, idx) => (
+                    <Box key={group.id}>
+                      <Box
+                        w="full"
+                        paddingY={2.5}
+                        paddingX={2.5}
+                        radius="none"
+                        hoverBg="primary/10"
+                        cursor="pointer"
+                        onClick={() => handleEdit(group)}
+                      >
+                        <Stack direction="row" align="center" justify="between" w="full">
+                          {/* Lado Esquerdo: Ícone + Nome e Subgrupos */}
+                          <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
+                            <Icon icon={Folder} variant="circular-secondary" />
 
-                        <Stack gap={0} align="start" flex="1" minW="0">
-                          <Font variant="body" text={group.name} />
-                          <Font
-                            variant="auxiliary"
-                            color="muted"
-                            truncate={true}
-                            text={
-                              group.subgroups.length > 0
-                                ? group.subgroups.join(", ")
-                                : "Nenhum subgrupo cadastrado"
-                            }
+                            <Stack gap={0} align="start" flex="1" minW="0">
+                              <Font variant="body" text={group.name} />
+                              <Font
+                                variant="auxiliary"
+                                color="muted"
+                                truncate={true}
+                                text={
+                                  group.subgroups.length > 0
+                                    ? group.subgroups.join(", ")
+                                    : "Nenhum subgrupo cadastrado"
+                                }
+                              />
+                            </Stack>
+                          </Stack>
+
+                          {/* Ação de Deleção */}
+                          <Button
+                            type="button"
+                            variant="danger-icon-xs-confirm"
+                            confirmTitle="Excluir Grupo"
+                            confirmSubtitle="Confirmar exclusão de grupo"
+                            confirmParagraph="Tem certeza que deseja excluir este grupo?"
+                            onConfirm={() => handleDelete(group.id)}
+                            title="Excluir grupo"
                           />
                         </Stack>
-                      </Stack>
-
-                      {/* Ação de Deleção */}
-                      <Button
-                        type="button"
-                        variant="danger-icon-xs"
-                        icon={Trash2}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleDelete(group.id)
-                        }}
-                        title="Excluir grupo"
-                      />
-                    </Stack>
-                  </Box>
-                  {idx < filtered.length - 1 && (
-                    <Box borderBottom={true} borderColor="border-border" w="full" />
-                  )}
+                      </Box>
+                      {idx < filtered.length - 1 && (
+                        <Box borderBottom={true} borderColor="border-border" w="full" />
+                      )}
+                    </Box>
+                  ))}
                 </Box>
-              ))}
-            </Box>
-          ) : (
-            <EmptyState
-              icon={FolderOpen}
-              title="Nenhum grupo encontrado"
-              subtitle={
-                searchQuery
-                  ? "Tente pesquisar com outro termo."
-                  : "Cadastre seu primeiro grupo de produtos."
-              }
-            />
-          )}
+              ) : (
+                <EmptyState
+                  icon={FolderOpen}
+                  title="Nenhum grupo encontrado"
+                  subtitle={
+                    searchQuery
+                      ? "Tente pesquisar com outro termo."
+                      : "Cadastre seu primeiro grupo de produtos."
+                  }
+                />
+              )}
 
-          {/* Botão FAB fixo no canto inferior direito */}
-          <Box position="fixed" bottom={6} right={6} zIndex="50">
-            <Button
-              variant="secondary-pill-icon"
-              icon={Plus}
-              onClick={handleCreateNew}
-              title="Novo grupo"
-            />
-          </Box>
+              {/* Botão FAB fixo no canto inferior direito */}
+              <Box position="fixed" bottom={6} right={6} zIndex="50">
+                <Button
+                  variant="secondary-pill-icon"
+                  icon={Plus}
+                  onClick={handleCreateNew}
+                  title="Novo grupo"
+                />
+              </Box>
+            </Box>
+          </Stack>
         </Box>
-      </Stack>
-    </Box>
+      )}
+    </ViewTransition>
   )
 }
-

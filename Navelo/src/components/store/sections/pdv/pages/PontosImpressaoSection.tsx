@@ -263,9 +263,11 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
                             onClick={() => handleEdit(point)}
                           />
                           <Button
-                            variant="danger-icon-xs"
-                            icon={Trash2}
-                            onClick={() => handleDelete(point.id)}
+                            variant="danger-icon-xs-confirm"
+                            confirmTitle="Excluir Ponto"
+                            confirmSubtitle="Confirmar exclusão de ponto de impressão"
+                            confirmParagraph="Tem certeza que deseja excluir este ponto de impressão?"
+                            onConfirm={() => handleDelete(point.id)}
                           />
                         </Stack>
                       </Stack>

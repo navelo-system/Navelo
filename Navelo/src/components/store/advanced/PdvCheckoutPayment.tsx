@@ -369,7 +369,13 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                               <Stack direction="row" align="center" gap={2.5}>
                                 <Font variant="body-bold" text={formatPrice(p.amount)} />
                                 <Button variant="primary-icon-xs" icon={Pencil} onClick={() => startEditPayment(idx, p.amount)} />
-                                <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onRemovePayment(idx)} />
+                                <Button
+                                  variant="danger-icon-xs-confirm"
+                                  confirmTitle="Remover Pagamento"
+                                  confirmSubtitle="Confirmar remoção de pagamento"
+                                  confirmParagraph="Tem certeza que deseja remover este lançamento de pagamento?"
+                                  onConfirm={() => onRemovePayment(idx)}
+                                />
                               </Stack>
                             </Stack>
                           </Box>

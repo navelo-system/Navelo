@@ -216,9 +216,11 @@ export const ConfigurarComandasSection: React.FC<ConfigurarComandasSectionProps>
                           onClick={() => handleEditClick(comanda)}
                         />
                         <Button
-                          variant="danger-icon-xs"
-                          icon={Trash2}
-                          onClick={() => handleDeleteClick(comanda.id)}
+                          variant="danger-icon-xs-confirm"
+                          confirmTitle="Excluir Comanda"
+                          confirmSubtitle="Confirmar exclusão de comanda"
+                          confirmParagraph="Tem certeza que deseja excluir esta comanda?"
+                          onConfirm={() => handleDeleteClick(comanda.id)}
                         />
                       </Stack>
                     </TableCell>

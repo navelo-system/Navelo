@@ -17,6 +17,7 @@ import { useTenant } from "@/lib/context/TenantContext"
 import { DeliveryClientInfo } from "./DeliveryCheckoutConfirmation"
 import { ClientAddressFormModal, AddressFormData } from "./ClientAddressFormModal"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
+import { parseAddressString } from "./DeliveryClientFormScreen"
 
 export interface DeliveryClientSelectModalProps {
   isOpen: boolean
@@ -70,14 +71,16 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
         setSelectedCustomerId(initialClient.customerId)
         // eslint-disable-next-line max-depth
         if (initialClient.address && initialClient.address !== "Endereço não informado") {
+          const parsed = parseAddressString(initialClient.address)
           setAddresses([
             {
-              name: "Principal",
-              street: initialClient.address,
-              number: "",
-              neighborhood: "",
-              city: "",
-              zip: "",
+              name: parsed.name,
+              street: parsed.street,
+              number: parsed.number,
+              complement: parsed.complement,
+              neighborhood: parsed.neighborhood,
+              city: parsed.city,
+              zip: parsed.zip,
             },
           ])
         } else {
@@ -114,17 +117,36 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
 
     if (customer.addresses && customer.addresses.length > 0) {
       setAddresses(
-        customer.addresses.map((a) => ({
-          id: a.id,
-          name: a.name || "Endereço",
-          street: a.street,
-          number: a.number,
-          complement: a.complement || "",
-          neighborhood: a.neighborhood,
-          city: a.city,
-          zip: a.zipCode,
-          reference_point: a.reference_point || "",
-        }))
+        customer.addresses.map((a) => {
+          let street = a.street
+          let number = a.number
+          let complement = a.complement || ""
+          let neighborhood = a.neighborhood
+          let city = a.city
+          let zip = a.zipCode
+
+          if (a.street && (a.street.includes("(CEP:") || a.street.includes(" - "))) {
+            const p = parseAddressString(a.street)
+            street = p.street
+            number = p.number !== "S/N" ? p.number : a.number
+            complement = p.complement || complement
+            neighborhood = p.neighborhood || neighborhood
+            city = p.city || city
+            zip = p.zip || zip
+          }
+
+          return {
+            id: a.id,
+            name: a.name || "Endereço",
+            street,
+            number,
+            complement,
+            neighborhood,
+            city,
+            zip,
+            reference_point: a.reference_point || "",
+          }
+        })
       )
     } else {
       setAddresses([])
@@ -338,18 +360,20 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
                   onChange={(e) => setPhone(e.target.value)}
                 />
 
-                {/* 7. Seção Endereço com Botão Pill de Adicionar */}
+                {/* 7. Seção Endereço com Botão Pill de Adicionar (visível apenas se não houver endereço) */}
                 <Stack gap={2.5} w="full">
                   <Stack direction="row" align="center" gap={2.5}>
                     <Font variant="body-bold" text="Endereço" />
-                    <Button
-                      variant="primary-pill-icon"
-                      icon={Plus}
-                      onClick={() => {
-                        setEditingAddressIndex(null)
-                        setIsAddressModalOpen(true)
-                      }}
-                    />
+                    {addresses.length === 0 && (
+                      <Button
+                        variant="primary-pill-icon"
+                        icon={Plus}
+                        onClick={() => {
+                          setEditingAddressIndex(null)
+                          setIsAddressModalOpen(true)
+                        }}
+                      />
+                    )}
                   </Stack>
 
                   {/* Lista de endereços adicionados */}

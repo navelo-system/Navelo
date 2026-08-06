@@ -11,8 +11,9 @@ import { Button } from "@/components/store/base/Button"
 import { ProductForm, ProductFormData } from "@/components/store/advanced/ProductForm"
 import { FiscalConfigForm, FiscalConfigData } from "@/components/store/advanced/FiscalConfigForm"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
-import { Plus, Package, PackageX } from "lucide-react"
+import { Plus, Package, PackageX, Check } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
+import { ViewTransition } from "@/components/store/base/ViewTransition"
 
 interface ProductItem extends ProductFormData {
   id: string
@@ -67,6 +68,7 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
         producaoPropria: p.producao_propria,
         ingredients: p.ingredients,
         preparationMode: p.preparation_mode,
+        image: p.image_url || (p as unknown as Record<string, string>).image || "",
         exTipi: (p.fiscal_data?.exTipi as string) || "",
         icmsDefault: (p.fiscal_data?.icmsDefault as boolean) ?? true,
         icmsCsosn: (p.fiscal_data?.icmsCsosn as string) || "500",
@@ -115,7 +117,15 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
     if (mode === "form") {
       setCustomBack?.(() => () => setMode("list"))
       setCustomTitle?.(editingProduct ? "Editar Produto" : "Novo Produto")
-      setCustomActions?.(null)
+      setCustomActions?.(
+        <Button
+          type="submit"
+          form="product-form"
+          variant="primary-pill-icon"
+          icon={Check}
+          title="Salvar produto"
+        />
+      )
     } else if (mode === "fiscal-config") {
       setCustomBack?.(() => () => setMode("form"))
       setCustomTitle?.("Configuração Fiscal Padrão")
@@ -176,6 +186,8 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
       preparation_mode: data.preparationMode || "",
       barcodes: data.barcodes || [],
       print_point: data.printPoint || "",
+      image_url: data.image || "",
+      image: data.image || "",
       fiscal_data: {
         exTipi: data.exTipi,
         icmsDefault: data.icmsDefault,
@@ -214,7 +226,8 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
 
   return (
     <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
-    <Stack gap={5} w="full">
+      <ViewTransition viewKey={mode} flex="1" minH="0">
+        <Stack gap={5} w="full">
       {mode === "list" && (
         /* ================= LISTAGEM DE PRODUTOS (MINIMALISTA) ================= */
         <Box position="relative" w="full">
@@ -242,10 +255,22 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
                           border={true}
                           radius="default"
                           shrink="0"
+                          overflow="hidden"
                         >
-                          <Stack w="full" h="full" align="center" justify="center">
-                            <Icon icon={Package} size={20} color="muted" />
-                          </Stack>
+                          {prod.image ? (
+                            <Box
+                              as="img"
+                              src={prod.image}
+                              alt={prod.name}
+                              w="full"
+                              h="full"
+                              objectFit="cover"
+                            />
+                          ) : (
+                            <Stack w="full" h="full" align="center" justify="center">
+                              <Icon icon={Package} size={20} color="muted" />
+                            </Stack>
+                          )}
                         </Box>
 
                         <Stack gap={1} align="start" flex="1" minW="0">
@@ -305,30 +330,27 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
 
       {mode === "form" && (
         /* ================= FORMULÁRIO DE PRODUTO ================= */
-        <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
-          <ProductForm
-            initialData={editingProduct}
-            onCancel={() => setMode("list")}
-            onSave={handleSave}
-            onAccessFiscalConfig={() => setMode("fiscal-config")}
-          />
-        </Box>
+        <ProductForm
+          initialData={editingProduct}
+          onCancel={() => setMode("list")}
+          onSave={handleSave}
+          onAccessFiscalConfig={() => setMode("fiscal-config")}
+        />
       )}
 
       {mode === "fiscal-config" && (
         /* ================= CONFIGURAÇÃO FISCAL PADRÃO ================= */
-        <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
-          <FiscalConfigForm
-            initialData={defaultFiscalConfig}
-            onCancel={() => setMode("form")}
-            onSave={(data) => {
-              setDefaultFiscalConfig(data)
-              setMode("form")
-            }}
-          />
-        </Box>
+        <FiscalConfigForm
+          initialData={defaultFiscalConfig}
+          onCancel={() => setMode("form")}
+          onSave={(data) => {
+            setDefaultFiscalConfig(data)
+            setMode("form")
+          }}
+        />
       )}
-    </Stack>
+        </Stack>
+      </ViewTransition>
     </Box>
   )
 }

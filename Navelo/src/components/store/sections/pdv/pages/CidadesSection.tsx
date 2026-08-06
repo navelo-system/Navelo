@@ -191,9 +191,11 @@ export const CidadesSection: React.FC<CidadesSectionProps> = ({
                           onClick={() => handleEdit(city)}
                         />
                         <Button
-                          variant="danger-icon-xs"
-                          icon={Trash2}
-                          onClick={() => handleDelete(city.id)}
+                          variant="danger-icon-xs-confirm"
+                          confirmTitle="Excluir Cidade"
+                          confirmSubtitle="Confirmar exclusão de cadastro"
+                          confirmParagraph="Tem certeza que deseja excluir esta cidade cadastrada?"
+                          onConfirm={() => handleDelete(city.id)}
                         />
                       </Stack>
                     </Stack>

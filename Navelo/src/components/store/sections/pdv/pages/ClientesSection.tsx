@@ -14,6 +14,7 @@ import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogTo
 import { useCustomers, Customer } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
 import { DeliveryClientFormScreen } from "@/components/store/advanced/DeliveryClientFormScreen"
+import { ViewTransition } from "@/components/store/base/ViewTransition"
 
 interface ClientesSectionProps {
   onBackToDashboard?: () => void
@@ -24,6 +25,7 @@ interface ClientesSectionProps {
 }
 
 export const ClientesSection: React.FC<ClientesSectionProps> = ({
+  onBackToDashboard,
   setCustomBack,
   setCustomTitle,
   setCustomActions,
@@ -36,7 +38,18 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
   const dbCustomers = useCustomers(tenantId)
   const clients = React.useMemo(() => Array.isArray(dbCustomers) ? dbCustomers : [], [dbCustomers])
 
-  const [mode, setMode] = React.useState<"list" | "form">("list")
+  const [modeHistory, setModeHistory] = React.useState<("list" | "form")[]>(["list"])
+  const mode = modeHistory[modeHistory.length - 1] || "list"
+
+  const pushMode = React.useCallback((newMode: "list" | "form") => {
+    setModeHistory((prev) => [...prev, newMode])
+  }, [])
+
+  const popMode = React.useCallback(() => {
+    setEditingClient(null)
+    setModeHistory((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev))
+  }, [])
+
   const [editingClient, setEditingClient] = React.useState<Customer | null>(null)
   const [searchQuery, setSearchQuery] = React.useState("")
 
@@ -64,7 +77,9 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
   React.useEffect(() => {
     if (mode === "list") {
       setCustomTitle?.("Clientes")
-      if (onBack) {
+      if (modeHistory.length > 1) {
+        setCustomBack?.(() => popMode)
+      } else if (onBack) {
         setCustomBack?.(() => () => onBack())
       } else {
         setCustomBack?.(null)
@@ -77,16 +92,16 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
         />
       )
     }
-  }, [mode, searchQuery, setCustomBack, setCustomTitle, setCustomActions, onBack])
+  }, [mode, searchQuery, modeHistory.length, popMode, setCustomBack, setCustomTitle, setCustomActions, onBack])
 
   const handleEdit = (client: Customer) => {
     setEditingClient(client)
-    setMode("form")
+    pushMode("form")
   }
 
   const handleCreateNew = () => {
     setEditingClient(null)
-    setMode("form")
+    pushMode("form")
   }
 
   const filteredClients = React.useMemo(() => {
@@ -100,33 +115,25 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
     )
   }, [clients, searchQuery])
 
-  if (mode === "form") {
-    return (
-      <DeliveryClientFormScreen
-        onBack={() => {
-          setEditingClient(null)
-          setMode("list")
-        }}
-        onSelectClient={() => {
-          setEditingClient(null)
-          setMode("list")
-        }}
-        initialCustomer={editingClient}
-        title={editingClient ? "Editar Cliente" : "Novo Cliente"}
-        showSkip={false}
-        showSaveSwitch={false}
-        showSearchInHeader={false}
-        setCustomTitle={setCustomTitle}
-        setCustomActions={setCustomActions}
-        setCustomBack={setCustomBack}
-      />
-    )
-  }
-
   return (
-    <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
-      <Stack gap={5} w="full">
-        <Box position="relative" w="full">
+    <ViewTransition viewKey={mode} flex="1" minH="0">
+      {mode === "form" ? (
+        <DeliveryClientFormScreen
+          onBack={popMode}
+          onSelectClient={popMode}
+          initialCustomer={editingClient}
+          title={editingClient ? "Editar Cliente" : "Novo Cliente"}
+          showSkip={false}
+          showSaveSwitch={false}
+          showSearchInHeader={false}
+          setCustomTitle={setCustomTitle}
+          setCustomActions={setCustomActions}
+          setCustomBack={setCustomBack}
+        />
+      ) : (
+        <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
+          <Stack gap={5} w="full">
+            <Box position="relative" w="full">
           {filteredClients.length > 0 ? (
             <Box display="flex" direction="col" w="full">
               {filteredClients.map((client, idx) => (
@@ -185,5 +192,7 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
         </Box>
       </Stack>
     </Box>
+      )}
+    </ViewTransition>
   )
 }

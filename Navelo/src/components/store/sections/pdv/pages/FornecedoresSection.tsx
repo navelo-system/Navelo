@@ -249,9 +249,11 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
                           onClick={() => handleEdit(supplier)}
                         />
                         <Button
-                          variant="danger-icon-xs"
-                          icon={Trash2}
-                          onClick={() => handleDelete(supplier.id)}
+                          variant="danger-icon-xs-confirm"
+                          confirmTitle="Excluir Fornecedor"
+                          confirmSubtitle="Confirmar exclusão de fornecedor"
+                          confirmParagraph="Tem certeza que deseja excluir este fornecedor?"
+                          onConfirm={() => handleDelete(supplier.id)}
                         />
                       </Stack>
                     </Stack>

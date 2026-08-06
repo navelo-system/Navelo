@@ -248,9 +248,11 @@ export const TaxaServicoSection: React.FC<TaxaServicoSectionProps> = ({
                           onClick={() => handleEditClick(fee)}
                         />
                         <Button
-                          variant="danger-icon-xs"
-                          icon={Trash2}
-                          onClick={() => handleDeleteClick(fee.id)}
+                          variant="danger-icon-xs-confirm"
+                          confirmTitle="Excluir Taxa de Serviço"
+                          confirmSubtitle="Confirmar exclusão de taxa"
+                          confirmParagraph="Tem certeza que deseja excluir esta taxa de serviço?"
+                          onConfirm={() => handleDeleteClick(fee.id)}
                         />
                       </Stack>
                     </TableCell>

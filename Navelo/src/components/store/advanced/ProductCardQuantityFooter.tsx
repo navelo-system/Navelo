@@ -77,7 +77,13 @@ export function ProductCardQuantityFooter({
     >
       <Stack direction="row" align="center" justify="center" gap={2.5} w="full">
         {displayQuantity === 1 ? (
-          <Button variant="danger-icon-xs" icon={Trash2} onClick={(e) => { e.stopPropagation(); onRemove?.(); }} />
+          <Button
+            variant="danger-icon-xs-confirm"
+            confirmTitle="Remover Item"
+            confirmSubtitle="Confirmar remoção de item"
+            confirmParagraph="Deseja remover este produto do carrinho?"
+            onConfirm={() => onRemove?.()}
+          />
         ) : (
           <Button variant="primary-icon-xs" icon={Minus} onClick={(e) => { e.stopPropagation(); onDecrease?.(); }} />
         )}

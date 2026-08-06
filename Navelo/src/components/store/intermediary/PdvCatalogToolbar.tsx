@@ -68,6 +68,15 @@ export const MobileHeaderSearch: React.FC<MobileHeaderSearchProps> = ({
     return () => clearTimeout(timer)
   }, [isSearchOpen])
 
+  const prevQueryRef = React.useRef(searchQuery)
+
+  React.useEffect(() => {
+    if (prevQueryRef.current.trim().length > 0 && !searchQuery.trim() && isSearchOpen) {
+      closeSearch()
+    }
+    prevQueryRef.current = searchQuery
+  }, [searchQuery, isSearchOpen])
+
   React.useEffect(() => {
     return () => {
       if (searchExitTimerRef.current) {

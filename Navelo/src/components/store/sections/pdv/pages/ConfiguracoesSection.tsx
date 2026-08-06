@@ -191,7 +191,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   setCustomActions
 }) => {
   const [currentSubView, setCurrentSubView] = React.useState<string | null>(null)
-  const [, setSubViewHistory] = React.useState<string[]>([])
+  const [subViewHistory, setSubViewHistory] = React.useState<string[]>([])
 
   const scrollPositions = React.useRef<Record<string, number>>({})
 
@@ -952,9 +952,14 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
     )
   }
 
+  const stackViewKey = React.useMemo(
+    () => [...subViewHistory, currentSubView || "root"].join("/"),
+    [subViewHistory, currentSubView]
+  )
+
   return (
     <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
-      <ViewTransition viewKey={currentSubView ?? "root"} flex="1" minH="0">
+      <ViewTransition viewKey={stackViewKey} flex="1" minH="0">
         {renderCurrentView()}
       </ViewTransition>
     </Box>
