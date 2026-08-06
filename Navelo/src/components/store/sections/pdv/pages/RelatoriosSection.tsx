@@ -448,128 +448,130 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
   )
 
   return (
-    <Stack gap={5} w="full" flex="1" minH="0" h="full">
-      {mode === "list" ? (
-        /* ================= LISTA DE CATEGORIAS E RELATÓRIOS ================= */
-        <Stack gap={5} w="full">
-          {categories.map((cat) => {
-            const filteredReports = REPORTS_LIST.filter((r) => r.category === cat)
-            if (filteredReports.length === 0) return null
+    <Box className="max-h-[calc(100vh-140px)] overflow-y-auto pr-1">
+      <Stack gap={5} w="full" flex="1" minH="0" h="full">
+        {mode === "list" ? (
+          /* ================= LISTA DE CATEGORIAS E RELATÓRIOS ================= */
+          <Stack gap={5} w="full">
+            {categories.map((cat) => {
+              const filteredReports = REPORTS_LIST.filter((r) => r.category === cat)
+              if (filteredReports.length === 0) return null
 
-            return (
-              <Box key={cat} border={true} borderColor="border-border" padding={5} bg="bg-surface" radius="default">
-                <Stack gap={2.5} w="full">
-                  <Font variant="body-semibold" text={cat} />
-                  <Box direction="col" w="full" border={true} borderColor="border-border" radius="lg" overflow="hidden" bg="bg-surface">
-                    {filteredReports.map((rep) => (
-                      <Box
-                        key={rep.id}
-                        padding={5}
-                        cursor="pointer"
-                        hoverBg="primary/10"
-                        onClick={() => handleSelectReport(rep.id)}
-                      >
-                        <Stack direction="row" align="center" justify="between" w="full">
-                          <Stack gap={1}>
-                            <Font variant="body-bold" text={rep.title} />
-                            {rep.subtitle && (
-                              <Font variant="description" text={rep.subtitle} />
-                            )}
+              return (
+                <Box key={cat} border={true} borderColor="border-border" padding={5} bg="bg-surface" radius="default">
+                  <Stack gap={2.5} w="full">
+                    <Font variant="body-semibold" text={cat} />
+                    <Box direction="col" w="full" border={true} borderColor="border-border" radius="lg" overflow="hidden" bg="bg-surface">
+                      {filteredReports.map((rep) => (
+                        <Box
+                          key={rep.id}
+                          padding={5}
+                          cursor="pointer"
+                          hoverBg="primary/10"
+                          onClick={() => handleSelectReport(rep.id)}
+                        >
+                          <Stack direction="row" align="center" justify="between" w="full">
+                            <Stack gap={1}>
+                              <Font variant="body-bold" text={rep.title} />
+                              {rep.subtitle && (
+                                <Font variant="description" text={rep.subtitle} />
+                              )}
+                            </Stack>
+                            <Icon icon={ChevronRight} size={18} color="muted" />
                           </Stack>
-                          <Icon icon={ChevronRight} size={18} color="muted" />
-                        </Stack>
-                      </Box>
-                    ))}
-                  </Box>
-                </Stack>
-              </Box>
-            )
-          })}
-        </Stack>
-      ) : (
-        /* ================= VISUALIZAÇÃO DE RELATÓRIO E FILTROS ================= */
-        <Stack direction="col" gap={5} w="full" flex="1" minH="0" h="full" overflow="hidden">
-          <Box shrink="0" w="full">
-            <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
-              <Stack gap={1} flex="1" minW="0">
-                <Font variant="h3" text={reportDetails?.title || "Relatório"} align="left" />
-                <Font variant="description" text={reportDetails?.description || ""} align="left" />
-              </Stack>
-              <Box shrink="0">
-                <Button variant="secondary" label="Exportar CSV" icon={Download} onClick={() => {}} />
-              </Box>
-            </Stack>
-          </Box>
-          <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" minH="0" overflow="hidden">
-            <Box flex="1" w="full" h="full" minH="0" overflow="x-hidden y-auto">
-              {reportDetails && (
-                <Stack gap={5} w="full">
-                  {reportDetails.kpis.length > 0 && (
-                    <Grid cols={reportDetails.kpis.length as 1 | 2 | 3 | 4 | 5 | 6 | 12} gap={5}>
-                      {reportDetails.kpis.map((kpi, idx) => (
-                        <KpiCard key={idx} title={kpi.title} value={kpi.value} subtitle={kpi.subtitle} />
+                        </Box>
                       ))}
-                    </Grid>
-                  )}
-                  {selectedReport === "xml-export" ? (
-                    <Box border={true} borderColor="border-border" padding={5} bg="bg-surface" radius="default" w="full">
-                      <Stack align="center" justify="center" gap={5} w="full">
-                        <Icon icon={FileSpreadsheet} size={48} color="primary" />
-                        <Stack align="center" gap={1} maxWidth="5xl">
-                          <Font variant="h3" text="Exportação de Lote XML" align="center" />
-                          <Font variant="description" text="O download conterá todos os arquivos XML gerados conforme os parâmetros informados no painel de filtros." align="center" />
-                        </Stack>
-                        <Button variant="primary" label="Gerar e Baixar Lote (ZIP)" icon={Download} onClick={() => {}} />
-                      </Stack>
                     </Box>
-                  ) : (
-                    reportDetails.headers.length > 0 && (
-                      <Box radius="default" bg="bg-surface" overflow="auto" w="full">
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              {reportDetails.headers.map((h, i) => (
-                                <TableHead key={i} text={h} />
-                              ))}
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {reportDetails.rows.map((row, rIdx) => (
-                              <TableRow key={rIdx}>
-                                {row.map((cell, cIdx) => {
-                                  const isStatus = cell === "Concluída" || cell === "Pendente" || cell === "Atrasado"
-                                  return (
-                                    <TableCell key={cIdx}>
-                                      {isStatus ? (
-                                        <Badge
-                                          variant={cell === "Concluída" ? "success" : cell === "Atrasado" ? "danger" : "default"}
-                                          label={cell}
-                                        />
-                                      ) : (
-                                        cell
-                                      )}
-                                    </TableCell>
-                                  )
-                                })}
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </Box>
-                    )
-                  )}
-                </Stack>
-              )}
-            </Box>
-            <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
-              {renderFilterPanel(false)}
-            </Box>
-            <Modal isOpen={isFilterDrawerOpen} onClose={() => setIsFilterDrawerOpen(false)} title="Filtros" variant="sidebar">
-              {renderFilterPanel(true)}
-            </Modal>
+                  </Stack>
+                </Box>
+              )
+            })}
           </Stack>
-        </Stack>
-      )}
-    </Stack>
+        ) : (
+          /* ================= VISUALIZAÇÃO DE RELATÓRIO E FILTROS ================= */
+          <Stack direction="col" gap={5} w="full" flex="1" minH="0" h="full" overflow="hidden">
+            <Box shrink="0" w="full">
+              <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
+                <Stack gap={1} flex="1" minW="0">
+                  <Font variant="h3" text={reportDetails?.title || "Relatório"} align="left" />
+                  <Font variant="description" text={reportDetails?.description || ""} align="left" />
+                </Stack>
+                <Box shrink="0">
+                  <Button variant="secondary" label="Exportar CSV" icon={Download} onClick={() => {}} />
+                </Box>
+              </Stack>
+            </Box>
+            <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" minH="0" overflow="hidden">
+              <Box flex="1" w="full" h="full" minH="0" overflow="x-hidden y-auto">
+                {reportDetails && (
+                  <Stack gap={5} w="full">
+                    {reportDetails.kpis.length > 0 && (
+                      <Grid cols={reportDetails.kpis.length as 1 | 2 | 3 | 4 | 5 | 6 | 12} gap={5}>
+                        {reportDetails.kpis.map((kpi, idx) => (
+                          <KpiCard key={idx} title={kpi.title} value={kpi.value} subtitle={kpi.subtitle} />
+                        ))}
+                      </Grid>
+                    )}
+                    {selectedReport === "xml-export" ? (
+                      <Box border={true} borderColor="border-border" padding={5} bg="bg-surface" radius="default" w="full">
+                        <Stack align="center" justify="center" gap={5} w="full">
+                          <Icon icon={FileSpreadsheet} size={48} color="primary" />
+                          <Stack align="center" gap={1} maxWidth="5xl">
+                            <Font variant="h3" text="Exportação de Lote XML" align="center" />
+                            <Font variant="description" text="O download conterá todos os arquivos XML gerados conforme os parâmetros informados no painel de filtros." align="center" />
+                          </Stack>
+                          <Button variant="primary" label="Gerar e Baixar Lote (ZIP)" icon={Download} onClick={() => {}} />
+                        </Stack>
+                      </Box>
+                    ) : (
+                      reportDetails.headers.length > 0 && (
+                        <Box radius="default" bg="bg-surface" overflow="auto" w="full">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                {reportDetails.headers.map((h, i) => (
+                                  <TableHead key={i} text={h} />
+                                ))}
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {reportDetails.rows.map((row, rIdx) => (
+                                <TableRow key={rIdx}>
+                                  {row.map((cell, cIdx) => {
+                                    const isStatus = cell === "Concluída" || cell === "Pendente" || cell === "Atrasado"
+                                    return (
+                                      <TableCell key={cIdx}>
+                                        {isStatus ? (
+                                          <Badge
+                                            variant={cell === "Concluída" ? "success" : cell === "Atrasado" ? "danger" : "default"}
+                                            label={cell}
+                                          />
+                                        ) : (
+                                          cell
+                                        )}
+                                      </TableCell>
+                                    )
+                                  })}
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </Box>
+                      )
+                    )}
+                  </Stack>
+                )}
+              </Box>
+              <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
+                {renderFilterPanel(false)}
+              </Box>
+              <Modal isOpen={isFilterDrawerOpen} onClose={() => setIsFilterDrawerOpen(false)} title="Filtros" variant="sidebar">
+                {renderFilterPanel(true)}
+              </Modal>
+            </Stack>
+          </Stack>
+        )}
+      </Stack>
+    </Box>
   )
 }

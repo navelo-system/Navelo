@@ -27,6 +27,8 @@ import { ContasAReceberSection } from "@/components/store/sections/pdv/pages/Con
 import { PdvObservacaoModal } from "@/components/store/sections/pdv/modals/PdvObservacaoModal"
 import { PdvSangriaModal } from "@/components/store/sections/pdv/modals/PdvSangriaModal"
 
+import { DeliveryClientInfo, DeliveryCheckoutConfirmation, DeliveryType, PaymentMoment } from "@/components/store/advanced/DeliveryCheckoutConfirmation"
+
 // Interface dos itens do carrinho
 export interface CartItemType {
   id: string
@@ -36,6 +38,23 @@ export interface CartItemType {
   image?: string
 }
 
+export interface DeliveryOrderPayload {
+  client: DeliveryClientInfo
+  status: string
+  deliveryType: DeliveryType
+  paymentMoment: PaymentMoment
+  items: CartItemType[]
+  total: number
+  subtotal: number
+  discount: number
+}
+
+export interface DeliveryContextData {
+  client: DeliveryClientInfo
+  onConfirmDelivery: (orderData: DeliveryOrderPayload) => void
+  onAlterClient?: () => void
+}
+
 interface PdvSectionProps {
   onBackToDashboard: () => void
   activeComandaId?: string | null
@@ -43,20 +62,11 @@ interface PdvSectionProps {
   setCustomBack?: (cb: (() => void) | null) => void
   setCustomActions?: (actions: React.ReactNode | null) => void
   setCustomTitle?: (title: string | null) => void
+  deliveryContext?: DeliveryContextData | null
 }
 
-const MOCK_PRODUCTS = [
-  { id: "1", name: "Água mineral sem gás", category: "Bebidas", unitPrice: 4.50, unit: "UN", stock: 15, barcode: "7891000100103", image: "https://images.unsplash.com/photo-1560011961-4ab41261de01?w=200&auto=format&fit=crop" },
-  { id: "2", name: "Água com gás", category: "Bebidas", unitPrice: 6.00, unit: "UN", stock: 2, barcode: "7894900011517", image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200&auto=format&fit=crop" },
-  { id: "3", name: "Refrigerante lata", category: "Bebidas", unitPrice: 6.50, unit: "UN", stock: -3, barcode: "7891293901017", image: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200&auto=format&fit=crop" },
-  { id: "4", name: "Cerveja artesanal", category: "Bebidas", unitPrice: 12.00, unit: "UN", stock: 0, barcode: "7891234567890", image: "https://images.unsplash.com/photo-1608270586620-248524c67de9?w=200&auto=format&fit=crop" },
-  { id: "5", name: "Hambúrguer clássico", category: "Lanches", unitPrice: 28.90, unit: "UN", stock: 10, barcode: "7892345678901" },
-  { id: "6", name: "Batata frita grande", category: "Acompanhamentos", unitPrice: 15.00, unit: "UN", stock: 20, barcode: "7893456789012" },
-  { id: "7", name: "Pizza brotinho", category: "Lanches", unitPrice: 22.00, unit: "UN", stock: 5, barcode: "7894567890123" },
-  { id: "8", name: "Suco natural laranja", category: "Bebidas", unitPrice: 9.00, unit: "UN", stock: 8, barcode: "7895678901234" }
-]
-
-const CATEGORIES = ["Todos", "Bebidas", "Lanches", "Acompanhamentos"]
+import { useProducts } from "@/lib/dal"
+import { useTenant } from "@/lib/context/TenantContext"
 
 export const PdvSection: React.FC<PdvSectionProps> = ({
   onBackToDashboard,
@@ -65,8 +75,40 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   setCustomBack,
   setCustomActions,
   setCustomTitle,
+  deliveryContext,
 }) => {
-  const [step, setStep] = React.useState<"negociacao" | "pagamento" | "recibo">("negociacao")
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id
+
+  // Produtos vindos do banco local IndexedDB (Dexie)
+  const dbProducts = useProducts(tenantId)
+
+  // Produtos do catálogo alimentados via IndexedDB
+  const catalogProducts: MockProduct[] = React.useMemo(() => {
+    if (dbProducts && dbProducts.length > 0) {
+      return dbProducts.map((p, idx) => ({
+        id: p.id,
+        name: p.name,
+        category: p.category_id || "Geral",
+        unitPrice: p.price || 0,
+        unit: "UN",
+        stock: p.stock ?? 0,
+        barcode: p.barcodes?.[0] || p.barcode || `78900000000${idx}`,
+        image: p.image_url || ""
+      }))
+    }
+    return []
+  }, [dbProducts])
+
+  const categories = React.useMemo(() => {
+    const set = new Set<string>()
+    catalogProducts.forEach((p) => {
+      if (p.category) set.add(p.category)
+    })
+    return ["Todos", ...Array.from(set)]
+  }, [catalogProducts])
+
+  const [step, setStep] = React.useState<"negociacao" | "pagamento" | "recibo" | "delivery-confirm">("negociacao")
   const [subView, setSubView] = React.useState<"none" | "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos">("none")
   const [cartItems, setCartItems] = React.useState<CartItemType[]>([])
   const [activeCategory, setActiveCategory] = React.useState("Todos")
@@ -96,6 +138,14 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   const totalPaid = payments.reduce((acc, p) => acc + p.amount, 0)
   const amountDue = Math.max(0, total - totalPaid)
 
+  const handleGoToPayment = () => {
+    if (deliveryContext) {
+      setStep("delivery-confirm")
+    } else {
+      setStep("pagamento")
+    }
+  }
+
   // Ref estável para onBackToDashboard — evita que referência instável cause loop infinito no useEffect
   const onBackToDashboardRef = React.useRef(onBackToDashboard)
   React.useEffect(() => {
@@ -117,7 +167,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
           setIsExitConfirmOpen(true)
         }
       })
-    } else if (step === "pagamento") {
+    } else if (step === "pagamento" || step === "delivery-confirm") {
       setCustomBack?.(() => () => setStep("negociacao"))
     } else if (step === "recibo") {
       setCustomBack?.(() => () => setStep("pagamento"))
@@ -198,7 +248,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   }
 
   const handleBarcodeScanned = (code: string) => {
-    const product = MOCK_PRODUCTS.find(
+    const product = catalogProducts.find(
       (prod) => prod.barcode === code || prod.id === code
     )
     if (product) {
@@ -207,7 +257,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   }
 
   // Filtragem
-  const filteredProducts = MOCK_PRODUCTS.filter((prod) => {
+  const filteredProducts = catalogProducts.filter((prod) => {
     const matchesCategory = activeCategory === "Todos" || prod.category.toLowerCase() === activeCategory.toLowerCase()
     const matchesSearch = prod.name.toLowerCase().includes(searchQuery.toLowerCase())
     return matchesCategory && matchesSearch
@@ -360,7 +410,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
                     onActiveCategoryChange={setActiveCategory}
                     filteredProducts={filteredProducts}
                     onAddProduct={handleAddProduct}
-                    categories={CATEGORIES}
+                    categories={categories}
                     viewMode={viewMode}
                     cartItems={cartItems}
                     onIncrease={handleIncrease}
@@ -382,12 +432,27 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
                   onIncrease={handleIncrease}
                   onDecrease={handleDecrease}
                   onRemove={handleRemove}
-                  onGoToPayment={() => setStep("pagamento")}
+                  onGoToPayment={handleGoToPayment}
                   onSaveComanda={activeComandaId ? onBackToDashboard : undefined}
                 />
               </Box>
             </Stack>
           </Stack>
+        ) : step === "delivery-confirm" && deliveryContext ? (
+          <DeliveryCheckoutConfirmation
+            client={deliveryContext.client}
+            onAlterClient={deliveryContext.onAlterClient}
+            onCancel={() => setStep("negociacao")}
+            onConfirmOrder={(data) => {
+              deliveryContext.onConfirmDelivery({
+                ...data,
+                items: cartItems,
+                total,
+                subtotal,
+                discount,
+              })
+            }}
+          />
         ) : (
           <PdvCheckoutPayment
             cartItems={cartItems}
@@ -432,7 +497,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
                 fullWidth
                 label="F9 - Pagamento"
                 disabled={cartItems.length === 0}
-                onClick={() => setStep("pagamento")}
+                onClick={handleGoToPayment}
               />
               {activeComandaId && (
                 <Button
@@ -457,7 +522,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         onIncrease={handleIncrease}
         onDecrease={handleDecrease}
         onRemove={handleRemove}
-        onGoToPayment={() => setStep("pagamento")}
+        onGoToPayment={handleGoToPayment}
         onSaveComanda={activeComandaId ? onBackToDashboard : undefined}
       />
 

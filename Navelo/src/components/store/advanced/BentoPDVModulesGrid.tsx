@@ -5,6 +5,7 @@ import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Icon } from "@/components/store/base/Icon"
 import { Font } from "@/components/store/base/Font"
+import { ROLE_ALLOWED_VIEWS } from "@/lib/permissions"
 import {
   ShoppingBag,
   Receipt,
@@ -18,19 +19,23 @@ import {
 
 export interface BentoPDVModulesGridProps {
   onNavigate: (view: string) => void
+  userRole?: string
 }
 
-export const BentoPDVModulesGrid: React.FC<BentoPDVModulesGridProps> = ({ onNavigate }) => {
-  const modules = [
-    { id: "caixa", title: "Caixa", icon: ShoppingBag },
-    { id: "comandas", title: "Comandas", icon: Receipt },
-    { id: "delivery", title: "Delivery", icon: Bike },
-    { id: "estoque", title: "Estoque", icon: Package },
-    { id: "produtos", title: "Produtos", icon: Layers },
-    { id: "clientes", title: "Clientes", icon: Users },
-    { id: "relatorios", title: "Relatórios", icon: BarChart3 },
-    { id: "configuracoes", title: "Config", icon: Settings },
-  ]
+const ALL_MODULES = [
+  { id: "caixa", title: "Caixa", icon: ShoppingBag },
+  { id: "comandas", title: "Comandas", icon: Receipt },
+  { id: "delivery", title: "Delivery", icon: Bike },
+  { id: "estoque", title: "Estoque", icon: Package },
+  { id: "produtos", title: "Produtos", icon: Layers },
+  { id: "clientes", title: "Clientes", icon: Users },
+  { id: "relatorios", title: "Relatórios", icon: BarChart3 },
+  { id: "configuracoes", title: "Config", icon: Settings },
+]
+
+export const BentoPDVModulesGrid: React.FC<BentoPDVModulesGridProps> = ({ onNavigate, userRole }) => {
+  const allowedViews = userRole ? (ROLE_ALLOWED_VIEWS[userRole] || []) : ALL_MODULES.map(m => m.id)
+  const modules = ALL_MODULES.filter(m => allowedViews.includes(m.id))
 
   return (
     <Stack direction="row" wrap={true} gap={5} justify="center" align="start" w="full">
@@ -41,6 +46,7 @@ export const BentoPDVModulesGrid: React.FC<BentoPDVModulesGridProps> = ({ onNavi
             bg="bg-white"
             radius="lg"
             cursor="pointer"
+            hoverBg="secondary/10"
             interactive
             display="flex"
             w="w-16 md:w-20"
@@ -57,3 +63,4 @@ export const BentoPDVModulesGrid: React.FC<BentoPDVModulesGridProps> = ({ onNavi
     </Stack>
   )
 }
+

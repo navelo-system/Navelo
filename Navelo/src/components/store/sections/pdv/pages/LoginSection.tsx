@@ -8,20 +8,123 @@ import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { RegistrySection } from "@/components/store/advanced/RegistrySection"
-import { User, Lock } from "lucide-react"
+import { User as UserIcon, Lock, Building, ShieldCheck, Tv } from "lucide-react"
+import { useTenant } from "@/lib/context/TenantContext"
+import { useOperators, db } from "@/lib/dal"
+import { UserRole, User, Tenant } from "@/types/domain"
+import { ROLE_CAN_LOGIN } from "@/lib/permissions"
 
 interface LoginSectionProps {
   onLoginSuccess: (operatorName: string) => void
+  onSwitchTenant?: () => void
 }
 
-export const LoginSection: React.FC<LoginSectionProps> = ({ onLoginSuccess }) => {
+const DEFAULT_OPERATORS = [
+  { name: "Administrador", role: "ADMIN", password: "123456789" }
+]
+
+export const LoginSection: React.FC<LoginSectionProps> = ({ onLoginSuccess, onSwitchTenant }) => {
+  const tenantCtx = useTenant()
+  const activeTenant = tenantCtx?.currentTenant
+  const tenantId = activeTenant?.id || "demo-tenant"
+
+  // Busca os operadores cadastrados no banco local IndexedDB
+  const dbOperators = useOperators(tenantId)
+
   const [selectedUser, setSelectedUser] = React.useState("Administrador")
   const [password, setPassword] = React.useState("")
+  const [errorMsg, setErrorMsg] = React.useState("")
   const [message, setMessage] = React.useState("")
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Garante o tema do Tenant desbloqueado nesta tela
+  React.useEffect(() => {
+    if (tenantCtx && activeTenant) {
+      tenantCtx.switchThemeMode("tenant")
+    }
+  }, [tenantCtx, activeTenant])
+
+  // Provisiona o Administrador padrão apenas se a empresa não tiver nenhum usuário cadastrado no IndexedDB
+  React.useEffect(() => {
+    async function seedOperators() {
+      if (!tenantId) return
+      try {
+        const count = await db.users.where("company_id").equals(tenantId).or("tenant_id").equals(tenantId).count()
+        if (count === 0) {
+          await db.users.put({
+            id: `user-admin-${tenantId}`,
+            company_id: tenantId,
+            tenant_id: tenantId,
+            name: "Administrador",
+            email: `admin@${tenantId}.app`,
+            role: "ADMIN",
+            password: "123456789",
+            active: true
+          })
+        }
+      } catch (err) {
+        console.error("Erro ao inicializar administrador local:", err)
+      }
+    }
+    seedOperators()
+  }, [tenantId])
+
+  // Lista de operadores disponíveis no seletor
+  const operatorOptions = React.useMemo(() => {
+    const rawList = (dbOperators && dbOperators.length > 0)
+      ? dbOperators.map((u) => ({
+          id: u.id,
+          name: u.name,
+          role: u.role,
+          password: u.password
+        }))
+      : DEFAULT_OPERATORS.map((u, i) => ({
+          id: `def-${i}`,
+          name: u.name,
+          role: u.role,
+          password: u.password
+        }))
+    // Filtra perfis que não podem logar (ex: SUPERVISOR)
+    return rawList.filter((u) => ROLE_CAN_LOGIN[u.role] !== false)
+  }, [dbOperators])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    onLoginSuccess(selectedUser)
+    setErrorMsg("")
+    setMessage("")
+
+    const currentOp = operatorOptions.find((o) => o.name === selectedUser) || operatorOptions[0]
+    const expectedPassword = currentOp?.password || "123456789"
+
+    // Validação estrita da senha do operador
+    if (password !== expectedPassword) {
+      setErrorMsg("Senha do operador incorreta. Digite '123456789'.")
+      return
+    }
+
+    const tenantToUse: Tenant = activeTenant || {
+      id: "tenant-demo-001",
+      corporateName: "Empresa Demonstração LTDA",
+      tradingName: "Navelo Store",
+      cnpj: "00.000.000/0001-91",
+      primaryColor: "#16315e",
+      secondaryColor: "#f97316",
+      isActive: true
+    }
+
+    const userToLogin: User = {
+      id: currentOp.id,
+      name: currentOp.name,
+      email: `${currentOp.name.toLowerCase().replace(/\s+/g, ".")}@navelo.app`,
+      passwordHash: currentOp.password,
+      role: (UserRole[currentOp.role as keyof typeof UserRole]) || UserRole.CASHIER,
+      tenantId: tenantToUse.id
+    }
+
+    if (tenantCtx) {
+      tenantCtx.loginTenantSession(userToLogin, tenantToUse)
+    }
+
+    onLoginSuccess(currentOp.name)
   }
 
   return (
@@ -31,40 +134,55 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ onLoginSuccess }) =>
           <Stack gap={5} w="full" align="stretch">
             <RegistrySection
               variant="card"
-              title="Olá!"
-              description="Escolha um usuário."
-              icon={User}
+              title={activeTenant?.tradingName || activeTenant?.corporateName || "Acesso de Operador"}
+              description={activeTenant?.cnpj ? `CNPJ: ${activeTenant.cnpj}` : ""}
+              icon={UserIcon}
             >
               <Box as="form" onSubmit={handleSubmit}>
                 <Stack gap={5}>
-                  {/* Selecione o Usuário */}
+                  {/* Selecione o Operador */}
                   <Stack gap={1}>
-                    <Font variant="body-sm-semibold" text="Usuário" />
+                    <Font variant="body-sm-semibold" text="Operador / Perfil" />
                     <CustomSelect
                       value={selectedUser}
-                      onChange={(val) => setSelectedUser(val)}
-                      placeholder="Selecione o usuário"
+                      onChange={(val) => {
+                        setSelectedUser(val)
+                        setErrorMsg("")
+                      }}
+                      placeholder="Selecione o operador"
                     >
-                      <CustomSelectItem value="Administrador" text="Administrador" icon={User} />
-                      <CustomSelectItem value="Caixa Principal" text="Caixa Principal" icon={User} />
-                      <CustomSelectItem value="Atendente Salão" text="Atendente Salão" icon={User} />
+                      {operatorOptions.map((op) => (
+                        <CustomSelectItem
+                          key={op.id}
+                          value={op.name}
+                          text={op.name}
+                          icon={op.role === "ADMIN" ? ShieldCheck : op.role === "TOTEM" ? Tv : UserIcon}
+                        />
+                      ))}
                     </CustomSelect>
                   </Stack>
 
-                  {/* Senha */}
+                  {/* Senha do Operador */}
                   <Stack gap={1}>
-                    <Font variant="body-sm-semibold" text="* Senha" />
+                    <Font variant="body-sm-semibold" text="* Senha do Operador" />
                     <Input
                       type="password"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => {
+                        setPassword(e.target.value)
+                        setErrorMsg("")
+                      }}
                       placeholder="••••••••"
                       icon={Lock}
                       required
                     />
                   </Stack>
 
-                  {/* Mensagem de Feedback */}
+                  {/* Mensagens de Feedback */}
+                  {errorMsg && (
+                    <Font variant="body-xs-semibold" color="danger" text={errorMsg} />
+                  )}
+
                   {message && (
                     <Font variant="body-xs-semibold" color="success" text={message} />
                   )}
@@ -76,17 +194,20 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ onLoginSuccess }) =>
                       label="Esquecer senha"
                       onClick={() => setMessage("Simulado: Instruções enviadas ao e-mail cadastrado.")}
                     />
-                    <Button
-                      variant="ghost"
-                      label="Redefinir senha"
-                      onClick={() => setMessage("Simulado: Contate o suporte para redefinir sua senha.")}
-                    />
+                    {onSwitchTenant && (
+                      <Button
+                        variant="ghost"
+                        icon={Building}
+                        label="Trocar CNPJ"
+                        onClick={onSwitchTenant}
+                      />
+                    )}
                   </Stack>
 
                   {/* Botão de Entrar */}
                   <Button
                     variant="primary"
-                    label="Entrar"
+                    label="Entrar no Caixa"
                     type="submit"
                     fullWidth
                   />

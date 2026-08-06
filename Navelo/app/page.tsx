@@ -5,6 +5,7 @@ import { Box } from "@/components/store/base/Box"
 import { RegistryMain } from "@/components/store/advanced/RegistryMain"
 import { PdvHeaderSection } from "@/components/store/advanced/PdvHeaderSection"
 import { LoginSection } from "@/components/store/sections/pdv/pages/LoginSection"
+import { AcessoEmpresaSection } from "@/components/store/sections/pdv/pages/AcessoEmpresaSection"
 import { DashboardSection } from "@/components/store/sections/pdv/pages/DashboardSection"
 import { PdvSection } from "@/components/store/sections/pdv/pages/PdvSection"
 import { ComandasSection } from "@/components/store/sections/pdv/pages/ComandasSection"
@@ -21,6 +22,10 @@ import { ContaDigitalSection } from "@/components/store/sections/pdv/pages/Conta
 import { Button } from "@/components/store/base/Button"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
 import { ThemeCustomizerModal, applyThemeColors, loadSavedTheme } from "@/components/store/sections/pdv/modals/ThemeCustomizerModal"
+import { TenantProvider, useTenant } from "@/lib/context/TenantContext"
+import { canAccessView } from "@/lib/permissions"
+import { useTabs, dal } from "@/lib/dal"
+import { TabEntity } from "@/lib/dal/db"
 import {
   ShoppingBag,
   Receipt,
@@ -48,15 +53,23 @@ const viewIconMap: Record<string, LucideIcon> = {
   configuracoes: Settings,
 }
 
-export default function Home() {
+function HomeContent() {
+  const tenantCtx = useTenant()
   const [isMounted, setIsMounted] = React.useState(false)
   const [operator, setOperator] = React.useState<string | null>(null)
 
-  const getViewFromHash = (): string => {
+  const getViewFromHash = React.useCallback((): string => {
     if (typeof window === "undefined") return "login"
     const hash = window.location.hash.replace("#", "")
-    return PDV_VIEWS.includes(hash) ? hash : "dashboard"
-  }
+    const targetView = PDV_VIEWS.includes(hash) ? hash : "dashboard"
+    if (targetView !== "dashboard" && targetView !== "login") {
+      const userRole = tenantCtx?.currentUser?.role
+      if (!canAccessView(userRole, targetView)) {
+        return "dashboard"
+      }
+    }
+    return targetView
+  }, [tenantCtx?.currentUser?.role])
 
   const [currentView, setCurrentViewState] = React.useState<string>("login")
   const [customBack, setCustomBack] = React.useState<(() => void) | null>(null)
@@ -71,22 +84,32 @@ export default function Home() {
   // Função de navegação que sincroniza estado + hash do browser e salva scroll
   const setCurrentView = React.useCallback((view: string, isBack = false) => {
     isBackNavigation.current = isBack
+
+    // Validação de permissões de acesso por perfil
+    let targetView = view
+    if (targetView !== "dashboard" && targetView !== "login" && targetView !== "acesso-empresa") {
+      const userRole = tenantCtx?.currentUser?.role
+      if (!canAccessView(userRole, targetView)) {
+        targetView = "dashboard"
+      }
+    }
+
     setCurrentViewState(prev => {
       if (typeof window !== "undefined") {
         scrollPositions.current[prev] = window.scrollY
       }
-      return view
+      return targetView
     })
     setCustomTitle(null)
     setCustomActions(null)
     setCustomBack(null)
     if (typeof window !== "undefined") {
-      const newHash = view === "login" ? "" : `#${view}`
+      const newHash = targetView === "login" ? "" : `#${targetView}`
       if (window.location.hash !== newHash) {
         window.history.pushState(null, "", newHash || window.location.pathname)
       }
     }
-  }, [])
+  }, [tenantCtx?.currentUser?.role])
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -96,25 +119,30 @@ export default function Home() {
       if (savedOperator) {
         setOperator(savedOperator)
         const hash = window.location.hash.replace("#", "")
-        setCurrentViewState(PDV_VIEWS.includes(hash) ? hash : "dashboard")
+        const rawView = PDV_VIEWS.includes(hash) ? hash : "dashboard"
+        const allowedView = (rawView !== "dashboard" && rawView !== "login" && !canAccessView(tenantCtx?.currentUser?.role, rawView))
+          ? "dashboard"
+          : rawView
+        setCurrentViewState(allowedView)
       } else {
         setCurrentViewState("login")
       }
     }, 0)
     return () => clearTimeout(timer)
-  }, [])
+  }, [tenantCtx?.currentUser?.role])
 
-  // Persiste o operador no sessionStorage ao alterar
+  // Persiste o operador no sessionStorage ao alterar (apenas logout do usuário, preservando o tenant)
   React.useEffect(() => {
     if (!isMounted) return
     if (operator) {
       sessionStorage.setItem("pdv-operator", operator)
     } else {
       sessionStorage.removeItem("pdv-operator")
+      tenantCtx.logoutUserSession()
       // Limpa a hash sem criar entrada no histórico
       window.history.replaceState(null, "", window.location.pathname)
     }
-  }, [operator, isMounted])
+  }, [operator, isMounted, tenantCtx])
 
   // Escuta o botão Voltar/Avançar do browser (popstate)
   React.useEffect(() => {
@@ -134,6 +162,7 @@ export default function Home() {
         return getViewFromHash()
       })
     }
+
     window.addEventListener("popstate", handlePopState)
     return () => window.removeEventListener("popstate", handlePopState)
   }, [isMounted])
@@ -143,7 +172,7 @@ export default function Home() {
     if (typeof window === "undefined" || !isMounted) return
     const savedScroll = isBackNavigation.current ? (scrollPositions.current[currentView] || 0) : 0
     isBackNavigation.current = false // reset for next navigation
-    
+
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         window.scrollTo({ top: savedScroll, behavior: "instant" })
@@ -151,13 +180,23 @@ export default function Home() {
     })
   }, [currentView, isMounted])
 
-  // Estado global de comandas para fluxo integrado
-  const [comandas, setComandas] = React.useState([
-    { id: "101", label: "#filipe", time: "452:42", total: 45.00 },
-    { id: "102442", label: "#maria", time: "015:30", total: 120.50 },
-    { id: "103", label: "#mesa_5", time: "124:10", total: 18.00 },
-    { id: "104", label: "#mesa_12", time: "002:15", total: 0.00 }
-  ])
+  // Comandas reativas do IndexedDB local (Dexie)
+  const tenantId = tenantCtx?.currentTenant?.id
+  const dbTabs = useTabs(tenantId)
+
+  const comandas = React.useMemo(() => {
+    if (dbTabs && dbTabs.length > 0) {
+      return dbTabs
+        .filter((t: TabEntity) => t.status === 'OPEN' || !t.status)
+        .map((t: TabEntity) => ({
+          id: t.id,
+          label: t.label || t.code || `#${t.id}`,
+          time: t.time || (t.created_at ? new Date(t.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "00:01"),
+          total: t.total || 0
+        }))
+    }
+    return []
+  }, [dbTabs])
 
   const [activeComandaId, setActiveComandaId] = React.useState<string | null>(null)
 
@@ -175,18 +214,23 @@ export default function Home() {
     setCurrentView("caixa")
   }
 
-  const handleAddComanda = (label: string) => {
-    const newComanda = {
-      id: Math.floor(100 + Math.random() * 900).toString(),
-      label,
-      time: "000:01",
-      total: 0.00
-    }
-    setComandas((prev) => [...prev, newComanda])
+  const handleAddComanda = async (label: string) => {
+    const comandaId = Math.floor(100 + Math.random() * 900).toString()
+    await dal.tabs.create({
+      id: comandaId,
+      code: label,
+      label: label,
+      time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+      total: 0.00,
+      status: "OPEN",
+      created_at: new Date().toISOString(),
+      company_id: tenantId || "demo-tenant",
+      tenant_id: tenantId || "demo-tenant"
+    })
   }
 
-  const handleCloseComanda = (id: string) => {
-    setComandas((prev) => prev.filter((c) => c.id !== id))
+  const handleCloseComanda = async (id: string) => {
+    await dal.tabs.delete(id, tenantId || "demo-tenant")
     setActiveComandaId(null)
   }
 
@@ -195,8 +239,20 @@ export default function Home() {
     return <div className="w-full h-screen bg-slate-900" />
   }
 
+  if (!tenantCtx?.currentTenant) {
+    return <AcessoEmpresaSection onUnlockSuccess={() => setCurrentView("login")} />
+  }
+
   if (!operator) {
-    return <LoginSection onLoginSuccess={handleLoginSuccess} />
+    return (
+      <LoginSection
+        onLoginSuccess={handleLoginSuccess}
+        onSwitchTenant={() => {
+          tenantCtx.logoutTenantSession()
+          setCurrentView("acesso-empresa")
+        }}
+      />
+    )
   }
 
   return (
@@ -215,6 +271,7 @@ export default function Home() {
             operatorName={operator}
             onLogout={() => {
               setOperator(null)
+              tenantCtx.logoutUserSession()
               setCurrentView("login")
               setActiveComandaId(null)
             }}
@@ -230,7 +287,7 @@ export default function Home() {
               : currentView === "dashboard"
                 ? undefined
                 : currentView === "caixa" && activeComandaId
-                  ? comandas.find(c => c.id === activeComandaId)?.label || "Caixa"
+                  ? comandas.find((c: { id: string; label: string; time: string; total: number }) => c.id === activeComandaId)?.label || "Caixa"
                   : currentView.charAt(0).toUpperCase() + currentView.slice(1)
           }
           subtitle={
@@ -249,16 +306,16 @@ export default function Home() {
               : customBack
                 ? customBack
                 : () => {
-                    setActiveComandaId(null)
-                    setCurrentView("dashboard", true)
-                  }
+                  setActiveComandaId(null)
+                  setCurrentView("dashboard", true)
+                }
           }
           customActions={currentView === "dashboard" ? undefined : customActions}
           className="flex-1 flex flex-col min-h-0"
         >
           {/* Container centralizado com largura limitada para o conteúdo (apenas no dashboard) */}
           <Box display="flex" justify="center" w="full" flex="1" className="min-h-0">
-            <Box w="full" flex="1" display="flex" direction="col" className={`min-h-0 ${currentView === "dashboard" ? "max-w-[810px]" : ""}`}>
+            <Box w="full" flex="1" display="flex" direction="col" className={`min-h-0 ${currentView === "dashboard" ? "max-w-[820px]" : ""}`}>
               <ViewTransition viewKey={currentView} className="flex-1 flex flex-col min-h-0">
                 {currentView === "dashboard" && (
                   <Box w="full" flex="1" className="min-h-0">
@@ -295,7 +352,12 @@ export default function Home() {
 
                 {currentView === "delivery" && (
                   <Box w="full" flex="1" className="min-h-0 flex flex-col">
-                    <DeliverySection />
+                    <DeliverySection
+                      onBackToDashboard={() => setCurrentView("dashboard", true)}
+                      setCustomBack={setCustomBack}
+                      setCustomTitle={setCustomTitle}
+                      setCustomActions={setCustomActions}
+                    />
                   </Box>
                 )}
 
@@ -416,5 +478,13 @@ export default function Home() {
         onClose={() => setIsThemeModalOpen(false)}
       />
     </Box>
+  )
+}
+
+export default function Home() {
+  return (
+    <TenantProvider>
+      <HomeContent />
+    </TenantProvider>
   )
 }

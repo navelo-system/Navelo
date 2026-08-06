@@ -10,6 +10,8 @@ import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Grid } from "@/components/store/base/Grid"
 import { Delete, Banknote, Wallet } from "lucide-react"
+import { db } from "@/lib/dal/db"
+import { useTenant } from "@/lib/context/TenantContext"
 
 interface PdvSangriaModalProps {
   isOpen: boolean
@@ -54,9 +56,33 @@ export const PdvSangriaModal: React.FC<PdvSangriaModalProps> = ({
     maximumFractionDigits: 2,
   })
 
-  const handleConfirm = () => {
-    if (onConfirmSangria && numericValue > 0) {
-      onConfirmSangria(numericValue, mode)
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id
+
+  const handleConfirm = async () => {
+    if (numericValue > 0) {
+      if (onConfirmSangria) {
+        onConfirmSangria(numericValue, mode)
+      }
+      try {
+        // Registra evento de sangria/suprimento no banco local
+        await db.sync_queue.add({
+          id: crypto.randomUUID(),
+          table: "cash_register_movements",
+          action: "INSERT",
+          tenant_id: tenantId || "demo-tenant",
+          payload: {
+            id: crypto.randomUUID(),
+            tenant_id: tenantId || "demo-tenant",
+            type: mode.toUpperCase(),
+            amount: numericValue,
+            created_at: new Date().toISOString()
+          },
+          created_at: new Date().toISOString()
+        })
+      } catch (err) {
+        console.error("Erro ao registrar movimentação de caixa no IndexedDB:", err)
+      }
     }
     onClose()
   }

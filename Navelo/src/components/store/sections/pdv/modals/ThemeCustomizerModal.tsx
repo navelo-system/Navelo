@@ -12,6 +12,7 @@ import { Button } from "@/components/store/base/Button"
 import { ColorDot } from "@/components/store/base/ColorDot"
 import { ColorInput } from "@/components/store/base/ColorInput"
 import { Settings, RotateCcw } from "lucide-react"
+import { useTenant } from "@/lib/context/TenantContext"
 
 export interface ThemeColors {
   primary: string
@@ -45,9 +46,9 @@ export const PRESET_THEMES: { name: string; colors: ThemeColors }[] = [
       primaryFg: "#38bdf8",
       secondary: "#38bdf8",
       secondaryFg: "#0f172a",
-      foreground: "#f8fafc",
-      textSecondary: "#cbd5e1",
-      textMuted: "#94a3b8",
+      foreground: "#0f172a",
+      textSecondary: "#475569",
+      textMuted: "#64748b",
     },
   },
   {
@@ -58,8 +59,8 @@ export const PRESET_THEMES: { name: string; colors: ThemeColors }[] = [
       secondary: "#10b981",
       secondaryFg: "#064e3b",
       foreground: "#022c22",
-      textSecondary: "#047857",
-      textMuted: "#059669",
+      textSecondary: "#334155",
+      textMuted: "#64748b",
     },
   },
   {
@@ -70,8 +71,8 @@ export const PRESET_THEMES: { name: string; colors: ThemeColors }[] = [
       secondary: "#a855f7",
       secondaryFg: "#3b0764",
       foreground: "#1e1b4b",
-      textSecondary: "#6b21a8",
-      textMuted: "#7e22ce",
+      textSecondary: "#334155",
+      textMuted: "#64748b",
     },
   },
   {
@@ -82,8 +83,8 @@ export const PRESET_THEMES: { name: string; colors: ThemeColors }[] = [
       secondary: "#f43f5e",
       secondaryFg: "#4c0519",
       foreground: "#4c0519",
-      textSecondary: "#881337",
-      textMuted: "#9f1239",
+      textSecondary: "#334155",
+      textMuted: "#64748b",
     },
   },
 ]
@@ -124,6 +125,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
   onClose,
 }) => {
   const [colors, setColors] = React.useState<ThemeColors>(loadSavedTheme)
+  const tenantCtx = useTenant()
 
   React.useEffect(() => {
     if (isOpen) {
@@ -137,6 +139,9 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
     applyThemeColors(next)
     try {
       localStorage.setItem("navelo_custom_theme", JSON.stringify(next))
+      if (tenantCtx?.currentTenant) {
+        tenantCtx.updateTenantTheme(next.primary, next.secondary)
+      }
     } catch {
       // ignore
     }
@@ -147,6 +152,9 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
     applyThemeColors(preset)
     try {
       localStorage.setItem("navelo_custom_theme", JSON.stringify(preset))
+      if (tenantCtx?.currentTenant) {
+        tenantCtx.updateTenantTheme(preset.primary, preset.secondary)
+      }
     } catch {
       // ignore
     }
@@ -157,6 +165,9 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
     applyThemeColors(DEFAULT_THEME)
     try {
       localStorage.removeItem("navelo_custom_theme")
+      if (tenantCtx?.currentTenant) {
+        tenantCtx.updateTenantTheme(DEFAULT_THEME.primary, DEFAULT_THEME.secondary)
+      }
     } catch {
       // ignore
     }

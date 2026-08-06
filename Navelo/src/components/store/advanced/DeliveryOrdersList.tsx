@@ -62,10 +62,10 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
                 key={ord.id}
                 onClick={() => onSelectOrder(ord.id)}
                 padding={2.5}
-                bg={isSelected ? "bg-brand-primary/10" : "bg-surface"}
-                radius="default"
+                bg={isSelected ? "bg-brand-primary/10" : "transparent"}
+                radius="none"
                 w="full"
-                hoverBg="surface-sunken"
+                hoverBg="primary/10"
                 cursor="pointer"
               >
                 <Stack gap={1} align="start" w="full">

@@ -13,6 +13,9 @@ import { Plus, Edit2, Trash2, Folder, Layers, X } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 
+import { useCategories, dal } from "@/lib/dal"
+import { useTenant } from "@/lib/context/TenantContext"
+
 export interface GroupItem {
   id: string
   name: string
@@ -32,14 +35,29 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
   setCustomTitle,
   setCustomActions
 }) => {
-  const [groups, setGroups] = React.useState<GroupItem[]>([
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id
+
+  // Categorias vindas do banco local IndexedDB
+  const dbCategories = useCategories(tenantId)
+
+  const [initialGroups] = React.useState<GroupItem[]>([
     { id: "1", name: "BEBIDAS", subgroups: ["ÁGUA", "REFRIGERANTE", "SUCO", "ENERGÉTICO"] },
-    { id: "2", name: "CAPELA", subgroups: ["Geral"] },
-    { id: "3", name: "CERVEJAS", subgroups: ["COM ALCOOL", "SEM ALCOOL"] },
-    { id: "4", name: "CERVEJAS ARTESANAIS", subgroups: ["UNICO"] },
-    { id: "5", name: "CHURRASCO", subgroups: ["BOVINA", "AVE", "PORCO", "MISTO"] },
-    { id: "6", name: "JANTINHAS", subgroups: ["1 ESPETOS", "2 ESPETOS", "3 ESPETOS"] }
+    { id: "2", name: "CERVEJAS", subgroups: ["COM ALCOOL", "SEM ALCOOL"] },
+    { id: "3", name: "CHURRASCO", subgroups: ["BOVINA", "AVE", "PORCO", "MISTO"] },
   ])
+
+  // Agrupa categorias locais do Dexie com fallback inicial
+  const groups: GroupItem[] = React.useMemo(() => {
+    if (dbCategories && dbCategories.length > 0) {
+      return dbCategories.map(c => ({
+        id: c.id,
+        name: c.name,
+        subgroups: ["Geral"]
+      }))
+    }
+    return initialGroups
+  }, [dbCategories, initialGroups])
 
   const [mode, setMode] = React.useState<"list" | "form">("list")
   const [editingGroup, setEditingGroup] = React.useState<GroupItem | null>(null)
@@ -95,8 +113,8 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
     setMode("form")
   }
 
-  const handleDelete = (id: string) => {
-    setGroups((prev) => prev.filter((g) => g.id !== id))
+  const handleDelete = async (id: string) => {
+    await dal.categories.delete(id, tenantId)
   }
 
   const handleAddSubgroupField = () => {
@@ -113,29 +131,23 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
     )
   }
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formName.trim()) return
 
-    const cleanedSubgroups = formSubgroups
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0)
+    const categoryId = editingGroup ? editingGroup.id : `cat-${Date.now()}`
+    const categoryPayload = {
+      id: categoryId,
+      name: formName.toUpperCase(),
+      company_id: tenantId || "demo-tenant",
+      tenant_id: tenantId || "demo-tenant",
+      active: true
+    }
 
     if (editingGroup) {
-      setGroups((prev) =>
-        prev.map((g) =>
-          g.id === editingGroup.id
-            ? { ...g, name: formName.toUpperCase(), subgroups: cleanedSubgroups }
-            : g
-        )
-      )
+      await dal.categories.update(categoryPayload)
     } else {
-      const newGroup: GroupItem = {
-        id: Date.now().toString(),
-        name: formName.toUpperCase(),
-        subgroups: cleanedSubgroups
-      }
-      setGroups((prev) => [...prev, newGroup])
+      await dal.categories.create(categoryPayload)
     }
 
     setMode("list")

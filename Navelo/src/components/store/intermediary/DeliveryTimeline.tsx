@@ -82,6 +82,7 @@ export function TimelineStep({ step, isActive, isCompleted, isLast }: TimelineSt
 }
 
 export interface DeliveryTimelineProps {
+  orderId?: string
   status: DeliveryStatus
   motoboyName?: string
   estimatedTime?: string
@@ -105,10 +106,11 @@ const STATUS_INDEX: Record<DeliveryStatus, number> = {
 }
 
 export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
+  orderId = "8942",
   status,
-  motoboyName = "Carlos Silva",
-  estimatedTime = "25 min",
-  address = "Av. Paulista, 1000 - Cj 12 - São Paulo/SP",
+  motoboyName = "Sem Motoboy",
+  estimatedTime = "30-45 min",
+  address = "Endereço não informado",
 }) => {
   const activeIndex = STATUS_INDEX[status]
 
@@ -122,7 +124,7 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
           </Stack>
           <Stack align="end" gap={0}>
             <Font variant="description" color="muted" text="Pedido" align="right" />
-            <Font variant="body-bold" text="#8942" align="right" />
+            <Font variant="body-bold" text={`#${orderId}`} align="right" />
           </Stack>
         </Stack>
 

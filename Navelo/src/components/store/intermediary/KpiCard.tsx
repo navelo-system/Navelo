@@ -31,7 +31,7 @@ export const KpiCard: React.FC<KpiCardProps> = ({
       bg="bg-surface" 
       radius="default" 
       cursor={onClick ? "pointer" : undefined}
-      hoverBg={onClick ? "surface-sunken" : undefined}
+      hoverBg={onClick ? "secondary/10" : undefined}
       onClick={onClick}
     >
       <Stack gap={2.5}>

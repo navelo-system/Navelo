@@ -7,108 +7,285 @@ import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Tabs, TabsTrigger } from "@/components/store/base/Tabs"
+import { Button } from "@/components/store/base/Button"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { DeliveryTimeline, DeliveryStatus } from "@/components/store/intermediary/DeliveryTimeline"
-import { DeliveryForm } from "@/components/store/advanced/DeliveryForm"
 import { DeliveryOrdersList, DeliveryOrder } from "@/components/store/advanced/DeliveryOrdersList"
+import { DeliveryClientFormScreen } from "@/components/store/advanced/DeliveryClientFormScreen"
+import { DeliveryClientInfo } from "@/components/store/advanced/DeliveryCheckoutConfirmation"
+import { PdvSection, CartItemType } from "@/components/store/sections/pdv/pages/PdvSection"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
-import { Truck } from "lucide-react"
+import { Truck, Plus } from "lucide-react"
+import { useTenant } from "@/lib/context/TenantContext"
+import { useDeliveryOrders, dal, DeliveryOrderEntity } from "@/lib/dal"
 
 export interface DeliverySectionProps {
   setCustomActions?: (actions: React.ReactNode) => void
+  setCustomTitle?: (title: string | null) => void
+  setCustomBack?: (cb: (() => void) | null) => void
+  onBackToDashboard?: () => void
 }
 
-export const DeliverySection: React.FC<DeliverySectionProps> = ({ setCustomActions }) => {
-  const [orders, setOrders] = React.useState<DeliveryOrder[]>([
-    { id: "8942", clientName: "Filipe Augusto", address: "Av. Paulista, 1000 - Cj 12 - São Paulo/SP", status: "preparing", estimatedTime: "25 min", total: 45.00, motoboy: "Carlos Silva" },
-    { id: "8943", clientName: "Maria Eduarda", address: "Rua Augusta, 450 - Ap 31 - São Paulo/SP", status: "ready", estimatedTime: "10 min", total: 68.50, motoboy: "Pedro Souza" },
-    { id: "8944", clientName: "José Alencar", address: "Rua Bela Cintra, 890 - Cerqueira César - São Paulo/SP", status: "confirmed", estimatedTime: "45 min", total: 32.00, motoboy: "Sem Motoboy" },
-  ])
+export const DeliverySection: React.FC<DeliverySectionProps> = ({
+  setCustomActions,
+  setCustomTitle,
+  setCustomBack,
+  onBackToDashboard,
+}) => {
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id || "default"
 
-  const [selectedOrderId, setSelectedOrderId] = React.useState<string>("8942")
+  // Modo de exibição: listagem/timeline, tela de cliente ou caixa do delivery
+  const [viewMode, setViewMode] = React.useState<"list" | "client-form" | "pos">("list")
+
+  // Pedidos reais obtidos da DAL via Dexie
+  const rawOrders = useDeliveryOrders(tenantId)
+  const orders: DeliveryOrder[] = React.useMemo(() => {
+    if (!Array.isArray(rawOrders)) return []
+    return rawOrders.map((o: DeliveryOrderEntity) => ({
+      id: o.id,
+      clientName: o.client_name,
+      address: o.address,
+      status: o.status as DeliveryStatus,
+      estimatedTime: o.estimated_time || "30-45 min",
+      total: o.total,
+      motoboy: o.motoboy || "Sem Motoboy",
+    }))
+  }, [rawOrders])
+
+  const [selectedOrderId, setSelectedOrderId] = React.useState<string>("")
   const [searchQuery, setSearchQuery] = React.useState("")
+  const [selectedClient, setSelectedClient] = React.useState<DeliveryClientInfo | null>(null)
 
+  // Atualiza selectedOrderId quando a lista de pedidos carregar
   React.useEffect(() => {
-    setCustomActions?.(
-      <MobileHeaderSearch
-        searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
-        placeholder="Buscar por cliente ou ID..."
-      />
-    )
-    return () => {
-      setCustomActions?.(null)
+    if (orders.length > 0) {
+      if (!selectedOrderId || !orders.some((o) => o.id === selectedOrderId)) {
+        setSelectedOrderId(orders[0].id)
+      }
+    } else {
+      setSelectedOrderId("")
     }
-  }, [searchQuery, setCustomActions])
+  }, [orders, selectedOrderId])
+
+  // Refs estáveis para callbacks do Header para evitar loops de render
+  const onBackRef = React.useRef(onBackToDashboard)
+  onBackRef.current = onBackToDashboard
+
+  const setCustomTitleRef = React.useRef(setCustomTitle)
+  setCustomTitleRef.current = setCustomTitle
+
+  const setCustomBackRef = React.useRef(setCustomBack)
+  setCustomBackRef.current = setCustomBack
+
+  const setCustomActionsRef = React.useRef(setCustomActions)
+  setCustomActionsRef.current = setCustomActions
+
+  // Header no modo listagem
+  React.useEffect(() => {
+    if (viewMode === "list") {
+      setCustomTitleRef.current?.("Delivery")
+      if (onBackRef.current) {
+        setCustomBackRef.current?.(() => () => onBackRef.current?.())
+      } else {
+        setCustomBackRef.current?.(null)
+      }
+      setCustomActionsRef.current?.(
+        <MobileHeaderSearch
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          placeholder="Buscar por cliente ou ID..."
+        />
+      )
+    }
+
+    return () => {
+      if (viewMode === "list") {
+        setCustomActionsRef.current?.(null)
+      }
+    }
+  }, [viewMode, searchQuery])
 
   const selectedOrder = orders.find((o) => o.id === selectedOrderId)
 
-  const handleCreateOrder = (data: { clientName: string; address: string; total: number }) => {
-    const newOrder: DeliveryOrder = {
-      id: Math.floor(1000 + Math.random() * 9000).toString(),
-      clientName: data.clientName,
-      address: data.address,
-      status: "confirmed",
-      estimatedTime: "30-40 min",
-      total: data.total,
-      motoboy: "Sem Motoboy",
-    }
-
-    setOrders((prev) => [newOrder, ...prev])
-    setSelectedOrderId(newOrder.id)
+  const handleOpenNewOrder = () => {
+    setSelectedClient(null)
+    setViewMode("client-form")
   }
 
-  const handleUpdateStatus = (status: DeliveryStatus) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === selectedOrderId ? { ...o, status } : o))
+  const handleSelectClient = (client: DeliveryClientInfo) => {
+    setSelectedClient(client)
+    setViewMode("pos")
+  }
+
+  const handleUpdateStatus = async (status: DeliveryStatus) => {
+    if (!selectedOrderId) return
+    try {
+      await dal.deliveryOrders.update({
+        id: selectedOrderId,
+        status,
+        company_id: tenantId,
+        tenant_id: tenantId,
+      })
+    } catch (err) {
+      console.error("Erro ao atualizar status do pedido de delivery:", err)
+    }
+  }
+
+  const handleConfirmDeliveryOrder = async (orderData: {
+    status: string
+    deliveryType: string
+    paymentMoment: string
+    client: DeliveryClientInfo
+    items: CartItemType[]
+    total: number
+    subtotal: number
+    discount: number
+  }) => {
+    const orderId = Math.floor(1000 + Math.random() * 9000).toString()
+
+    const deliveryStatus: DeliveryStatus = orderData.status.includes("Confirmado")
+      ? "confirmed"
+      : "preparing"
+
+    // 1. Registra o pedido de delivery no Dexie
+    try {
+      await dal.deliveryOrders.create({
+        id: orderId,
+        tenant_id: tenantId,
+        company_id: tenantId,
+        client_name: orderData.client.name,
+        address: orderData.client.address || "Endereço não informado",
+        status: deliveryStatus,
+        estimated_time: "30-45 min",
+        total: orderData.total,
+        motoboy: "Sem Motoboy",
+        created_at: new Date().toISOString(),
+      })
+    } catch (err) {
+      console.error("Erro ao registrar pedido de delivery na DAL:", err)
+    }
+
+    // 2. Registra a venda no Dexie para persistência multi-tenant isolada
+    const saleId = `sale-${Date.now()}`
+    try {
+      await dal.sales.create({
+        id: saleId,
+        tenant_id: tenantId,
+        company_id: tenantId,
+        items: orderData.items.map((it) => ({
+          productId: it.id,
+          productName: it.name,
+          quantity: it.quantity,
+          unitPrice: it.unitPrice,
+          totalPrice: it.quantity * it.unitPrice,
+        })),
+        subtotal: orderData.subtotal,
+        discount: orderData.discount,
+        total: orderData.total,
+        paymentMethod: `Delivery (${orderData.paymentMoment})`,
+        status: "COMPLETED",
+        customer_name: orderData.client.name,
+        customer_id: orderData.client.customerId,
+      })
+    } catch (err) {
+      console.error("Erro ao registrar venda do delivery na DAL:", err)
+    }
+
+    setSelectedOrderId(orderId)
+    setViewMode("list")
+  }
+
+  // Se o usuário está na tela de cadastro/identificação de cliente
+  if (viewMode === "client-form") {
+    return (
+      <DeliveryClientFormScreen
+        onBack={() => setViewMode("list")}
+        onSelectClient={handleSelectClient}
+        initialClient={selectedClient}
+        setCustomActions={setCustomActions}
+        setCustomTitle={setCustomTitle}
+        setCustomBack={setCustomBack}
+      />
     )
   }
 
+  // Se o usuário está no fluxo de lançamento pelo Caixa do Delivery
+  if (viewMode === "pos") {
+    return (
+      <PdvSection
+        onBackToDashboard={() => setViewMode("list")}
+        setCustomActions={setCustomActions}
+        setCustomTitle={setCustomTitle}
+        setCustomBack={setCustomBack}
+        deliveryContext={{
+          client: selectedClient || { name: "Cliente Delivery", phone: "", address: "" },
+          onAlterClient: () => setViewMode("client-form"),
+          onConfirmDelivery: handleConfirmDeliveryOrder,
+        }}
+      />
+    )
+  }
+
+  if (orders.length === 0) {
+    return (
+      <Box w="full" h="full" position="relative">
+        <EmptyState
+          icon={Truck}
+          title="Nenhum pedido de delivery"
+          subtitle="Clique no botão + abaixo para iniciar um novo pedido pelo caixa."
+        />
+
+        {/* Botão FAB fixo no canto inferior direito para adicionar novo pedido */}
+        <Box position="fixed" bottom={6} right={6} zIndex="50">
+          <Button
+            variant="secondary-pill-icon"
+            icon={Plus}
+            onClick={handleOpenNewOrder}
+          />
+        </Box>
+      </Box>
+    )
+  }
 
   return (
-    <Stack gap={12} w="full">
-      {/* Grade Principal: Pedidos à esquerda (1/3) e Detalhes/Timeline à direita (restante) (vertical no mobile, lado a lado no PC) */}
+    <Box w="full" overflow="auto" position="relative">
+      {/* Layout lado a lado: Lista de pedidos à esquerda (1/3) e Timeline/Detalhes à direita */}
       <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch">
-        
-        {/* Painel Esquerdo (1/3 no PC, 100% no mobile) */}
+        {/* Painel Esquerdo: Lista de Pedidos */}
         <Box w="w-full md:w-1/3">
-          <Stack gap={5}>
-            {/* Novo Pedido */}
-            <Box padding={5} bg="bg-surface" radius="default">
-              <DeliveryForm onSubmit={handleCreateOrder} />
-            </Box>
-
-            {/* Lista de Rastreamento */}
-            <Box padding={5} bg="bg-surface" radius="default">
-              <DeliveryOrdersList
-                orders={orders}
-                selectedOrderId={selectedOrderId}
-                onSelectOrder={setSelectedOrderId}
-                searchQuery={searchQuery}
-              />
-            </Box>
-          </Stack>
+          <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
+            <DeliveryOrdersList
+              orders={orders}
+              selectedOrderId={selectedOrderId}
+              onSelectOrder={setSelectedOrderId}
+              searchQuery={searchQuery}
+            />
+          </Box>
         </Box>
 
-        {/* Painel Direito (Restante) - Timeline e Controle de Status */}
+        {/* Painel Direito: Timeline do Pedido Selecionado */}
         <Box flex="1">
-          <Stack gap={5}>
+          <Stack gap={5} w="full">
             {selectedOrder ? (
               <Stack gap={5} w="full">
-                {/* Timeline real do pedido */}
                 <DeliveryTimeline
+                  orderId={selectedOrder.id}
                   status={selectedOrder.status}
                   estimatedTime={selectedOrder.estimatedTime}
                   motoboyName={selectedOrder.motoboy}
                   address={selectedOrder.address}
                 />
 
-                {/* Botões de Avanço de Status */}
-                <Box padding={5} bg="bg-surface" radius="default">
+                {/* Controle de Status */}
+                <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
                   <Stack gap={2.5}>
                     <Font variant="body-bold" text="Mudar Status do Pedido" />
                     <Box w="full" overflow="auto">
-                      <Tabs value={selectedOrder.status} onValueChange={(val) => handleUpdateStatus(val as DeliveryStatus)}>
+                      <Tabs
+                        value={selectedOrder.status}
+                        onValueChange={(val) => handleUpdateStatus(val as DeliveryStatus)}
+                      >
                         <Stack direction="row" gap={2.5}>
                           <TabsTrigger value="confirmed">Confirmar</TabsTrigger>
                           <TabsTrigger value="preparing">Preparando</TabsTrigger>
@@ -131,6 +308,15 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({ setCustomActio
           </Stack>
         </Box>
       </Stack>
-    </Stack>
+
+      {/* Botão FAB fixo no canto inferior direito para adicionar novo pedido */}
+      <Box position="fixed" bottom={6} right={6} zIndex="50">
+        <Button
+          variant="secondary-pill-icon"
+          icon={Plus}
+          onClick={handleOpenNewOrder}
+        />
+      </Box>
+    </Box>
   )
 }

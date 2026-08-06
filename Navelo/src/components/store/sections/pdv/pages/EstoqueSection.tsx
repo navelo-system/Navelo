@@ -21,6 +21,8 @@ import {
   Filter
 } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
+import { useProducts, dal } from "@/lib/dal"
+import { useTenant } from "@/lib/context/TenantContext"
 
 interface EstoqueSectionProps {
   onBackToDashboard: () => void
@@ -34,6 +36,11 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
   setCustomTitle,
   setCustomActions
 }) => {
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id
+
+  const dbProducts = useProducts(tenantId)
+
   const [estoqueView, setEstoqueView] = React.useState<"menu" | "balanco" | "notas" | "entrada_manual">("menu")
   const [balancoSubMode, setBalancoSubMode] = React.useState<"history" | "resumo">("history")
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
@@ -59,14 +66,19 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
     })
   }, [estoqueView])
 
-  // Mock de dados para o Balanço
-  const [balancoProducts, setBalancoProducts] = React.useState<BalancoProduct[]>([
-    { id: "1", name: "ÁGUA MINERAL SEM GÁS", category: "Bebidas", systemStock: 15, counted: "" },
-    { id: "2", name: "ÁGUA COM GÁS", category: "Bebidas", systemStock: 2, counted: "" },
-    { id: "3", name: "REFRIGERANTE LATA", category: "Bebidas", systemStock: -3, counted: "" },
-    { id: "5", name: "HAMBÚRGUER CLÁSSICO", category: "Lanches", systemStock: 10, counted: "" },
-    { id: "6", name: "BATATA FRITA GRANDE", category: "Acompanhamentos", systemStock: 20, counted: "" },
-  ])
+  // Produtos para o Balanço a partir do IndexedDB
+  const balancoProducts: BalancoProduct[] = React.useMemo(() => {
+    if (dbProducts && dbProducts.length > 0) {
+      return dbProducts.map((p) => ({
+        id: p.id,
+        name: p.name.toUpperCase(),
+        category: p.category_id || "Geral",
+        systemStock: p.stock ?? 0,
+        counted: ""
+      }))
+    }
+    return []
+  }, [dbProducts])
 
   // Mock de dados para as Notas Fiscais
   const [invoices] = React.useState([
@@ -103,17 +115,21 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
           searchQuery={invoiceSearchQuery}
           onSearchQueryChange={setInvoiceSearchQuery}
           placeholder="Buscar por número ou fornecedor..."
-        />
-      )
-    } else if (estoqueView === "balanco") {
-      setCustomActions?.(
-        <Box display="block md:hidden">
+        >
           <Button
             variant="primary-pill-icon"
             icon={Filter}
-            onClick={() => setIsFilterDrawerOpen(true)}
+            onClick={() => {}}
           />
-        </Box>
+        </MobileHeaderSearch>
+      )
+    } else if (estoqueView === "balanco") {
+      setCustomActions?.(
+        <Button
+          variant="primary-pill-icon"
+          icon={Filter}
+          onClick={() => setIsFilterDrawerOpen(true)}
+        />
       )
     } else {
       setCustomActions?.(null)
@@ -125,8 +141,20 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
       setCustomActions?.(null)
     }
   }, [estoqueView, balancoSubMode, invoiceSearchQuery, setCustomBack, setCustomTitle, setCustomActions])
-  const handleSaveBalanco = (updatedProducts: typeof balancoProducts) => {
-    setBalancoProducts(updatedProducts)
+  
+  const handleSaveBalanco = async (updatedProducts: typeof balancoProducts) => {
+    for (const p of updatedProducts) {
+      if (p.counted !== "") {
+        const newStock = parseFloat(p.counted) || 0
+        const existing = dbProducts?.find((prod) => prod.id === p.id)
+        if (existing) {
+          await dal.products.update({
+            ...existing,
+            stock: newStock
+          })
+        }
+      }
+    }
     setSuccessMsg("Balanço de estoque salvo com sucesso!")
     setEstoqueView("menu")
   }
@@ -135,7 +163,17 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
     setSuccessMsg("Upload de XML de nota fiscal realizado com sucesso (Simulado).")
   }
 
-  const handleSaveManualMovement = (data: { productId: string; type: string; qty: string; reason: string }) => {
+  const handleSaveManualMovement = async (data: { productId: string; type: string; qty: string; reason: string }) => {
+    const existing = dbProducts?.find((p) => p.id === data.productId)
+    if (existing) {
+      const delta = parseFloat(data.qty) || 0
+      const current = existing.stock ?? 0
+      const nextStock = data.type === "Entrada" ? current + delta : current - delta
+      await dal.products.update({
+        ...existing,
+        stock: nextStock
+      })
+    }
     setSuccessMsg(`Movimentação manual registrada: ${data.type} de ${data.qty} unidades para o produto selecionado.`)
     setEstoqueView("menu")
   }
@@ -146,6 +184,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
   )
 
   return (
+    <Box className="max-h-[calc(100vh-140px)] overflow-y-auto pr-1">
     <Stack gap={5} w="full" flex="1" minH="0" h="full">
       {successMsg && (
         <Box padding={2.5} bg="bg-brand-success/10" radius="default" w="full">
@@ -168,7 +207,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
             border={true}
             borderColor="border-border"
             w="full"
-            hoverBg="surface-sunken"
+            hoverBg="primary/10"
             cursor="pointer"
           >
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
@@ -192,7 +231,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
             border={true}
             borderColor="border-border"
             w="full"
-            hoverBg="surface-sunken"
+            hoverBg="primary/10"
             cursor="pointer"
           >
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
@@ -216,7 +255,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
             border={true}
             borderColor="border-border"
             w="full"
-            hoverBg="surface-sunken"
+            hoverBg="primary/10"
             cursor="pointer"
           >
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
@@ -273,5 +312,6 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
         </Box>
       )}
     </Stack>
+    </Box>
   )
 }

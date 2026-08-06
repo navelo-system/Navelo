@@ -12,6 +12,9 @@ import { Search } from "lucide-react"
 
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 
+import { useProducts } from "@/lib/dal"
+import { useTenant } from "@/lib/context/TenantContext"
+
 interface CatalogProduct {
   id: string
   name: string
@@ -20,29 +23,6 @@ interface CatalogProduct {
   price: number
   stock: number
 }
-
-const MOCK_PRODUCTS: CatalogProduct[] = [
-  { id: "1", name: "ÁGUA COM GÁS", category: "BEBIDAS", subcategory: "ÁGUA", price: 5.00, stock: 2 },
-  { id: "2", name: "ÁGUA SEM GÁS", category: "BEBIDAS", subcategory: "ÁGUA", price: 3.00, stock: 0 },
-  { id: "3", name: "ÁGUA TÔNICA 350ML", category: "BEBIDAS", subcategory: "ÁGUA", price: 6.00, stock: -1 },
-  { id: "4", name: "BADEN BADEN CRISTAL 600ML", category: "CERVEJAS ARTESANAIS", subcategory: "ÚNICO", price: 18.00, stock: 0 },
-  { id: "5", name: "BADEN BADEN GOLDEN 600ML", category: "CERVEJAS ARTESANAIS", subcategory: "ÚNICO", price: 18.00, stock: 0 },
-  { id: "6", name: "BADEN BADEN IPA 600ML", category: "CERVEJAS ARTESANAIS", subcategory: "ÚNICO", price: 18.00, stock: 0 },
-  { id: "7", name: "BADEN BADEN PEACH 600ML", category: "CERVEJAS ARTESANAIS", subcategory: "ÚNICO", price: 18.00, stock: -1 },
-  { id: "8", name: "BADEN BADEN WITBIER 600ML", category: "CERVEJAS ARTESANAIS", subcategory: "ÚNICO", price: 18.00, stock: 0 },
-  { id: "9", name: "BOI", category: "CHURRASCO", subcategory: "BOVINA", price: 10.00, stock: 0 },
-  { id: "10", name: "BRAHMA 600ML", category: "CERVEJAS", subcategory: "COM ALCOOL", price: 10.00, stock: 0 },
-  { id: "11", name: "BRAHMA LATÃO 473ML", category: "CERVEJAS", subcategory: "COM ALCOOL", price: 8.00, stock: 0 },
-  { id: "12", name: "BRAHMA LONG NECK 355ML", category: "CERVEJAS", subcategory: "COM ALCOOL", price: 8.00, stock: 0 },
-  { id: "13", name: "COCA-COLA 350ML", category: "BEBIDAS", subcategory: "REFRIGERANTE", price: 6.00, stock: 5 },
-  { id: "14", name: "COCA-COLA ZERO 350ML", category: "BEBIDAS", subcategory: "REFRIGERANTE", price: 6.00, stock: 3 },
-  { id: "15", name: "HEINEKEN 600ML", category: "CERVEJAS", subcategory: "COM ALCOOL", price: 16.00, stock: 4 },
-  { id: "16", name: "HEINEKEN LONG NECK 330ML", category: "CERVEJAS", subcategory: "COM ALCOOL", price: 10.00, stock: 0 },
-  { id: "17", name: "SUCO DE LARANJA 500ML", category: "BEBIDAS", subcategory: "SUCO", price: 12.00, stock: 0 },
-  { id: "18", name: "PASTEL DE CARNE", category: "LANCHES", subcategory: "PASTÉIS", price: 8.00, stock: 0 },
-  { id: "19", name: "PASTEL DE QUEIJO", category: "LANCHES", subcategory: "PASTÉIS", price: 8.00, stock: 0 },
-  { id: "20", name: "PORÇÃO DE BATATA FRITA", category: "PETISCOS", subcategory: "PORÇÕES", price: 25.00, stock: 0 },
-]
 
 export interface CatalogoProdutosSectionProps {
   onCancel: () => void
@@ -57,9 +37,25 @@ export const CatalogoProdutosSection: React.FC<CatalogoProdutosSectionProps> = (
   setCustomTitle,
   setCustomActions
 }) => {
-  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(
-    new Set(MOCK_PRODUCTS.slice(0, 11).map((p) => p.id))
-  )
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id
+  const dbProducts = useProducts(tenantId)
+
+  const products: CatalogProduct[] = React.useMemo(() => {
+    if (dbProducts && dbProducts.length > 0) {
+      return dbProducts.map((p) => ({
+        id: p.id,
+        name: p.name,
+        category: p.category_id || "Geral",
+        subcategory: p.unit || "UN",
+        price: p.price || 0,
+        stock: p.stock ?? 0,
+      }))
+    }
+    return []
+  }, [dbProducts])
+
+  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set())
   const [search, setSearch] = React.useState("")
 
   React.useEffect(() => {
@@ -79,7 +75,7 @@ export const CatalogoProdutosSection: React.FC<CatalogoProdutosSectionProps> = (
     }
   }, [setCustomBack, setCustomTitle, setCustomActions, search, onCancel])
 
-  const filtered = MOCK_PRODUCTS.filter((p) =>
+  const filtered = products.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     p.category.toLowerCase().includes(search.toLowerCase())
   )

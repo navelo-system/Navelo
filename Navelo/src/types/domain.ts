@@ -105,6 +105,7 @@ export interface Customer {
 export interface CustomerAddress {
   id: UUID;
   customerId: UUID;
+  name?: string;
   zipCode: string;
   street: string;
   number: string;
@@ -112,14 +113,17 @@ export interface CustomerAddress {
   neighborhood: string;
   city: string;
   state: string;
+  reference_point?: string;
   isDefault: boolean;
 }
 
 export enum UserRole {
   ADMIN = "ADMIN",
+  SUPERVISOR = "SUPERVISOR",
   MANAGER = "MANAGER",
   CASHIER = "CASHIER",
   ATTENDANT = "ATTENDANT",
+  TOTEM = "TOTEM",
 }
 
 export interface User {
@@ -143,6 +147,15 @@ export interface Tenant {
   logoUrl?: string;
   subscriptionId?: UUID;
   isActive?: boolean;
+}
+
+export interface PlatformSettings {
+  id: string;
+  platformName: string;
+  primaryColor: string;
+  secondaryColor: string;
+  logoUrl?: string;
+  updatedAt?: Timestamp;
 }
 
 // ==========================================

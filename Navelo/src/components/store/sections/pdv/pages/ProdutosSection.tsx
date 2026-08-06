@@ -25,135 +25,60 @@ interface ProdutosSectionProps {
   setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
-const DEFAULT_PRODUCTS: ProductItem[] = [
-  {
-    id: "1",
-    name: "ÁGUA COM GÁS",
-    category: "BEBIDAS - ÁGUA",
-    unitPrice: 6.00,
-    stock: 2,
-    unit: "UN",
-    ncm: "2201.10.00",
-    cest: "17.110.00",
-    cfop: "5.102",
-    icmsOrigem: "0 - Nacional"
-  },
-  {
-    id: "2",
-    name: "ÁGUA SEM GÁS",
-    category: "BEBIDAS - ÁGUA",
-    unitPrice: 3.00,
-    stock: -2,
-    unit: "UN",
-    ncm: "2201.10.00",
-    cest: "17.110.00",
-    cfop: "5.102",
-    icmsOrigem: "0 - Nacional"
-  },
-  {
-    id: "3",
-    name: "ÁGUA TÔNICA 350ML",
-    category: "BEBIDAS - ÁGUA",
-    unitPrice: 6.00,
-    stock: -1,
-    unit: "UN",
-    ncm: "2202.10.00",
-    cest: "17.111.00",
-    cfop: "5.405",
-    icmsOrigem: "0 - Nacional"
-  },
-  {
-    id: "4",
-    name: "BADEN BADEN CRISTAL 600ML",
-    category: "CERVEJAS ARTESANAIS - UNICO",
-    unitPrice: 18.00,
-    stock: 0,
-    unit: "UN",
-    ncm: "2203.00.00",
-    cest: "17.022.00",
-    cfop: "5.102",
-    icmsOrigem: "0 - Nacional"
-  },
-  {
-    id: "5",
-    name: "BADEN BADEN GOLDEN 600ML",
-    category: "CERVEJAS ARTESANAIS - UNICO",
-    unitPrice: 18.00,
-    stock: 0,
-    unit: "UN",
-    ncm: "2203.00.00",
-    cest: "17.022.00",
-    cfop: "5.102",
-    icmsOrigem: "0 - Nacional"
-  },
-  {
-    id: "6",
-    name: "BADEN BADEN IPA 600ML",
-    category: "CERVEJAS ARTESANAIS - UNICO",
-    unitPrice: 18.00,
-    stock: 0,
-    unit: "UN",
-    ncm: "2203.00.00",
-    cest: "17.022.00",
-    cfop: "5.102",
-    icmsOrigem: "0 - Nacional"
-  },
-  {
-    id: "7",
-    name: "BADEN BADEN PEACH 600ML",
-    category: "CERVEJAS ARTESANAIS - UNICO",
-    unitPrice: 18.00,
-    stock: -1,
-    unit: "UN",
-    ncm: "2203.00.00",
-    cest: "17.022.00",
-    cfop: "5.102",
-    icmsOrigem: "0 - Nacional"
-  },
-  {
-    id: "8",
-    name: "BADEN BADEN WITBIER 600ML",
-    category: "CERVEJAS ARTESANAIS - UNICO",
-    unitPrice: 18.00,
-    stock: 0,
-    unit: "UN",
-    ncm: "2203.00.00",
-    cest: "17.022.00",
-    cfop: "5.102",
-    icmsOrigem: "0 - Nacional"
-  },
-  {
-    id: "9",
-    name: "BOI",
-    category: "CHURRASCO - BOVINA",
-    unitPrice: 10.00,
-    stock: 0,
-    unit: "UN",
-    ncm: "0201.30.00",
-    cest: "17.010.00",
-    cfop: "5.102",
-    icmsOrigem: "0 - Nacional"
-  },
-  {
-    id: "10",
-    name: "BRAHMA 600ML",
-    category: "CERVEJAS - UNICO",
-    unitPrice: 10.00,
-    stock: 15,
-    unit: "UN",
-    ncm: "2203.00.00",
-    cest: "17.022.00",
-    cfop: "5.102",
-    icmsOrigem: "0 - Nacional"
-  },
-]
+import { useProducts, dal } from "@/lib/dal"
+import { useTenant } from "@/lib/context/TenantContext"
 
 export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
   setCustomBack,
   setCustomTitle,
   setCustomActions
 }) => {
-  const [products, setProducts] = React.useState<ProductItem[]>(DEFAULT_PRODUCTS)
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id
+
+  // Produtos do IndexedDB local
+  const dbProducts = useProducts(tenantId)
+
+  // Lista agregada de produtos reativa do banco local
+  const products: ProductItem[] = React.useMemo(() => {
+    if (dbProducts && dbProducts.length > 0) {
+      return dbProducts.map(p => ({
+        id: p.id,
+        name: p.name,
+        category: p.category || p.description || "GERAL",
+        unitPrice: p.price || 0,
+        stock: p.stock ?? 0,
+        unit: p.unit || "UN",
+        ncm: p.ncm || "2201.10.00",
+        cest: p.cest || "17.110.00",
+        cfop: p.cfop || "5.102",
+        icmsOrigem: p.icms_origem || "0 - Nacional",
+        detailedDescription: p.detailed_description,
+        subgroup: p.subgroup,
+        minStock: p.min_stock,
+        costPrice: p.cost_price,
+        otherCosts: p.other_costs,
+        margin: p.margin,
+        multissaborEnabled: p.multissabor_enabled,
+        complementosEnabled: p.complementos_enabled,
+        plataformasEnabled: p.plataformas_enabled,
+        barcodes: p.barcodes,
+        printPoint: p.print_point,
+        producaoPropria: p.producao_propria,
+        ingredients: p.ingredients,
+        preparationMode: p.preparation_mode,
+        exTipi: (p.fiscal_data?.exTipi as string) || "",
+        icmsDefault: (p.fiscal_data?.icmsDefault as boolean) ?? true,
+        icmsCsosn: (p.fiscal_data?.icmsCsosn as string) || "500",
+        icmsReduction: (p.fiscal_data?.icmsReduction as number) || 0,
+        icmsAliquot: (p.fiscal_data?.icmsAliquot as number) || 0,
+        pisCofinsDefault: (p.fiscal_data?.pisCofinsDefault as boolean) ?? true,
+        pisCofinsCst: (p.fiscal_data?.pisCofinsCst as string) || "99"
+      }))
+    }
+    return []
+  }, [dbProducts])
+
   const [mode, setMode] = React.useState<"list" | "form" | "fiscal-config">("list")
   const [editingProduct, setEditingProduct] = React.useState<ProductItem | null>(null)
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -223,26 +148,53 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
     setMode("form")
   }
 
-  const handleSave = (data: ProductFormData) => {
+  const handleSave = async (data: ProductFormData) => {
+    const productId = editingProduct ? editingProduct.id : `prod-${Date.now()}`
+    const productPayload = {
+      id: productId,
+      name: data.name.toUpperCase(),
+      description: data.category || "",
+      category: data.category || "GERAL",
+      price: Number(data.unitPrice) || 0,
+      stock: Number(data.stock) || 0,
+      unit: data.unit || "UN",
+      cost_price: Number(data.costPrice) || 0,
+      ncm: data.ncm || "",
+      cest: data.cest || "",
+      cfop: data.cfop || "",
+      icms_origem: data.icmsOrigem || "",
+      detailed_description: data.detailedDescription || "",
+      subgroup: data.subgroup || "",
+      min_stock: Number(data.minStock) || 0,
+      other_costs: Number(data.otherCosts) || 0,
+      margin: Number(data.margin) || 0,
+      multissabor_enabled: Boolean(data.multissaborEnabled),
+      complementos_enabled: Boolean(data.complementosEnabled),
+      plataformas_enabled: Boolean(data.plataformasEnabled),
+      producao_propria: Boolean(data.producaoPropria),
+      ingredients: data.ingredients || "",
+      preparation_mode: data.preparationMode || "",
+      barcodes: data.barcodes || [],
+      print_point: data.printPoint || "",
+      fiscal_data: {
+        exTipi: data.exTipi,
+        icmsDefault: data.icmsDefault,
+        icmsCsosn: data.icmsCsosn,
+        icmsReduction: data.icmsReduction,
+        icmsAliquot: data.icmsAliquot,
+        pisCofinsDefault: data.pisCofinsDefault,
+        pisCofinsCst: data.pisCofinsCst
+      },
+      active: true,
+      category_id: null,
+      company_id: tenantId || "demo-tenant",
+      tenant_id: tenantId || "demo-tenant"
+    }
+
     if (editingProduct) {
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === editingProduct.id
-            ? {
-              ...p,
-              ...data,
-              name: data.name.toUpperCase(),
-            }
-            : p
-        )
-      )
+      await dal.products.update(productPayload)
     } else {
-      const newProduct: ProductItem = {
-        id: Math.random().toString(),
-        ...data,
-        name: data.name.toUpperCase(),
-      }
-      setProducts((prev) => [...prev, newProduct])
+      await dal.products.create(productPayload)
     }
 
     setMode("list")
@@ -261,6 +213,7 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
   }
 
   return (
+    <Box className="max-h-[calc(100vh-140px)] overflow-y-auto pr-1">
     <Stack gap={5} w="full">
       {mode === "list" && (
         /* ================= LISTAGEM DE PRODUTOS (MINIMALISTA) ================= */
@@ -273,8 +226,8 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
                     w="full"
                     paddingY={2.5}
                     paddingX={2.5}
-                    radius="full"
-                    hoverBg="surface-sunken"
+                    radius="none"
+                    hoverBg="primary/10"
                     cursor="pointer"
                     onClick={() => handleEdit(prod)}
                   >
@@ -376,5 +329,6 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
         </Box>
       )}
     </Stack>
+    </Box>
   )
 }

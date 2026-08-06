@@ -138,7 +138,7 @@ export const TotaisEmCaixaSection: React.FC<TotaisEmCaixaSectionProps> = ({
                       padding={2.5}
                       w="full"
                       cursor={hasSub ? "pointer" : undefined}
-                      hoverBg={hasSub ? "surface-sunken" : undefined}
+                      hoverBg={hasSub ? "secondary/10" : undefined}
                       onClick={() => hasSub && toggleCategory(cat.id)}
                     >
                       <Stack direction="row" align="center" justify="between" w="full">

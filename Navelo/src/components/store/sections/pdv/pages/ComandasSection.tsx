@@ -112,67 +112,69 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
 
 
   return (
-    <Stack gap={5} w="full">
+    <Box className="max-h-[calc(100vh-140px)] overflow-y-auto pr-1">
+      <Stack gap={5} w="full">
 
-      {/* Grade de Comandas Ativas */}
-      {filtered.length === 0 ? (
-        <EmptyState
-          icon={Receipt}
-          title="Nenhuma comanda ativa"
-          subtitle="Abra uma comanda pelo menu para iniciar o consumo."
-        />
-      ) : (
-        <Box ref={gridContainerRef} w="full">
-          <Grid cols={gridColumns} responsive={false} gap={5} w="full">
-            {filtered.map((comanda) => (
-              <Box
-                key={comanda.id}
-                onClick={() => onSelectComanda(comanda.id)}
-                position="relative"
-                padding={0}
-                bg="bg-surface"
-                radius="lg"
-                border={true}
-                borderColor="border-brand-secondary"
-                overflow="hidden"
-                w="full"
-                h="h-[170px]"
-                hoverBg="secondary/10"
-                display="flex"
-                direction="col"
-                cursor="pointer"
-              >
-                {/* Tag fold */}
-                <TagFoldSvg />
+        {/* Grade de Comandas Ativas */}
+        {filtered.length === 0 ? (
+          <EmptyState
+            icon={Receipt}
+            title="Nenhuma comanda ativa"
+            subtitle="Abra uma comanda pelo menu para iniciar o consumo."
+          />
+        ) : (
+          <Box ref={gridContainerRef} w="full">
+            <Grid cols={gridColumns} responsive={false} gap={5} w="full">
+              {filtered.map((comanda) => (
+                <Box
+                  key={comanda.id}
+                  onClick={() => onSelectComanda(comanda.id)}
+                  position="relative"
+                  padding={0}
+                  bg="bg-surface"
+                  radius="lg"
+                  border={true}
+                  borderColor="border-brand-secondary"
+                  overflow="hidden"
+                  w="full"
+                  h="h-[170px]"
+                  hoverBg="secondary/10"
+                  display="flex"
+                  direction="col"
+                  cursor="pointer"
+                >
+                  {/* Tag fold */}
+                  <TagFoldSvg />
 
-                {/* Identifier */}
-                <Box position="absolute" top={3} right={3}>
-                  <Font variant="body-sm-medium" text={comanda.label} />
+                  {/* Identifier */}
+                  <Box position="absolute" top={3} right={3}>
+                    <Font variant="body-sm-medium" text={comanda.label} />
+                  </Box>
+
+                  {/* Time */}
+                  <Stack w="full" h="full" justify="center" align="center">
+                    <Font variant="body-medium" text={comanda.time} />
+                  </Stack>
                 </Box>
+              ))}
+            </Grid>
+          </Box>
+        )}
 
-                {/* Time */}
-                <Stack w="full" h="full" justify="center" align="center">
-                  <Font variant="body-medium" text={comanda.time} />
-                </Stack>
-              </Box>
-            ))}
-          </Grid>
-        </Box>
-      )}
+        <ComandasMenuSidebar
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+          onNewComanda={() => setIsCreateModalOpen(true)}
+          onFinishAll={() => { /* handle finish all */ }}
+        />
 
-      <ComandasMenuSidebar
-        isOpen={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        onNewComanda={() => setIsCreateModalOpen(true)}
-        onFinishAll={() => { /* handle finish all */ }}
-      />
-
-      {/* Modal Novo Atendimento */}
-      <CreateComandaModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={handleCreate}
-      />
-    </Stack>
+        {/* Modal Novo Atendimento */}
+        <CreateComandaModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSubmit={handleCreate}
+        />
+      </Stack>
+    </Box>
   )
 }

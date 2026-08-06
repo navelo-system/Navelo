@@ -7,7 +7,7 @@ import { maskCPF, maskCNPJ, maskPhone, maskDate, maskCEP } from "@/lib/masks"
 import { DatePickerModal } from "./DatePickerModal"
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  variant?: "default" | "cpf" | "cnpj" | "phone" | "date" | "cep" | "email" | "image-upload"
+  variant?: "default" | "cpf" | "cnpj" | "phone" | "date" | "cep" | "email" | "image-upload" | "outlined-label" | "bordered"
   hasError?: boolean
   label?: string
   description?: string
@@ -87,10 +87,22 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       onChange?.(syntheticEvent)
     }
 
+    const isOutlined = variant === "outlined-label"
+    const isBordered = variant === "bordered"
+
     const inputElement = (
-      <div className="relative flex items-center w-full">
+      <div className={cn(
+        "relative flex items-center w-full",
+        isOutlined && "rounded-[5px] border-2 border-border bg-white px-3 py-2.5 mt-2 transition-colors focus-within:border-brand-primary",
+        isBordered && "rounded-[5px] border border-border bg-white px-3.5 py-2.5 transition-colors focus-within:border-brand-primary"
+      )}>
+        {isOutlined && label && (
+          <span className="absolute -top-2.5 left-2.5 px-1 bg-white text-xs font-normal text-text-muted z-10 leading-none pointer-events-none">
+            {label}
+          </span>
+        )}
         {IconComponent && (
-          <div className="absolute left-1 flex items-center justify-center pointer-events-none text-text-muted">
+          <div className={cn("absolute flex items-center justify-center pointer-events-none text-text-muted", (isOutlined || isBordered) ? "left-3" : "left-1")}>
             <IconComponent size={16} />
           </div>
         )}
@@ -105,10 +117,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             onClick?.(e)
           }}
           className={cn(
-            "flex h-10 w-full rounded-none border-0 border-b-2 border-b-border bg-transparent px-1 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-text-muted focus:outline-none focus:border-b-brand-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 transition-colors",
-            IconComponent && "pl-7",
+            isOutlined
+              ? "flex h-6 w-full rounded-none border-0 bg-transparent px-1 text-sm text-foreground placeholder:text-text-muted focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
+              : isBordered
+              ? "flex h-6 w-full rounded-none border-0 bg-transparent px-0 text-sm text-foreground placeholder:text-text-muted focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
+              : "flex h-10 w-full rounded-none border-0 border-b-2 border-b-border bg-transparent px-1 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-text-muted focus:outline-none focus:border-b-brand-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 transition-colors",
+            IconComponent && (isBordered ? "pl-7" : isOutlined ? "pl-7" : "pl-7"),
             (EffectiveIconRight || isPassword) && "pr-7",
-            (hasError || error) && "border-b-red-500 focus:border-b-red-500",
+            (hasError || error) && (isOutlined || isBordered ? "border-red-500" : "border-b-red-500 focus:border-b-red-500"),
             className
           )}
           ref={(node) => {
@@ -130,7 +146,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               }
             }}
             className={cn(
-              "absolute right-1 flex items-center justify-center text-text-muted hover:text-foreground focus:outline-none",
+              "absolute flex items-center justify-center text-text-muted hover:text-foreground focus:outline-none",
+              (isOutlined || isBordered) ? "right-3" : "right-1",
               (isPassword || variant === "date") ? "cursor-pointer" : "pointer-events-none"
             )}
           >
@@ -153,7 +170,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       </div>
     )
 
-    if (!label && !description && !error) {
+    if (isBordered || isOutlined || (!label && !description && !error)) {
       return inputElement
     }
 

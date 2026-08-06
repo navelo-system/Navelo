@@ -4,34 +4,29 @@
 
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
-import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Grid } from "@/components/store/base/Grid"
-import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
-import { FormActions } from "@/components/store/intermediary/FormActions"
+import { Form } from "@/components/store/base/Form"
+import { MapPin } from "lucide-react"
+
+export interface AddressFormData {
+  id?: string
+  name: string
+  zip: string
+  street: string
+  number: string
+  complement?: string
+  neighborhood: string
+  city: string
+  reference_point?: string
+}
 
 export interface ClientAddressFormModalProps {
   isOpen: boolean
   onClose: () => void
-  onSave: (address: {
-    zip: string
-    street: string
-    number: string
-    complement: string
-    neighborhood: string
-    city: string
-    state: string
-  }) => void
-  initialData?: {
-    zip: string
-    street: string
-    number: string
-    complement: string
-    neighborhood: string
-    city: string
-    state: string
-  } | null
+  onSave: (address: AddressFormData) => void
+  initialData?: AddressFormData | null
 }
 
 export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
@@ -40,126 +35,140 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
   onSave,
   initialData,
 }) => {
+  const [name, setName] = React.useState("")
   const [zip, setZip] = React.useState("")
   const [street, setStreet] = React.useState("")
   const [number, setNumber] = React.useState("")
   const [complement, setComplement] = React.useState("")
   const [neighborhood, setNeighborhood] = React.useState("")
   const [city, setCity] = React.useState("")
-  const [state, setState] = React.useState("")
+  const [referencePoint, setReferencePoint] = React.useState("")
 
-  const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen)
-  const [prevInitialData, setPrevInitialData] = React.useState(initialData)
-
-  if (isOpen !== prevIsOpen || initialData !== prevInitialData) {
-    setPrevIsOpen(isOpen)
-    setPrevInitialData(initialData)
+  React.useEffect(() => {
     if (isOpen) {
       if (initialData) {
+        setName(initialData.name || "")
         setZip(initialData.zip || "")
         setStreet(initialData.street || "")
         setNumber(initialData.number || "")
         setComplement(initialData.complement || "")
         setNeighborhood(initialData.neighborhood || "")
         setCity(initialData.city || "")
-        setState(initialData.state || "")
+        setReferencePoint(initialData.reference_point || "")
       } else {
+        setName("")
         setZip("")
         setStreet("")
         setNumber("")
         setComplement("")
         setNeighborhood("")
         setCity("")
-        setState("")
+        setReferencePoint("")
       }
     }
-  }
+  }, [isOpen, initialData])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    if (!name.trim()) return
+
     onSave({
-      zip,
-      street,
-      number,
-      complement,
-      neighborhood,
-      city,
-      state,
+      id: initialData?.id,
+      name: name.trim(),
+      zip: zip.trim(),
+      street: street.trim(),
+      number: number.trim(),
+      complement: complement.trim(),
+      neighborhood: neighborhood.trim(),
+      city: city.trim(),
+      reference_point: referencePoint.trim(),
     })
+
+    onClose()
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <Box padding={5} bg="bg-surface" radius="default" as="form" onSubmit={handleSubmit}>
-        <Stack gap={5}>
-          <Font variant="h3" text={initialData ? "Editar Endereço" : "Novo Endereço"} />
-          <Box h="h-[2px]" bg="bg-border" w="full" />
+    <Form onSubmit={handleSubmit}>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={initialData ? "Editar Endereço" : "Dados do endereço"}
+        subtitle="Preencha as informações do endereço para entregas."
+        icon={MapPin}
+        successText={initialData ? "Salvar" : "Adicionar"}
+        isSubmit={true}
+      >
+        <Stack gap={2.5}>
+          {/* 1. * Nome do Endereço */}
+          <Input
+            label="* Nome do Endereço"
+            placeholder="Ex: Casa, Trabalho"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
 
-          <Grid cols={2} gap={5}>
+          {/* 2. CEP */}
+          <Grid cols={2} gap={2.5}>
             <Input
-              label="CEP *"
+              label="CEP"
+              variant="cep"
               placeholder="00000-000"
               value={zip}
               onChange={(e) => setZip(e.target.value)}
-              required
-            />
-
-            <Input
-              label="Logradouro / Rua *"
-              placeholder="Ex: Av. Paulista"
-              value={street}
-              onChange={(e) => setStreet(e.target.value)}
-              required
-            />
-
-            <Input
-              label="Número *"
-              placeholder="Ex: 1000"
-              value={number}
-              onChange={(e) => setNumber(e.target.value)}
-              required
-            />
-
-            <Input
-              label="Complemento"
-              placeholder="Ex: Ap 31, Bloco B"
-              value={complement}
-              onChange={(e) => setComplement(e.target.value)}
-            />
-
-            <Input
-              label="Bairro *"
-              placeholder="Ex: Bela Vista"
-              value={neighborhood}
-              onChange={(e) => setNeighborhood(e.target.value)}
-              required
-            />
-
-            <Input
-              label="Cidade *"
-              placeholder="Ex: São Paulo"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              required
-            />
-
-            <Input
-              label="Estado (UF) *"
-              placeholder="Ex: SP"
-              value={state}
-              onChange={(e) => setState(e.target.value)}
-              required
             />
           </Grid>
 
-                <FormActions
-        confirmLabel="Salvar Endereço"
-        onConfirm={() => {}}
-        isSubmit={true}
-        onCancel={onClose}
-      />
+          {/* 3. Logradouro */}
+          <Input
+            label="Logradouro"
+            placeholder="Rua, Avenida..."
+            value={street}
+            onChange={(e) => setStreet(e.target.value)}
+          />
+
+          {/* 4. Número e Complemento */}
+          <Grid cols={2} gap={2.5}>
+            <Input
+              label="Número"
+              placeholder="Ex: 123"
+              value={number}
+              onChange={(e) => setNumber(e.target.value)}
+            />
+            <Input
+              label="Complemento"
+              placeholder="Apto, Bloco..."
+              value={complement}
+              onChange={(e) => setComplement(e.target.value)}
+            />
+          </Grid>
+
+          {/* 5. Bairro */}
+          <Input
+            label="Bairro"
+            placeholder="Nome do bairro"
+            value={neighborhood}
+            onChange={(e) => setNeighborhood(e.target.value)}
+          />
+
+          {/* 6. * Cidade */}
+          <Input
+            label="* Cidade"
+            placeholder="Nome da cidade"
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            required
+          />
+
+          {/* 7. Ponto de referência */}
+          <Input
+            label="Ponto de referência"
+            placeholder="Próximo a..."
+            value={referencePoint}
+            onChange={(e) => setReferencePoint(e.target.value)}
+          />
         </Stack>
-      </Box>
-    </Modal>
+      </Modal>
+    </Form>
   )
 }

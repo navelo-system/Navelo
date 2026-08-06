@@ -1,5 +1,19 @@
 # Cycle Log
 
+## Ciclo #321 — Feature: Integração funcional CRUD completa de Produtos, Clientes, Comandas e Estoque com Dexie (Local-First DAL)
+- Data: 2026-08-06
+- Tipo: feature
+- Prompt original: "ta, você ta pressupondo que gez integrações com base no front, porem os produtos, clientes e comandas que temos renderizados são estaticos , são só placeholders, preciso que integre eles no modelo crud funcional, execute seguindo o asdd, creio que não vai precisar mexer no front ou criar componentes, já temos as listas, grades, botões e forms pra criar tudo e renderizar"
+- Intenção interpretada: Conectar as telas de Produtos, Clientes, Comandas e Balanço de Estoque à camada DAL (Data Abstraction Layer) Local-First (Dexie IndexedDB + sync engine), eliminando todos os dados mockados estáticos e viabilizando criação, leitura, edição e exclusão de registros reais.
+- Superfície tocada: `src/lib/dal/db.ts`, `src/lib/dal/hooks.ts`, `src/components/store/sections/pdv/pages/ProdutosSection.tsx`, `src/components/store/sections/pdv/pages/ClientesSection.tsx`, `src/components/store/sections/pdv/pages/ComandasSection.tsx`, `src/components/store/sections/pdv/pages/EstoqueSection.tsx`, `app/page.tsx`.
+- Mudanças:
+  - Enriquecidas as interfaces `Product`, `Customer` e `TabEntity` no `db.ts` para suportar 100% dos atributos dos formulários existentes (fiscal, multissabor, endereços múltiplos, etc).
+  - Removido `DEFAULT_PRODUCTS` de `ProdutosSection.tsx`, mapeando todas as operações para `useProducts(tenantId)` e `dal.products` com `EmptyState` nativo.
+  - Removido `initialClients` de `ClientesSection.tsx`, persistindo dados cadastrais e endereços no `dal.customers` com reatividade imediata.
+  - Removido array volátil em memória de `comandas` em `app/page.tsx`, integrando reativamente com `useTabs(tenantId)` e `dal.tabs`.
+  - Integrado `EstoqueSection.tsx` ao `useProducts(tenantId)` para contagem de balanço e movimentações manuais de entrada/saída.
+- Status: Aprovado (0 erros)
+
 ## Ciclo #320 — Fix: Botão de filtros sempre visível no cabeçalho do modo relatório
 - Data: 2026-07-24
 - Tipo: fix

@@ -1,7 +1,7 @@
 # Current State
 
 ## Última atualização
-Ciclo #320 — Fix: Botão de filtros sempre visível no cabeçalho do modo relatório — 2026-07-24
+Ciclo #321 — Feature: Integração funcional CRUD completa de Produtos, Clientes, Comandas e Estoque com Dexie (Local-First DAL) — 2026-08-06
 
 ## Status do ciclo ativo
 IDLE
@@ -10,6 +10,11 @@ IDLE
 ATIVO — truth/ preenchido com contexto real do projeto Navelo
 
 ## Implementado
+- Integração funcional do CRUD completo de Produtos (`ProdutosSection.tsx` conectado a `useProducts` e `dal.products` com IndexedDB reativo, modal de edição, criação e exclusão)
+- Integração funcional do CRUD completo de Clientes (`ClientesSection.tsx` conectado a `useCustomers` e `dal.customers` com suporte a múltiplos endereços e tipo PF/PJ)
+- Integração funcional das Comandas ativas (`ComandasSection.tsx` e `app/page.tsx` conectados a `useTabs` e `dal.tabs`)
+- Integração funcional do módulo de Estoque (`EstoqueSection.tsx` conectado a `useProducts` e `dal.products` para Balanço de Estoque e movimentação manual)
+- Enriquecimento dos esquemas de dados Local-First no Dexie (`db.ts`) para suporte integral a dados fiscais, grupos, estoques mínimos, endereços e metadados de atendimento
 - ASDD Runtime instalado via asdd-init
 - truth/ preenchido com contexto do projeto
 - Auditoria de domínio concluída (30 infrações catalogadas)

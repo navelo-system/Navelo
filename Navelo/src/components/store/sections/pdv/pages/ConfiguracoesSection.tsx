@@ -841,7 +841,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
 
     // Lista de configurações (root)
     return (
-      <Stack gap={5} w="full">
+      <Box className="max-h-[calc(100vh-140px)] overflow-y-auto pr-1">
         <Stack gap={5} w="full">
         {SETTINGS_GROUPS.map((group) => (
           <Box
@@ -948,7 +948,7 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
           </Box>
         ))}
         </Stack>
-      </Stack>
+      </Box>
     )
   }
 
