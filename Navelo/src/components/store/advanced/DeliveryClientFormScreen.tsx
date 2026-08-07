@@ -11,6 +11,7 @@ import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
 import { Switch } from "@/components/store/base/Switch"
 import { Badge } from "@/components/store/base/Badge"
+import { Avatar } from "@/components/store/base/Avatar"
 import { AddressList } from "@/components/store/advanced/AddressList"
 import { ClientAddressFormModal, AddressFormData } from "@/components/store/advanced/ClientAddressFormModal"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
@@ -102,6 +103,10 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
   const tenantId = tenantCtx?.currentTenant?.id || "default"
   const rawCustomers = useCustomers(tenantId)
   const customers = React.useMemo(() => Array.isArray(rawCustomers) ? rawCustomers : [], [rawCustomers])
+  const customersRef = React.useRef(customers)
+  React.useEffect(() => {
+    customersRef.current = customers
+  }, [customers])
 
   // Busca de clientes no cabeçalho
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -138,27 +143,69 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
       setSelectedCustomerId(initialCustomer.id)
       setClientAddresses(initialCustomer.addresses || [])
     } else if (initialClient && initialClient.name) {
-      setName(initialClient.name)
-      setPhone(initialClient.phone || "")
-      setSelectedCustomerId(initialClient.customerId)
-      if (initialClient.address && initialClient.address !== "Endereço não informado") {
-        const parsed = parseAddressString(initialClient.address)
-        setClientAddresses([
-          {
-            id: `addr-init-${Date.now()}`,
-            customerId: initialClient.customerId || "",
-            street: parsed.street,
-            number: parsed.number,
-            complement: parsed.complement,
-            neighborhood: parsed.neighborhood,
-            city: parsed.city,
-            state: "",
-            zipCode: parsed.zip,
-            isDefault: true,
-          },
-        ])
+      const matchingCustomer = customersRef.current.find(
+        (c) =>
+          (initialClient.customerId && c.id === initialClient.customerId) ||
+          (c.name && c.name.trim().toLowerCase() === initialClient.name.trim().toLowerCase()) ||
+          (initialClient.phone && c.phone && c.phone.trim() === initialClient.phone.trim())
+      )
+
+      if (matchingCustomer) {
+        setName(matchingCustomer.name || initialClient.name)
+        setEmail(matchingCustomer.email || "")
+        setDocument(matchingCustomer.document || "")
+        setIe(matchingCustomer.ie || "")
+        setRg(matchingCustomer.rg || "")
+        setPhone(matchingCustomer.phone || initialClient.phone || "")
+        setSelectedCustomerId(matchingCustomer.id)
+        if (matchingCustomer.addresses && matchingCustomer.addresses.length > 0) {
+          setClientAddresses(matchingCustomer.addresses)
+        } else if (initialClient.address && initialClient.address !== "Endereço não informado") {
+          const parsed = parseAddressString(initialClient.address)
+          setClientAddresses([
+            {
+              id: `addr-init-${Date.now()}`,
+              customerId: matchingCustomer.id,
+              street: parsed.street,
+              number: parsed.number,
+              complement: parsed.complement,
+              neighborhood: parsed.neighborhood,
+              city: parsed.city,
+              state: "",
+              zipCode: parsed.zip,
+              isDefault: true,
+            },
+          ])
+        } else {
+          setClientAddresses([])
+        }
       } else {
-        setClientAddresses([])
+        setName(initialClient.name)
+        setPhone(initialClient.phone || "")
+        setEmail("")
+        setDocument("")
+        setIe("")
+        setRg("")
+        setSelectedCustomerId(initialClient.customerId)
+        if (initialClient.address && initialClient.address !== "Endereço não informado") {
+          const parsed = parseAddressString(initialClient.address)
+          setClientAddresses([
+            {
+              id: `addr-init-${Date.now()}`,
+              customerId: initialClient.customerId || "",
+              street: parsed.street,
+              number: parsed.number,
+              complement: parsed.complement,
+              neighborhood: parsed.neighborhood,
+              city: parsed.city,
+              state: "",
+              zipCode: parsed.zip,
+              isDefault: true,
+            },
+          ])
+        } else {
+          setClientAddresses([])
+        }
       }
     } else {
       setName("")
@@ -448,8 +495,8 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
   return (
     <Box display="flex" direction="col" flex="1" minH="0" overflow="auto" w="full">
       <Stack gap={5} w="full">
-        {/* Barra superior: Switch salvar na lista (esquerda) e Botão Pular (direita) */}
-        {(showSaveSwitch || showSkip) && (
+        {/* Barra superior: Switch salvar na lista (esquerda) e Botão Pular (direita) - Ocultos durante busca */}
+        {searchQuery.trim().length === 0 && (showSaveSwitch || showSkip) && (
           <Stack direction="row" justify="between" align="center" w="full">
             {showSaveSwitch ? (
               <Stack direction="row" align="center" gap={2.5}>
@@ -487,45 +534,46 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
         {searchQuery.trim().length > 0 ? (
           <Box w="full" position="relative">
             {filteredCustomers.length > 0 ? (
-              <Grid cols={3} gap={5} w="full">
-                {filteredCustomers.map((client) => (
-                  <Box
-                    key={client.id}
-                    padding={5}
-                    bg="bg-surface"
-                    radius="default"
-                    border={true}
-                    borderColor="border-border"
-                    hoverBg="secondary/10"
-                    cursor="pointer"
-                    onClick={() => {
-                      handleSelectCustomer(client)
-                      setSearchQuery("")
-                    }}
-                  >
-                    <Stack gap={2.5} w="full">
-                      <Stack direction="row" justify="between" align="center" w="full">
-                        <Font variant="body-bold" text={client.name} />
-                        {client.type && (
-                          <Badge variant="primary" label={client.type} />
-                        )}
-                      </Stack>
+              <Box display="flex" direction="col" w="full">
+                {filteredCustomers.map((client, idx) => (
+                  <Box key={client.id}>
+                    <Box
+                      w="full"
+                      paddingY={2.5}
+                      paddingX={2.5}
+                      radius="none"
+                      hoverBg="primary/10"
+                      cursor="pointer"
+                      onClick={() => {
+                        handleSelectCustomer(client)
+                        setSearchQuery("")
+                      }}
+                    >
+                      <Stack direction="row" align="center" justify="between" w="full">
+                        {/* Lado Esquerdo: Avatar + Nome e Documento/Telefone */}
+                        <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
+                          <Avatar fallback={client.name ? client.name.charAt(0).toUpperCase() : "C"} />
 
-                      <Stack gap={1} w="full">
-                        {client.document && (
-                          <Font variant="description" color="muted" text={`Doc: ${client.document}`} />
-                        )}
-                        {client.phone && (
-                          <Font variant="description" color="muted" text={`Tel: ${client.phone}`} />
-                        )}
-                        {client.email && (
-                          <Font variant="description" color="muted" text={`Email: ${client.email}`} />
-                        )}
+                          <Stack gap={0} align="start" flex="1" minW="0">
+                            <Font variant="body" text={client.name} />
+                            {(client.document || client.phone) && (
+                              <Font
+                                variant="auxiliary"
+                                color="muted"
+                                truncate={true}
+                                text={client.document || client.phone || ""}
+                              />
+                            )}
+                          </Stack>
+                        </Stack>
                       </Stack>
-                    </Stack>
+                    </Box>
+                    {idx < filteredCustomers.length - 1 && (
+                      <Box borderBottom={true} borderColor="border-border" w="full" />
+                    )}
                   </Box>
                 ))}
-              </Grid>
+              </Box>
             ) : (
               <EmptyState
                 icon={UserX}

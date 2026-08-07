@@ -158,6 +158,35 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   const [viewMode, setViewMode] = React.useState<"grade" | "lista">("grade")
   const [quantityMultiplier, setQuantityMultiplier] = React.useState(1)
 
+  // Carrega os itens da comanda salva ao abrir
+  React.useEffect(() => {
+    if (activeComandaId && !activeComandaId.startsWith("avulso-") && dbTabs) {
+      const activeTab = dbTabs.find((t) => t.id === activeComandaId)
+      if (activeTab && Array.isArray(activeTab.items)) {
+        setCartItems((activeTab.items as unknown) as CartItemType[])
+      }
+    }
+  }, [activeComandaId, dbTabs])
+
+  const handleSaveComandaAndExit = async () => {
+    if (activeComandaId && !activeComandaId.startsWith("avulso-")) {
+      try {
+        const existingTab = await db.tabs.get(activeComandaId)
+        if (existingTab) {
+          await dal.tabs.update({
+            ...existingTab,
+            items: cartItems,
+            total: subtotal,
+          })
+        }
+      } catch (err) {
+        console.error("Erro ao salvar comanda na DAL:", err)
+      }
+    }
+    setIsExitConfirmOpen(false)
+    onBackToDashboardRef.current()
+  }
+
   // Pagamentos
   const [payments, setPayments] = React.useState<{ method: string; amount: number }[]>([])
   const [discount, setDiscount] = React.useState(0)
@@ -511,7 +540,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
                   onDecrease={handleDecrease}
                   onRemove={handleRemove}
                   onGoToPayment={handleGoToPayment}
-                  onSaveComanda={activeComandaId ? onBackToDashboard : undefined}
+                  onSaveComanda={activeComandaId ? handleSaveComandaAndExit : undefined}
                 />
               </Box>
             </Stack>
@@ -582,7 +611,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
                   variant="secondary-lg"
                   fullWidth
                   label="Salvar"
-                  onClick={onBackToDashboard}
+                  onClick={handleSaveComandaAndExit}
                 />
               )}
             </Stack>
@@ -601,7 +630,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         onDecrease={handleDecrease}
         onRemove={handleRemove}
         onGoToPayment={handleGoToPayment}
-        onSaveComanda={activeComandaId ? onBackToDashboard : undefined}
+        onSaveComanda={activeComandaId ? handleSaveComandaAndExit : undefined}
       />
 
       <PdvModals
@@ -650,6 +679,8 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
           setIsExitConfirmOpen(false)
           onBackToDashboardRef.current()
         }}
+        isComanda={!!activeComandaId && !activeComandaId.startsWith("avulso-")}
+        onSave={handleSaveComandaAndExit}
       />
     </Stack>
   )

@@ -3,7 +3,8 @@ import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Icon } from "@/components/store/base/Icon"
-import { CheckCircle2, ChefHat, Package, Bike, MapPin, Clock, LucideIcon } from "lucide-react"
+import { Button } from "@/components/store/base/Button"
+import { CheckCircle2, ChefHat, Package, Bike, MapPin, Clock, Trash2, LucideIcon } from "lucide-react"
 
 export type DeliveryStatus = "confirmed" | "preparing" | "ready" | "dispatched" | "delivered"
 
@@ -87,6 +88,7 @@ export interface DeliveryTimelineProps {
   motoboyName?: string
   estimatedTime?: string
   address?: string
+  onDeleteOrder?: (id: string) => void
 }
 
 const STEPS = [
@@ -111,6 +113,7 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
   motoboyName = "Sem Motoboy",
   estimatedTime = "30-45 min",
   address = "Endereço não informado",
+  onDeleteOrder,
 }) => {
   const activeIndex = STATUS_INDEX[status]
 
@@ -122,9 +125,20 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
             <Icon icon={Clock} color="primary" size={18} />
             <Font variant="body-bold" text={`Entrega Estimada: ${estimatedTime}`} />
           </Stack>
-          <Stack align="end" gap={0}>
-            <Font variant="description" color="muted" text="Pedido" align="right" />
-            <Font variant="body-bold" text={`#${orderId}`} align="right" />
+          <Stack direction="row" align="center" gap={2.5}>
+            <Stack align="end" gap={0}>
+              <Font variant="description" color="muted" text="Pedido" align="right" />
+              <Font variant="body-bold" text={`#${orderId}`} align="right" />
+            </Stack>
+            {onDeleteOrder && (
+              <Button
+                variant="danger-icon-xs-confirm"
+                icon={Trash2}
+                confirmTitle="Excluir pedido de delivery?"
+                confirmDescription={`Tem certeza que deseja excluir o pedido #${orderId}? Esta ação não pode ser desfeita.`}
+                onConfirm={() => onDeleteOrder(orderId)}
+              />
+            )}
           </Stack>
         </Stack>
 

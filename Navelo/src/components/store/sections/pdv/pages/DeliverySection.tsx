@@ -143,15 +143,29 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
 
   const handleUpdateStatus = async (status: DeliveryStatus) => {
     if (!selectedOrderId) return
+
     try {
-      await dal.deliveryOrders.update({
-        id: selectedOrderId,
-        status,
-        company_id: tenantId,
-        tenant_id: tenantId,
-      })
+      const orderToUpdate = rawOrders ? rawOrders.find((o) => o.id === selectedOrderId) : undefined
+      if (orderToUpdate) {
+        await dal.deliveryOrders.update({
+          ...orderToUpdate,
+          status,
+        })
+      }
     } catch (err) {
       console.error("Erro ao atualizar status do pedido de delivery:", err)
+    }
+  }
+
+  const handleDeleteOrder = async (id: string) => {
+    try {
+      await dal.deliveryOrders.delete(id, tenantId || "demo-tenant")
+      if (selectedOrderId === id) {
+        const remaining = orders.filter((o) => o.id !== id)
+        setSelectedOrderId(remaining.length > 0 ? remaining[0].id : "")
+      }
+    } catch (err) {
+      console.error("Erro ao deletar pedido de delivery na DAL:", err)
     }
   }
 
@@ -302,6 +316,7 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
                         estimatedTime={selectedOrder.estimatedTime}
                         motoboyName={selectedOrder.motoboy}
                         address={selectedOrder.address}
+                        onDeleteOrder={handleDeleteOrder}
                       />
 
                       {/* Controle de Status */}

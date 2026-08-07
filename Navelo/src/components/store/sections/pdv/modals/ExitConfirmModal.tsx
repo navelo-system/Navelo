@@ -7,20 +7,24 @@ interface ExitConfirmModalProps {
   isOpen: boolean
   onClose: () => void
   onConfirm: () => void
+  isComanda?: boolean
+  onSave?: () => void
 }
 
 export const ExitConfirmModal: React.FC<ExitConfirmModalProps> = ({
   isOpen,
   onClose,
-  onConfirm
+  onConfirm,
+  isComanda = false,
+  onSave,
 }) => {
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Descartar operação e sair do caixa?"
-      successText="Descartar e sair"
-      onSuccess={onConfirm}
+      title={isComanda ? "Salvar alterações na comanda e sair?" : "Descartar operação e sair do caixa?"}
+      successText={isComanda ? "Salvar e sair" : "Descartar e sair"}
+      onSuccess={isComanda && onSave ? onSave : onConfirm}
       showCancelButton
       cancelVariant="outline"
       variant="bottom"

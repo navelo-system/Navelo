@@ -39,37 +39,39 @@ export const CartItem: React.FC<CartItemProps> = ({
   return (
     <>
       <Box padding={0}>
-      <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" gap={2.5}>
-        {/* Product Info */}
-        <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
-          <Avatar image={image} fallback={name.substring(0, 2)} />
-          <Stack gap={1} flex="1" minW="0">
-            <Font variant="body" text={name} truncate />
-            <Font variant="description" text={formatPrice(unitPrice)} />
-          </Stack>
-        </Stack>
-
-        {/* Controls and Total Wrap */}
-        <Stack direction="row" align="center" justify="between" gap={5}>
-          {/* Controls */}
-          <Stack direction="row" align="center" gap={2.5}>
-            {quantity === 1 ? (
-              <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onRemove(id)} />
-            ) : (
-              <Button variant="primary-icon-xs" icon={Minus} onClick={() => onDecrease(id)} />
-            )}
-            <Box padding={0} w="auto">
-              <Font variant="body-bold" text={String(quantity)} />
-            </Box>
-            <Button variant="primary-icon-xs" icon={Plus} onClick={() => onIncrease(id)} />
+        <Stack direction="row" align="center" justify="between" gap={2.5}>
+          {/* Product Info */}
+          <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
+            <Avatar image={image} fallback={name.substring(0, 2)} />
+            <Stack gap={1} flex="1" minW="0">
+              <Font variant="body" text={name} truncate />
+              <Font variant="description" text={formatPrice(unitPrice)} />
+            </Stack>
           </Stack>
 
-          {/* Line Total */}
-          <Box padding={0} w="auto">
-            <Font variant="body-bold" text={formatPrice(quantity * unitPrice)} align="right" />
+          {/* Controls stacked on top of Line Total */}
+          <Box shrink="0">
+            <Stack direction="col" align="end" gap={1}>
+              {/* Controls */}
+              <Stack direction="row" align="center" gap={2.5}>
+                {quantity === 1 ? (
+                  <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onRemove(id)} />
+                ) : (
+                  <Button variant="primary-icon-xs" icon={Minus} onClick={() => onDecrease(id)} />
+                )}
+                <Box padding={0} w="auto" className="px-1">
+                  <Font variant="body-bold" text={String(quantity)} />
+                </Box>
+                <Button variant="primary-icon-xs" icon={Plus} onClick={() => onIncrease(id)} />
+              </Stack>
+
+              {/* Line Total */}
+              <Box padding={0} w="auto">
+                <Font variant="body-bold" text={formatPrice(quantity * unitPrice)} align="right" />
+              </Box>
+            </Stack>
           </Box>
         </Stack>
-      </Stack>
       </Box>
       {!isLast && <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />}
     </>

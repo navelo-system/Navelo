@@ -72,6 +72,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   confirmTitle?: string
   confirmSubtitle?: string
   confirmParagraph?: string
+  confirmDescription?: string
   confirmIcon?: LucideIcon
   confirmSuccessText?: string
   confirmCancelText?: string
@@ -130,6 +131,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       confirmTitle,
       confirmSubtitle,
       confirmParagraph,
+      confirmDescription,
       confirmIcon,
       confirmSuccessText,
       confirmCancelText,
@@ -247,6 +249,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const modalSubtitle = confirmSubtitle || confirmModal?.subtitle || "Confirmar ação de exclusão"
     const modalParagraph =
       confirmParagraph ||
+      confirmDescription ||
       confirmModal?.paragraph ||
       "Tem certeza de que deseja realizar esta exclusão? Esta ação não poderá ser desfeita."
     const modalIcon = confirmIcon || confirmModal?.icon || IconComponent || Trash2

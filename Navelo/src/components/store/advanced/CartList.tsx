@@ -32,7 +32,7 @@ export const CartList: React.FC<CartListProps> = ({
   flushContent = false,
 }) => {
   return (
-    <Box padding={0} bg="bg-surface" radius="default" flex="1" display="flex" direction="col" overflow="hidden" minH="0">
+    <Box padding={0} bg="bg-surface" radius="none" flex="1" display="flex" direction="col" overflow="hidden" minH="0">
       {!hideHeader && (
         <>
           <Box padding={5} bg="bg-surface">
