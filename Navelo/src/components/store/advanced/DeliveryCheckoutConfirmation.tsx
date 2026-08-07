@@ -8,7 +8,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Icon } from "@/components/store/base/Icon"
-import { Truck, Store, Utensils, UserCheck, CreditCard, ChevronRight, RefreshCw, Trash2 } from "lucide-react"
+import { Truck, Store, Utensils, UserCheck, CreditCard, ChevronRight, RefreshCw, Trash2, Check } from "lucide-react"
 
 export type DeliveryType = "delivery" | "pickup" | "dine_in"
 export type PaymentMoment = "on_delivery" | "advance"
@@ -76,7 +76,6 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
   const deliveryTypeOptions: Array<{ id: DeliveryType; label: string; icon: typeof Truck }> = [
     { id: "delivery", label: "Entrega", icon: Truck },
     { id: "pickup", label: "Retirada", icon: Store },
-    { id: "dine_in", label: "Consumo no local", icon: Utensils },
   ]
 
   const paymentMomentOptions: Array<{ id: PaymentMoment; label: string; icon: typeof UserCheck }> = [
@@ -92,7 +91,7 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
   ]
 
   return (
-    <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
+    <Box display="flex" direction="col" flex="1" minH="0" overflow="auto" w="full">
       <Box
         padding={5}
         bg="bg-surface"
@@ -128,7 +127,7 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
 
             <div className={`grid transition-all duration-300 ease-in-out ${isStatusSelectorOpen ? "grid-rows-[1fr] opacity-100 mt-1" : "grid-rows-[0fr] opacity-0 mt-0"}`}>
               <div className="overflow-hidden">
-                <Box padding={2.5} bg="surface-sunken" radius="default" w="full">
+                <Box padding={0} bg="surface-sunken" radius="default" w="full">
                   <Stack gap={1} w="full">
                     {statusOptions.map((st) => (
                       <Box
@@ -149,7 +148,7 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
                             color={currentStatus === st ? "primary" : "foreground"}
                             text={st}
                           />
-                          {currentStatus === st && <Icon icon={ChevronRight} size={14} color="primary" />}
+                          {currentStatus === st && <Icon icon={Check} size={14} color="primary" />}
                         </Stack>
                       </Box>
                     ))}

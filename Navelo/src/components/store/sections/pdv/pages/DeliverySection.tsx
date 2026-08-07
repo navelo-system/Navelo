@@ -52,13 +52,13 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
   const rawOrders = useDeliveryOrders(tenantId)
   const orders: DeliveryOrder[] = React.useMemo(() => {
     if (!Array.isArray(rawOrders)) return []
-    return rawOrders.map((o: DeliveryOrderEntity) => ({
-      id: o.id,
-      clientName: o.client_name,
-      address: o.address,
-      status: o.status as DeliveryStatus,
-      estimatedTime: o.estimated_time || "30-45 min",
-      total: o.total,
+    return rawOrders.map((o: any) => ({
+      id: o.id || "",
+      clientName: o.client_name || o.clientName || o.client || "Cliente Desconhecido",
+      address: o.address || "Endereço não informado",
+      status: (o.status as DeliveryStatus) || "preparing",
+      estimatedTime: o.estimated_time || o.estimatedTime || "30-45 min",
+      total: typeof o.total === "number" && !isNaN(o.total) ? o.total : (parseFloat(o.total) || 0),
       motoboy: o.motoboy || "Sem Motoboy",
     }))
   }, [rawOrders])
@@ -185,8 +185,21 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
         motoboy: "Sem Motoboy",
         created_at: new Date().toISOString(),
       })
+
+      // Debita o estoque de cada item no Dexie
+      for (const item of orderData.items) {
+        const dbProduct = await dal.products.getById(item.id)
+        if (dbProduct) {
+          const currentStock = dbProduct.stock ?? 0
+          const newStock = Math.max(0, currentStock - item.quantity)
+          await dal.products.update({
+            ...dbProduct,
+            stock: newStock,
+          })
+        }
+      }
     } catch (err) {
-      console.error("Erro ao registrar pedido de delivery na DAL:", err)
+      console.error("Erro ao registrar pedido de delivery e debitar estoque na DAL:", err)
     }
 
     // 2. Registra a venda no Dexie para persistência multi-tenant isolada
@@ -270,14 +283,12 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
             <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch">
               {/* Painel Esquerdo: Lista de Pedidos */}
               <Box w="w-full md:w-1/3">
-                <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
-                  <DeliveryOrdersList
-                    orders={orders}
-                    selectedOrderId={selectedOrderId}
-                    onSelectOrder={setSelectedOrderId}
-                    searchQuery={searchQuery}
-                  />
-                </Box>
+                <DeliveryOrdersList
+                  orders={orders}
+                  selectedOrderId={selectedOrderId}
+                  onSelectOrder={setSelectedOrderId}
+                  searchQuery={searchQuery}
+                />
               </Box>
 
               {/* Painel Direito: Timeline do Pedido Selecionado */}

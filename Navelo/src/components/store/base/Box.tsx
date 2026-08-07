@@ -142,6 +142,13 @@ const overflowMap = {
   "x-hidden y-auto": "overflow-x-hidden overflow-y-auto"
 }
 
+const overflowYMap: Record<string, string> = {
+  "auto": "overflow-y-auto",
+  "hidden": "overflow-y-hidden",
+  "scroll": "overflow-y-scroll",
+  "visible": "overflow-y-visible",
+}
+
 const hoverBgMap = {
   "surface-sunken": "hover:bg-surface-sunken transition-colors",
   "primary/10": "hover:bg-brand-primary/10 transition-colors",
@@ -246,7 +253,7 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
             maxH === "fit-content" ? "max-h-fit" :
             `max-h-[${maxH}]`
           ),
-          overflowY && `overflow-y-${overflowY}`,
+          overflowY && overflowYMap[overflowY],
           shrink && { "0": "shrink-0", "1": "shrink" }[shrink],
           interactive && "hover:scale-105 active:scale-95 transition-all",
           bg,

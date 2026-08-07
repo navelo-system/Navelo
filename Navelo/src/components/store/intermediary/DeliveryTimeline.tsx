@@ -31,7 +31,7 @@ export function TimelineStep({ step, isActive, isCompleted, isLast }: TimelineSt
 
   const styles: Record<"active" | "completed" | "pending", StyleEntry> = {
     active: { bg: "bg-brand-primary", border: "border-brand-primary", iconColor: "white", fontVar: "auxiliary", fontColor: "primary" },
-    completed: { bg: "bg-emerald-500/10", border: "border-emerald-500/80", iconColor: "success", fontVar: "auxiliary", fontColor: "foreground" },
+    completed: { bg: "bg-brand-success/10", border: "border-brand-success", iconColor: "success", fontVar: "auxiliary", fontColor: "foreground" },
     pending: { bg: "bg-surface-sunken", border: "border-border", iconColor: "muted", fontVar: "auxiliary", fontColor: "muted" },
   }
   

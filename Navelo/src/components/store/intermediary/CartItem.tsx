@@ -54,13 +54,7 @@ export const CartItem: React.FC<CartItemProps> = ({
           {/* Controls */}
           <Stack direction="row" align="center" gap={2.5}>
             {quantity === 1 ? (
-              <Button
-                variant="danger-icon-xs-confirm"
-                confirmTitle="Remover do Carrinho"
-                confirmSubtitle="Confirmar remoção de item"
-                confirmParagraph="Tem certeza que deseja remover este produto do carrinho?"
-                onConfirm={() => onRemove(id)}
-              />
+              <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onRemove(id)} />
             ) : (
               <Button variant="primary-icon-xs" icon={Minus} onClick={() => onDecrease(id)} />
             )}

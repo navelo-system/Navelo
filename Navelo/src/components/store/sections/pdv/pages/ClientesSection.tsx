@@ -131,7 +131,7 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
           setCustomBack={setCustomBack}
         />
       ) : (
-        <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
+        <Box display="flex" direction="col" flex="1" minH="0" overflow="auto" w="full">
           <Stack gap={5} w="full">
             <Box position="relative" w="full">
           {filteredClients.length > 0 ? (

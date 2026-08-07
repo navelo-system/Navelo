@@ -67,6 +67,19 @@ body {
   touch-action: pan-x pan-y;
 }
 
+/* Remover outline de foco em todos os elementos da aplicação */
+*:focus,
+*:focus-visible,
+button:focus,
+button:focus-visible,
+input:focus,
+input:focus-visible,
+select:focus,
+textarea:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 
 
 /* Custom Scrollbar - Themed with brand-primary */

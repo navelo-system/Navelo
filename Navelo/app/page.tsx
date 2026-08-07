@@ -214,6 +214,12 @@ function HomeContent() {
     setCurrentView("caixa")
   }
 
+  const handleStartAvulsoComanda = () => {
+    const tempId = `avulso-${Date.now()}`
+    setActiveComandaId(tempId)
+    setCurrentView("caixa")
+  }
+
   const handleAddComanda = async (label: string) => {
     const comandaId = Math.floor(100 + Math.random() * 900).toString()
     await dal.tabs.create({
@@ -230,7 +236,13 @@ function HomeContent() {
   }
 
   const handleCloseComanda = async (id: string) => {
-    await dal.tabs.delete(id, tenantId || "demo-tenant")
+    if (id && !id.startsWith("avulso-")) {
+      try {
+        await dal.tabs.delete(id, tenantId || "demo-tenant")
+      } catch (err) {
+        console.error("Erro ao fechar comanda na DAL:", err)
+      }
+    }
     setActiveComandaId(null)
   }
 

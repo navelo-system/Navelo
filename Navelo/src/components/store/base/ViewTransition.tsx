@@ -53,7 +53,7 @@ export const ViewTransition: React.FC<ViewTransitionProps> = ({ children, viewKe
     <div
       style={style}
       className={cn(
-        flex === "1" && "flex-1",
+        flex === "1" && "flex-1 flex flex-col min-h-0",
         flex === "auto" && "flex-auto",
         flex === "none" && "flex-none",
         direction === "col" && "flex flex-col",

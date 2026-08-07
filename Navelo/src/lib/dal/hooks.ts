@@ -113,6 +113,7 @@ export type DalPayload = { id: string; company_id?: string; tenant_id?: string; 
 // Repositório Unificado da DAL (Local-First Mutate)
 export const dal = {
   products: {
+    getById: async (id: string) => db.products.get(id),
     create: async (item: DalPayload) => mutateLocalFirst('products', item, 'INSERT'),
     update: async (item: DalPayload) => mutateLocalFirst('products', item, 'UPDATE'),
     delete: async (id: string, tenantId?: string) => mutateLocalFirst('products', { id, company_id: tenantId, tenant_id: tenantId }, 'DELETE')

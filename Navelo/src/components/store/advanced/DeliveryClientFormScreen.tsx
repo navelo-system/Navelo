@@ -446,7 +446,7 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
   }, [setCustomActions, setCustomTitle, setCustomBack, searchQuery, title, showSearchInHeader, showDeleteButton])
 
   return (
-    <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
+    <Box display="flex" direction="col" flex="1" minH="0" overflow="auto" w="full">
       <Stack gap={5} w="full">
         {/* Barra superior: Switch salvar na lista (esquerda) e Botão Pular (direita) */}
         {(showSaveSwitch || showSkip) && (

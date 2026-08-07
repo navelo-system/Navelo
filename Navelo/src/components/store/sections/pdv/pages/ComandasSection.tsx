@@ -26,6 +26,7 @@ interface ComandasSectionProps {
   onSelectComanda: (id: string) => void
   comandas: ComandaItem[]
   onAddComanda: (label: string) => void
+  onStartAvulsoService?: () => void
   setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
@@ -75,6 +76,7 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
   onSelectComanda,
   comandas,
   onAddComanda,
+  onStartAvulsoService,
   setCustomActions,
 }) => {
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -165,6 +167,7 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
           isOpen={isSidebarOpen}
           onClose={() => setIsSidebarOpen(false)}
           onNewComanda={() => setIsCreateModalOpen(true)}
+          onStartAvulsoService={onStartAvulsoService}
           onFinishAll={() => { /* handle finish all */ }}
         />
 

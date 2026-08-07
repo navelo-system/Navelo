@@ -65,7 +65,7 @@ interface PdvSectionProps {
   deliveryContext?: DeliveryContextData | null
 }
 
-import { useProducts } from "@/lib/dal"
+import { useProducts, useTabs, useDeliveryOrders, dal, db } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
 
 export const PdvSection: React.FC<PdvSectionProps> = ({
@@ -82,6 +82,48 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
 
   // Produtos vindos do banco local IndexedDB (Dexie)
   const dbProducts = useProducts(tenantId)
+  const dbTabs = useTabs(tenantId)
+  const dbDeliveryOrders = useDeliveryOrders(tenantId)
+
+  // Calcula a quantidade de um produto comprometida em comandas ou entregas abertas
+  const getCommittedStock = React.useCallback(
+    (productId: string) => {
+      let count = 0
+      if (Array.isArray(dbTabs)) {
+        for (const tab of dbTabs) {
+          if (tab.status === "OPEN" && tab.id !== activeComandaId && Array.isArray(tab.items)) {
+            for (const item of tab.items as any[]) {
+              if ((item.id === productId || item.productId === productId) && typeof item.quantity === "number") {
+                count += item.quantity
+              }
+            }
+          }
+        }
+      }
+      if (Array.isArray(dbDeliveryOrders)) {
+        for (const order of dbDeliveryOrders) {
+          if (order.status !== "delivered" && Array.isArray((order as any).items)) {
+            for (const item of (order as any).items) {
+              if ((item.id === productId || item.productId === productId) && typeof item.quantity === "number") {
+                count += item.quantity
+              }
+            }
+          }
+        }
+      }
+      return count
+    },
+    [dbTabs, dbDeliveryOrders, activeComandaId]
+  )
+
+  const getEffectiveAvailableStock = React.useCallback(
+    (productId: string, rawStock?: number) => {
+      if (rawStock === undefined) return Infinity
+      const committed = getCommittedStock(productId)
+      return Math.max(0, rawStock - committed)
+    },
+    [getCommittedStock]
+  )
 
   // Produtos do catálogo alimentados via IndexedDB
   const catalogProducts: MockProduct[] = React.useMemo(() => {
@@ -217,8 +259,18 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
 
   // Adicionar produto
   const handleAddProduct = (prod: MockProduct) => {
+    const catalogItem = catalogProducts.find((p) => p.id === prod.id)
+    const effectiveStock = getEffectiveAvailableStock(prod.id, catalogItem?.stock)
+
     setCartItems((prev) => {
       const existing = prev.find((item) => item.id === prod.id)
+      const currentQty = existing ? existing.quantity : 0
+      const newQty = currentQty + quantityMultiplier
+
+      if (effectiveStock !== undefined && effectiveStock !== Infinity && newQty > effectiveStock) {
+        return prev
+      }
+
       if (existing) {
         return prev.map((item) =>
           item.id === prod.id ? { ...item, quantity: item.quantity + quantityMultiplier } : item
@@ -230,8 +282,19 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   }
 
   const handleIncrease = (id: string) => {
+    const catalogItem = catalogProducts.find((p) => p.id === id)
+    const effectiveStock = getEffectiveAvailableStock(id, catalogItem?.stock)
+
     setCartItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, quantity: item.quantity + 1 } : item))
+      prev.map((item) => {
+        if (item.id === id) {
+          if (effectiveStock !== undefined && effectiveStock !== Infinity && item.quantity + 1 > effectiveStock) {
+            return item
+          }
+          return { ...item, quantity: item.quantity + 1 }
+        }
+        return item
+      })
     )
   }
 
@@ -281,7 +344,22 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
     setIsChangeModalOpen(false)
   }
 
-  const handleFinalizeSale = () => {
+  const handleFinalizeSale = async () => {
+    try {
+      for (const item of cartItems) {
+        const dbProduct = await dal.products.getById(item.id)
+        if (dbProduct) {
+          const currentStock = dbProduct.stock ?? 0
+          const newStock = Math.max(0, currentStock - item.quantity)
+          await dal.products.update({
+            ...dbProduct,
+            stock: newStock,
+          })
+        }
+      }
+    } catch (err) {
+      console.error("Erro ao debitar estoque no PDV:", err)
+    }
     setStep("recibo")
   }
 

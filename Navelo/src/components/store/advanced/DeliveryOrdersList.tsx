@@ -39,15 +39,16 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
   searchQuery = "",
 }) => {
   const filtered = orders.filter((o) =>
-    o.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    o.id.includes(searchQuery)
+    (o.clientName || "").toLowerCase().includes((searchQuery || "").toLowerCase()) ||
+    (o.id || "").includes(searchQuery || "")
   )
 
   const formatPrice = (value: number) => {
+    const validValue = typeof value === "number" && !isNaN(value) ? value : 0
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
       currency: "BRL",
-    }).format(value)
+    }).format(validValue)
   }
 
   return (

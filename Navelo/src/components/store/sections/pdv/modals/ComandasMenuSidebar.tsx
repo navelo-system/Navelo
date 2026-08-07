@@ -12,6 +12,7 @@ interface ComandasMenuSidebarProps {
   isOpen: boolean
   onClose: () => void
   onNewComanda: () => void
+  onStartAvulsoService?: () => void
   onFinishAll: () => void
 }
 
@@ -19,6 +20,7 @@ export const ComandasMenuSidebar: React.FC<ComandasMenuSidebarProps> = ({
   isOpen,
   onClose,
   onNewComanda,
+  onStartAvulsoService,
   onFinishAll,
 }) => {
   return (
@@ -44,7 +46,14 @@ export const ComandasMenuSidebar: React.FC<ComandasMenuSidebarProps> = ({
               w="full"
               cursor="pointer"
               hoverBg="surface-sunken"
-              onClick={() => { onClose(); onNewComanda() }}
+              onClick={() => {
+                onClose()
+                if (onStartAvulsoService) {
+                  onStartAvulsoService()
+                } else {
+                  onNewComanda()
+                }
+              }}
             >
               <Font variant="body-sm-semibold" text="Novo atendimento avulso" align="left" />
             </Box>
