@@ -380,13 +380,13 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
               subtitle="Clique no botão + abaixo para iniciar um novo pedido pelo caixa."
             />
 
-            <div className="fab-fixed-bottom-right">
+            <Box position="fixed" bottom={6} right={6} zIndex="50">
               <Button
                 variant="secondary-pill-icon"
                 icon={Plus}
                 onClick={handleOpenNewOrder}
               />
-            </div>
+            </Box>
           </Box>
         ) : (
           <Box w="full" h="full" minH="0" overflow="hidden" position="relative">
@@ -438,13 +438,13 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
             </Stack>
 
             {/* Botão FAB fixo no canto inferior direito */}
-            <div className="fab-fixed-bottom-right">
+            <Box position="fixed" bottom={6} right={6} zIndex="50">
               <Button
                 variant="secondary-pill-icon"
                 icon={Plus}
                 onClick={handleOpenNewOrder}
               />
-            </div>
+            </Box>
           </Box>
         )
       )}

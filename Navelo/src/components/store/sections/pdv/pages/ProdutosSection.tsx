@@ -318,13 +318,13 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
           )}
 
           {/* Botão FAB Flutuante no Canto Inferior Direito */}
-          <div className="fab-fixed-bottom-right">
+          <Box position="fixed" bottom={6} right={6} zIndex="50">
             <Button
               variant="secondary-pill-icon"
               icon={Plus}
               onClick={handleCreateNew}
             />
-          </div>
+          </Box>
         </Box>
       )}
 

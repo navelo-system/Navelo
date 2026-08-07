@@ -641,35 +641,45 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
       </ViewTransition>
 
       {step === "negociacao" && (
-        <div className="block md:hidden fixed-bottom-bar-safe bg-bg-background border-t border-border-border">
-          <Stack direction="row" gap={2.5} w="full">
-            {deliveryContext?.isEditing && deliveryContext?.onSaveEdits ? (
-              <Button
-                variant="primary-lg"
-                fullWidth
-                label="Salvar alterações"
-                disabled={cartItems.length === 0}
-                onClick={() => deliveryContext.onSaveEdits!(cartItems, subtotal, discount, total)}
-              />
-            ) : (
-              <Button
-                variant="primary-lg"
-                fullWidth
-                label="F9 - Pagamento"
-                disabled={cartItems.length === 0}
-                onClick={handleGoToPayment}
-              />
-            )}
-            {activeComandaId && (
-              <Button
-                variant="secondary-lg"
-                fullWidth
-                label="Salvar"
-                onClick={handleSaveComandaAndExit}
-              />
-            )}
-          </Stack>
-        </div>
+        <Box
+          display="block md:hidden"
+          position="fixed"
+          bottom={0}
+          left={0}
+          right={0}
+          w="full"
+          zIndex="20"
+        >
+          <Box w="full" bg="bg-background" paddingX={5} paddingY={2.5}>
+            <Stack direction="row" gap={2.5} w="full">
+              {deliveryContext?.isEditing && deliveryContext?.onSaveEdits ? (
+                <Button
+                  variant="primary-lg"
+                  fullWidth
+                  label="Salvar alterações"
+                  disabled={cartItems.length === 0}
+                  onClick={() => deliveryContext.onSaveEdits!(cartItems, subtotal, discount, total)}
+                />
+              ) : (
+                <Button
+                  variant="primary-lg"
+                  fullWidth
+                  label="F9 - Pagamento"
+                  disabled={cartItems.length === 0}
+                  onClick={handleGoToPayment}
+                />
+              )}
+              {activeComandaId && (
+                <Button
+                  variant="secondary-lg"
+                  fullWidth
+                  label="Salvar"
+                  onClick={handleSaveComandaAndExit}
+                />
+              )}
+            </Stack>
+          </Box>
+        </Box>
       )}
 
       <PdvCartDrawer
