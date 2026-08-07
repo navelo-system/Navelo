@@ -7,7 +7,8 @@ import { Box } from "@/components/store/base/Box"
 import { Font } from "@/components/store/base/Font"
 import { Icon } from "@/components/store/base/Icon"
 import { Modal } from "@/components/store/base/Modal"
-import { Cloud } from "lucide-react"
+import { Cloud, AlertTriangle } from "lucide-react"
+import { useSyncStatus } from "@/lib/dal/hooks"
 
 interface PdvSidebarDrawerProps {
   isOpen: boolean
@@ -28,6 +29,8 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
   onOpenSangriaModal,
   onOpenDiscountModal,
 }) => {
+  const syncStatus = useSyncStatus()
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Menu" variant="sidebar">
       <Stack gap={5}>
@@ -35,10 +38,10 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
         <Box w="full" bg="bg-surface-sunken" padding={2.5} radius="default">
           <Stack direction="row" align="center" justify="between" w="full">
             <Stack direction="row" align="center" gap={2.5}>
-              <Icon icon={Cloud} size={16} color="primary" />
-              <Font variant="body-sm-semibold" text="Sincronizacao" />
+              <Icon icon={syncStatus.isSynced ? Cloud : AlertTriangle} size={16} color={syncStatus.isSynced ? "primary" : "warning"} />
+              <Font variant="body-sm-semibold" text="Sincronização" />
             </Stack>
-            <Font variant="body-sm-medium" color="muted" text="Sincronizado" />
+            <Font variant="body-sm-medium" color={syncStatus.isSynced ? "muted" : "warning"} text={syncStatus.statusText} />
           </Stack>
         </Box>
 

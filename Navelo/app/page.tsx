@@ -24,7 +24,8 @@ import { ViewTransition } from "@/components/store/base/ViewTransition"
 import { ThemeCustomizerModal, applyThemeColors, loadSavedTheme } from "@/components/store/sections/pdv/modals/ThemeCustomizerModal"
 import { TenantProvider, useTenant } from "@/lib/context/TenantContext"
 import { canAccessView } from "@/lib/permissions"
-import { useTabs, dal } from "@/lib/dal"
+import { useTabs, useSyncStatus, dal } from "@/lib/dal"
+import { initialSync } from "@/lib/dal/sync"
 import { TabEntity } from "@/lib/dal/db"
 import {
   ShoppingBag,
@@ -180,9 +181,17 @@ function HomeContent() {
     })
   }, [currentView, isMounted])
 
-  // Comandas reativas do IndexedDB local (Dexie)
+  // Comandas reativas e status de sincronização do IndexedDB local (Dexie)
   const tenantId = tenantCtx?.currentTenant?.id
   const dbTabs = useTabs(tenantId)
+  const syncStatus = useSyncStatus()
+
+  // Sincronização inicial automática com o Supabase ao carregar a sessão do tenant
+  React.useEffect(() => {
+    if (tenantId) {
+      initialSync(tenantId)
+    }
+  }, [tenantId])
 
   const comandas = React.useMemo(() => {
     if (dbTabs && dbTabs.length > 0) {
@@ -281,6 +290,8 @@ function HomeContent() {
               setCurrentView(view, view === "dashboard")
             }}
             operatorName={operator}
+            isSynced={syncStatus.isSynced}
+            statusText={syncStatus.statusText}
             onLogout={() => {
               setOperator(null)
               tenantCtx.logoutUserSession()

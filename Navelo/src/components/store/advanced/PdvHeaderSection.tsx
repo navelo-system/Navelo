@@ -11,6 +11,7 @@ interface PdvHeaderSectionProps {
   onNavigate: (view: string) => void
   operatorName?: string
   isSynced?: boolean
+  statusText?: string
   onLogout: () => void
 }
 
@@ -37,6 +38,7 @@ export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
   onNavigate,
   operatorName,
   isSynced = true,
+  statusText,
   onLogout
 }) => {
   const { hideValues, setHideValues } = useHeaderState()
@@ -79,7 +81,7 @@ export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
               <Button
                 variant={isSynced ? "secondary-pill-icon" : "outline-pill-icon"}
                 icon={isSynced ? Cloud : AlertTriangle}
-                title={isSynced ? "Sincronizado" : "Erro na sincronização"}
+                title={statusText || (isSynced ? "Sincronizado com o servidor" : "Modo local (alterações pendentes)")}
               />
               <Button
                 variant={hideValues ? "outline-pill-icon" : "secondary-pill-icon"}

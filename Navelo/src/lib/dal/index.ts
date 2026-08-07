@@ -13,6 +13,7 @@ export {
   usePrintPoints,
   useSales,
   useDeliveryOrders,
+  useSyncStatus,
   dal
 } from './hooks';
 export type {

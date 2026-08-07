@@ -1,6 +1,40 @@
+import * as React from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from './db';
 import { mutateLocalFirst } from './sync';
+
+export function useSyncStatus() {
+  const [isOnline, setIsOnline] = React.useState(() => typeof navigator !== 'undefined' ? navigator.onLine : true);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  const pendingCount = useLiveQuery(() => {
+    return db.sync_queue.count();
+  }, []) ?? 0;
+
+  const isSynced = isOnline && pendingCount === 0;
+
+  return {
+    isOnline,
+    pendingCount,
+    isSynced,
+    statusText: isSynced
+      ? 'Sincronizado com o servidor'
+      : !isOnline
+      ? 'Modo local (offline)'
+      : `${pendingCount} alteração(ões) pendente(s)`
+  };
+}
 
 // Hooks de leitura reativos por Tenant/Company
 export function useProducts(tenantId?: string) {
