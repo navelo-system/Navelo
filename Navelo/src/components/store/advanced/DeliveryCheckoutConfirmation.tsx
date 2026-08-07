@@ -18,6 +18,8 @@ export interface DeliveryClientInfo {
   phone?: string
   address?: string
   customerId?: string
+  email?: string
+  document?: string
 }
 
 export interface DeliveryCheckoutConfirmationProps {

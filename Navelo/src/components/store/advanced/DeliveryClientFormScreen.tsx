@@ -182,8 +182,8 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
       } else {
         setName(initialClient.name)
         setPhone(initialClient.phone || "")
-        setEmail("")
-        setDocument("")
+        setEmail(initialClient.email || "")
+        setDocument(initialClient.document || "")
         setIe("")
         setRg("")
         setSelectedCustomerId(initialClient.customerId)
@@ -407,6 +407,8 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
       phone: phone.trim(),
       address: formattedAddress,
       customerId: finalCustomerId,
+      email: email.trim(),
+      document: document.trim(),
     })
   }, [name, phone, email, document, rg, ie, selectedCustomerId, tenantId, clientAddresses, saveClient, showSaveSwitch, onSelectClient, formatPrimaryAddress])
 
