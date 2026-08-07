@@ -246,3 +246,11 @@ textarea:focus {
 .animate-modal-pop-out {
   animation: modal-pop-out 0.18s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
+
+/* ─── Floating Action Button (FAB) Positioning with iOS Safe Area ────── */
+.fab-fixed-bottom-right {
+  position: fixed;
+  bottom: max(1.5rem, calc(1.5rem + env(safe-area-inset-bottom, 0px)));
+  right: max(1.5rem, calc(1.5rem + env(safe-area-inset-right, 0px)));
+  z-index: 50;
+}

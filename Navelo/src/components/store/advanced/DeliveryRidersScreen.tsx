@@ -316,7 +316,7 @@ export const DeliveryRidersScreen: React.FC<DeliveryRidersScreenProps> = ({
       </Stack>
 
       {/* Botão FAB fixo no canto inferior direito para adicionar novo entregador */}
-      <Box position="fixed" bottom={6} right={6} zIndex="50">
+      <Box className="fab-fixed-bottom-right">
         <Button
           variant="secondary-pill-icon"
           icon={Plus}

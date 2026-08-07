@@ -15,17 +15,16 @@ interface ViewTransitionProps {
 }
 
 /**
- * ViewTransition — envolve uma view e aplica animação de entrada (pop + fade)
- * toda vez que `viewKey` muda. Usa double requestAnimationFrame para garantir
- * que o browser pinte o estado inicial antes de animar.
+ * ViewTransition — envolve uma view e aplica transição suave de entrada por opacidade
+ * toda vez que `viewKey` muda. Usa opacidade pura (sem transform no container root)
+ * para garantir que elementos position: fixed (como FABs) permaneçam perfeitamente
+ * ancorados na tela durante a transição sem causar glitches.
  */
 export const ViewTransition: React.FC<ViewTransitionProps> = ({ children, viewKey, className, flex, direction, minH, overflow }) => {
   const [isActive, setIsActive] = React.useState(false)
-  const [animDone, setAnimDone] = React.useState(false)
 
   React.useEffect(() => {
     setIsActive(false)
-    setAnimDone(false)
     let raf2: number
     const raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => {
@@ -40,13 +39,8 @@ export const ViewTransition: React.FC<ViewTransitionProps> = ({ children, viewKe
 
   const style: React.CSSProperties = {
     opacity: isActive ? 1 : 0,
-    transform: animDone
-      ? undefined
-      : (isActive ? "scale(1) translateY(0)" : "scale(0.98) translateY(6px)"),
-    transition: (isActive && !animDone)
-      ? "opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)"
-      : "none",
-    width: "100%"
+    transition: isActive ? "opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1)" : "none",
+    width: "100%",
   }
 
   return (
@@ -65,14 +59,8 @@ export const ViewTransition: React.FC<ViewTransitionProps> = ({ children, viewKe
         overflow === "x-hidden y-auto" && "overflow-x-hidden overflow-y-auto",
         className
       )}
-      onTransitionEnd={(e) => {
-        if (e.propertyName === "transform" && isActive) {
-          setAnimDone(true)
-        }
-      }}
     >
       {children}
     </div>
   )
 }
-

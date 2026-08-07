@@ -102,7 +102,7 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
           <Font variant="body-bold" text="Pedidos" />
           <Box position="relative">
             <Button
-              variant="outline-xs"
+              variant="secondary-icon-xs"
               icon={Filter}
               title="Filtrar por status"
               onClick={() => setIsFilterOpen(!isFilterOpen)}
@@ -161,7 +161,7 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
 
                   <Stack direction="row" justify="between" gap={2.5} w="full">
                     <Button
-                      variant="ghost"
+                      variant="secondary-xs"
                       label="Limpar"
                       onClick={handleClearFilter}
                     />
@@ -193,10 +193,10 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
                 key={ord.id}
                 onClick={() => onSelectOrder(ord.id)}
                 padding={2.5}
-                bg={isSelected ? "bg-surface" : "bg-surface-sunken"}
+                bg="bg-surface"
                 radius="default"
                 border={true}
-                borderColor={isSelected ? "border-brand-primary" : "border-border"}
+                borderColor={isSelected ? "border-brand-secondary" : "border-border"}
                 w="full"
                 hoverBg="surface-sunken"
                 cursor="pointer"

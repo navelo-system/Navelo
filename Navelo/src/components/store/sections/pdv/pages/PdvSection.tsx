@@ -199,6 +199,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   }
 
   // Pagamentos
+  const [pendingDeliveryData, setPendingDeliveryData] = React.useState<DeliveryOrderPayload | null>(null)
   const [payments, setPayments] = React.useState<{ method: string; amount: number }[]>([])
   const [discount, setDiscount] = React.useState(deliveryContext?.initialDiscount || 0)
   const [paymentAmountInput, setPaymentAmountInput] = React.useState("")
@@ -397,10 +398,26 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
           })
         }
       }
+
+      if (pendingDeliveryData && deliveryContext) {
+        const paymentMethodsStr = payments.map((p) => p.method).join(", ") || "Dinheiro"
+        deliveryContext.onConfirmDelivery({
+          ...pendingDeliveryData,
+          status: "Status do pedido: Aberto",
+          paymentMoment: "advance",
+          items: cartItems,
+          total,
+          subtotal,
+          discount,
+        })
+        setPendingDeliveryData(null)
+      } else {
+        setStep("recibo")
+      }
     } catch (err) {
       console.error("Erro ao debitar estoque no PDV:", err)
+      setStep("recibo")
     }
-    setStep("recibo")
   }
 
   const handleCloseReceipt = () => {
@@ -604,13 +621,24 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
             onAlterClient={deliveryContext.onAlterClient}
             onCancel={() => setStep("negociacao")}
             onConfirmOrder={(data) => {
-              deliveryContext.onConfirmDelivery({
-                ...data,
-                items: cartItems,
-                total,
-                subtotal,
-                discount,
-              })
+              if (data.paymentMoment === "advance") {
+                setPendingDeliveryData({
+                  ...data,
+                  items: cartItems,
+                  total,
+                  subtotal,
+                  discount,
+                })
+                setStep("pagamento")
+              } else {
+                deliveryContext.onConfirmDelivery({
+                  ...data,
+                  items: cartItems,
+                  total,
+                  subtotal,
+                  discount,
+                })
+              }
             }}
           />
         ) : (
