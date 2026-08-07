@@ -1,194 +1,308 @@
+"use client"
+
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
-import { Icon } from "@/components/store/base/Icon"
+import { Badge } from "@/components/store/base/Badge"
 import { Button } from "@/components/store/base/Button"
-import { CheckCircle2, ChefHat, Package, Bike, MapPin, Clock, Trash2, LucideIcon } from "lucide-react"
+import { Modal } from "@/components/store/base/Modal"
+import { Trash2, Edit2, Bike } from "lucide-react"
 
 export type DeliveryStatus = "confirmed" | "preparing" | "ready" | "dispatched" | "delivered"
 
-export interface TimelineStepProps {
-  step: { key: string; label: string; icon: LucideIcon }
-  isActive: boolean
-  isCompleted: boolean
-  isPending: boolean
-  isLast: boolean
-  idx: number
-  activeIndex: number
-}
-
-export function TimelineStep({ step, isActive, isCompleted, isLast }: TimelineStepProps) {
-  // Reduces complexity by mapping state to styles
-  const state = isActive ? "active" : isCompleted ? "completed" : "pending"
-  
-  type StyleEntry = {
-    bg: string
-    border: string
-    iconColor: "white" | "success" | "muted"
-    fontVar: "body-bold" | "auxiliary"
-    fontColor: "primary" | "foreground" | "muted"
-  }
-
-  const styles: Record<"active" | "completed" | "pending", StyleEntry> = {
-    active: { bg: "bg-brand-primary", border: "border-brand-primary", iconColor: "white", fontVar: "auxiliary", fontColor: "primary" },
-    completed: { bg: "bg-brand-success/10", border: "border-brand-success", iconColor: "success", fontVar: "auxiliary", fontColor: "foreground" },
-    pending: { bg: "bg-surface-sunken", border: "border-border", iconColor: "muted", fontVar: "auxiliary", fontColor: "muted" },
-  }
-  
-  const current = styles[state]
-
-  return (
-    <Stack align="center" gap={2.5} flex="1">
-      <Box position="relative" w="full">
-        <Stack align="center" gap={2.5}>
-          {/* Visual Circle Indicator */}
-          <Box
-            padding={2.5}
-            radius="full"
-            border
-            bg={current.bg}
-            borderColor={current.border}
-            zIndex="10"
-          >
-            <Icon icon={step.icon} size={16} color={current.iconColor} />
-          </Box>
-  
-          {/* Text Label */}
-          <Box paddingY={2.5}>
-            <Font
-              variant={current.fontVar}
-              color={current.fontColor}
-              text={step.label}
-              align="center"
-            />
-          </Box>
-        </Stack>
-  
-        {/* Connector Line (except for last step) */}
-        {!isLast && (
-          <Box
-            position="absolute"
-            top="18px"
-            left="calc(50% + 20px)"
-            w="min-[450px]:w-[calc(100%-40px)] w-[calc(100%-40px)]"
-            h="h-[2px]"
-            zIndex="0"
-            bg={isCompleted ? "bg-brand-success" : "bg-border"}
-          />
-        )}
-      </Box>
-    </Stack>
-  )
+export interface DeliveryTimelineItem {
+  id: string
+  name: string
+  quantity: number
+  unitPrice: number
+  totalPrice: number
 }
 
 export interface DeliveryTimelineProps {
   orderId?: string
   status: DeliveryStatus
+  clientName?: string
+  clientDocument?: string
+  clientPhone?: string
   motoboyName?: string
   estimatedTime?: string
   address?: string
+  createdAt?: string
+  origin?: string
+  deliveryType?: string
+  paymentMethod?: string
+  items?: DeliveryTimelineItem[]
+  subtotal?: number
+  deliveryFee?: number
+  discount?: number
+  total?: number
+  totalPaid?: number
+  changeFor?: number
+  changeAmount?: number
   onDeleteOrder?: (id: string) => void
+  onEditOrder?: () => void
+  onSelectMotoboy?: () => void
+  onUpdateStatus?: (newStatus: DeliveryStatus) => void
 }
 
-const STEPS = [
-  { key: "confirmed", label: "Confirmado", icon: CheckCircle2 },
-  { key: "preparing", label: "Preparando", icon: ChefHat },
-  { key: "ready", label: "Pronto", icon: Package },
-  { key: "dispatched", label: "Em Rota", icon: Bike },
-  { key: "delivered", label: "Entregue", icon: MapPin },
-]
-
-const STATUS_INDEX: Record<DeliveryStatus, number> = {
-  confirmed: 0,
-  preparing: 1,
-  ready: 2,
-  dispatched: 3,
-  delivered: 4,
+const statusBadgeMap: Record<DeliveryStatus, { variant: "primary" | "secondary" | "success" | "outline" | "default"; label: string }> = {
+  confirmed: { variant: "primary", label: "Aberto" },
+  preparing: { variant: "secondary", label: "Em preparo" },
+  ready: { variant: "success", label: "Pronto para retirar" },
+  dispatched: { variant: "secondary", label: "Saiu para entrega" },
+  delivered: { variant: "success", label: "Entregue" },
 }
 
 export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
-  orderId = "8942",
-  status,
-  motoboyName = "Sem Motoboy",
-  estimatedTime = "30-45 min",
-  address = "Endereço não informado",
+  orderId = "016.3",
+  status = "confirmed",
+  clientName = "Teste",
+  clientDocument = "101.389.219-46",
+  clientPhone = "(41) 998364028",
+  motoboyName = "Entregador não selecionado",
+  estimatedTime = "1 hora",
+  address = "Rua Acre, 288, Ap 210 bloco 4 / Boneca do Iguaçu, São José dos Pinhais, PR, - CEP: 83040-030",
+  createdAt = "07/08/2026 13:45",
+  origin = "Pedido realizado no Aplicativo",
+  deliveryType = "Entrega no endereço",
+  paymentMethod = "Cobrança na Entrega - Dinheiro",
+  items = [
+    { id: "1", name: "ÁGUA COM GÁS", quantity: 1, unitPrice: 6.0, totalPrice: 6.0 },
+    { id: "2", name: "ÁGUA SEM GÁS", quantity: 1, unitPrice: 3.0, totalPrice: 3.0 },
+    { id: "3", name: "ÁGUA TÔNICA 350ML", quantity: 1, unitPrice: 6.0, totalPrice: 6.0 },
+  ],
+  subtotal,
+  deliveryFee = 10.0,
+  discount = 0,
+  total,
+  totalPaid = 0,
+  changeFor = 50.0,
+  changeAmount = 7.0,
   onDeleteOrder,
+  onEditOrder,
+  onSelectMotoboy,
+  onUpdateStatus,
 }) => {
-  const activeIndex = STATUS_INDEX[status]
+  const [isMotoboyWarningOpen, setIsMotoboyWarningOpen] = React.useState(false)
+
+  const statusInfo = statusBadgeMap[status] || { variant: "primary" as const, label: "Aberto" }
+
+  const isPickup = React.useMemo(() => {
+    if (!deliveryType) return false
+    const lower = deliveryType.toLowerCase()
+    return lower.includes("retirada") || lower.includes("pickup")
+  }, [deliveryType])
+
+  const getNextAction = (): { nextStatus: DeliveryStatus; label: string } | null => {
+    switch (status) {
+      case "confirmed":
+        return { nextStatus: "preparing", label: "Confirmar pedido" }
+      case "preparing":
+        if (isPickup) {
+          return { nextStatus: "ready", label: "Pronto para retirada" }
+        }
+        return { nextStatus: "dispatched", label: "Iniciar entrega" }
+      case "ready":
+        return { nextStatus: "delivered", label: "Confirmar entrega" }
+      case "dispatched":
+        return { nextStatus: "delivered", label: "Confirmar entrega" }
+      case "delivered":
+      default:
+        return null
+    }
+  }
+
+  const nextAction = getNextAction()
+  const isEditEnabled = status === "confirmed"
+
+  const handleNextStatusClick = () => {
+    if (!nextAction || !onUpdateStatus) return
+
+    // Se estiver em preparo e a próxima ação for iniciar entrega, verificar se há motoboy selecionado
+    if (status === "preparing" && !isPickup) {
+      const hasMotoboy = motoboyName && motoboyName !== "Entregador não selecionado"
+      if (!hasMotoboy) {
+        setIsMotoboyWarningOpen(true)
+        return
+      }
+    }
+
+    onUpdateStatus(nextAction.nextStatus)
+  }
+
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val)
+
+  const computedSubtotal = subtotal ?? items.reduce((acc, it) => acc + (it.totalPrice || 0), 0)
+  const computedDeliveryFee = deliveryFee ?? 10.0
+  const computedDiscount = discount ?? 0
+  const totalToPay = total ?? Math.max(0, computedSubtotal + computedDeliveryFee - computedDiscount)
 
   return (
-    <Box padding={5} bg="bg-surface" radius="default">
-      <Stack gap={5}>
-        <Stack direction="row" align="center" justify="between" gap={5}>
-          <Stack direction="row" align="center" gap={2.5}>
-            <Icon icon={Clock} color="primary" size={18} />
-            <Font variant="body-bold" text={`Entrega Estimada: ${estimatedTime}`} />
-          </Stack>
-          <Stack direction="row" align="center" gap={2.5}>
-            <Stack align="end" gap={0}>
-              <Font variant="description" color="muted" text="Pedido" align="right" />
-              <Font variant="body-bold" text={`#${orderId}`} align="right" />
+    <Box display="flex" direction="col" flex="1" h="full" minH="0" w="full" bg="bg-surface" radius="default" border={true} borderColor="border-border" padding={0}>
+      {/* Área de conteúdo rolável internamente */}
+      <Box flex="1" minH="0" overflow="auto" w="full" padding={5}>
+        <Stack gap={5} w="full">
+          {/* Cabeçalho do Detalhe: Venda - #016.3 + Badge de Status */}
+          <Stack direction="row" align="center" justify="between" w="full">
+            <Stack gap={0} align="start">
+              <Font variant="h2" text={`Venda - ${orderId}`} />
+              <Font variant="auxiliary" color="muted" text={origin} />
             </Stack>
+            <Badge
+              variant={statusInfo.variant}
+              label={`${statusInfo.label} ⏱ ${estimatedTime}`}
+            />
+          </Stack>
+
+          {/* Informações do Cliente */}
+          <Stack gap={1} align="start" w="full">
+            <Font variant="auxiliary" color="muted" text={createdAt} />
+            <Font variant="body-bold" text={clientName} />
+            {clientDocument && (
+              <Font variant="auxiliary" color="muted" text={`Documento: ${clientDocument}`} />
+            )}
+            <Font variant="auxiliary" color="muted" text={address} />
+            {clientPhone && (
+              <Font variant="auxiliary" color="muted" text={clientPhone} />
+            )}
+          </Stack>
+
+          <Box h="h-[2px]" bg="bg-border" w="full" />
+
+          {/* Seção Entrega/Cobrança */}
+          <Stack gap={1} align="start" w="full">
+            <Font variant="body-bold" text="Entrega/Cobrança" />
+            <Font variant="auxiliary" color="muted" text={deliveryType} />
+            <Font variant="auxiliary" color="muted" text={paymentMethod} />
+          </Stack>
+
+          {/* Seção Entregador com link SELECIONAR */}
+          <Stack gap={1} align="start" w="full">
+            <Stack direction="row" align="center" gap={2.5}>
+              <Font variant="body-bold" text="Entregador" />
+              <Box cursor="pointer" onClick={onSelectMotoboy}>
+                <Font variant="sub-tiny-bold" color="primary" text="SELECIONAR" />
+              </Box>
+            </Stack>
+            <Font variant="auxiliary" color="muted" text={motoboyName} />
+          </Stack>
+
+          {/* Seção Itens */}
+          <Stack gap={2.5} align="start" w="full">
+            <Font variant="body-bold" text="Itens" />
+            <Stack gap={2.5} w="full">
+              {items.map((item) => (
+                <Stack key={item.id} direction="row" align="center" justify="between" w="full">
+                  <Stack gap={0} align="start">
+                    <Font variant="body-sm-medium" text={item.name} />
+                    <Font
+                      variant="auxiliary"
+                      color="muted"
+                      text={`${item.quantity} UN x ${formatCurrency(item.unitPrice)}`}
+                    />
+                  </Stack>
+                  <Font variant="body-sm-semibold" text={formatCurrency(item.totalPrice)} />
+                </Stack>
+              ))}
+            </Stack>
+          </Stack>
+
+          {/* Seção Totais */}
+          <Stack gap={2.5} align="start" w="full">
+            <Font variant="body-bold" text="Totais" />
+            <Stack gap={1} w="full">
+              <Stack direction="row" align="center" justify="between" w="full">
+                <Font variant="body-sm-medium" color="secondary" text="Valor itens" />
+                <Font variant="body-sm-semibold" text={formatCurrency(computedSubtotal)} />
+              </Stack>
+              <Stack direction="row" align="center" justify="between" w="full">
+                <Font variant="body-sm-medium" color="secondary" text="Taxa de entrega" />
+                <Font variant="body-sm-semibold" text={formatCurrency(computedDeliveryFee)} />
+              </Stack>
+              {computedDiscount > 0 && (
+                <Stack direction="row" align="center" justify="between" w="full">
+                  <Font variant="body-sm-medium" color="secondary" text="Desconto" />
+                  <Font variant="body-sm-semibold" color="primary" text={`- ${formatCurrency(computedDiscount)}`} />
+                </Stack>
+              )}
+              <Stack direction="row" align="center" justify="between" w="full">
+                <Font variant="body-bold" text="Total a pagar" />
+                <Font variant="body-bold" text={formatCurrency(totalToPay)} />
+              </Stack>
+              <Stack direction="row" align="center" justify="between" w="full">
+                <Font variant="body-sm-medium" color="secondary" text="Total pago" />
+                <Font variant="body-sm-semibold" text={formatCurrency(totalPaid)} />
+              </Stack>
+              <Font variant="auxiliary" color="muted" text={paymentMethod || "Dinheiro"} />
+              {changeFor > 0 && (
+                <Font
+                  variant="auxiliary"
+                  color="muted"
+                  text={`Troco para: ${formatCurrency(changeFor)}, levar ${formatCurrency(changeAmount)}`}
+                />
+              )}
+            </Stack>
+          </Stack>
+        </Stack>
+      </Box>
+
+      {/* Rodapé de Ações Fixo na base da tela (Tamanho Normal) */}
+      <Box padding={5} w="full" borderTop={true} borderColor="border-border" bg="bg-surface">
+        <Stack direction="row" align="center" justify="between" w="full">
+          <Stack direction="row" align="center" gap={2.5}>
             {onDeleteOrder && (
               <Button
-                variant="danger-icon-xs-confirm"
+                variant="danger-confirm"
+                label="Excluir"
                 icon={Trash2}
-                confirmTitle="Excluir pedido de delivery?"
-                confirmDescription={`Tem certeza que deseja excluir o pedido #${orderId}? Esta ação não pode ser desfeita.`}
-                onConfirm={() => onDeleteOrder(orderId)}
+                onClick={() => onDeleteOrder(orderId)}
+              />
+            )}
+            {onEditOrder && (
+              <Button
+                variant="secondary"
+                label="Editar"
+                icon={Edit2}
+                disabled={!isEditEnabled}
+                onClick={onEditOrder}
               />
             )}
           </Stack>
+
+          {onUpdateStatus && nextAction && status !== "delivered" && (
+            <Button
+              variant="primary"
+              label={nextAction.label}
+              onClick={handleNextStatusClick}
+            />
+          )}
         </Stack>
+      </Box>
 
-        <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
-
-        <Box w="full" overflow="auto">
-          <Box paddingY={5} w="w-full" minW="w-[450px]">
-            <Stack direction="row" align="start" justify="between" gap={0}>
-              {STEPS.map((step, idx) => {
-              const isCompleted = idx < activeIndex
-              const isActive = idx === activeIndex
-              const isPending = idx > activeIndex
-  
-              return (
-                <TimelineStep 
-                  key={step.key}
-                  step={step}
-                  isActive={isActive}
-                  isCompleted={isCompleted}
-                  isPending={isPending}
-                  isLast={idx === STEPS.length - 1}
-                  idx={idx}
-                  activeIndex={activeIndex}
-                />
-              )
-            })}
-            </Stack>
-          </Box>
-        </Box>
-
-        <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
-
-        <Stack gap={2.5}>
-          <Stack direction="row" align="center" justify="between" gap={5}>
-            <Stack gap={0}>
-              <Font variant="auxiliary" text="Entregador Parceiro" />
-              <Font variant="body-medium" text={motoboyName} />
-            </Stack>
-            <Stack align="end" gap={0}>
-              <Font variant="auxiliary" text="Canal de Origem" />
-              <Font variant="body-bold" text="iFood Delivery" color="danger" />
-            </Stack>
-          </Stack>
-
-          <Stack direction="row" align="center" gap={2.5}>
-            <Icon icon={MapPin} size={16} color="secondary" />
-            <Font variant="description" text={address} truncate={true} />
-          </Stack>
-        </Stack>
-      </Stack>
+      {/* Modal de Aviso: Entregador não selecionado */}
+      <Modal
+        isOpen={isMotoboyWarningOpen}
+        onClose={() => setIsMotoboyWarningOpen(false)}
+        title="Entregador não selecionado"
+        subtitle="Selecione um entregador parceiro para iniciar a entrega deste pedido."
+        icon={Bike}
+        successText="Selecionar entregador"
+        onSuccess={() => {
+          setIsMotoboyWarningOpen(false)
+          if (onSelectMotoboy) {
+            onSelectMotoboy()
+          }
+        }}
+        showCancelButton={true}
+      >
+        <Font
+          variant="body-sm-medium"
+          color="secondary"
+          text="Não é possível alterar o status do pedido para 'Saiu para entrega' sem que haja um entregador atribuído ao pedido."
+        />
+      </Modal>
     </Box>
   )
 }

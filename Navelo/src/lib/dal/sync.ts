@@ -2,6 +2,31 @@ import { db } from './db';
 import { supabase } from '../supabase/client';
 
 /**
+ * Sanitiza o payload para remover propriedades transientes incompatíveis antes de enviar ao Supabase
+ */
+function sanitizePayloadForSupabase(table: string, rawPayload: Record<string, unknown>): Record<string, unknown> {
+  const payload = { ...rawPayload };
+
+  if (table === 'products') {
+    if (payload.image && !payload.image_url) {
+      payload.image_url = payload.image;
+    }
+  } else if (table === 'users') {
+    delete payload.isCurrent;
+  } else if (table === 'customers') {
+    if (payload.addresses && Array.isArray(payload.addresses)) {
+      delete payload.addresses;
+    }
+  } else if (table === 'delivery_orders' || table === 'tabs' || table === 'sales') {
+    if (payload.items && Array.isArray(payload.items)) {
+      payload.items = JSON.stringify(payload.items) as any;
+    }
+  }
+
+  return payload;
+}
+
+/**
  * Baixa os dados do Supabase para o Tenant especificado e salva no Dexie (IndexedDB)
  */
 export async function initialSync(tenantId?: string) {
@@ -105,7 +130,7 @@ export async function mutateLocalFirst<T extends { id: string; company_id?: stri
 }
 
 /**
- * Processa a fila de sincronização enviando ao Supabase
+ * Processa a fila de sincronização enviando ao Supabase com sanitização e retenção segura em caso de erro
  */
 // eslint-disable-next-line complexity
 export async function processSyncQueue() {
@@ -118,21 +143,35 @@ export async function processSyncQueue() {
     /* eslint-disable max-depth, no-await-in-loop */
     for (const item of queue) {
       try {
+        let hasError = false;
         if (item.action === 'DELETE') {
           const { error } = await supabase.from(item.table).delete().eq('id', item.payload.id as string);
           if (error) {
-            console.warn(`[Sync] Aviso Supabase (${item.table}):`, error.message);
+            console.warn(`[Sync] Erro Supabase DELETE (${item.table}):`, error.message);
+            hasError = true;
           }
         } else {
+          const cleanPayload = sanitizePayloadForSupabase(item.table, item.payload);
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { error } = await supabase.from(item.table).upsert(item.payload as any);
+          const { error } = await supabase.from(item.table).upsert(cleanPayload as any);
           if (error) {
-            console.warn(`[Sync] Aviso Supabase (${item.table}):`, error.message);
+            console.warn(`[Sync] Erro Supabase UPSERT (${item.table}):`, error.message);
+            hasError = true;
           }
         }
         
-        // Remove da fila se processado localmente
-        await db.sync_queue.delete(item.id);
+        if (hasError) {
+          const currentRetries = ((item.retries as number) || 0) + 1;
+          if (currentRetries >= 5) {
+            console.warn(`[Sync] Item ${item.id} (${item.table}) expurgado da fila após 5 falhas.`);
+            await db.sync_queue.delete(item.id);
+          } else {
+            await db.sync_queue.update(item.id, { retries: currentRetries });
+          }
+        } else {
+          // Remove da fila somente se enviado com sucesso ao Supabase
+          await db.sync_queue.delete(item.id);
+        }
       } catch (err) {
         console.warn(`[Sync] Falha temporária ao sincronizar item ${item.id}:`, err);
         break;
@@ -140,11 +179,50 @@ export async function processSyncQueue() {
     }
     /* eslint-enable max-depth, no-await-in-loop */
   } catch (err) {
-    console.error("[Sync] Erro ao ler fila de sincronização:", err);
+    console.warn("[Sync] Erro ao ler fila de sincronização:", err);
   }
+}
+
+/**
+ * Subscrição em Tempo Real (Supabase Realtime) para refletir instantaneamente dados no Dexie entre dispositivos
+ */
+export function subscribeToRealtimeSync(tenantId: string) {
+  if (!tenantId || typeof window === 'undefined') return () => {};
+
+  const channel = supabase
+    .channel(`navelo-realtime-${tenantId}`)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public' },
+      async (payload) => {
+        const table = payload.table;
+        const eventType = payload.eventType;
+        const newRecord = payload.new as Record<string, unknown>;
+        const oldRecord = payload.old as Record<string, unknown>;
+
+        try {
+          if (eventType === 'DELETE' && oldRecord?.id) {
+            await db.table(table).delete(oldRecord.id as string);
+          } else if ((eventType === 'INSERT' || eventType === 'UPDATE') && newRecord?.id) {
+            const companyId = (newRecord.company_id || newRecord.tenant_id) as string;
+            if (!companyId || companyId === tenantId) {
+              await db.table(table).put(newRecord);
+            }
+          }
+        } catch (err) {
+          console.warn(`[Realtime] Erro ao aplicar mudança na tabela ${table}:`, err);
+        }
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
 }
 
 // Escutar eventos de conectividade para rodar a fila automaticamente
 if (typeof window !== 'undefined') {
   window.addEventListener('online', processSyncQueue);
 }
+

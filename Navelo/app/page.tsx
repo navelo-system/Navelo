@@ -25,7 +25,7 @@ import { ThemeCustomizerModal, applyThemeColors, loadSavedTheme } from "@/compon
 import { TenantProvider, useTenant } from "@/lib/context/TenantContext"
 import { canAccessView } from "@/lib/permissions"
 import { useTabs, useSyncStatus, dal } from "@/lib/dal"
-import { initialSync } from "@/lib/dal/sync"
+import { initialSync, processSyncQueue, subscribeToRealtimeSync } from "@/lib/dal/sync"
 import { TabEntity } from "@/lib/dal/db"
 import {
   ShoppingBag,
@@ -186,10 +186,12 @@ function HomeContent() {
   const dbTabs = useTabs(tenantId)
   const syncStatus = useSyncStatus()
 
-  // Sincronização inicial automática com o Supabase ao carregar a sessão do tenant
+  // Sincronização inicial e subscrição em tempo real com o Supabase ao carregar a sessão do tenant
   React.useEffect(() => {
     if (tenantId) {
       initialSync(tenantId)
+      const unsubscribe = subscribeToRealtimeSync(tenantId)
+      return () => unsubscribe()
     }
   }, [tenantId])
 
@@ -292,6 +294,10 @@ function HomeContent() {
             operatorName={operator}
             isSynced={syncStatus.isSynced}
             statusText={syncStatus.statusText}
+            onSyncClick={() => {
+              if (tenantId) initialSync(tenantId)
+              processSyncQueue()
+            }}
             onLogout={() => {
               setOperator(null)
               tenantCtx.logoutUserSession()

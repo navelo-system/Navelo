@@ -142,7 +142,7 @@ export function useDeliveryOrders(tenantId?: string) {
   }, [tenantId]);
 }
 
-export type DalPayload = { id: string; company_id?: string; tenant_id?: string; [key: string]: unknown };
+export type DalPayload = { id: string; company_id?: string; tenant_id?: string; [key: string]: any };
 
 // Repositório Unificado da DAL (Local-First Mutate)
 export const dal = {

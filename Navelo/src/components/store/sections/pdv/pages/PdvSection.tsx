@@ -28,6 +28,9 @@ import { PdvObservacaoModal } from "@/components/store/sections/pdv/modals/PdvOb
 import { PdvSangriaModal } from "@/components/store/sections/pdv/modals/PdvSangriaModal"
 
 import { DeliveryClientInfo, DeliveryCheckoutConfirmation, DeliveryType, PaymentMoment } from "@/components/store/advanced/DeliveryCheckoutConfirmation"
+import { DeliveryRatesScreen } from "@/components/store/advanced/DeliveryRatesScreen"
+import { DeliveryRidersScreen } from "@/components/store/advanced/DeliveryRidersScreen"
+import { Rider, DeliveryRate } from "@/lib/dal"
 
 // Interface dos itens do carrinho
 export interface CartItemType {
@@ -53,6 +56,10 @@ export interface DeliveryContextData {
   client: DeliveryClientInfo
   onConfirmDelivery: (orderData: DeliveryOrderPayload) => void
   onAlterClient?: () => void
+  initialItems?: CartItemType[]
+  initialDiscount?: number
+  isEditing?: boolean
+  onSaveEdits?: (items: CartItemType[], subtotal: number, discount: number, total: number) => void
 }
 
 interface PdvSectionProps {
@@ -151,8 +158,12 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   }, [catalogProducts])
 
   const [step, setStep] = React.useState<"negociacao" | "pagamento" | "recibo" | "delivery-confirm">("negociacao")
-  const [subView, setSubView] = React.useState<"none" | "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos">("none")
-  const [cartItems, setCartItems] = React.useState<CartItemType[]>([])
+  const [subView, setSubView] = React.useState<"none" | "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos" | "rates-screen" | "riders-screen">("none")
+  const [selectedRider, setSelectedRider] = React.useState<Rider | null>(null)
+  const [selectedRate, setSelectedRate] = React.useState<DeliveryRate | null>(null)
+  const [cartItems, setCartItems] = React.useState<CartItemType[]>(
+    deliveryContext?.initialItems || []
+  )
   const [activeCategory, setActiveCategory] = React.useState("Todos")
   const [searchQuery, setSearchQuery] = React.useState("")
   const [viewMode, setViewMode] = React.useState<"grade" | "lista">("grade")
@@ -189,7 +200,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
 
   // Pagamentos
   const [payments, setPayments] = React.useState<{ method: string; amount: number }[]>([])
-  const [discount, setDiscount] = React.useState(0)
+  const [discount, setDiscount] = React.useState(deliveryContext?.initialDiscount || 0)
   const [paymentAmountInput, setPaymentAmountInput] = React.useState("")
 
   // Modais
@@ -478,6 +489,36 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
     )
   }
 
+  if (subView === "rates-screen") {
+    return (
+      <DeliveryRatesScreen
+        setCustomBack={setCustomBack}
+        setCustomTitle={setCustomTitle}
+        setCustomActions={setCustomActions}
+        onBack={() => setSubView("none")}
+        onSelectRate={(r) => {
+          setSelectedRate(r)
+          setSubView("none")
+        }}
+      />
+    )
+  }
+
+  if (subView === "riders-screen") {
+    return (
+      <DeliveryRidersScreen
+        setCustomBack={setCustomBack}
+        setCustomTitle={setCustomTitle}
+        setCustomActions={setCustomActions}
+        onBack={() => setSubView("none")}
+        onSelectRider={(r) => {
+          setSelectedRider(r)
+          setSubView("none")
+        }}
+      />
+    )
+  }
+
   if (step === "recibo") {
     return (
       <ViewTransition viewKey={step}>
@@ -541,6 +582,12 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
                   onRemove={handleRemove}
                   onGoToPayment={handleGoToPayment}
                   onSaveComanda={activeComandaId ? handleSaveComandaAndExit : undefined}
+                  onSaveDeliveryOrder={
+                    deliveryContext?.isEditing && deliveryContext?.onSaveEdits
+                      ? () => deliveryContext.onSaveEdits!(cartItems, subtotal, discount, total)
+                      : undefined
+                  }
+                  submitLabel={deliveryContext?.isEditing ? "Salvar alterações" : undefined}
                 />
               </Box>
             </Stack>
@@ -548,6 +595,12 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         ) : step === "delivery-confirm" && deliveryContext ? (
           <DeliveryCheckoutConfirmation
             client={deliveryContext.client}
+            rider={selectedRider}
+            rate={selectedRate}
+            onSelectRider={() => setSubView("riders-screen")}
+            onClearRider={() => setSelectedRider(null)}
+            onSelectRate={() => setSubView("rates-screen")}
+            onClearRate={() => setSelectedRate(null)}
             onAlterClient={deliveryContext.onAlterClient}
             onCancel={() => setStep("negociacao")}
             onConfirmOrder={(data) => {
@@ -588,17 +641,17 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
       </ViewTransition>
 
       {step === "negociacao" && (
-        <Box
-          display="block md:hidden"
-          position="fixed"
-          bottom={0}
-          left={0}
-          right={0}
-          w="full"
-          zIndex="20"
-        >
-          <Box w="full" bg="bg-background" paddingX={5} paddingY={2.5}>
-            <Stack direction="row" gap={2.5} w="full">
+        <div className="block md:hidden fixed-bottom-bar-safe bg-bg-background border-t border-border-border">
+          <Stack direction="row" gap={2.5} w="full">
+            {deliveryContext?.isEditing && deliveryContext?.onSaveEdits ? (
+              <Button
+                variant="primary-lg"
+                fullWidth
+                label="Salvar alterações"
+                disabled={cartItems.length === 0}
+                onClick={() => deliveryContext.onSaveEdits!(cartItems, subtotal, discount, total)}
+              />
+            ) : (
               <Button
                 variant="primary-lg"
                 fullWidth
@@ -606,17 +659,17 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
                 disabled={cartItems.length === 0}
                 onClick={handleGoToPayment}
               />
-              {activeComandaId && (
-                <Button
-                  variant="secondary-lg"
-                  fullWidth
-                  label="Salvar"
-                  onClick={handleSaveComandaAndExit}
-                />
-              )}
-            </Stack>
-          </Box>
-        </Box>
+            )}
+            {activeComandaId && (
+              <Button
+                variant="secondary-lg"
+                fullWidth
+                label="Salvar"
+                onClick={handleSaveComandaAndExit}
+              />
+            )}
+          </Stack>
+        </div>
       )}
 
       <PdvCartDrawer

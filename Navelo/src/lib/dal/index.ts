@@ -1,5 +1,5 @@
 export { db } from './db';
-export { initialSync, mutateLocalFirst, processSyncQueue } from './sync';
+export { initialSync, mutateLocalFirst, processSyncQueue, subscribeToRealtimeSync } from './sync';
 export {
   useProducts,
   useCategories,
@@ -14,6 +14,8 @@ export {
   useSales,
   useDeliveryOrders,
   useSyncStatus,
+  useRiders,
+  useDeliveryRates,
   dal
 } from './hooks';
 export type {
@@ -29,6 +31,7 @@ export type {
   CashMovement,
   TableEntity,
   TabEntity,
-  DeliveryOrderEntity
+  DeliveryOrderEntity,
+  Rider,
+  DeliveryRate
 } from './db';
-

@@ -18,6 +18,7 @@ interface PdvSidebarDrawerProps {
   onOpenObservationModal: () => void
   onOpenSangriaModal: (mode?: "sangria" | "suprimento") => void
   onOpenDiscountModal: () => void
+  onSyncClick?: () => void
 }
 
 export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
@@ -28,6 +29,7 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
   onOpenObservationModal,
   onOpenSangriaModal,
   onOpenDiscountModal,
+  onSyncClick,
 }) => {
   const syncStatus = useSyncStatus()
 
@@ -35,7 +37,16 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Menu" variant="sidebar">
       <Stack gap={5}>
         {/* Sincronizacao */}
-        <Box w="full" bg="bg-surface-sunken" padding={2.5} radius="default">
+        <Box
+          w="full"
+          bg="bg-surface-sunken"
+          padding={2.5}
+          radius="default"
+          cursor="pointer"
+          onClick={() => {
+            onSyncClick?.()
+          }}
+        >
           <Stack direction="row" align="center" justify="between" w="full">
             <Stack direction="row" align="center" gap={2.5}>
               <Icon icon={syncStatus.isSynced ? Cloud : AlertTriangle} size={16} color={syncStatus.isSynced ? "primary" : "warning"} />

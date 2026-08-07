@@ -1,16 +1,15 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Icon } from "@/components/store/base/Icon"
-import { Truck, Store, Utensils, UserCheck, CreditCard, ChevronRight, RefreshCw, Trash2, Check } from "lucide-react"
+import { Truck, Store, UserCheck, CreditCard, RefreshCw, Check } from "lucide-react"
+import { Rider, DeliveryRate } from "@/lib/dal"
 
-export type DeliveryType = "delivery" | "pickup" | "dine_in"
+export type DeliveryType = "delivery" | "pickup"
 export type PaymentMoment = "on_delivery" | "advance"
 
 export interface DeliveryClientInfo {
@@ -25,13 +24,21 @@ export interface DeliveryClientInfo {
 export interface DeliveryCheckoutConfirmationProps {
   statusText?: string
   client: DeliveryClientInfo
+  rider?: Rider | null
+  rate?: DeliveryRate | null
   onAlterStatus?: () => void
   onAlterClient?: () => void
   onClearClient?: () => void
+  onSelectRider?: () => void
+  onClearRider?: () => void
+  onSelectRate?: () => void
+  onClearRate?: () => void
   onConfirmOrder: (orderData: {
     status: string
     deliveryType: DeliveryType
     client: DeliveryClientInfo
+    rider?: Rider | null
+    rate?: DeliveryRate | null
     paymentMoment: PaymentMoment
   }) => void
   onCancel?: () => void
@@ -40,9 +47,15 @@ export interface DeliveryCheckoutConfirmationProps {
 export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmationProps> = ({
   statusText = "Status do pedido: Aberto",
   client,
+  rider,
+  rate,
   onAlterStatus,
   onAlterClient,
   onClearClient,
+  onSelectRider,
+  onClearRider,
+  onSelectRate,
+  onClearRate,
   onConfirmOrder,
   onCancel,
 }) => {
@@ -56,9 +69,11 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
       status: currentStatus,
       deliveryType,
       client,
+      rider,
+      rate,
       paymentMoment,
     })
-  }, [currentStatus, deliveryType, client, paymentMoment, onConfirmOrder])
+  }, [currentStatus, deliveryType, client, rider, rate, paymentMoment, onConfirmOrder])
 
   // Atalho de teclado F9 para confirmar o pedido
   React.useEffect(() => {
@@ -75,6 +90,7 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [handleConfirm, onCancel])
 
+  // APENAS Entrega e Retirada (Sem Consumo no local)
   const deliveryTypeOptions: Array<{ id: DeliveryType; label: string; icon: typeof Truck }> = [
     { id: "delivery", label: "Entrega", icon: Truck },
     { id: "pickup", label: "Retirada", icon: Store },
@@ -160,84 +176,145 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
             </div>
           </Stack>
 
-          {/* 2. SEÇÃO TIPO DE ENTREGA */}
+          {/* 2. SEÇÃO TIPO DE ENTREGA (Design dos Cards identico ao Momento da cobranca com Sanfona Animada) */}
           <Stack gap={2.5} w="full">
             <Font variant="body-bold" text="* Tipo de entrega" />
             <Stack gap={2.5} w="full">
               {deliveryTypeOptions.map((opt) => {
                 const isSelected = deliveryType === opt.id
                 return (
-                  <Box
-                    key={opt.id}
-                    padding={2.5}
-                    radius="default"
-                    cursor="pointer"
-                    border={true}
-                    borderColor={isSelected ? "border-brand-primary" : "border-border"}
-                    bg={isSelected ? "bg-brand-primary/5" : "bg-transparent"}
-                    hoverBg="surface-sunken"
-                    onClick={() => setDeliveryType(opt.id)}
-                  >
-                    <Stack direction="row" gap={2.5} align="center" w="full">
-                      <Icon
-                        icon={opt.icon}
-                        color={isSelected ? "primary" : "muted"}
-                      />
-                      <Font
-                        variant="body-sm-medium"
-                        color={isSelected ? "primary" : "foreground"}
-                        text={opt.label}
-                      />
-                    </Stack>
-                  </Box>
+                  <Stack key={opt.id} gap={2.5} w="full">
+                    <Box
+                      padding={2.5}
+                      radius="default"
+                      cursor="pointer"
+                      border={true}
+                      borderColor={isSelected ? "border-brand-primary" : "border-border"}
+                      bg={isSelected ? "bg-brand-primary/5" : "bg-transparent"}
+                      hoverBg="surface-sunken"
+                      onClick={() => setDeliveryType(opt.id)}
+                    >
+                      <Stack direction="row" gap={2.5} align="center" w="full">
+                        <Icon
+                          icon={opt.icon}
+                          color={isSelected ? "primary" : "muted"}
+                        />
+                        <Font
+                          variant="body-sm-medium"
+                          color={isSelected ? "primary" : "foreground"}
+                          text={opt.label}
+                        />
+                      </Stack>
+                    </Box>
+
+                    {/* SANFONA ANIMADA PARA SUB-SEÇÕES DE ENTREGA (CLIENTE, ENTREGADOR, TAXA) */}
+                    {opt.id === "delivery" && (
+                      <div className={`grid transition-all duration-300 ease-in-out ${isSelected ? "grid-rows-[1fr] opacity-100 mt-1" : "grid-rows-[0fr] opacity-0 mt-0"}`}>
+                        <div className="overflow-hidden">
+                          <Box padding={2.5} bg="surface-sunken" radius="default" w="full">
+                            <Stack gap={5} w="full">
+                              {/* CLIENTE */}
+                              <Stack gap={2.5} w="full">
+                                <Stack direction="row" justify="between" align="center" w="full">
+                                  <Font variant="body-bold" text="* Cliente" />
+                                  <Stack direction="row" gap={2.5} align="center">
+                                    {onAlterClient && (
+                                      <Box cursor="pointer" onClick={onAlterClient} className="hover:opacity-80 transition-opacity">
+                                        <Font variant="sub-tiny-bold" color="primary" text="ALTERAR" />
+                                      </Box>
+                                    )}
+                                    {onClearClient && (
+                                      <Box cursor="pointer" onClick={onClearClient} className="hover:opacity-80 transition-opacity">
+                                        <Font variant="sub-tiny-bold" color="muted" text="LIMPAR" />
+                                      </Box>
+                                    )}
+                                  </Stack>
+                                </Stack>
+
+                                <Box padding={0} w="full">
+                                  <Stack gap={1} w="full">
+                                    <Font variant="body-sm-medium" text={client.name || "Cliente não informado"} />
+                                    {client.phone && (
+                                      <Font variant="body-sm-medium" color="muted" text={client.phone} />
+                                    )}
+                                    {client.address ? (
+                                      <Font variant="body-sm-medium" color="muted" text={client.address} />
+                                    ) : (
+                                      <Font variant="body-sm-medium" color="muted" text="Endereço não informado" />
+                                    )}
+                                  </Stack>
+                                </Box>
+                              </Stack>
+
+                              {/* ENTREGADOR */}
+                              <Stack gap={2.5} w="full">
+                                <Stack direction="row" justify="between" align="center" w="full">
+                                  <Font variant="body-bold" text="Entregador" />
+                                  <Stack direction="row" gap={2.5} align="center">
+                                    {onSelectRider && (
+                                      <Box cursor="pointer" onClick={onSelectRider} className="hover:opacity-80 transition-opacity">
+                                        <Font variant="sub-tiny-bold" color="primary" text={rider ? "ALTERAR" : "SELECIONAR"} />
+                                      </Box>
+                                    )}
+                                    {rider && onClearRider && (
+                                      <Box cursor="pointer" onClick={onClearRider} className="hover:opacity-80 transition-opacity">
+                                        <Font variant="sub-tiny-bold" color="muted" text="LIMPAR" />
+                                      </Box>
+                                    )}
+                                  </Stack>
+                                </Stack>
+
+                                <Box padding={0} w="full">
+                                  <Font
+                                    variant="body-sm-medium"
+                                    color={rider ? "foreground" : "muted"}
+                                    text={rider ? rider.name : "Selecione um entregador"}
+                                  />
+                                </Box>
+                              </Stack>
+
+                              {/* TAXA DE ENTREGA */}
+                              <Stack gap={2.5} w="full">
+                                <Stack direction="row" justify="between" align="center" w="full">
+                                  <Font variant="body-bold" text="Taxa de entrega" />
+                                  <Stack direction="row" gap={2.5} align="center">
+                                    {onSelectRate && (
+                                      <Box cursor="pointer" onClick={onSelectRate} className="hover:opacity-80 transition-opacity">
+                                        <Font variant="sub-tiny-bold" color="primary" text={rate ? "ALTERAR" : "SELECIONAR"} />
+                                      </Box>
+                                    )}
+                                    {rate && onClearRate && (
+                                      <Box cursor="pointer" onClick={onClearRate} className="hover:opacity-80 transition-opacity">
+                                        <Font variant="sub-tiny-bold" color="muted" text="LIMPAR" />
+                                      </Box>
+                                    )}
+                                  </Stack>
+                                </Stack>
+
+                                <Box padding={0} w="full">
+                                  <Font
+                                    variant="body-sm-medium"
+                                    color={rate ? "foreground" : "muted"}
+                                    text={
+                                      rate
+                                        ? `${rate.neighborhood} (R$ ${(rate.fee || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })})`
+                                        : "Nenhuma taxa de entrega informada"
+                                    }
+                                  />
+                                </Box>
+                              </Stack>
+                            </Stack>
+                          </Box>
+                        </div>
+                      </div>
+                    )}
+                  </Stack>
                 )
               })}
             </Stack>
           </Stack>
 
-          {/* 3. SEÇÃO CLIENTE */}
-          <Stack gap={2.5} w="full">
-            <Stack direction="row" justify="between" align="center" w="full">
-              <Font variant="body-bold" text="* Cliente" />
-              <Stack direction="row" gap={2.5} align="center">
-                {onAlterClient && (
-                  <Button
-                    variant="secondary-icon-xs"
-                    icon={RefreshCw}
-                    spinOnClick={true}
-                    title="Alterar cliente"
-                    type="button"
-                    onClick={onAlterClient}
-                  />
-                )}
-                {onClearClient && (
-                  <Button
-                    variant="danger-icon-xs"
-                    icon={Trash2}
-                    title="Remover cliente"
-                    type="button"
-                    onClick={onClearClient}
-                  />
-                )}
-              </Stack>
-            </Stack>
-
-            <Box padding={2.5} bg="surface-sunken" radius="default" w="full">
-              <Stack gap={1} w="full">
-                <Font variant="body-bold" text={client.name || "Cliente não informado"} />
-                {client.phone && (
-                  <Font variant="description" color="muted" text={client.phone} />
-                )}
-                {client.address ? (
-                  <Font variant="description" color="muted" text={client.address} />
-                ) : (
-                  <Font variant="description" color="muted" text="Endereço não informado" />
-                )}
-              </Stack>
-            </Box>
-          </Stack>
-
-          {/* 4. SEÇÃO MOMENTO DA COBRANÇA */}
+          {/* 3. SEÇÃO MOMENTO DA COBRANÇA */}
           <Stack gap={2.5} w="full">
             <Font variant="body-bold" text="* Momento da cobrança" />
             <Stack gap={2.5} w="full">
@@ -272,7 +349,7 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
             </Stack>
           </Stack>
 
-          {/* 5. BOTÃO PRINCIPAL DE CONFIRMAÇÃO (F9) */}
+          {/* 4. BOTÃO PRINCIPAL DE CONFIRMAÇÃO (F9) */}
           <Box w="full" paddingY={2.5}>
             <Button
               variant="primary"

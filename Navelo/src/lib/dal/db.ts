@@ -230,6 +230,9 @@ export interface Rider {
   tenant_id?: string;
   name: string;
   phone: string;
+  document?: string;
+  conecta_enabled?: boolean;
+  conecta_code?: string;
   active: boolean;
 }
 
@@ -259,6 +262,7 @@ export interface SyncQueueItem {
   tenant_id?: string;
   payload: Record<string, unknown> & { id?: string; tenant_id?: string; company_id?: string };
   created_at: string;
+  retries?: number;
 }
 
 export interface DeliveryOrderEntity {
@@ -266,12 +270,21 @@ export interface DeliveryOrderEntity {
   company_id: string;
   tenant_id?: string;
   client_name: string;
+  client_document?: string;
+  client_phone?: string;
   address: string;
   status: 'confirmed' | 'preparing' | 'ready' | 'dispatched' | 'delivered';
   estimated_time?: string;
   total: number;
+  subtotal?: number;
+  discount?: number;
+  delivery_fee?: number;
   motoboy?: string;
   created_at?: string;
+  origin?: string;
+  delivery_type?: string;
+  payment_method?: string;
+  items?: Array<Record<string, unknown>>;
 }
 
 export interface UserEntity {

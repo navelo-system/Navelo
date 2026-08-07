@@ -20,6 +20,8 @@ interface PdvCheckoutSidebarProps {
   onRemove: (id: string) => void
   onGoToPayment?: () => void
   onSaveComanda?: () => void
+  onSaveDeliveryOrder?: () => void
+  submitLabel?: string
   hideActions?: boolean
   compactList?: boolean
 }
@@ -34,6 +36,8 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
   onRemove,
   onGoToPayment,
   onSaveComanda,
+  onSaveDeliveryOrder,
+  submitLabel,
   hideActions = false,
   compactList = false,
 }) => {
@@ -70,13 +74,23 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
             <>
               <Box paddingY={1} />
 
-              <Button
-                variant="primary-lg"
-                fullWidth
-                label="F9 - Pagamento"
-                disabled={cartItems.length === 0}
-                onClick={onGoToPayment}
-              />
+              {onSaveDeliveryOrder ? (
+                <Button
+                  variant="primary-lg"
+                  fullWidth
+                  label={submitLabel || "Salvar alterações"}
+                  disabled={cartItems.length === 0}
+                  onClick={onSaveDeliveryOrder}
+                />
+              ) : (
+                <Button
+                  variant="primary-lg"
+                  fullWidth
+                  label={submitLabel || "F9 - Pagamento"}
+                  disabled={cartItems.length === 0}
+                  onClick={onGoToPayment}
+                />
+              )}
               {onSaveComanda && (
                 <Button
                   variant="secondary-lg"

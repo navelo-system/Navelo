@@ -40,12 +40,7 @@ export const ViewTransition: React.FC<ViewTransitionProps> = ({ children, viewKe
 
   const style: React.CSSProperties = {
     opacity: isActive ? 1 : 0,
-    transform: animDone
-      ? undefined
-      : (isActive ? "scale(1) translateY(0)" : "scale(0.98) translateY(6px)"),
-    transition: (isActive && !animDone)
-      ? "opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1), transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)"
-      : "none",
+    transition: isActive ? "opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1)" : "none",
     width: "100%"
   }
 

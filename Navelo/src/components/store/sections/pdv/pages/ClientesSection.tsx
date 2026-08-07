@@ -181,14 +181,14 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
           )}
 
           {/* Botão FAB fixo no canto inferior direito */}
-          <Box position="fixed" bottom={6} right={6} zIndex="50">
+          <div className="fab-fixed-bottom-right">
             <Button
               variant="secondary-pill-icon"
               icon={Plus}
               onClick={handleCreateNew}
               title="Novo cliente"
             />
-          </Box>
+          </div>
         </Box>
       </Stack>
     </Box>
