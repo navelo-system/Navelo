@@ -250,33 +250,48 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
 
       {/* Rodapé de Ações Fixo na base da tela (Tamanho Normal) */}
       <Box padding={5} w="full" borderTop={true} borderColor="border-border" bg="bg-surface">
-        <Stack direction="row" align="center" justify="between" w="full">
-          <Stack direction="row" align="center" gap={2.5}>
+        <Stack
+          direction="col"
+          mobileDirection="row"
+          align="stretch"
+          mobileAlign="center"
+          justify="start"
+          mobileJustify="between"
+          w="full"
+          gap={2.5}
+        >
+          <Stack direction="row" align="center" gap={2.5} w="w-full md:w-auto">
             {onDeleteOrder && (
-              <Button
-                variant="danger-confirm"
-                label="Excluir"
-                icon={Trash2}
-                onClick={() => onDeleteOrder(orderId)}
-              />
+              <Box w="w-1/2 md:w-auto" minW="0">
+                <Button
+                  variant="danger-confirm"
+                  label="Excluir"
+                  icon={Trash2}
+                  onClick={() => onDeleteOrder(orderId)}
+                />
+              </Box>
             )}
             {onEditOrder && (
-              <Button
-                variant="secondary"
-                label="Editar"
-                icon={Edit2}
-                disabled={!isEditEnabled}
-                onClick={onEditOrder}
-              />
+              <Box w="w-1/2 md:w-auto" minW="0">
+                <Button
+                  variant="secondary"
+                  label="Editar"
+                  icon={Edit2}
+                  disabled={!isEditEnabled}
+                  onClick={onEditOrder}
+                />
+              </Box>
             )}
           </Stack>
 
           {onUpdateStatus && nextAction && status !== "delivered" && (
-            <Button
-              variant="primary"
-              label={nextAction.label}
-              onClick={handleNextStatusClick}
-            />
+            <Box w="w-full md:w-auto" shrink="0">
+              <Button
+                variant="primary"
+                label={nextAction.label}
+                onClick={handleNextStatusClick}
+              />
+            </Box>
           )}
         </Stack>
       </Box>
