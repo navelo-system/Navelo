@@ -169,16 +169,15 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
         setCustomBackRef.current?.(null)
       }
       setCustomActionsRef.current?.(
-        <Stack direction="row" gap={2.5} align="center">
-          <MobileHeaderSearch
-            searchQuery={searchQuery}
-            onSearchQueryChange={setSearchQuery}
-            placeholder="Buscar por cliente ou ID..."
-          />
+        <MobileHeaderSearch
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          placeholder="Buscar por cliente ou ID..."
+        >
           {isDesktop && selectedOrderIdRef.current ? (
             <Button variant="primary-icon" icon={Printer} title="Imprimir" />
           ) : null}
-        </Stack>
+        </MobileHeaderSearch>
       )
     } else if (viewMode === "order-detail") {
       setCustomTitleRef.current?.(selectedOrder?.clientName || "Pedido")

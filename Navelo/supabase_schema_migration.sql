@@ -279,6 +279,120 @@ ALTER TABLE IF EXISTS suppliers ALTER COLUMN id TYPE text USING id::text;
 ALTER TABLE IF EXISTS suppliers ALTER COLUMN company_id TYPE text USING company_id::text;
 ALTER TABLE IF EXISTS suppliers ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
 
+-- 13. TABELA SALE_ITEMS
+CREATE TABLE IF NOT EXISTS sale_items (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  sale_id text,
+  product_id text,
+  product_name text,
+  quantity numeric DEFAULT 1,
+  unit_price numeric DEFAULT 0,
+  total_price numeric DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS sale_items ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS sale_items ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS sale_items ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS sale_items ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS sale_items ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+
+-- 14. TABELA CASH_MOVEMENTS
+CREATE TABLE IF NOT EXISTS cash_movements (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  cash_register_id text,
+  type text,
+  amount numeric DEFAULT 0,
+  description text,
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS cash_movements ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS cash_movements ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS cash_movements ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS cash_movements ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS cash_movements ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+
+-- 15. TABELA UNITS
+CREATE TABLE IF NOT EXISTS units (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  name text,
+  abbreviation text,
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS units ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS units ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS units ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS units ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS units ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+
+-- 16. TABELA PRINT_POINTS
+CREATE TABLE IF NOT EXISTS print_points (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  name text,
+  printer_name text,
+  type text,
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS print_points ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS print_points ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS print_points ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS print_points ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS print_points ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+
+-- 17. TABELA RIDERS
+CREATE TABLE IF NOT EXISTS riders (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  name text,
+  phone text,
+  status text DEFAULT 'available',
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS riders ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS riders ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS riders ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS riders ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS riders ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+
+-- 18. TABELA DELIVERY_RATES
+CREATE TABLE IF NOT EXISTS delivery_rates (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  neighborhood text,
+  rate numeric DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS delivery_rates ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS delivery_rates ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS delivery_rates ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS delivery_rates ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS delivery_rates ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+
+-- 19. TABELA RESTAURANT_TABLES
+CREATE TABLE IF NOT EXISTS restaurant_tables (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  number text,
+  capacity integer DEFAULT 4,
+  status text DEFAULT 'free',
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS restaurant_tables ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS restaurant_tables ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS restaurant_tables ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS restaurant_tables ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS restaurant_tables ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+
 -- ====================================================================
 -- HABILITAÇÃO E POLÍTICAS DE ROW LEVEL SECURITY (RLS) PARA A CHAVE ANON
 -- ====================================================================
@@ -289,11 +403,18 @@ ALTER TABLE IF EXISTS products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS branches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS sales ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS sale_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS tabs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS delivery_orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS cash_registers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS cash_movements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS suppliers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS units ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS print_points ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS riders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS delivery_rates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS restaurant_tables ENABLE ROW LEVEL SECURITY;
 
 DO $$
 BEGIN
@@ -318,6 +439,9 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon sales') THEN
     CREATE POLICY "Allow all for anon sales" ON sales FOR ALL USING (true) WITH CHECK (true);
   END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon sale_items') THEN
+    CREATE POLICY "Allow all for anon sale_items" ON sale_items FOR ALL USING (true) WITH CHECK (true);
+  END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon tabs') THEN
     CREATE POLICY "Allow all for anon tabs" ON tabs FOR ALL USING (true) WITH CHECK (true);
   END IF;
@@ -330,8 +454,26 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon cash_registers') THEN
     CREATE POLICY "Allow all for anon cash_registers" ON cash_registers FOR ALL USING (true) WITH CHECK (true);
   END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon cash_movements') THEN
+    CREATE POLICY "Allow all for anon cash_movements" ON cash_movements FOR ALL USING (true) WITH CHECK (true);
+  END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon suppliers') THEN
     CREATE POLICY "Allow all for anon suppliers" ON suppliers FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon units') THEN
+    CREATE POLICY "Allow all for anon units" ON units FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon print_points') THEN
+    CREATE POLICY "Allow all for anon print_points" ON print_points FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon riders') THEN
+    CREATE POLICY "Allow all for anon riders" ON riders FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon delivery_rates') THEN
+    CREATE POLICY "Allow all for anon delivery_rates" ON delivery_rates FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon restaurant_tables') THEN
+    CREATE POLICY "Allow all for anon restaurant_tables" ON restaurant_tables FOR ALL USING (true) WITH CHECK (true);
   END IF;
 END $$;
 
