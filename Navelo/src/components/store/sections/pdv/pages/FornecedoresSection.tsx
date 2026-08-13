@@ -12,6 +12,7 @@ import { Input } from "@/components/store/base/Input"
 import { Plus, Edit2, Trash2, Building, ShieldCheck, CreditCard, Phone, MapPin } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { FormActions } from "@/components/store/intermediary/FormActions"
+import { ListSectionLayout } from "@/components/store/intermediary/ListSectionLayout"
 
 export interface SupplierItem {
   id: string
@@ -195,74 +196,64 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
   return (
     <Box position="relative" w="full">
       {mode === "list" ? (
-        <Stack gap={5} w="full">
-          {/* Barra de Busca e Botão de Adição no topo */}
-          <Stack direction="row" align="center" justify="end" w="full">
-            <Button
-              variant="primary"
-              label="Adicionar fornecedor"
-              icon={Plus}
-              onClick={handleCreateNew}
-            />
-          </Stack>
-
-          {/* Listagem de Fornecedores */}
-          <Box
-            bg="bg-white"
-            border={true}
-            borderColor="border-border"
-            radius="default"
-            w="full"
-            overflow="hidden"
-          >
-            <Stack gap={0} w="full">
-              {filtered.map((supplier, idx) => (
-                <React.Fragment key={supplier.id}>
-                  {idx > 0 && <Box h="h-[1px]" w="full" bg="bg-border" />}
-                  <Box
-                    padding={5}
-                    hoverBg="primary/10"
-                    w="full"
-                  >
-                    <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-                      <Stack direction="row" align="center" gap={5} flex="1">
-                        <Box w="w-10" h="h-10" bg="bg-brand-primary/10" radius="full">
-                          <Stack w="full" h="full" align="center" justify="center">
-                            <Font
-                              variant="body-bold"
-                              color="primary"
-                              text={supplier.tradeName.charAt(0).toUpperCase()}
-                            />
-                          </Stack>
-                        </Box>
-                        <Stack gap={1}>
-                          <Font variant="body-bold" text={supplier.tradeName} />
-                          <Font variant="description" text={supplier.document} color="muted" />
-                        </Stack>
-                      </Stack>
-
-                      {/* Ações de Edição/Deleção */}
-                      <Stack direction="row" gap={2.5} justify="end">
-                        <Button
-                          variant="primary-icon-xs"
-                          icon={Edit2}
-                          onClick={() => handleEdit(supplier)}
-                        />
-                        <Button
-                          variant="danger-icon-xs-confirm"
-                          confirmTitle="Excluir Fornecedor"
-                          confirmSubtitle="Confirmar exclusão de fornecedor"
-                          confirmParagraph="Tem certeza que deseja excluir este fornecedor?"
-                          onConfirm={() => handleDelete(supplier.id)}
-                        />
-                      </Stack>
+        <ListSectionLayout<SupplierItem>
+          title="Fornecedores"
+          items={suppliers}
+          searchPlaceholder="Buscar por fornecedor ou CNPJ..."
+          searchFilterFn={(s, query) => {
+            const q = query.toLowerCase()
+            return (
+              s.tradeName.toLowerCase().includes(q) ||
+              s.companyName.toLowerCase().includes(q) ||
+              s.document.includes(q)
+            )
+          }}
+          emptyIcon={Building}
+          emptyTitle="Nenhum fornecedor cadastrado"
+          emptySubtitle="Adicione seu primeiro fornecedor para gerenciar o estoque."
+          onAdd={handleCreateNew}
+          getItemKey={(s) => s.id}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+          setCustomActions={setCustomActions}
+          renderItem={(supplier) => (
+            <Box padding={4} hoverBg="primary/10" w="full">
+              <Stack direction="row" align="center" justify="between" w="full" gap={5}>
+                <Stack direction="row" align="center" gap={5} flex="1">
+                  <Box w="w-10" h="h-10" bg="bg-brand-primary/10" radius="full">
+                    <Stack w="full" h="full" align="center" justify="center">
+                      <Font
+                        variant="body-bold"
+                        color="primary"
+                        text={supplier.tradeName.charAt(0).toUpperCase()}
+                      />
                     </Stack>
                   </Box>
-                </React.Fragment>
-              ))}
-            </Stack>
-          </Box>
-        </Stack>
+                  <Stack gap={1}>
+                    <Font variant="body-bold" text={supplier.tradeName} />
+                    <Font variant="description" text={supplier.document} color="muted" />
+                  </Stack>
+                </Stack>
+
+                {/* Ações de Edição/Deleção */}
+                <Stack direction="row" gap={2.5} justify="end">
+                  <Button
+                    variant="primary-icon-xs"
+                    icon={Edit2}
+                    onClick={() => handleEdit(supplier)}
+                  />
+                  <Button
+                    variant="danger-icon-xs-confirm"
+                    confirmTitle="Excluir Fornecedor"
+                    confirmSubtitle="Confirmar exclusão de fornecedor"
+                    confirmParagraph="Tem certeza que deseja excluir este fornecedor?"
+                    onConfirm={() => handleDelete(supplier.id)}
+                  />
+                </Stack>
+              </Stack>
+            </Box>
+          )}
+        />
       ) : (
         /* Form de Cadastro / Edição */
         <Box

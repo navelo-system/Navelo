@@ -145,7 +145,7 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
     setCustomBackRef.current = setCustomBack
     setCustomActionsRef.current = setCustomActions
     selectedOrderIdRef.current = selectedOrderId
-  })
+  }, [onBackToDashboard, setCustomTitle, setCustomBack, setCustomActions, selectedOrderId])
 
   const selectedOrder = orders.find((o) => o.id === selectedOrderId)
 
@@ -163,7 +163,8 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
       if (viewHistory.length > 1) {
         setCustomBackRef.current?.(() => popView)
       } else if (onBackRef.current) {
-        setCustomBackRef.current?.(() => () => onBackRef.current?.())
+        const backCb = onBackRef.current
+        setCustomBackRef.current?.(() => backCb)
       } else {
         setCustomBackRef.current?.(null)
       }
@@ -179,9 +180,7 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
           ) : null}
         </Stack>
       )
-    }
-
-    if (viewMode === "order-detail") {
+    } else if (viewMode === "order-detail") {
       setCustomTitleRef.current?.(selectedOrder?.clientName || "Pedido")
       setCustomBackRef.current?.(() => popView)
       setCustomActionsRef.current?.(
@@ -196,7 +195,7 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
         setCustomActionsRef.current?.(null)
       }
     }
-  }, [viewMode, searchQuery, selectedOrderId, selectedOrder, isDesktop, viewHistory.length, popView])
+  }, [viewMode, searchQuery, selectedOrderId, selectedOrder?.clientName, isDesktop, viewHistory.length, popView])
 
   const handleOpenNewOrder = () => {
     setEditingOrderId(null)

@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { Plus, Package, PackageX, Check } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
+import { ListSectionLayout } from "@/components/store/intermediary/ListSectionLayout"
 
 interface ProductItem extends ProductFormData {
   id: string
@@ -229,103 +230,86 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
       <ViewTransition viewKey={mode} flex="1" minH="0">
         <Stack gap={5} w="full">
       {mode === "list" && (
-        /* ================= LISTAGEM DE PRODUTOS (MINIMALISTA) ================= */
-        <Box position="relative" w="full">
-          {filtered.length > 0 ? (
-            <Box display="flex" direction="col" w="full">
-              {filtered.map((prod, idx) => (
-                <Box key={prod.id}>
+        <ListSectionLayout<ProductItem>
+          title="Produtos"
+          items={products}
+          searchPlaceholder="Buscar produto por nome ou categoria..."
+          searchFilterFn={(prod, query) => {
+            const q = query.toLowerCase()
+            return (
+              prod.name.toLowerCase().includes(q) ||
+              (!!prod.category && prod.category.toLowerCase().includes(q))
+            )
+          }}
+          emptyIcon={PackageX}
+          emptyTitle="Nenhum produto encontrado"
+          emptySubtitle="Tente pesquisar com outro termo ou adicione um novo produto."
+          onAdd={handleCreateNew}
+          getItemKey={(prod) => prod.id}
+          setCustomBack={setCustomBack}
+          setCustomTitle={setCustomTitle}
+          setCustomActions={setCustomActions}
+          renderItem={(prod) => (
+            <Box
+              w="full"
+              paddingY={2.5}
+              paddingX={2.5}
+              radius="none"
+              hoverBg="primary/10"
+              cursor="pointer"
+              onClick={() => handleEdit(prod)}
+            >
+              <Stack direction="row" align="center" justify="between" w="full">
+                {/* Lado Esquerdo: Ícone/Thumbnail + Nome e Categoria */}
+                <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
                   <Box
-                    w="full"
-                    paddingY={2.5}
-                    paddingX={2.5}
-                    radius="none"
-                    hoverBg="primary/10"
-                    cursor="pointer"
-                    onClick={() => handleEdit(prod)}
+                    w="w-10"
+                    h="h-10"
+                    bg="bg-surface-sunken"
+                    borderColor="border-border"
+                    border={true}
+                    radius="default"
+                    shrink="0"
+                    overflow="hidden"
                   >
-                    <Stack direction="row" align="center" justify="between" w="full">
-                      {/* Lado Esquerdo: Ícone/Thumbnail + Nome e Categoria */}
-                      <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
-                        <Box
-                          w="w-10"
-                          h="h-10"
-                          bg="bg-surface-sunken"
-                          borderColor="border-border"
-                          border={true}
-                          radius="default"
-                          shrink="0"
-                          overflow="hidden"
-                        >
-                          {prod.image ? (
-                            <Box
-                              as="img"
-                              src={prod.image}
-                              alt={prod.name}
-                              w="full"
-                              h="full"
-                              objectFit="cover"
-                            />
-                          ) : (
-                            <Stack w="full" h="full" align="center" justify="center">
-                              <Icon icon={Package} size={20} color="muted" />
-                            </Stack>
-                          )}
-                        </Box>
-
-                        <Stack gap={1} align="start" flex="1" minW="0">
-                          <Font
-                            variant="body"
-                            text={prod.name}
-                          />
-                          <Font
-                            variant="auxiliary"
-                            color="muted"
-                            truncate={true}
-                            text={(prod.category || "GERAL").toUpperCase()}
-                          />
-                        </Stack>
+                    {prod.image ? (
+                      <Box
+                        as="img"
+                        src={prod.image}
+                        alt={prod.name}
+                        w="full"
+                        h="full"
+                        objectFit="cover"
+                      />
+                    ) : (
+                      <Stack w="full" h="full" align="center" justify="center">
+                        <Icon icon={Package} size={20} color="muted" />
                       </Stack>
-
-                      {/* Lado Direito: Preço de Venda + Quantidade de Estoque */}
-                      <Box shrink="0">
-                        <Stack gap={1} align="end">
-                          <Font
-                            variant="body"
-                            text={formatPrice(prod.unitPrice)}
-                          />
-                          <Font
-                            variant="auxiliary"
-                            color="muted"
-                            text={`${prod.stock} UN`}
-                          />
-                        </Stack>
-                      </Box>
-                    </Stack>
+                    )}
                   </Box>
-                  {idx < filtered.length - 1 && (
-                    <Box h="h-[1px]" w="full" bg="bg-border" />
-                  )}
-                </Box>
-              ))}
-            </Box>
-          ) : (
-            <EmptyState
-              icon={PackageX}
-              title="Nenhum produto encontrado"
-              subtitle="Tente pesquisar com outro termo ou adicione um novo produto."
-            />
-          )}
 
-          {/* Botão FAB Flutuante no Canto Inferior Direito */}
-          <Box position="fixed" bottom={6} right={6} zIndex="50">
-            <Button
-              variant="secondary-pill-icon"
-              icon={Plus}
-              onClick={handleCreateNew}
-            />
-          </Box>
-        </Box>
+                  <Stack gap={1} align="start" flex="1" minW="0">
+                    <Font variant="body" text={prod.name} />
+                    <Font
+                      variant="auxiliary"
+                      color="muted"
+                      truncate={true}
+                      text={(prod.category || "GERAL").toUpperCase()}
+                    />
+                  </Stack>
+                </Stack>
+
+                {/* Lado Direito: Preço de Venda + Quantidade de Estoque */}
+                <Box shrink="0">
+                  <Stack gap={1} align="end">
+                    <Font variant="body" text={formatPrice(prod.unitPrice)} />
+                    <Font variant="auxiliary" color="muted" text={`${prod.stock} UN`} />
+                  </Stack>
+                </Box>
+              </Stack>
+            </Box>
+          )}
+        />
       )}
 
       {mode === "form" && (

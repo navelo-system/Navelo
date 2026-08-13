@@ -49,15 +49,28 @@ export function ListSectionLayout<T>({
 }: ListSectionLayoutProps<T>) {
   const [searchQuery, setSearchQuery] = React.useState("")
 
+  const setCustomBackRef = React.useRef(setCustomBack)
+  const setCustomTitleRef = React.useRef(setCustomTitle)
+  const setCustomActionsRef = React.useRef(setCustomActions)
+  const onBackToDashboardRef = React.useRef(onBackToDashboard)
+
   React.useEffect(() => {
-    setCustomTitle?.(title)
-    if (onBackToDashboard) {
-      setCustomBack?.(() => onBackToDashboard)
+    setCustomBackRef.current = setCustomBack
+    setCustomTitleRef.current = setCustomTitle
+    setCustomActionsRef.current = setCustomActions
+    onBackToDashboardRef.current = onBackToDashboard
+  }, [setCustomBack, setCustomTitle, setCustomActions, onBackToDashboard])
+
+  React.useEffect(() => {
+    setCustomTitleRef.current?.(title)
+    if (onBackToDashboardRef.current) {
+      const cb = onBackToDashboardRef.current
+      setCustomBackRef.current?.(() => cb)
     } else {
-      setCustomBack?.(null)
+      setCustomBackRef.current?.(null)
     }
 
-    setCustomActions?.(
+    setCustomActionsRef.current?.(
       <MobileHeaderSearch
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}
@@ -66,11 +79,11 @@ export function ListSectionLayout<T>({
     )
 
     return () => {
-      setCustomBack?.(null)
-      setCustomTitle?.(null)
-      setCustomActions?.(null)
+      setCustomBackRef.current?.(null)
+      setCustomTitleRef.current?.(null)
+      setCustomActionsRef.current?.(null)
     }
-  }, [title, searchQuery, searchPlaceholder, setCustomBack, setCustomTitle, setCustomActions, onBackToDashboard])
+  }, [title, searchQuery, searchPlaceholder])
 
   const filteredItems = React.useMemo(() => {
     if (!searchQuery.trim()) return items
