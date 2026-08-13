@@ -217,7 +217,7 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
           setCustomTitle={setCustomTitle}
           setCustomActions={setCustomActions}
           renderItem={(supplier) => (
-            <Box padding={4} hoverBg="primary/10" w="full">
+            <Box padding={5} hoverBg="primary/10" w="full">
               <Stack direction="row" align="center" justify="between" w="full" gap={5}>
                 <Stack direction="row" align="center" gap={5} flex="1">
                   <Box w="w-10" h="h-10" bg="bg-brand-primary/10" radius="full">
