@@ -72,11 +72,11 @@ export const Font = React.forwardRef<HTMLElement, FontProps>(
           align && alignStyles[align],
           mobileAlign && mobileAlignStyles[mobileAlign],
           mono && "font-mono",
-          truncate && "truncate",
-          lineClamp === 1 && "line-clamp-1",
-          lineClamp === 2 && "line-clamp-2",
-          lineClamp === 3 && "line-clamp-3",
-          lineClamp === 4 && "line-clamp-4",
+          truncate && "truncate block w-full",
+          lineClamp === 1 && "line-clamp-1 block w-full",
+          lineClamp === 2 && "line-clamp-2 block w-full",
+          lineClamp === 3 && "line-clamp-3 block w-full",
+          lineClamp === 4 && "line-clamp-4 block w-full",
           className
         )}
         {...props}

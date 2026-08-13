@@ -16,7 +16,13 @@ export const ChangeCalculatorModal: React.FC<ChangeCalculatorModalProps> = ({
   onConfirm,
   launchAmount
 }) => {
-  const [calculatorAmount, setCalculatorAmount] = React.useState(0)
+  const [calculatorAmount, setCalculatorAmount] = React.useState(launchAmount)
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setCalculatorAmount(launchAmount)
+    }
+  }, [isOpen, launchAmount])
 
   return (
     <Modal
@@ -27,7 +33,8 @@ export const ChangeCalculatorModal: React.FC<ChangeCalculatorModalProps> = ({
       icon={DollarSign}
       successText="Confirmar Pagamento"
       onSuccess={() => {
-        onConfirm(Math.min(calculatorAmount, launchAmount))
+        const finalAmount = calculatorAmount > 0 ? calculatorAmount : launchAmount
+        onConfirm(Math.min(finalAmount, launchAmount))
         onClose()
       }}
     >

@@ -133,7 +133,7 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
                           key={opt.key}
                           padding={1}
                           cursor="pointer"
-                          hoverBg="surface-sunken"
+                          hoverBg="secondary/10"
                           radius="default"
                           onClick={() => handleToggleStatusFilter(opt.key)}
                           w="full"
@@ -198,7 +198,7 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
                 border={true}
                 borderColor={isSelected ? "border-brand-secondary" : "border-border"}
                 w="full"
-                hoverBg="surface-sunken"
+                hoverBg="secondary/10"
                 cursor="pointer"
               >
                 <Stack gap={1} align="start" w="full">

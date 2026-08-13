@@ -26,6 +26,7 @@ import { TotaisEmCaixaSection } from "@/components/store/sections/pdv/pages/Tota
 import { ContasAReceberSection } from "@/components/store/sections/pdv/pages/ContasAReceberSection"
 import { PdvObservacaoModal } from "@/components/store/sections/pdv/modals/PdvObservacaoModal"
 import { PdvSangriaModal } from "@/components/store/sections/pdv/modals/PdvSangriaModal"
+import { SaleSuccessModal } from "@/components/store/sections/pdv/modals/SaleSuccessModal"
 
 import { DeliveryClientInfo, DeliveryCheckoutConfirmation, DeliveryType, PaymentMoment } from "@/components/store/advanced/DeliveryCheckoutConfirmation"
 import { DeliveryRatesScreen } from "@/components/store/advanced/DeliveryRatesScreen"
@@ -72,7 +73,7 @@ interface PdvSectionProps {
   deliveryContext?: DeliveryContextData | null
 }
 
-import { useProducts, useTabs, useDeliveryOrders, dal, db } from "@/lib/dal"
+import { useProducts, useCategories, useTabs, useDeliveryOrders, dal, db } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
 
 export const PdvSection: React.FC<PdvSectionProps> = ({
@@ -89,8 +90,23 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
 
   // Produtos vindos do banco local IndexedDB (Dexie)
   const dbProducts = useProducts(tenantId)
+  const dbCategories = useCategories(tenantId)
   const dbTabs = useTabs(tenantId)
   const dbDeliveryOrders = useDeliveryOrders(tenantId)
+
+  // Mapa de id ou nome da categoria -> Nome oficial da categoria
+  const categoryMap = React.useMemo(() => {
+    const map = new Map<string, string>()
+    if (dbCategories) {
+      dbCategories.forEach((cat) => {
+        if (cat.name) {
+          if (cat.id) map.set(cat.id, cat.name)
+          map.set(cat.name.toLowerCase(), cat.name)
+        }
+      })
+    }
+    return map
+  }, [dbCategories])
 
   // Calcula a quantidade de um produto comprometida em comandas ou entregas abertas
   const getCommittedStock = React.useCallback(
@@ -135,30 +151,83 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   // Produtos do catálogo alimentados via IndexedDB
   const catalogProducts: MockProduct[] = React.useMemo(() => {
     if (dbProducts && dbProducts.length > 0) {
-      return dbProducts.map((p, idx) => ({
-        id: p.id,
-        name: p.name,
-        category: p.category_id || "Geral",
-        unitPrice: p.price || 0,
-        unit: "UN",
-        stock: p.stock ?? 0,
-        barcode: p.barcodes?.[0] || p.barcode || `78900000000${idx}`,
-        image: p.image_url || ""
-      }))
+      return dbProducts.map((p, idx) => {
+        let groupName = ""
+        if (p.category_id && categoryMap.has(p.category_id)) {
+          groupName = categoryMap.get(p.category_id)!
+        } else if (p.category && categoryMap.has(p.category.toLowerCase())) {
+          groupName = categoryMap.get(p.category.toLowerCase())!
+        } else if (p.category && p.category.trim() && !p.category.includes("-") && p.category.length < 30) {
+          groupName = p.category.trim()
+        } else {
+          groupName = "Geral"
+        }
+
+        const subgroupName = p.subgroup && p.subgroup.trim() ? p.subgroup.trim() : undefined
+
+        return {
+          id: p.id,
+          name: p.name,
+          category: groupName,
+          subgroup: subgroupName,
+          unitPrice: p.price || 0,
+          unit: p.unit || "UN",
+          stock: p.stock ?? 0,
+          barcode: p.barcodes?.[0] || p.barcode || `78900000000${idx}`,
+          image: p.image_url || ""
+        }
+      })
     }
     return []
-  }, [dbProducts])
+  }, [dbProducts, categoryMap])
 
+  // Configuração booleana para mostrar produtos sem estoque
+  const [showOutOfStockProducts, setShowOutOfStockProducts] = React.useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("pdv_show_out_of_stock_products")
+      if (saved !== null) return saved === "true"
+    }
+    return true
+  })
+
+  const handleToggleShowOutOfStock = React.useCallback((show: boolean) => {
+    setShowOutOfStockProducts(show)
+    if (typeof window !== "undefined") {
+      localStorage.setItem("pdv_show_out_of_stock_products", String(show))
+    }
+  }, [])
+
+  // Produtos disponíveis considerando a regra de estoque
+  const availableProducts = React.useMemo(() => {
+    return catalogProducts.filter((p) => {
+      if (showOutOfStockProducts) return true
+      return (p.stock ?? 0) >= 1
+    })
+  }, [catalogProducts, showOutOfStockProducts])
+
+  // Categorias e Subgrupos exibidos: apenas Grupos e Subgrupos que possuam pelo menos 1 produto elegível
   const categories = React.useMemo(() => {
     const set = new Set<string>()
-    catalogProducts.forEach((p) => {
-      if (p.category) set.add(p.category)
+    availableProducts.forEach((p) => {
+      if (p.category && p.category !== "Geral") {
+        set.add(p.category)
+      }
+      if (p.subgroup) {
+        set.add(p.subgroup)
+      }
     })
-    return ["Todos", ...Array.from(set)]
-  }, [catalogProducts])
+    const catList = Array.from(set)
+    if (catList.length === 0) {
+      const hasGeral = availableProducts.some((p) => p.category === "Geral")
+      return hasGeral ? ["Todos", "Geral"] : ["Todos"]
+    }
+    return ["Todos", ...catList]
+  }, [availableProducts])
 
   const [step, setStep] = React.useState<"negociacao" | "pagamento" | "recibo" | "delivery-confirm">("negociacao")
   const [subView, setSubView] = React.useState<"none" | "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos" | "rates-screen" | "riders-screen">("none")
+  const [negociacoesClientFilter, setNegociacoesClientFilter] = React.useState<string | null>(null)
+  const [isSelectingClientForNegociacoes, setIsSelectingClientForNegociacoes] = React.useState<boolean>(false)
   const [selectedRider, setSelectedRider] = React.useState<Rider | null>(null)
   const [selectedRate, setSelectedRate] = React.useState<DeliveryRate | null>(null)
   const [cartItems, setCartItems] = React.useState<CartItemType[]>(
@@ -215,6 +284,25 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   const [isSangriaModalOpen, setIsSangriaModalOpen] = React.useState(false)
   const [sangriaModalMode, setSangriaModalMode] = React.useState<"sangria" | "suprimento">("sangria")
   const [observationText, setObservationText] = React.useState("")
+  const [selectedCustomerName, setSelectedCustomerName] = React.useState<string | null>(null)
+
+  const activeClientOrTitle = React.useMemo(() => {
+    if (deliveryContext?.client?.name) {
+      return deliveryContext.client.name
+    }
+    if (activeComandaId && !activeComandaId.startsWith("avulso-") && Array.isArray(dbTabs)) {
+      const activeTab = dbTabs.find((t) => t.id === activeComandaId)
+      if (activeTab) {
+        if (activeTab.customer_name) return activeTab.customer_name
+        if (activeTab.label) return activeTab.label
+        if (activeTab.code) return `Comanda #${activeTab.code}`
+      }
+    }
+    if (selectedCustomerName) {
+      return selectedCustomerName
+    }
+    return "Nao selecionado"
+  }, [deliveryContext, activeComandaId, dbTabs, selectedCustomerName])
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0)
   const total = Math.max(0, subtotal - discount)
@@ -239,7 +327,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   React.useEffect(() => {
     if (subView !== "none") return
 
-    setCustomTitle?.(null)
+    setCustomTitle?.(activeClientOrTitle || "Caixa")
 
     if (step === "negociacao") {
       // Se o carrinho estiver vazio, volta direto; se tiver itens, confirma saída
@@ -276,16 +364,29 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
       )
     } else if (step === "pagamento") {
       setCustomActions?.(
-        <Font
-          variant="body-sm-medium"
-          color="primary"
-          text="F12 - Opções"
+        <Button
+          variant="ghost-primary"
+          label="F6 - Descontos na Venda"
+          onClick={() => setIsDiscountModalOpen(true)}
         />
       )
     } else {
       setCustomActions?.(null)
     }
   }, [step, subView, searchQuery, setCustomActions])
+
+  // Atalho de teclado F6 para abrir modal de desconto
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "F6") {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsDiscountModalOpen(true)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [])
 
   // Sincroniza o valor de pagamento sugerido com o restante a pagar reativamente
   React.useEffect(() => {
@@ -360,12 +461,24 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
     }
   }
 
-  // Filtragem
-  const filteredProducts = catalogProducts.filter((prod) => {
-    const matchesCategory = activeCategory === "Todos" || prod.category.toLowerCase() === activeCategory.toLowerCase()
-    const matchesSearch = prod.name.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesCategory && matchesSearch
-  })
+  // Se a categoria ativa atual sumir devido ao filtro de estoque, volta para "Todos"
+  React.useEffect(() => {
+    if (activeCategory !== "Todos" && !categories.includes(activeCategory)) {
+      setActiveCategory("Todos")
+    }
+  }, [categories, activeCategory])
+
+  // Filtragem dos produtos por grupo ou subgrupo ativo e termo de busca
+  const filteredProducts = React.useMemo(() => {
+    return availableProducts.filter((prod) => {
+      const matchesFilter =
+        activeCategory === "Todos" ||
+        prod.category.toLowerCase() === activeCategory.toLowerCase() ||
+        (prod.subgroup && prod.subgroup.toLowerCase() === activeCategory.toLowerCase())
+      const matchesSearch = prod.name.toLowerCase().includes(searchQuery.toLowerCase())
+      return matchesFilter && matchesSearch
+    })
+  }, [availableProducts, activeCategory, searchQuery])
 
   // Pagamento rápido
   const handleLaunchPayment = (method: string, amount: number) => {
@@ -380,6 +493,33 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
     setPayments((prev) => prev.map((p, i) => i === idx ? { ...p, amount: newAmount } : p))
   }
 
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = React.useState(false)
+  const [lastCompletedSaleData, setLastCompletedSaleData] = React.useState<{
+    total: number
+    change: number
+    paymentMethod: string
+    customerName: string
+  } | null>(null)
+
+  const handleResetCaixaState = () => {
+    if (activeComandaId && onCloseComanda) {
+      onCloseComanda(activeComandaId)
+    }
+    if (activeComandaId && !activeComandaId.startsWith("avulso-")) {
+      dal.tabs.delete(activeComandaId).catch(() => {})
+    }
+    setCartItems([])
+    setPayments([])
+    setDiscount(0)
+    setStep("negociacao")
+    setSubView("none")
+    setSelectedCustomerName(null)
+    setObservationText("")
+    setSearchQuery("")
+    setActiveCategory("Todos")
+    setIsSuccessModalOpen(false)
+  }
+
   const handleConfirmChangePayment = (amount: number) => {
     handleLaunchPayment("Dinheiro", amount)
     setIsChangeModalOpen(false)
@@ -387,6 +527,31 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
 
   const handleFinalizeSale = async () => {
     try {
+      const paymentMethodsStr = payments.map((p) => p.method).join(", ") || "Dinheiro"
+      const saleId = `sale-${Date.now()}`
+      const saleData = {
+        id: saleId,
+        company_id: tenantId || "default",
+        tenant_id: tenantId || "default",
+        total,
+        subtotal,
+        discount,
+        status: "COMPLETED",
+        payment_method: paymentMethodsStr,
+        customer_name: activeClientOrTitle !== "Nao selecionado" ? activeClientOrTitle : undefined,
+        created_at: new Date().toISOString(),
+        items: cartItems.map((item) => ({
+          id: `si-${Date.now()}-${item.id}`,
+          product_id: item.id,
+          product_name: item.name,
+          quantity: item.quantity,
+          unit_price: item.unitPrice,
+          total_price: item.quantity * item.unitPrice,
+        })),
+      }
+
+      await dal.sales.create(saleData)
+
       for (const item of cartItems) {
         const dbProduct = await dal.products.getById(item.id)
         if (dbProduct) {
@@ -400,7 +565,6 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
       }
 
       if (pendingDeliveryData && deliveryContext) {
-        const paymentMethodsStr = payments.map((p) => p.method).join(", ") || "Dinheiro"
         deliveryContext.onConfirmDelivery({
           ...pendingDeliveryData,
           status: "Status do pedido: Aberto",
@@ -411,12 +575,26 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
           discount,
         })
         setPendingDeliveryData(null)
-      } else {
-        setStep("recibo")
       }
+
+      const calculatedChange = totalPaid > total ? totalPaid - total : 0
+      setLastCompletedSaleData({
+        total,
+        change: calculatedChange,
+        paymentMethod: paymentMethodsStr,
+        customerName: activeClientOrTitle,
+      })
+      setIsSuccessModalOpen(true)
     } catch (err) {
-      console.error("Erro ao debitar estoque no PDV:", err)
-      setStep("recibo")
+      console.error("Erro ao finalizar venda no PDV:", err)
+      const calculatedChange = totalPaid > total ? totalPaid - total : 0
+      setLastCompletedSaleData({
+        total,
+        change: calculatedChange,
+        paymentMethod: payments.map((p) => p.method).join(", ") || "Dinheiro",
+        customerName: activeClientOrTitle,
+      })
+      setIsSuccessModalOpen(true)
     }
   }
 
@@ -439,13 +617,41 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
     }).format(value)
   }
 
+  const handleSidebarNavigate = (view: "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos" | "ultimas-negociacoes") => {
+    if (view === "ultimas-negociacoes") {
+      if (selectedCustomerName && selectedCustomerName !== "Nao selecionado" && selectedCustomerName !== "Venda Avulsa") {
+        setNegociacoesClientFilter(selectedCustomerName)
+        setIsSelectingClientForNegociacoes(false)
+        setSubView("negociacoes")
+      } else {
+        setIsSelectingClientForNegociacoes(true)
+        setSubView("clientes")
+      }
+      return
+    }
+
+    if (view === "negociacoes") {
+      setNegociacoesClientFilter(null)
+      setIsSelectingClientForNegociacoes(false)
+      setSubView("negociacoes")
+      return
+    }
+
+    setIsSelectingClientForNegociacoes(false)
+    setSubView(view)
+  }
+
   if (subView === "negociacoes") {
     return (
       <NegociacoesSection
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
         setCustomActions={setCustomActions}
-        onBack={() => setSubView("none")}
+        onBack={() => {
+          setNegociacoesClientFilter(null)
+          setSubView("none")
+        }}
+        initialClientFilter={negociacoesClientFilter || undefined}
       />
     )
   }
@@ -456,7 +662,20 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
         setCustomActions={setCustomActions}
-        onBack={() => setSubView("none")}
+        onBack={() => {
+          setIsSelectingClientForNegociacoes(false)
+          setSubView("none")
+        }}
+        onSelectClient={(client) => {
+          setSelectedCustomerName(client.name)
+          if (isSelectingClientForNegociacoes) {
+            setIsSelectingClientForNegociacoes(false)
+            setNegociacoesClientFilter(client.name)
+            setSubView("negociacoes")
+          } else {
+            setSubView("none")
+          }
+        }}
       />
     )
   }
@@ -742,9 +961,12 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         onBackToDashboard={onBackToDashboard}
         launchAmount={launchAmount}
         subtotal={subtotal}
-        onNavigate={(view) => setSubView(view)}
+        onNavigate={handleSidebarNavigate}
         onOpenObservationModal={() => setIsObservationModalOpen(true)}
         onOpenSangriaModal={(mode = "sangria") => { setSangriaModalMode(mode); setIsSangriaModalOpen(true); }}
+        customerName={activeClientOrTitle}
+        showOutOfStockProducts={showOutOfStockProducts}
+        onToggleShowOutOfStock={handleToggleShowOutOfStock}
       />
 
       <PdvObservacaoModal
@@ -772,6 +994,21 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         }}
         isComanda={!!activeComandaId && !activeComandaId.startsWith("avulso-")}
         onSave={handleSaveComandaAndExit}
+      />
+
+      {/* Modal de confirmação de venda concluída */}
+      <SaleSuccessModal
+        isOpen={isSuccessModalOpen}
+        onClose={handleResetCaixaState}
+        total={lastCompletedSaleData?.total || 0}
+        change={lastCompletedSaleData?.change || 0}
+        paymentMethod={lastCompletedSaleData?.paymentMethod}
+        customerName={lastCompletedSaleData?.customerName}
+        formatPrice={formatPrice}
+        onPrintReceipt={() => {
+          setIsSuccessModalOpen(false)
+          setStep("recibo")
+        }}
       />
     </Stack>
   )

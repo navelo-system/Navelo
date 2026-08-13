@@ -22,6 +22,7 @@ interface ClientesSectionProps {
   setCustomTitle?: (title: string | null) => void
   setCustomActions?: (actions: React.ReactNode | null) => void
   onBack?: () => void
+  onSelectClient?: (client: Customer) => void
 }
 
 export const ClientesSection: React.FC<ClientesSectionProps> = ({
@@ -30,13 +31,14 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
   setCustomTitle,
   setCustomActions,
   onBack,
+  onSelectClient,
 }) => {
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id
 
   // Clientes do banco de dados local IndexedDB
   const dbCustomers = useCustomers(tenantId)
-  const clients = React.useMemo(() => Array.isArray(dbCustomers) ? dbCustomers : [], [dbCustomers])
+  const clients = React.useMemo(() => (Array.isArray(dbCustomers) ? dbCustomers : []), [dbCustomers])
 
   const [modeHistory, setModeHistory] = React.useState<("list" | "form")[]>(["list"])
   const mode = modeHistory[modeHistory.length - 1] || "list"
@@ -74,25 +76,54 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
     })
   }, [mode])
 
+  // Handler unificado de navegação de retorno
+  const handleBack = React.useCallback(() => {
+    if (modeHistory.length > 1) {
+      popMode()
+    } else if (onBack) {
+      onBack()
+    } else if (onBackToDashboard) {
+      onBackToDashboard()
+    }
+  }, [modeHistory.length, popMode, onBack, onBackToDashboard])
+
+  const handleBackRef = React.useRef(handleBack)
   React.useEffect(() => {
+    handleBackRef.current = handleBack
+  }, [handleBack])
+
+  const setCustomBackRef = React.useRef(setCustomBack)
+  const setCustomTitleRef = React.useRef(setCustomTitle)
+  const setCustomActionsRef = React.useRef(setCustomActions)
+  React.useEffect(() => {
+    setCustomBackRef.current = setCustomBack
+    setCustomTitleRef.current = setCustomTitle
+    setCustomActionsRef.current = setCustomActions
+  }, [setCustomBack, setCustomTitle, setCustomActions])
+
+  // Atualização do cabeçalho da seção
+  React.useEffect(() => {
+    setCustomTitleRef.current?.(mode === "form" ? (editingClient ? "Editar cliente" : "Novo cliente") : "Clientes")
+    setCustomBackRef.current?.(() => () => handleBackRef.current())
+
     if (mode === "list") {
-      setCustomTitle?.("Clientes")
-      if (modeHistory.length > 1) {
-        setCustomBack?.(() => popMode)
-      } else if (onBack) {
-        setCustomBack?.(() => () => onBack())
-      } else {
-        setCustomBack?.(null)
-      }
-      setCustomActions?.(
+      setCustomActionsRef.current?.(
         <MobileHeaderSearch
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
           placeholder="Buscar por nome ou CPF/CNPJ..."
         />
       )
+    } else {
+      setCustomActionsRef.current?.(null)
     }
-  }, [mode, searchQuery, modeHistory.length, popMode, setCustomBack, setCustomTitle, setCustomActions, onBack])
+
+    return () => {
+      setCustomBackRef.current?.(null)
+      setCustomTitleRef.current?.(null)
+      setCustomActionsRef.current?.(null)
+    }
+  }, [mode, editingClient])
 
   const handleEdit = (client: Customer) => {
     setEditingClient(client)
@@ -116,83 +147,90 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
   }, [clients, searchQuery])
 
   return (
-    <ViewTransition viewKey={mode} flex="1" minH="0">
-      {mode === "form" ? (
-        <DeliveryClientFormScreen
-          onBack={popMode}
-          onSelectClient={popMode}
-          initialCustomer={editingClient}
-          title={editingClient ? "Editar Cliente" : "Novo Cliente"}
-          showSkip={false}
-          showSaveSwitch={false}
-          showSearchInHeader={false}
-          setCustomTitle={setCustomTitle}
-          setCustomActions={setCustomActions}
-          setCustomBack={setCustomBack}
-        />
-      ) : (
-        <Box display="flex" direction="col" flex="1" minH="0" overflow="auto" w="full">
-          <Stack gap={5} w="full">
+    <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
+      <ViewTransition viewKey={mode} flex="1" minH="0">
+        <Stack gap={5} w="full">
+          {mode === "list" && (
             <Box position="relative" w="full">
-          {filteredClients.length > 0 ? (
-            <Box display="flex" direction="col" w="full">
-              {filteredClients.map((client, idx) => (
-                <Box key={client.id}>
-                  <Box
-                    w="full"
-                    paddingY={2.5}
-                    paddingX={2.5}
-                    radius="none"
-                    hoverBg="primary/10"
-                    cursor="pointer"
-                    onClick={() => handleEdit(client)}
-                  >
-                    <Stack direction="row" align="center" justify="between" w="full">
-                      {/* Lado Esquerdo: Avatar + Nome e Documento/Telefone */}
-                      <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
-                        <Avatar fallback={client.name ? client.name.charAt(0).toUpperCase() : "C"} />
+              {filteredClients.length > 0 ? (
+                <Box display="flex" direction="col" w="full">
+                  {filteredClients.map((client) => (
+                    <Box key={client.id}>
+                      <Box
+                        w="full"
+                        padding={2.5}
+                        radius="none"
+                        hoverBg="primary/10"
+                        cursor="pointer"
+                        onClick={() => {
+                          if (onSelectClient) {
+                            onSelectClient(client)
+                          } else {
+                            handleEdit(client)
+                          }
+                        }}
+                      >
+                        <Stack direction="row" align="center" justify="between" w="full">
+                          <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
+                            <Avatar fallback={client.name.substring(0, 2).toUpperCase()} />
 
-                        <Stack gap={0} align="start" flex="1" minW="0">
-                          <Font variant="body" text={client.name} />
-                          {(client.document || client.phone) && (
-                            <Font
-                              variant="auxiliary"
-                              color="muted"
-                              truncate={true}
-                              text={client.document || client.phone || ""}
-                            />
-                          )}
+                            <Stack gap={1} align="start" flex="1" minW="0">
+                              <Font variant="body" text={client.name} />
+                              <Stack direction="row" align="center" gap={2.5}>
+                                <Font
+                                  variant="auxiliary"
+                                  color="muted"
+                                  text={client.document ? `CPF/CNPJ: ${client.document}` : "Sem documento"}
+                                />
+                                {client.phone && (
+                                  <Font variant="auxiliary" color="muted" text={`• ${client.phone}`} />
+                                )}
+                              </Stack>
+                            </Stack>
+                          </Stack>
                         </Stack>
-                      </Stack>
-                    </Stack>
-                  </Box>
-                  {idx < filteredClients.length - 1 && (
-                    <Box borderBottom={true} borderColor="border-border" w="full" />
-                  )}
+                      </Box>
+                      <Box border borderStyle="solid" borderColor="border/40" w="full" />
+                    </Box>
+                  ))}
                 </Box>
-              ))}
+              ) : (
+                <Box padding={12} align="center" justify="center" w="full">
+                  <EmptyState
+                    variant="transparent"
+                    icon={UserX}
+                    title="Nenum cliente encontrado"
+                    subtitle={
+                      searchQuery
+                        ? "Tente buscar com outro termo."
+                        : "Cadastre seu primeiro cliente para gerenciar no PDV."
+                    }
+                  />
+                </Box>
+              )}
+
+              {/* Botão flutuante para criar novo cliente */}
+              <Box position="fixed" bottom={12} right={5} zIndex="40">
+                <Button
+                  variant="primary-pill-icon"
+                  icon={Plus}
+                  onClick={handleCreateNew}
+                  aria-label="Cadastrar novo cliente"
+                />
+              </Box>
             </Box>
-          ) : (
-            <EmptyState
-              icon={UserX}
-              title="Nenhum cliente encontrado"
-              subtitle="Tente pesquisar com outro termo ou cadastre um novo cliente."
-            />
           )}
 
-          {/* Botão FAB fixo no canto inferior direito */}
-          <Box className="fab-fixed-bottom-right">
-            <Button
-              variant="secondary-pill-icon"
-              icon={Plus}
-              onClick={handleCreateNew}
-              title="Novo cliente"
+          {mode === "form" && (
+            <DeliveryClientFormScreen
+              initialCustomer={editingClient || undefined}
+              onBack={popMode}
+              setCustomTitle={setCustomTitle}
+              setCustomBack={setCustomBack}
             />
-          </Box>
-        </Box>
-      </Stack>
+          )}
+        </Stack>
+      </ViewTransition>
     </Box>
-      )}
-    </ViewTransition>
   )
 }

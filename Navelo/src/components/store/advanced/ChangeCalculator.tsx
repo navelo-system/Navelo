@@ -22,7 +22,16 @@ export const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({
   hideHeaderAndFooter = false,
   onChange,
 }) => {
-  const [receivedText, setReceivedText] = React.useState("")
+  const [receivedText, setReceivedText] = React.useState(
+    totalAmount && totalAmount > 0 ? totalAmount.toFixed(2).replace(".", ",") : ""
+  )
+
+  React.useEffect(() => {
+    if (totalAmount && totalAmount > 0) {
+      setReceivedText(totalAmount.toFixed(2).replace(".", ","))
+    }
+  }, [totalAmount])
+
   const receivedAmount = parseFloat(receivedText.replace(",", ".")) || 0
   const change = Math.max(0, receivedAmount - totalAmount)
   const isInsufficient = receivedAmount > 0 && receivedAmount < totalAmount

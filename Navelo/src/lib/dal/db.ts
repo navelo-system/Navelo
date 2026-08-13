@@ -80,6 +80,8 @@ export interface Sale {
   status: string;
   payment_method?: string;
   customer_id?: string;
+  customer_name?: string;
+  items?: any[];
   cash_register_id?: string;
   operator_id?: string;
   created_at?: string;

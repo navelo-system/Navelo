@@ -28,6 +28,7 @@ export interface MockProduct {
   stock?: number
   unitPrice: number
   category: string
+  subgroup?: string
   barcode?: string
 }
 
@@ -178,7 +179,7 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
           </Box>
         ) : (
           /* Lista limpa — thumbnail + nome + preço/unidade */
-          <Box display="flex" direction="col" radius="default" border={true} borderColor="border-border" bg="bg-white">
+          <Box display="flex" direction="col" radius="default" border={true} borderColor="border-border" bg="bg-white" overflow="hidden">
             {filteredProducts.map((prod, idx) => {
               const qty = getProductQuantity(prod.id)
               return (
@@ -187,7 +188,7 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
                     w="full"
                     paddingX={2.5}
                     paddingY={2.5}
-                    hoverBg="surface-sunken"
+                    hoverBg="secondary/10"
                     onClick={() => {
                       if (qty === 0) onAddProduct(prod)
                     }}

@@ -1,46 +1,187 @@
 -- ====================================================================
--- NAVELO SAAS — SCRIPT DE MIGRATION PARA RÉPLICA COMPLETA NO SUPABASE
--- Execute este script no SQL Editor do Supabase para alinhar todas as colunas
+-- NAVELO SAAS — SCRIPT COMPLETO DE DDL E MIGRATION PARA O SUPABASE
+-- Execute este script no SQL Editor do Supabase para criar/alinhar
+-- todas as 12 tabelas, colunas company_id/tenant_id e políticas RLS
 -- ====================================================================
 
--- 1. TABELA PRODUCTS
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS category text;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS image text;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS image_url text;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS fiscal_data jsonb DEFAULT '{}'::jsonb;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS barcodes jsonb DEFAULT '[]'::jsonb;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS print_point text;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS multissabor_enabled boolean DEFAULT false;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS complementos_enabled boolean DEFAULT false;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS plataformas_enabled boolean DEFAULT false;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS producao_propria boolean DEFAULT false;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS ingredients text;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS preparation_mode text;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS stock numeric DEFAULT 0;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS cost_price numeric DEFAULT 0;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS min_stock numeric DEFAULT 0;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS other_costs numeric DEFAULT 0;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS margin numeric DEFAULT 0;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS subgroup text;
-ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS detailed_description text;
+-- 0. REMOÇÃO DINÂMICA DE POLÍTICAS RLS E FOREIGN KEYS PRÉ-EXISTENTES QUE TRAVAM A CONVERSÃO DE TIPO
+DO $$
+DECLARE
+    pol RECORD;
+    fk RECORD;
+BEGIN
+    -- 0.1 Remover todas as políticas RLS pré-existentes que dependem de colunas
+    FOR pol IN (
+        SELECT policyname, tablename
+        FROM pg_policies
+        WHERE schemaname = 'public'
+    ) LOOP
+        EXECUTE 'DROP POLICY IF EXISTS ' || quote_ident(pol.policyname) || ' ON public.' || quote_ident(pol.tablename) || ';';
+    END LOOP;
 
--- 2. TABELA USERS
-ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS phone text;
-ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS commission text;
-ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS password text;
-ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS role text;
-ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS active boolean DEFAULT true;
+    -- 0.2 Remover todas as Foreign Key constraints pré-existentes
+    FOR fk IN (
+        SELECT tc.table_name, tc.constraint_name
+        FROM information_schema.table_constraints tc
+        WHERE tc.constraint_type = 'FOREIGN KEY'
+          AND tc.table_schema = 'public'
+    ) LOOP
+        EXECUTE 'ALTER TABLE public.' || quote_ident(fk.table_name) || ' DROP CONSTRAINT IF EXISTS ' || quote_ident(fk.constraint_name) || ' CASCADE;';
+    END LOOP;
+END $$;
 
--- 3. TABELA CUSTOMERS
-ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS email text;
-ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS rg text;
-ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS ie text;
-ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS type text;
-ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS addresses jsonb DEFAULT '[]'::jsonb;
-ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS credit_limit numeric DEFAULT 0;
-ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS balance numeric DEFAULT 0;
+-- 1. TABELA PLATFORM_SETTINGS
+CREATE TABLE IF NOT EXISTS platform_settings (
+  id text PRIMARY KEY,
+  platform_name text,
+  primary_color text,
+  secondary_color text,
+  logo_url text,
+  updated_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS platform_settings ALTER COLUMN id TYPE text USING id::text;
 
--- 4. TABELA TABS (COMANDAS)
+-- 2. TABELA COMPANIES
+CREATE TABLE IF NOT EXISTS companies (
+  id text PRIMARY KEY,
+  name text,
+  document text,
+  email text,
+  phone text,
+  primary_color text,
+  secondary_color text,
+  logo_url text,
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS companies ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS companies ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS companies ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS companies ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS companies ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+
+-- 3. TABELA CATEGORIES
+CREATE TABLE IF NOT EXISTS categories (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  name text,
+  active boolean DEFAULT true,
+  subgroups jsonb DEFAULT '[]'::jsonb,
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS categories ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS categories ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS categories ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS categories ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS categories ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+
+-- 4. TABELA PRODUCTS
+CREATE TABLE IF NOT EXISTS products (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  category_id text,
+  category text,
+  name text,
+  description text,
+  price numeric DEFAULT 0,
+  active boolean DEFAULT true,
+  stock numeric DEFAULT 0,
+  unit text,
+  cost_price numeric DEFAULT 0,
+  ncm text,
+  cest text,
+  cfop text,
+  icms_origem text,
+  detailed_description text,
+  subgroup text,
+  min_stock numeric DEFAULT 0,
+  other_costs numeric DEFAULT 0,
+  margin numeric DEFAULT 0,
+  barcodes jsonb DEFAULT '[]'::jsonb,
+  barcode text,
+  image_url text,
+  image text,
+  print_point text,
+  multissabor_enabled boolean DEFAULT false,
+  complementos_enabled boolean DEFAULT false,
+  plataformas_enabled boolean DEFAULT false,
+  producao_propria boolean DEFAULT false,
+  ingredients text,
+  preparation_mode text,
+  fiscal_data jsonb DEFAULT '{}'::jsonb,
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS products ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS products ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS products ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+ALTER TABLE IF EXISTS products ALTER COLUMN category_id TYPE text USING category_id::text;
+
+-- 5. TABELA BRANCHES
+CREATE TABLE IF NOT EXISTS branches (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  name text,
+  active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS branches ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS branches ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS branches ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS branches ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS branches ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+
+-- 6. TABELA CUSTOMERS
+CREATE TABLE IF NOT EXISTS customers (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  name text,
+  document text,
+  phone text,
+  email text,
+  rg text,
+  ie text,
+  type text,
+  addresses jsonb DEFAULT '[]'::jsonb,
+  credit_limit numeric DEFAULT 0,
+  balance numeric DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS customers ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS customers ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS customers ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+
+-- 7. TABELA SALES
+CREATE TABLE IF NOT EXISTS sales (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  total numeric DEFAULT 0,
+  status text,
+  payment_method text,
+  customer_id text,
+  customer_name text,
+  items jsonb DEFAULT '[]'::jsonb,
+  cash_register_id text,
+  operator_id text,
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS sales ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS sales ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS sales ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS sales ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS sales ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+ALTER TABLE IF EXISTS sales ALTER COLUMN customer_id TYPE text USING customer_id::text;
+ALTER TABLE IF EXISTS sales ALTER COLUMN cash_register_id TYPE text USING cash_register_id::text;
+ALTER TABLE IF EXISTS sales ALTER COLUMN operator_id TYPE text USING operator_id::text;
+
+-- 8. TABELA TABS (COMANDAS)
 CREATE TABLE IF NOT EXISTS tabs (
   id text PRIMARY KEY,
   company_id text,
@@ -55,12 +196,14 @@ CREATE TABLE IF NOT EXISTS tabs (
   items jsonb DEFAULT '[]'::jsonb,
   created_at timestamp with time zone DEFAULT now()
 );
+ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS tabs ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS tabs ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS tabs ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+ALTER TABLE IF EXISTS tabs ALTER COLUMN table_id TYPE text USING table_id::text;
 
-ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS label text;
-ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS customer_name text;
-ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS items jsonb DEFAULT '[]'::jsonb;
-
--- 5. TABELA DELIVERY_ORDERS
+-- 9. TABELA DELIVERY_ORDERS
 CREATE TABLE IF NOT EXISTS delivery_orders (
   id text PRIMARY KEY,
   company_id text,
@@ -71,35 +214,128 @@ CREATE TABLE IF NOT EXISTS delivery_orders (
   estimated_time text,
   total numeric DEFAULT 0,
   motoboy text,
+  items jsonb DEFAULT '[]'::jsonb,
   created_at timestamp with time zone DEFAULT now()
 );
+ALTER TABLE IF EXISTS delivery_orders ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS delivery_orders ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS delivery_orders ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS delivery_orders ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS delivery_orders ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
 
--- 6. POLÍTICAS DE SEGURANÇA (RLS) PERMISSIVAS PARA A CHAVE DA API (ANON)
+-- 10. TABELA USERS
+CREATE TABLE IF NOT EXISTS users (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  name text,
+  email text,
+  phone text,
+  commission text,
+  password text,
+  role text,
+  active boolean DEFAULT true,
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS users ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS users ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS users ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+
+-- 11. TABELA CASH_REGISTERS
+CREATE TABLE IF NOT EXISTS cash_registers (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  code text,
+  name text,
+  status text DEFAULT 'closed',
+  balance numeric DEFAULT 0,
+  opened_at text,
+  operator_name text,
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS cash_registers ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS cash_registers ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS cash_registers ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS cash_registers ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS cash_registers ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+
+-- 12. TABELA SUPPLIERS
+CREATE TABLE IF NOT EXISTS suppliers (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  name text,
+  document text,
+  email text,
+  phone text,
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS suppliers ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS suppliers ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS suppliers ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS suppliers ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS suppliers ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+
+-- ====================================================================
+-- HABILITAÇÃO E POLÍTICAS DE ROW LEVEL SECURITY (RLS) PARA A CHAVE ANON
+-- ====================================================================
+ALTER TABLE IF EXISTS platform_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS companies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS products ENABLE ROW LEVEL SECURITY;
-ALTER TABLE IF EXISTS users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS branches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS customers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE IF EXISTS tabs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS sales ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS tabs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS delivery_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS cash_registers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS suppliers ENABLE ROW LEVEL SECURITY;
 
 DO $$
 BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon platform_settings') THEN
+    CREATE POLICY "Allow all for anon platform_settings" ON platform_settings FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon companies') THEN
+    CREATE POLICY "Allow all for anon companies" ON companies FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon categories') THEN
+    CREATE POLICY "Allow all for anon categories" ON categories FOR ALL USING (true) WITH CHECK (true);
+  END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon products') THEN
     CREATE POLICY "Allow all for anon products" ON products FOR ALL USING (true) WITH CHECK (true);
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon users') THEN
-    CREATE POLICY "Allow all for anon users" ON users FOR ALL USING (true) WITH CHECK (true);
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon branches') THEN
+    CREATE POLICY "Allow all for anon branches" ON branches FOR ALL USING (true) WITH CHECK (true);
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon customers') THEN
     CREATE POLICY "Allow all for anon customers" ON customers FOR ALL USING (true) WITH CHECK (true);
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon tabs') THEN
-    CREATE POLICY "Allow all for anon tabs" ON tabs FOR ALL USING (true) WITH CHECK (true);
-  END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon sales') THEN
     CREATE POLICY "Allow all for anon sales" ON sales FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon tabs') THEN
+    CREATE POLICY "Allow all for anon tabs" ON tabs FOR ALL USING (true) WITH CHECK (true);
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon delivery_orders') THEN
     CREATE POLICY "Allow all for anon delivery_orders" ON delivery_orders FOR ALL USING (true) WITH CHECK (true);
   END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon users') THEN
+    CREATE POLICY "Allow all for anon users" ON users FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon cash_registers') THEN
+    CREATE POLICY "Allow all for anon cash_registers" ON cash_registers FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon suppliers') THEN
+    CREATE POLICY "Allow all for anon suppliers" ON suppliers FOR ALL USING (true) WITH CHECK (true);
+  END IF;
 END $$;
+
+-- ====================================================================
+-- FORÇA O RELOAD IMEDIATO DO CACHE DE SCHEMA DO POSTGREST NO SUPABASE
+-- ====================================================================
+NOTIFY pgrst, 'reload schema';

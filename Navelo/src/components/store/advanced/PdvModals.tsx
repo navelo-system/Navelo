@@ -24,9 +24,12 @@ interface PdvModalsProps {
   onBackToDashboard: () => void
   launchAmount: number
   subtotal: number
-  onNavigate: (view: "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos") => void
+  onNavigate: (view: "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos" | "ultimas-negociacoes") => void
   onOpenObservationModal: () => void
   onOpenSangriaModal: (mode?: "sangria" | "suprimento") => void
+  customerName?: string
+  showOutOfStockProducts?: boolean
+  onToggleShowOutOfStock?: (val: boolean) => void
 }
 
 export const PdvModals: React.FC<PdvModalsProps> = ({
@@ -49,6 +52,9 @@ export const PdvModals: React.FC<PdvModalsProps> = ({
   onNavigate,
   onOpenObservationModal,
   onOpenSangriaModal,
+  customerName,
+  showOutOfStockProducts,
+  onToggleShowOutOfStock,
 }) => {
   return (
     <>
@@ -82,6 +88,9 @@ export const PdvModals: React.FC<PdvModalsProps> = ({
         onNavigate={onNavigate}
         onOpenObservationModal={onOpenObservationModal}
         onOpenSangriaModal={onOpenSangriaModal}
+        customerName={customerName}
+        showOutOfStockProducts={showOutOfStockProducts}
+        onToggleShowOutOfStock={onToggleShowOutOfStock}
         onOpenDiscountModal={() => {
           onCloseSidebar()
           onCloseDiscountModal()

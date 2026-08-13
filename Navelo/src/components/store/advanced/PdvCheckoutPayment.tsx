@@ -251,13 +251,17 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
       </Box>
 
       {/* ================= VISUALIZAÇÃO DESKTOP (TRADICIONAL 2 COLUNAS) ================= */}
-      <Box display="hidden md:block" w="full" flex="1" minH="0">
+      <Box display="hidden md:flex" w="full" flex="1" minH="0" h="full">
         <Grid cols={2} gap={5} flex="1" minH="0" h="full">
           {/* Painel Esquerdo: Resumo do Pedido */}
-          <Box bg="bg-surface" padding={5} radius="default" w="full" direction="col" minH="0">
-            <Stack gap={5} flex="1" minH="0">
-              <Font variant="h3" text="Resumo da Conta" />
-              <Box h="h-[2px]" bg="bg-border" w="full" />
+          <Box bg="bg-surface" padding={5} radius="default" w="full" direction="col" flex="1" minH="0" h="full">
+            <Stack gap={5} flex="1" minH="0" h="full" justify="between">
+              <Box shrink="0" w="full">
+                <Stack gap={2.5} w="full">
+                  <Font variant="h3" text="Resumo da Conta" />
+                  <Box h="h-[2px]" bg="bg-border" w="full" />
+                </Stack>
+              </Box>
 
               <Box flex="1" overflow="auto" padding={0} minH="0">
                 <Stack gap={2.5}>
@@ -280,56 +284,56 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
 
               <Box h="h-[2px]" bg="bg-border" w="full" shrink="0" />
 
-              <Stack gap={2.5}>
-                <Stack direction="row" justify="between" align="center">
-                  <Font variant="description" color="muted" text="Subtotal" />
-                  <Font variant="description" text={formatPrice(subtotal)} />
+              <Box shrink="0" w="full">
+                <Stack gap={2.5}>
+                  <Stack direction="row" justify="between" align="center">
+                    <Font variant="description" color="muted" text="Subtotal" />
+                    <Font variant="description" text={formatPrice(subtotal)} />
+                  </Stack>
+                  <Stack direction="row" justify="between" align="center">
+                    <Font variant="description" color="muted" text="Desconto" />
+                    <Font variant="description" color="danger" text={`-${formatPrice(discount)}`} />
+                  </Stack>
+                  <Stack direction="row" justify="between" align="center">
+                    <Font variant="body-bold" text="Total a Cobrar" />
+                    <Font variant="h3" color="success" text={formatPrice(total)} />
+                  </Stack>
                 </Stack>
-                <Stack direction="row" justify="between" align="center">
-                  <Font variant="description" color="muted" text="Desconto" />
-                  <Font variant="description" color="danger" text={`-${formatPrice(discount)}`} />
-                </Stack>
-                <Stack direction="row" justify="between" align="center">
-                  <Font variant="body-bold" text="Total a Cobrar" />
-                  <Font variant="h3" color="success" text={formatPrice(total)} />
-                </Stack>
-                <Button
-                  variant="secondary"
-                  label="F6 - Aplicar Desconto"
-                  icon={Percent}
-                  onClick={onOpenDiscountModal}
-                />
-              </Stack>
+              </Box>
             </Stack>
           </Box>
 
           {/* Painel Direito: Métodos de Pagamento e Lançamento */}
-          <Box bg="bg-surface" padding={5} radius="default" w="full" direction="col" minH="0">
-            <Stack gap={5} flex="1" minH="0">
-              <Font variant="h3" text="Quitação de Valores" />
-              <Box h="h-[2px]" bg="bg-border" w="full" shrink="0" />
+          <Box bg="bg-surface" padding={5} radius="default" w="full" direction="col" flex="1" minH="0" h="full">
+            <Stack gap={5} flex="1" minH="0" h="full" justify="between">
+              <Box shrink="0" w="full">
+                <Stack gap={2.5} w="full">
+                  <Font variant="h3" text="Quitação de Valores" />
+                  <Box h="h-[2px]" bg="bg-border" w="full" shrink="0" />
 
-              {/* Totalizadores de Quitação */}
-              <Grid cols={3} gap={2.5}>
-                <Box padding={2.5} border={true} borderColor="border-border" radius="default">
-                  <Stack gap={1} align="center">
-                    <Font variant="sub-tiny" color="muted" text="Total" />
-                    <Font variant="body-bold" text={formatPrice(total)} />
-                  </Stack>
-                </Box>
-                <Box padding={2.5} border={true} borderColor="border-border" radius="default">
-                  <Stack gap={1} align="center">
-                    <Font variant="sub-tiny" color="muted" text="Total Pago" />
-                    <Font variant="body-bold" color="success" text={formatPrice(totalPaid)} />
-                  </Stack>
-                </Box>
-                <Box padding={2.5} border={true} borderColor="border-border" radius="default">
-                  <Stack gap={1} align="center">
-                    <Font variant="sub-tiny" color="muted" text="Restante" />
-                    <Font variant="body-bold" color={amountDue > 0 ? "danger" : "secondary"} text={formatPrice(amountDue)} />
-                  </Stack>
-                </Box>
-              </Grid>
+                  {/* Totalizadores de Quitação */}
+                  <Grid cols={3} gap={2.5}>
+                    <Box padding={2.5} border={true} borderColor="border-border" radius="default">
+                      <Stack gap={1} align="center">
+                        <Font variant="sub-tiny" color="muted" text="Total" />
+                        <Font variant="body-bold" text={formatPrice(total)} />
+                      </Stack>
+                    </Box>
+                    <Box padding={2.5} border={true} borderColor="border-border" radius="default">
+                      <Stack gap={1} align="center">
+                        <Font variant="sub-tiny" color="muted" text="Total Pago" />
+                        <Font variant="body-bold" color="success" text={formatPrice(totalPaid)} />
+                      </Stack>
+                    </Box>
+                    <Box padding={2.5} border={true} borderColor="border-border" radius="default">
+                      <Stack gap={1} align="center">
+                        <Font variant="sub-tiny" color="muted" text="Restante" />
+                        <Font variant="body-bold" color={amountDue > 0 ? "danger" : "secondary"} text={formatPrice(amountDue)} />
+                      </Stack>
+                    </Box>
+                  </Grid>
+                </Stack>
+              </Box>
 
               {/* Pagamentos Lançados */}
               <Box flex="1" overflow="auto" padding={0} minH="0">
@@ -386,54 +390,58 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                 </Stack>
               </Box>
 
-              {/* Seletor de Atalhos Rápidos de Formas de Pagamento */}
-              <Stack gap={2.5}>
-                <Input
-                  label="Valor a Lançar (R$)"
-                  placeholder="0,00"
-                  value={paymentAmountInput}
-                  onChange={(e) => onChangePaymentAmountInput(e.target.value)}
-                />
-                <Font variant="body-bold" text="Lançar Forma de Pagamento" />
-                <Grid cols={2} gap={2.5}>
-                  <Button
-                    variant="outline"
-                    label="Dinheiro (Troco)"
-                    icon={DollarSign}
-                    disabled={amountDue <= 0}
-                    onClick={onOpenChangeModal}
-                  />
-                  <Button
-                    variant="outline"
-                    label="Pix Instantâneo"
-                    icon={QrCode}
-                    disabled={amountDue <= 0}
-                    onClick={() => onLaunchPayment("Pix", launchAmount)}
-                  />
-                  <Button
-                    variant="outline"
-                    label="Crédito/Débito"
-                    icon={CreditCard}
-                    disabled={amountDue <= 0}
-                    onClick={onOpenCardModal}
-                  />
-                  <Button
-                    variant="outline"
-                    label="Crediário Fiado"
-                    icon={Users}
-                    disabled={amountDue <= 0}
-                    onClick={() => onLaunchPayment("Crediário", launchAmount)}
-                  />
-                </Grid>
-              </Stack>
+              {/* Seletor de Atalhos Rápidos e Finalização Grudados na Base */}
+              <Box shrink="0" w="full">
+                <Stack gap={5}>
+                  <Stack gap={2.5}>
+                    <Input
+                      label="Valor a Lançar (R$)"
+                      placeholder="0,00"
+                      value={paymentAmountInput}
+                      onChange={(e) => onChangePaymentAmountInput(e.target.value)}
+                    />
+                    <Font variant="body-bold" text="Lançar Forma de Pagamento" />
+                    <Grid cols={2} gap={2.5}>
+                      <Button
+                        variant="outline"
+                        label="Dinheiro (Troco)"
+                        icon={DollarSign}
+                        disabled={amountDue <= 0}
+                        onClick={onOpenChangeModal}
+                      />
+                      <Button
+                        variant="outline"
+                        label="Pix Instantâneo"
+                        icon={QrCode}
+                        disabled={amountDue <= 0}
+                        onClick={() => onLaunchPayment("Pix", launchAmount)}
+                      />
+                      <Button
+                        variant="outline"
+                        label="Crédito/Débito"
+                        icon={CreditCard}
+                        disabled={amountDue <= 0}
+                        onClick={onOpenCardModal}
+                      />
+                      <Button
+                        variant="outline"
+                        label="Crediário Fiado"
+                        icon={Users}
+                        disabled={amountDue <= 0}
+                        onClick={() => onLaunchPayment("Crediário", launchAmount)}
+                      />
+                    </Grid>
+                  </Stack>
 
-              <Button
-                variant="primary-lg"
-                fullWidth
-                label="Enter ou F9 - Finalizar Venda"
-                disabled={amountDue > 0 || total === 0}
-                onClick={onFinalizeSale}
-              />
+                  <Button
+                    variant="primary-lg"
+                    fullWidth
+                    label="Enter ou F9 - Finalizar Venda"
+                    disabled={amountDue > 0 || total === 0}
+                    onClick={onFinalizeSale}
+                  />
+                </Stack>
+              </Box>
             </Stack>
           </Box>
         </Grid>
