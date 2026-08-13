@@ -39,106 +39,121 @@ export function useSyncStatus() {
 // Hooks de leitura reativos por Tenant/Company
 export function useProducts(tenantId?: string) {
   return useLiveQuery(() => {
-    if (!tenantId) return db.products.toArray();
-    return db.products.where('company_id').equals(tenantId).or('tenant_id').equals(tenantId).toArray();
+    return db.products
+      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .toArray();
   }, [tenantId]);
 }
 
 export function useCategories(tenantId?: string) {
   return useLiveQuery(() => {
-    if (!tenantId) return db.categories.toArray();
-    return db.categories.where('company_id').equals(tenantId).or('tenant_id').equals(tenantId).toArray();
+    return db.categories
+      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .toArray();
   }, [tenantId]);
 }
 
 export function useCustomers(tenantId?: string) {
   return useLiveQuery(() => {
-    if (!tenantId) return db.customers.toArray();
-    return db.customers.where('company_id').equals(tenantId).or('tenant_id').equals(tenantId).toArray();
+    return db.customers
+      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .toArray();
   }, [tenantId]);
 }
 
 export function useOperators(tenantId?: string) {
   return useLiveQuery(() => {
-    if (!tenantId) return db.users.toArray();
-    return db.users.where('company_id').equals(tenantId).or('tenant_id').equals(tenantId).toArray();
+    return db.users
+      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .toArray();
   }, [tenantId]);
 }
 
 export function useCashRegisters(tenantId?: string) {
   return useLiveQuery(() => {
-    if (!tenantId) return db.cash_registers.toArray();
-    return db.cash_registers.where('company_id').equals(tenantId).or('tenant_id').equals(tenantId).toArray();
+    return db.cash_registers
+      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .toArray();
   }, [tenantId]);
 }
 
 export function useTables(tenantId?: string) {
   return useLiveQuery(() => {
-    if (!tenantId) return db.restaurant_tables.toArray();
-    return db.restaurant_tables.where('company_id').equals(tenantId).or('tenant_id').equals(tenantId).toArray();
+    return db.restaurant_tables
+      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .toArray();
   }, [tenantId]);
 }
 
 export function useTabs(tenantId?: string) {
   return useLiveQuery(() => {
-    if (!tenantId) return db.tabs.toArray();
-    return db.tabs.where('company_id').equals(tenantId).or('tenant_id').equals(tenantId).toArray();
+    return db.tabs
+      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .toArray();
   }, [tenantId]);
 }
 
 export function useSuppliers(tenantId?: string) {
   return useLiveQuery(() => {
-    if (!tenantId) return db.suppliers.toArray();
-    return db.suppliers.where('company_id').equals(tenantId).or('tenant_id').equals(tenantId).toArray();
+    return db.suppliers
+      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .toArray();
   }, [tenantId]);
 }
 
 export function useUnits(tenantId?: string) {
   return useLiveQuery(() => {
-    if (!tenantId) return db.units.toArray();
-    return db.units.where('company_id').equals(tenantId).or('tenant_id').equals(tenantId).toArray();
+    return db.units
+      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .toArray();
   }, [tenantId]);
 }
 
 export function usePrintPoints(tenantId?: string) {
   return useLiveQuery(() => {
-    if (!tenantId) return db.print_points.toArray();
-    return db.print_points.where('company_id').equals(tenantId).or('tenant_id').equals(tenantId).toArray();
+    return db.print_points
+      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .toArray();
   }, [tenantId]);
 }
 
 export function useContingencyNotes(tenantId?: string) {
   return useLiveQuery(() => {
-    if (!tenantId) return db.contingency_notes.toArray();
-    return db.contingency_notes.where('company_id').equals(tenantId).or('tenant_id').equals(tenantId).toArray();
+    return db.contingency_notes
+      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .toArray();
   }, [tenantId]);
 }
 
 export function useRiders(tenantId?: string) {
   return useLiveQuery(() => {
-    if (!tenantId) return db.riders.toArray();
-    return db.riders.where('company_id').equals(tenantId).or('tenant_id').equals(tenantId).toArray();
+    return db.riders
+      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .toArray();
   }, [tenantId]);
 }
 
 export function useDeliveryRates(tenantId?: string) {
   return useLiveQuery(() => {
-    if (!tenantId) return db.delivery_rates.toArray();
-    return db.delivery_rates.where('company_id').equals(tenantId).or('tenant_id').equals(tenantId).toArray();
+    return db.delivery_rates
+      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .toArray();
   }, [tenantId]);
 }
 
 export function useSales(tenantId?: string) {
   return useLiveQuery(() => {
-    if (!tenantId) return db.sales.toArray();
-    return db.sales.where('company_id').equals(tenantId).or('tenant_id').equals(tenantId).toArray();
+    return db.sales
+      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .toArray();
   }, [tenantId]);
 }
 
 export function useDeliveryOrders(tenantId?: string) {
   return useLiveQuery(() => {
-    if (!tenantId) return db.delivery_orders.toArray();
-    return db.delivery_orders.where('company_id').equals(tenantId).or('tenant_id').equals(tenantId).toArray();
+    return db.delivery_orders
+      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .toArray();
   }, [tenantId]);
 }
 

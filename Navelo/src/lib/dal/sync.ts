@@ -31,39 +31,42 @@ function sanitizePayloadForSupabase(table: string, rawPayload: Record<string, un
  */
 export async function initialSync(tenantId?: string) {
   try {
+    // 0. Processar a fila local de pendências primeiro
+    await processSyncQueue();
+
+    const activeTenant = tenantId || 'tenant-11111111111111';
+
     // 1. Puxar Configurações Globais da Plataforma
     const { data: platformSettings, error: pErr } = await supabase.from('platform_settings').select('*').maybeSingle();
-    if (pErr) {
-      console.warn('[Sync] Tabela platform_settings não respondeu:', pErr.message);
-    } else if (platformSettings) {
+    if (!pErr && platformSettings) {
       await db.platform_settings.put(platformSettings);
     }
 
-    if (!tenantId) {
-      console.warn('[Sync] Sincronização inicial da plataforma concluída.');
-      return;
-    }
-
     // 2. Puxar Empresa / Tenant
-    const { data: company, error: cErr } = await supabase.from('companies').select('*').eq('id', tenantId).maybeSingle();
-    if (cErr) {
-      console.warn('[Sync] Aviso ao buscar empresa:', cErr.message);
-    } else if (company) {
+    const { data: company, error: cErr } = await supabase.from('companies').select('*').eq('id', activeTenant).maybeSingle();
+    if (!cErr && company) {
       await db.companies.put(company);
     }
 
-    // 3 a 12. Puxar tabelas do Tenant
+    // 3 a 19. Puxar TODAS as 17 tabelas vinculadas ao Tenant (Fonte Primária Supabase -> Merge IndexedDB)
     const tables = [
       'categories',
       'products',
       'branches',
       'customers',
       'sales',
+      'sale_items',
       'tabs',
       'delivery_orders',
       'users',
       'cash_registers',
+      'cash_movements',
       'suppliers',
+      'units',
+      'print_points',
+      'riders',
+      'delivery_rates',
+      'restaurant_tables',
     ];
 
     for (const table of tables) {
@@ -71,19 +74,24 @@ export async function initialSync(tenantId?: string) {
         const { data, error } = await supabase
           .from(table)
           .select('*')
-          .or(`company_id.eq.${tenantId},tenant_id.eq.${tenantId}`);
+          .or(`company_id.eq.${activeTenant},tenant_id.eq.${activeTenant}`);
 
         if (error) {
           console.warn(`[Sync] Aviso ao buscar tabela ${table}:`, error.message);
         } else if (data && data.length > 0) {
-          await db.table(table).bulkPut(data);
+          const normalized = data.map((record) => ({
+            ...record,
+            company_id: record.company_id || record.tenant_id || activeTenant,
+            tenant_id: record.tenant_id || record.company_id || activeTenant,
+          }));
+          await db.table(table).bulkPut(normalized);
         }
       } catch (tableErr) {
         console.warn(`[Sync] Exceção ao consultar tabela ${table}:`, tableErr);
       }
     }
 
-    console.warn(`[Sync] Sincronização inicial concluída com sucesso para o tenant ${tenantId}.`);
+    console.warn(`[Sync] Sincronização inicial da fonte primária (Supabase) concluída com sucesso para o tenant ${activeTenant}.`);
   } catch (err) {
     console.error('[Sync] Falha na sincronização inicial:', err);
   }
@@ -98,11 +106,11 @@ export async function mutateLocalFirst<T extends { id: string; company_id?: stri
   action: 'INSERT' | 'UPDATE' | 'DELETE' = 'UPDATE',
   tenantId?: string
 ) {
-  const activeTenantId = tenantId || payload.tenant_id || payload.company_id;
+  const activeTenantId = tenantId || payload.tenant_id || payload.company_id || 'tenant-11111111111111';
   const enrichedPayload = {
     ...payload,
     tenant_id: activeTenantId,
-    company_id: activeTenantId || payload.company_id
+    company_id: activeTenantId
   };
 
   // 1. Atualiza localmente imediatamente (UI rápida)
@@ -183,11 +191,12 @@ export async function processSyncQueue() {
 /**
  * Subscrição em Tempo Real (Supabase Realtime) para refletir instantaneamente dados no Dexie entre dispositivos
  */
-export function subscribeToRealtimeSync(tenantId: string) {
-  if (!tenantId || typeof window === 'undefined') return () => {};
+export function subscribeToRealtimeSync(tenantId?: string) {
+  const activeTenant = tenantId || 'tenant-11111111111111';
+  if (typeof window === 'undefined') return () => {};
 
   const channel = supabase
-    .channel(`navelo-realtime-${tenantId}`)
+    .channel(`navelo-realtime-${activeTenant}`)
     .on(
       'postgres_changes',
       { event: '*', schema: 'public' },
@@ -202,8 +211,13 @@ export function subscribeToRealtimeSync(tenantId: string) {
             await db.table(table).delete(oldRecord.id as string);
           } else if ((eventType === 'INSERT' || eventType === 'UPDATE') && newRecord?.id) {
             const companyId = (newRecord.company_id || newRecord.tenant_id) as string;
-            if (!companyId || companyId === tenantId) {
-              await db.table(table).put(newRecord);
+            if (!companyId || companyId === activeTenant) {
+              const normalizedRecord = {
+                ...newRecord,
+                company_id: newRecord.company_id || newRecord.tenant_id || activeTenant,
+                tenant_id: newRecord.tenant_id || newRecord.company_id || activeTenant,
+              };
+              await db.table(table).put(normalizedRecord);
             }
           }
         } catch (err) {

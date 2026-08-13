@@ -182,17 +182,15 @@ function HomeContent() {
   }, [currentView, isMounted])
 
   // Comandas reativas e status de sincronização do IndexedDB local (Dexie)
-  const tenantId = tenantCtx?.currentTenant?.id
+  const tenantId = tenantCtx?.currentTenant?.id || "tenant-11111111111111"
   const dbTabs = useTabs(tenantId)
   const syncStatus = useSyncStatus()
 
-  // Sincronização inicial e subscrição em tempo real com o Supabase ao carregar a sessão do tenant
+  // Sincronização inicial da Fonte Primária (Supabase) e subscrição em tempo real ao carregar o tenant
   React.useEffect(() => {
-    if (tenantId) {
-      initialSync(tenantId)
-      const unsubscribe = subscribeToRealtimeSync(tenantId)
-      return () => unsubscribe()
-    }
+    initialSync(tenantId)
+    const unsubscribe = subscribeToRealtimeSync(tenantId)
+    return () => unsubscribe()
   }, [tenantId])
 
   const comandas = React.useMemo(() => {
