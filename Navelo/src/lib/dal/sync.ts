@@ -39,6 +39,28 @@ function sanitizePayloadForSupabase(table: string, rawPayload: Record<string, un
     if (payload.quantity !== undefined || payload.qty !== undefined) {
       payload.quantity = Number(payload.quantity ?? payload.qty) || 1;
     }
+  } else if (table === 'units') {
+    payload.symbol = payload.symbol || payload.abbreviation || 'UN';
+    payload.name = payload.name || 'Unidade';
+    payload.decimals = Number(payload.decimals) || 0;
+  } else if (table === 'riders') {
+    payload.active = payload.active !== false;
+    payload.conecta_enabled = Boolean(payload.conecta_enabled);
+    payload.conecta_code = (payload.conecta_code as string) || '';
+  } else if (table === 'print_points') {
+    payload.enabled = payload.enabled !== false;
+    if (payload.serverIp && !payload.server_ip) payload.server_ip = payload.serverIp;
+    if (payload.bobbinSize && !payload.bobbin_size) payload.bobbin_size = payload.bobbinSize;
+    if (payload.increaseFont !== undefined && payload.increase_font === undefined) {
+      payload.increase_font = Boolean(payload.increaseFont);
+    }
+    if (payload.kitchenMonitorEnabled !== undefined && payload.kitchen_monitor_enabled === undefined) {
+      payload.kitchen_monitor_enabled = Boolean(payload.kitchenMonitorEnabled);
+    }
+    if (payload.linkingCode && !payload.linking_code) payload.linking_code = payload.linkingCode;
+  } else if (table === 'cash_registers') {
+    if (payload.initial_balance !== undefined) payload.initial_balance = Number(payload.initial_balance) || 0;
+    if (payload.current_balance !== undefined) payload.current_balance = Number(payload.current_balance) || 0;
   } else if (table === 'customers') {
     if (payload.addresses && Array.isArray(payload.addresses)) {
       delete payload.addresses;
