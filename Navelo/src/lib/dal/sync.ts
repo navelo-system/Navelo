@@ -84,14 +84,20 @@ export async function pushLocalDataToCloud(tenantId?: string) {
       const localRecords = await db.table(table).toArray();
       if (!localRecords || localRecords.length === 0) continue;
 
+      const updatedLocals: any[] = [];
       for (const rec of localRecords) {
+        const isLegacy = !rec.company_id || rec.company_id === 'tenant-11111111111111' || rec.company_id === 'tenant-demo-001' || rec.company_id === 'demo-tenant';
         const enriched = {
           ...rec,
-          company_id: rec.company_id || rec.tenant_id || activeTenant,
-          tenant_id: rec.tenant_id || rec.company_id || activeTenant,
+          company_id: isLegacy ? activeTenant : (rec.company_id || activeTenant),
+          tenant_id: isLegacy ? activeTenant : (rec.tenant_id || activeTenant),
         };
+        updatedLocals.push(enriched);
         const cleanPayload = sanitizePayloadForSupabase(table, enriched);
         await supabase.from(table).upsert(cleanPayload as any);
+      }
+      if (updatedLocals.length > 0) {
+        await db.table(table).bulkPut(updatedLocals);
       }
     } catch (err) {
       console.warn(`[Sync] Aviso ao subir dados locais da tabela ${table}:`, err);
@@ -163,15 +169,15 @@ export async function initialSync(tenantId?: string) {
         const { data, error } = await supabase
           .from(table)
           .select('*')
-          .or(`company_id.eq.${activeTenant},tenant_id.eq.${activeTenant}`);
+          .or(`company_id.eq.${activeTenant},tenant_id.eq.${activeTenant},company_id.eq.tenant-11111111111111,tenant_id.eq.tenant-11111111111111`);
 
         if (error) {
           console.warn(`[Sync] Aviso ao buscar tabela ${table}:`, error.message);
         } else if (data && data.length > 0) {
           const normalized = data.map((record) => ({
             ...record,
-            company_id: record.company_id || record.tenant_id || activeTenant,
-            tenant_id: record.tenant_id || record.company_id || activeTenant,
+            company_id: activeTenant,
+            tenant_id: activeTenant,
           }));
           await db.table(table).bulkPut(normalized);
         }

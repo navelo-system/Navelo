@@ -186,11 +186,44 @@ function HomeContent() {
   const dbTabs = useTabs(tenantId)
   const syncStatus = useSyncStatus()
 
-  // Sincronização inicial da Fonte Primária (Supabase) e subscrição em tempo real ao carregar o tenant
+  // Sincronização contínua e em tempo real da Fonte Primária (Supabase)
   React.useEffect(() => {
+    if (!tenantId) return
+
+    // Sincronização imediata
     initialSync(tenantId)
+    processSyncQueue()
+
+    // Subscrição a eventos em tempo real do Supabase
     const unsubscribe = subscribeToRealtimeSync(tenantId)
-    return () => unsubscribe()
+
+    // Gatilho ao voltar a ficar online
+    const handleOnline = () => {
+      initialSync(tenantId)
+      processSyncQueue()
+    }
+
+    // Gatilho ao focar a aba/janela do navegador
+    const handleFocus = () => {
+      initialSync(tenantId)
+      processSyncQueue()
+    }
+
+    window.addEventListener("online", handleOnline)
+    window.addEventListener("focus", handleFocus)
+
+    // Intervalo de sincronização periódica a cada 20 segundos em background
+    const interval = setInterval(() => {
+      initialSync(tenantId)
+      processSyncQueue()
+    }, 20000)
+
+    return () => {
+      unsubscribe()
+      window.removeEventListener("online", handleOnline)
+      window.removeEventListener("focus", handleFocus)
+      clearInterval(interval)
+    }
   }, [tenantId])
 
   const comandas = React.useMemo(() => {
