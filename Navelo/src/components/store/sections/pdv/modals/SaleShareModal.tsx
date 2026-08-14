@@ -7,8 +7,8 @@ import { Download, Link2, Share2 } from "lucide-react"
 import { Stack } from "@/components/store/base/Stack"
 import { Box } from "@/components/store/base/Box"
 import { Font } from "@/components/store/base/Font"
-import { Icon } from "@/components/store/base/Icon"
 import { Modal } from "@/components/store/base/Modal"
+import { CircularIcon } from "@/components/store/intermediary/CircularIcon"
 
 interface SaleShareModalProps {
   isOpen: boolean
@@ -78,21 +78,13 @@ export const SaleShareModal: React.FC<SaleShareModalProps> = ({
           w="full"
           padding={5}
           radius="default"
-          bg="bg-card"
+          bg="bg-brand-primary/10"
+          hoverBg="primary/10"
           cursor="pointer"
           onClick={handleSaveFile}
         >
           <Stack direction="row" gap={2.5} align="center" w="full">
-            <Box
-              padding={2.5}
-              radius="default"
-              bg="brand-primary"
-              shrink="0"
-              align="center"
-              justify="center"
-            >
-              <Icon icon={Download} size={22} color="white" />
-            </Box>
+            <CircularIcon icon={Download} size={20} variant="solid" solidColor="primary" solidRadius="default" />
             <Stack direction="col" gap={1} align="start" flex="1">
               <Font variant="body-medium" text={isGenerating ? "Gerando PDF..." : "Salvar arquivo"} />
               <Font variant="auxiliary" color="muted" text="Download do PDF no dispositivo" />
@@ -105,21 +97,13 @@ export const SaleShareModal: React.FC<SaleShareModalProps> = ({
           w="full"
           padding={5}
           radius="default"
-          bg="bg-card"
+          bg="bg-brand-primary/10"
+          hoverBg="primary/10"
           cursor="pointer"
           onClick={handleSendLink}
         >
           <Stack direction="row" gap={2.5} align="center" w="full">
-            <Box
-              padding={2.5}
-              radius="default"
-              bg="brand-secondary"
-              shrink="0"
-              align="center"
-              justify="center"
-            >
-              <Icon icon={Link2} size={22} color="white" />
-            </Box>
+            <CircularIcon icon={Link2} size={20} variant="solid" solidColor="secondary" solidRadius="default" />
             <Stack direction="col" gap={1} align="start" flex="1">
               <Font variant="body-medium" text="Enviar link de download" />
               <Font variant="auxiliary" color="muted" text="Compartilhe via QR Code ou WhatsApp" />

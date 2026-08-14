@@ -10,7 +10,7 @@ import { Icon } from "@/components/store/base/Icon"
 import { Button } from "@/components/store/base/Button"
 import { ProductForm, ProductFormData } from "@/components/store/advanced/ProductForm"
 import { FiscalConfigForm, FiscalConfigData } from "@/components/store/advanced/FiscalConfigForm"
-import { Package, PackageX, Check } from "lucide-react"
+import { Package, PackageX, Check, Trash2 } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
 import { ListSectionLayout } from "@/components/store/intermediary/ListSectionLayout"
@@ -113,18 +113,43 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
     pisCofinsCst: "99",
   })
 
+  const handleDelete = React.useCallback(async () => {
+    if (!editingProduct) return
+    await dal.products.delete(editingProduct.id, tenantId)
+    setEditingProduct(null)
+    setMode("list")
+  }, [editingProduct, tenantId])
+
   React.useEffect(() => {
     if (mode === "form") {
       setCustomBack?.(() => () => setMode("list"))
       setCustomTitle?.(editingProduct ? "Editar Produto" : "Novo Produto")
       setCustomActions?.(
-        <Button
-          type="submit"
-          form="product-form"
-          variant="primary-pill-icon"
-          icon={Check}
-          title="Salvar produto"
-        />
+        <Stack direction="row" gap={2.5} align="center">
+          {editingProduct && (
+            <Button
+              type="button"
+              variant="danger-pill-icon-confirm"
+              icon={Trash2}
+              title="Excluir produto"
+              confirmModal={{
+                title: "Excluir Produto",
+                subtitle: "Confirmar exclusão de produto",
+                paragraph: `Tem certeza de que deseja excluir o produto "${editingProduct.name}"? Esta ação não poderá ser desfeita.`,
+                icon: Trash2,
+                successText: "Confirmar Exclusão"
+              }}
+              onConfirm={handleDelete}
+            />
+          )}
+          <Button
+            type="submit"
+            form="product-form"
+            variant="primary-pill-icon"
+            icon={Check}
+            title="Salvar produto"
+          />
+        </Stack>
       )
     } else if (mode === "fiscal-config") {
       setCustomBack?.(() => () => setMode("form"))
@@ -146,7 +171,7 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
       setCustomTitle?.(null)
       setCustomActions?.(null)
     }
-  }, [mode, searchQuery, editingProduct, setCustomBack, setCustomTitle, setCustomActions])
+  }, [mode, searchQuery, editingProduct, handleDelete, setCustomBack, setCustomTitle, setCustomActions])
 
   const handleEdit = (prod: ProductItem) => {
     setEditingProduct(prod)

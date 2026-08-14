@@ -325,15 +325,12 @@ export function subscribeToRealtimeSync(tenantId?: string) {
           if (eventType === 'DELETE' && oldRecord?.id) {
             await db.table(table).delete(oldRecord.id as string);
           } else if ((eventType === 'INSERT' || eventType === 'UPDATE') && newRecord?.id) {
-            const companyId = (newRecord.company_id || newRecord.tenant_id) as string;
-            if (!companyId || companyId === activeTenant) {
-              const normalizedRecord = {
-                ...newRecord,
-                company_id: newRecord.company_id || newRecord.tenant_id || activeTenant,
-                tenant_id: newRecord.tenant_id || newRecord.company_id || activeTenant,
-              };
-              await db.table(table).put(normalizedRecord);
-            }
+            const normalizedRecord = {
+              ...newRecord,
+              company_id: activeTenant,
+              tenant_id: activeTenant,
+            };
+            await db.table(table).put(normalizedRecord);
           }
         } catch (err) {
           console.warn(`[Realtime] Erro ao aplicar mudança na tabela ${table}:`, err);

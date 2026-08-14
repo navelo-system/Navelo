@@ -597,9 +597,31 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon restaurant_tables') THEN
     CREATE POLICY "Allow all for anon restaurant_tables" ON restaurant_tables FOR ALL USING (true) WITH CHECK (true);
   END IF;
+-- ====================================================================
+-- HABILITA A REPLICAÇÃO SUPABASE REALTIME PARA TODAS AS TABELAS
+-- ====================================================================
+DO $$
+DECLARE
+  t text;
+  tbls text[] := ARRAY[
+    'products', 'categories', 'sales', 'sale_items', 'customers', 'users',
+    'cash_registers', 'cash_movements', 'restaurant_tables', 'tabs',
+    'suppliers', 'units', 'print_points', 'riders', 'delivery_rates',
+    'delivery_orders', 'companies'
+  ];
+BEGIN
+  FOREACH t IN ARRAY tbls LOOP
+    BEGIN
+      EXECUTE format('ALTER PUBLICATION supabase_realtime ADD TABLE %I', t);
+    EXCEPTION WHEN duplicate_object THEN
+      -- tabela já adicionada na publicação, ignora
+      NULL;
+    END;
+  END LOOP;
 END $$;
 
 -- ====================================================================
 -- FORÇA O RELOAD IMEDIATO DO CACHE DE SCHEMA DO POSTGREST NO SUPABASE
 -- ====================================================================
 NOTIFY pgrst, 'reload schema';
+
