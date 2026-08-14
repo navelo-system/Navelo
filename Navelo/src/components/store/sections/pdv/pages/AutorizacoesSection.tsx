@@ -111,7 +111,6 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
           minH="0"
         >
           <EmptyState
-            variant="transparent"
             icon={Search}
             title="Nenhum registro encontrado."
             subtitle="Tente ajustar os filtros ao lado."

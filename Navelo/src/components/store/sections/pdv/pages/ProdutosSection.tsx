@@ -10,8 +10,7 @@ import { Icon } from "@/components/store/base/Icon"
 import { Button } from "@/components/store/base/Button"
 import { ProductForm, ProductFormData } from "@/components/store/advanced/ProductForm"
 import { FiscalConfigForm, FiscalConfigData } from "@/components/store/advanced/FiscalConfigForm"
-import { EmptyState } from "@/components/store/intermediary/EmptyState"
-import { Plus, Package, PackageX, Check } from "lucide-react"
+import { Package, PackageX, Check } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
 import { ListSectionLayout } from "@/components/store/intermediary/ListSectionLayout"
@@ -213,10 +212,6 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
     setMode("list")
   }
 
-  const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.category.toLowerCase().includes(searchQuery.toLowerCase())
-  )
 
   const formatPrice = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {

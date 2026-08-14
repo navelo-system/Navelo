@@ -87,7 +87,6 @@ export const VendasSection: React.FC<VendasSectionProps> = ({
         {/* Painel Esquerdo: Lista Vazia */}
         <Box flex="1" w="full" h="full" bg="bg-surface" padding={5} radius="default" direction="col" justify="center" minH="0">
           <EmptyState
-            variant="transparent"
             icon={PackageSearch}
             title="Nenhum registro encontrado."
             subtitle="Utilize os filtros ao lado para pesquisar vendas efetuadas no período."

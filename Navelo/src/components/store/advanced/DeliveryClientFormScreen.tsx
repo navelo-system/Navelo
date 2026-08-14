@@ -5,18 +5,16 @@
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
-import { Grid } from "@/components/store/base/Grid"
 import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
 import { Switch } from "@/components/store/base/Switch"
-import { Badge } from "@/components/store/base/Badge"
 import { Avatar } from "@/components/store/base/Avatar"
 import { AddressList } from "@/components/store/advanced/AddressList"
 import { ClientAddressFormModal, AddressFormData } from "@/components/store/advanced/ClientAddressFormModal"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
-import { Plus, Check, UserX, ArrowRight, Trash2 } from "lucide-react"
+import { Plus, Check, UserX, ArrowRight } from "lucide-react"
 import { useCustomers, dal, Customer, CustomerAddress } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
 import { DeliveryClientInfo } from "./DeliveryCheckoutConfirmation"
@@ -310,7 +308,7 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
     setClientAddresses((prev) => prev.filter((a) => a.id !== addr.id))
   }
 
-  const formatPrimaryAddress = () => {
+  const formatPrimaryAddress = React.useCallback(() => {
     if (clientAddresses.length === 0) return "Endereço não informado"
     const primaryAddr = clientAddresses.find((a) => a.isDefault) || clientAddresses[0]
 
@@ -335,9 +333,8 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
       parts += ` (CEP: ${primaryAddr.zipCode})`
     }
     return parts
-  }
+  }, [clientAddresses])
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleSubmit = React.useCallback(async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
 
@@ -422,7 +419,7 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
     })
   }
 
-  const handleDeleteCustomer = async () => {
+  const handleDeleteCustomer = React.useCallback(async () => {
     if (selectedCustomerId && tenantId) {
       try {
         await dal.customers.delete(selectedCustomerId, tenantId)
@@ -430,27 +427,15 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
         console.error("Erro ao excluir cliente:", err)
       }
     }
-    onBackRef.current?.()
-  }
-
-  // Configurações do cabeçalho com MobileHeaderSearch e botão Primário no Check
-  const onBackRef = React.useRef(onBack)
-  const handleSubmitRef = React.useRef(handleSubmit)
-
-  React.useEffect(() => {
-    onBackRef.current = onBack
-  }, [onBack])
-
-  React.useEffect(() => {
-    handleSubmitRef.current = handleSubmit
-  }, [handleSubmit])
+    onBack()
+  }, [selectedCustomerId, tenantId, onBack])
 
   // Botão de deletar deve ser exibido EXCLUSIVAMENTE na tela de EDITAR cliente existente
   const showDeleteButton = Boolean(initialCustomer) && !title.toLowerCase().includes("identificar") && !title.toLowerCase().includes("novo")
 
   React.useEffect(() => {
     setCustomTitle?.(title)
-    setCustomBack?.(() => () => onBackRef.current?.())
+    setCustomBack?.(() => () => onBack())
 
     const actionsContent = (
       <Stack direction="row" align="center" gap={2.5}>
@@ -469,7 +454,7 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
           type="button"
           variant="primary-pill-icon"
           icon={Check}
-          onClick={() => handleSubmitRef.current?.()}
+          onClick={() => handleSubmit()}
           title="Confirmar"
         />
       </Stack>
@@ -492,7 +477,7 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
     return () => {
       setCustomActions?.(null)
     }
-  }, [setCustomActions, setCustomTitle, setCustomBack, searchQuery, title, showSearchInHeader, showDeleteButton])
+  }, [setCustomActions, setCustomTitle, setCustomBack, searchQuery, title, showSearchInHeader, showDeleteButton, handleDeleteCustomer, handleSubmit, onBack])
 
   return (
     <Box display="flex" direction="col" flex="1" minH="0" overflow="auto" w="full">

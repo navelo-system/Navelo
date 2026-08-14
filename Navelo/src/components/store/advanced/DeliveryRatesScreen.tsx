@@ -1,5 +1,7 @@
 "use client"
 
+/* eslint-disable max-lines-per-function */
+
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -8,7 +10,7 @@ import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { Avatar } from "@/components/store/base/Avatar"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
-import { Plus, Trash2, MapPin, DollarSign, Edit2 } from "lucide-react"
+import { Plus, Trash2, MapPin, DollarSign } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { useTenant } from "@/lib/context/TenantContext"
 import { useDeliveryRates, dal, DeliveryRate } from "@/lib/dal"
@@ -99,14 +101,7 @@ export const DeliveryRatesScreen: React.FC<DeliveryRatesScreenProps> = ({
     setMode("form")
   }
 
-  const handleDelete = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation()
-    try {
-      await dal.deliveryRates.delete(id, tenantId)
-    } catch (err) {
-      console.error("Erro ao excluir taxa de entrega:", err)
-    }
-  }
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

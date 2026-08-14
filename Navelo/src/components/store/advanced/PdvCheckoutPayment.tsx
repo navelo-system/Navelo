@@ -15,11 +15,9 @@ import { CartItem } from "@/components/store/intermediary/CartItem"
 import { RemoveItemConfirmModal } from "@/components/store/sections/pdv/modals/RemoveItemConfirmModal"
 import {
   DollarSign,
-  Percent,
   QrCode,
   CreditCard,
   Users,
-  Trash2,
   Pencil,
   Check,
   X,
@@ -62,7 +60,6 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
   totalPaid,
   amountDue,
   formatPrice,
-  onOpenDiscountModal,
   onLaunchPayment,
   onRemovePayment,
   onEditPayment,

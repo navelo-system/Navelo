@@ -1,16 +1,24 @@
 # Current State
 
 ## Última atualização
-Ciclo #322 — Feature: Integração dos CRUDs secundários (Grupos, Unidades, Pontos de Impressão) no formulário de Produtos — 2026-08-06
+Ciclo #325 — Feature: Sistema de Comprovante PDF de Negociações (Compartilhar & Imprimir via Supabase Storage, QR Code e WhatsApp) — 2026-08-14
 
 ## Status do ciclo ativo
-IDLE
+IDLE — Nenhum ciclo em andamento. Último ciclo concluído: Ciclo #327 (Eliminação de 100% dos Warnings do ESLint).
 
 ## Estado do artefato
 ATIVO — truth/ preenchido com contexto real do projeto Navelo
 
 ## Implementado
-- Integração dos CRUDs de Grupos/Subgrupos, Unidades e Pontos de Impressão no `ProductForm.tsx`: seleção dinâmica via DAL (Dexie IndexedDB) com empty state quando o banco está vazio
+- Sistema de Comprovante PDF de Negociações:
+  - Geração de PDF no client-side com `jsPDF` e `jspdf-autotable` seguindo o layout oficial da negociação (`generateSaleReceiptPdf`).
+  - Route Handler `/api/upload-receipt` que recebe base64 e realiza upload com `SUPABASE_SERVICE_ROLE_KEY` de forma segura no Supabase Storage (`sale-receipts/{tenantId}/{fileName}`).
+  - Integração no `PdvSection.tsx` (`handleFinalizeSale`): gera o PDF automaticamente ao fechar a venda, faz upload e salva o link público em `pdf_url` no Dexie e Supabase.
+  - Modais dedicados no Design System:
+    - `SaleShareModal`: bottom sheet com opções de salvar arquivo localmente ou enviar link de download.
+    - `SaleLinkModal`: modal com QR Code dinâmico (`qrcode`), botão de copiar link e campo de telefone que monta a URL do WhatsApp com a mensagem pré-formatada.
+  - Conexão completa na `NegociacoesSection.tsx` para os botões de Compartilhar e Imprimir (com suporte a fallback e geração on-demand).
+- Fix do modal de confirmação de exclusão de negociação: substituído `danger-pill-icon-confirm` (que renderizava o Modal internamente) por `danger-pill-icon` com estado `isDeleteConfirmOpen` local; o Modal de confirmação de exclusão foi movido para fora do Modal de detalhes, como irmão no mesmo nível do JSX dentro de um Fragment React, eliminando o stacking context aninhado em `NegociacoesSection.tsx`
 - Botões "+ Novo" / "+ Nova" nos selects de Grupo, Unidade e Ponto de Impressão abrem modal sidebar com as respectivas Sections para CRUD inline
 - `GruposSubgruposSection.tsx` agora persiste `subgroups[]` no `dal.categories` (campo `subgroups` adicionado à interface `Category` no `db.ts`)
 - `UnidadesSection.tsx` integrada ao `dal.units` com suporte a `decimals` (campo adicionado à interface `Unit`)

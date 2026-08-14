@@ -9,7 +9,7 @@ import { Grid } from "@/components/store/base/Grid"
 import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
-import { Plus, Edit2, Trash2, Building, ShieldCheck, CreditCard, Phone, MapPin } from "lucide-react"
+import { Edit2, Trash2, Building, ShieldCheck, CreditCard, Phone, MapPin } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 import { ListSectionLayout } from "@/components/store/intermediary/ListSectionLayout"
@@ -187,11 +187,6 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
     setEditingSupplier(null)
   }
 
-  const filtered = suppliers.filter(
-    (s) =>
-      s.tradeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.document.includes(searchQuery)
-  )
 
   return (
     <Box position="relative" w="full">

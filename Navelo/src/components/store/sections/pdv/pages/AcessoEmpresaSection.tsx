@@ -71,15 +71,17 @@ export const AcessoEmpresaSection: React.FC<AcessoEmpresaSectionProps> = ({ onUn
 
     try {
       // 1. Consulta primeiro no IndexedDB local
-      let localCompany = await db.companies.where("id").equals(`tenant-${rawCnpj}`).first()
+      let localCompany = await db.companies
+        .filter((c) => c.id === `tenant-${rawCnpj}` || c.document === cnpj || c.document === rawCnpj)
+        .first()
 
       if (!localCompany) {
         // 2. Se não estiver local, consulta no Supabase
         const { data: cloudCompany } = await supabase
           .from("companies")
           .select("*")
-          .eq("document", cnpj)
-          .single()
+          .or(`document.eq.${cnpj},document.eq.${rawCnpj},id.eq.tenant-${rawCnpj}`)
+          .maybeSingle()
 
         if (cloudCompany) {
           localCompany = {
@@ -97,7 +99,7 @@ export const AcessoEmpresaSection: React.FC<AcessoEmpresaSectionProps> = ({ onUn
       }
 
       if (!localCompany) {
-        // Fallback resiliente para liberar acesso local do tenant caso seja o primeiro acesso offline
+        // Fallback resiliente para liberar acesso local do tenant caso seja o primeiro acesso
         localCompany = {
           id: `tenant-${rawCnpj}`,
           name: "Empresa Cadastrada LTDA",
@@ -108,6 +110,19 @@ export const AcessoEmpresaSection: React.FC<AcessoEmpresaSectionProps> = ({ onUn
           secondary_color: "#f97316"
         }
         await db.companies.put(localCompany)
+
+        // Registra também na nuvem para os outros dispositivos encontrarem
+        try {
+          await supabase.from("companies").upsert({
+            id: `tenant-${rawCnpj}`,
+            name: "Empresa Cadastrada LTDA",
+            document: cnpj,
+            company_id: `tenant-${rawCnpj}`,
+            tenant_id: `tenant-${rawCnpj}`,
+          })
+        } catch {
+          // ignora se offline
+        }
       }
 
       // Desbloqueia e ativa a conta efetiva no TenantContext

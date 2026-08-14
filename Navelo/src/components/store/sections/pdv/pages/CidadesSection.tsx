@@ -9,7 +9,7 @@ import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
-import { Plus, Edit2, Trash2, MapPin, Globe } from "lucide-react"
+import { Plus, Edit2, MapPin, Globe } from "lucide-react"
 
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { FormActions } from "@/components/store/intermediary/FormActions"

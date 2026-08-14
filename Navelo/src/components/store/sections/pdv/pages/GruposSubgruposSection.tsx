@@ -10,7 +10,7 @@ import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { Icon } from "@/components/store/base/Icon"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
-import { Plus, Trash2, Folder, Layers, X, FolderOpen, Check } from "lucide-react"
+import { Plus, Folder, Layers, X, FolderOpen, Check } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 
 import { useCategories, dal } from "@/lib/dal"
@@ -305,7 +305,7 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
               )}
 
               {/* Botão FAB fixo no canto inferior direito */}
-              <Box className="fab-fixed-bottom-right">
+              <Box position="fixed" bottom="24px" right="24px" zIndex="30">
                 <Button
                   variant="secondary-pill-icon"
                   icon={Plus}

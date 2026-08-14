@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function, complexity */
 import React from 'react';
 import { Box } from '@/components/store/base/Box';
 import { Stack } from '@/components/store/base/Stack';
@@ -6,7 +7,7 @@ import { Badge } from '@/components/store/base/Badge';
 import { Button } from '@/components/store/base/Button';
 import { Icon } from '@/components/store/base/Icon';
 import { EmptyState } from '@/components/store/intermediary/EmptyState';
-import { Edit2, Trash2, MapPin } from 'lucide-react';
+import { Edit2, MapPin } from 'lucide-react';
 import { CustomerAddress } from '@/src/types/domain';
 
 export interface AddressListProps {

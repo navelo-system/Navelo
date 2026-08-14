@@ -12,7 +12,7 @@ import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/store/base/Table"
 import { Badge } from "@/components/store/base/Badge"
 import { Form } from "@/components/store/advanced/Form"
-import { Plus, Edit2, Trash2, Receipt } from "lucide-react"
+import { Plus, Edit2, Receipt } from "lucide-react"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 
 export interface ComandaItem {

@@ -1,6 +1,6 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, complexity, max-depth */
+/* eslint-disable max-lines-per-function, max-depth */
 
 import * as React from "react"
 import { Tenant, User, PlatformSettings } from "@/types/domain"
@@ -32,7 +32,6 @@ interface TenantContextType {
 
 const TenantContext = React.createContext<TenantContextType | undefined>(undefined)
 
-// eslint-disable-next-line max-lines-per-function
 export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [platformSettings, setPlatformSettings] = React.useState<PlatformSettings>(DEFAULT_PLATFORM_SETTINGS)
   const [currentTenant, setCurrentTenant] = React.useState<Tenant | null>(null)
@@ -70,7 +69,6 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           setCurrentTenant(tenantObj)
           setActiveThemeMode("tenant")
 
-          // eslint-disable-next-line max-depth
           if (savedUser) {
             try {
               const userObj: User = JSON.parse(savedUser)

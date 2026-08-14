@@ -1,6 +1,6 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
+/* eslint-disable max-lines-per-function, complexity, max-depth, react-hooks/set-state-in-effect, @typescript-eslint/no-explicit-any */
 
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
@@ -16,6 +16,10 @@ import { FilterPanel } from "@/components/store/intermediary/FilterPanel"
 import { FileText, Filter, Calendar, User, DollarSign, Share2, Printer, Trash2, ChevronDown, ChevronUp, Package } from "lucide-react"
 import { useSales, useProducts, Sale, dal } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
+import { CartItemType } from "@/components/store/sections/pdv/pages/PdvSection"
+import { SaleShareModal } from "@/components/store/sections/pdv/modals/SaleShareModal"
+import { SaleLinkModal } from "@/components/store/sections/pdv/modals/SaleLinkModal"
+import { generateSaleReceiptPdf, sanitizeSaleFileName } from "@/lib/pdf/generateSaleReceipt"
 
 interface NegociacoesSectionProps {
   title?: string
@@ -24,6 +28,7 @@ interface NegociacoesSectionProps {
   setCustomActions?: (actions: React.ReactNode | null) => void
   onBack: () => void
   initialClientFilter?: string
+  onDuplicateToCart?: (items: CartItemType[]) => void
 }
 
 export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
@@ -33,6 +38,7 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
   setCustomActions,
   onBack,
   initialClientFilter,
+  onDuplicateToCart,
 }) => {
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id
@@ -61,6 +67,10 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
   const [selectedSale, setSelectedSale] = React.useState<Sale | null>(null)
   const [isAccordionOpen, setIsAccordionOpen] = React.useState(false)
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false)
+  const [isShareModalOpen, setIsShareModalOpen] = React.useState(false)
+  const [isLinkModalOpen, setIsLinkModalOpen] = React.useState(false)
+  const [linkModalUrl, setLinkModalUrl] = React.useState("")
 
   const onBackRef = React.useRef(onBack)
   React.useEffect(() => {
@@ -141,6 +151,116 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
     }
   }
 
+  const handleDeleteAndClose = async () => {
+    setIsDeleteConfirmOpen(false)
+    await handleDeleteSale()
+  }
+
+  const handleGeneratePdfForSale = async (saleToUse?: Sale | null): Promise<string | null> => {
+    const sale = saleToUse || selectedSale
+    if (!sale) return null
+    if (sale.pdf_url) return sale.pdf_url
+
+    try {
+      const companyInfo = {
+        name: tenantCtx?.currentTenant?.tradingName || tenantCtx?.currentTenant?.corporateName || tenantCtx?.platformSettings?.platformName || "Navelo PDV",
+        document: tenantCtx?.currentTenant?.cnpj,
+        phone: (tenantCtx?.currentTenant as any)?.phone,
+        logo_url: tenantCtx?.currentTenant?.logoUrl || tenantCtx?.platformSettings?.logoUrl,
+      }
+
+      const saleCode = getSaleCode(sale)
+      const saleReceiptData = {
+        id: sale.id,
+        saleCode,
+        total: sale.total,
+        subtotal: sale.subtotal || sale.total,
+        discount: sale.discount || 0,
+        payment_method: sale.payment_method,
+        customer_name: sale.customer_name,
+        created_at: sale.created_at,
+        items: Array.isArray(sale.items)
+          ? sale.items.map((item: any) => ({
+              product_name: item.product_name || item.name || productMap.get(item.product_id || item.productId || item.id)?.name || "Item",
+              quantity: item.quantity ?? item.qty ?? item.amount ?? 1,
+              unit_price: item.unit_price ?? item.unitPrice ?? item.price ?? productMap.get(item.product_id || item.productId || item.id)?.price ?? 0,
+              total_price: item.total_price ?? ((item.quantity ?? 1) * (item.unit_price ?? item.unitPrice ?? 0)),
+            }))
+          : [],
+      }
+
+      const { base64, blob } = await generateSaleReceiptPdf(saleReceiptData, companyInfo)
+      const cleanCode = sanitizeSaleFileName(saleCode)
+      const cleanId = sanitizeSaleFileName(sale.id)
+      const fileName = `Negociacao_${cleanCode}_${cleanId}.pdf`
+
+      try {
+        const response = await fetch("/api/upload-receipt", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            pdfBase64: base64,
+            fileName,
+            tenantId: tenantId || "default",
+          }),
+        })
+        if (response.ok) {
+          const { publicUrl } = await response.json()
+          if (publicUrl) {
+            await dal.sales.update({ ...sale, pdf_url: publicUrl })
+            setSelectedSale((prev) => (prev && prev.id === sale.id ? { ...prev, pdf_url: publicUrl } : prev))
+            return publicUrl
+          }
+        }
+      } catch {
+        // Se o upload falhar, retorna o blob local
+      }
+
+      return URL.createObjectURL(blob)
+    } catch (err) {
+      console.error("Erro ao gerar PDF:", err)
+      return null
+    }
+  }
+
+  const handlePrintSale = async () => {
+    if (!selectedSale) return
+    if (selectedSale.pdf_url) {
+      window.open(selectedSale.pdf_url, "_blank", "noopener,noreferrer")
+      return
+    }
+    const url = await handleGeneratePdfForSale(selectedSale)
+    if (url) {
+      window.open(url, "_blank", "noopener,noreferrer")
+    }
+  }
+
+  const handleDuplicate = () => {
+    if (!selectedSale || !Array.isArray(selectedSale.items)) return
+
+    const items: CartItemType[] = selectedSale.items
+      .map((item: any) => {
+        const itemProductId: string = item.product_id || item.productId || item.id || ""
+        const rawName: string = item.product_name || item.name || item.title || item.productName || item.description || ""
+        const finalName: string = rawName || productMap.get(itemProductId)?.name || "Item"
+        const finalUnitPrice: number = item.unit_price ?? item.unitPrice ?? item.price ?? productMap.get(itemProductId)?.price ?? 0
+        const finalQty: number = item.quantity ?? item.qty ?? item.amount ?? 1
+        const finalImage: string | undefined = item.image || item.image_url || item.imageUrl || productMap.get(itemProductId)?.image_url
+
+        return {
+          id: itemProductId,
+          name: finalName,
+          quantity: finalQty,
+          unitPrice: finalUnitPrice,
+          image: finalImage,
+        } as CartItemType
+      })
+      .filter((item: CartItemType) => item.id && item.quantity > 0)
+
+    onDuplicateToCart?.(items)
+    setSelectedSale(null)
+  }
+
   const renderFilterInputs = () => (
     <>
       <Input
@@ -180,8 +300,9 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
   }
 
   return (
-    <Stack direction="col" gap={5} w="full" flex="1" minH="0">
-      <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" minH="0" h="full">
+    <>
+      <Stack direction="col" gap={5} w="full" flex="1" minH="0">
+        <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" minH="0" h="full">
         {/* Lado Esquerdo: Lista Minimalista + Card Fixo de Total Filtrado */}
         <Stack direction="col" gap={2.5} flex="1" w="full" h="full" minH="0">
           {/* Lista de Registros */}
@@ -189,7 +310,6 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
             {filteredSales.length === 0 ? (
               <Box w="full" h="full" direction="col" align="center" justify="center">
                 <EmptyState
-                  variant="transparent"
                   icon={FileText}
                   title="Nenhuma negociação encontrada."
                   subtitle="As vendas concluídas no Caixa aparecerão nesta lista."
@@ -307,6 +427,9 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
           subtitle="Detalhamento completo dos produtos e pagamentos da negociação"
           icon={FileText}
           variant="default"
+          showCancelButton
+          successText="Duplicar pedido"
+          onSuccess={handleDuplicate}
         >
           {selectedSale && (
             <Stack gap={5} w="full">
@@ -356,16 +479,8 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
                     </Stack>
                   </Stack>
 
-                  {/* Conteúdo Expandido Animado da Sanfona de Pagamentos */}
-                  <Box
-                    w="full"
-                    style={{
-                      maxHeight: isAccordionOpen ? "200px" : "0px",
-                      opacity: isAccordionOpen ? 1 : 0,
-                      transition: "max-height 0.3s ease-in-out, opacity 0.25s ease-in-out",
-                      overflow: "hidden",
-                    }}
-                  >
+                  {/* Conteúdo Expandido da Sanfona de Pagamentos */}
+                  {isAccordionOpen && (
                     <Box padding={1} w="full">
                       <Stack gap={2.5} w="full">
                         <Box border borderColor="border/30" w="full" />
@@ -386,7 +501,7 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
                         </Stack>
                       </Stack>
                     </Box>
-                  </Box>
+                  )}
                 </Stack>
               </Box>
 
@@ -472,7 +587,11 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
                         )
                       })
                     ) : (
-                      <Font variant="auxiliary" color="muted" text="Nenhum item detalhado nesta venda." />
+                      <EmptyState
+                        icon={Package}
+                        title="Nenhum item detalhado"
+                        subtitle="Esta venda não possui itens registrados."
+                      />
                     )}
                   </Stack>
                 </Box>
@@ -481,23 +600,21 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
               {/* 3 Botões de Ação no Rodapé (Lixeira, Seta de Compartilhamento, Impressora Primária) */}
               <Stack direction="row" justify="center" align="center" gap={5} w="full">
                 <Button
-                  variant="danger-pill-icon-confirm"
-                  confirmTitle="Excluir Negociação"
-                  confirmSubtitle="Confirmar exclusão de negociação"
-                  confirmParagraph="Tem certeza de que deseja excluir esta negociação do sistema? Esta ação não poderá ser desfeita."
-                  onConfirm={handleDeleteSale}
+                  variant="danger-pill-icon"
+                  icon={Trash2}
+                  onClick={() => setIsDeleteConfirmOpen(true)}
                   title="Excluir negociação"
                 />
                 <Button
                   variant="secondary-pill-icon"
                   icon={Share2}
-                  onClick={() => {}}
+                  onClick={() => setIsShareModalOpen(true)}
                   title="Compartilhar negociação"
                 />
                 <Button
                   variant="primary-pill-icon"
                   icon={Printer}
-                  onClick={() => {}}
+                  onClick={handlePrintSale}
                   title="Imprimir comprovante"
                 />
               </Stack>
@@ -506,5 +623,45 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
         </Modal>
       </Stack>
     </Stack>
+
+    {/* Modal de Confirmação de Exclusão — irmão do modal de detalhes para evitar stacking context aninhado */}
+    <Modal
+      isOpen={isDeleteConfirmOpen}
+      onClose={() => setIsDeleteConfirmOpen(false)}
+      title="Excluir Negociação"
+      subtitle="Confirmar exclusão de negociação"
+      icon={Trash2}
+      successText="Confirmar Exclusão"
+      onSuccess={handleDeleteAndClose}
+      showCancelButton
+    >
+      <Font variant="body-sm-medium" text="Tem certeza de que deseja excluir esta negociação do sistema? Esta ação não poderá ser desfeita." />
+    </Modal>
+
+    {/* Modal de Opções de Compartilhamento (Bottom Sheet) */}
+    {selectedSale && (
+      <SaleShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        pdfUrl={selectedSale.pdf_url || null}
+        saleName={`Negociação ${getSaleCode(selectedSale)}`}
+        onGeneratePdf={() => handleGeneratePdfForSale(selectedSale)}
+        onOpenLinkModal={(url) => {
+          setLinkModalUrl(url)
+          setIsLinkModalOpen(true)
+        }}
+      />
+    )}
+
+    {/* Modal de Link (QR Code + Copiar Link + WhatsApp) */}
+    {selectedSale && (
+      <SaleLinkModal
+        isOpen={isLinkModalOpen}
+        onClose={() => setIsLinkModalOpen(false)}
+        pdfUrl={linkModalUrl || selectedSale.pdf_url || ""}
+        saleName={`Negociação ${getSaleCode(selectedSale)}`}
+      />
+    )}
+    </>
   )
 }

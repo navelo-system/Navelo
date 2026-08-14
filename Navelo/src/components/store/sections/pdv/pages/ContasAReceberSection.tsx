@@ -102,7 +102,6 @@ export const ContasAReceberSection: React.FC<ContasAReceberSectionProps> = ({
         {/* Painel Esquerdo: Lista Vazia */}
         <Box flex="1" w="full" h="full" bg="bg-surface" padding={5} radius="default" direction="col" justify="center" minH="0">
           <EmptyState
-            variant="transparent"
             icon={PackageSearch}
             title="Nenhum registro encontrado."
             subtitle="Utilize os filtros ao lado para pesquisar lançamentos de contas a receber."

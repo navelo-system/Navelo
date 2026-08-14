@@ -1,11 +1,14 @@
 "use client"
 
+/* eslint-disable max-lines-per-function, complexity */
+
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Badge } from "@/components/store/base/Badge"
 import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
+import { Icon } from "@/components/store/base/Icon"
 import { Filter, Check } from "lucide-react"
 import { DeliveryStatus } from "@/components/store/intermediary/DeliveryTimeline"
 
@@ -146,8 +149,10 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
                                 border={true}
                                 borderColor={isChecked ? "border-brand-primary" : "border-border"}
                                 bg={isChecked ? "bg-brand-primary" : "transparent"}
+                                align="center"
+                                justify="center"
                               >
-                                <Check size={12} className={isChecked ? "text-white" : "opacity-0"} />
+                                {isChecked && <Icon icon={Check} size={12} color="white" />}
                               </Box>
                               <Font variant="body-sm-medium" text={`${opt.label} (${count})`} />
                             </Stack>

@@ -111,10 +111,7 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
     setMode("form")
   }
 
-  const handleDelete = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation()
-    await dal.units.delete(id, tenantId)
-  }
+
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()

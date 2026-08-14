@@ -59,7 +59,7 @@ export const CartItem: React.FC<CartItemProps> = ({
                 ) : (
                   <Button variant="primary-icon-xs" icon={Minus} onClick={() => onDecrease(id)} />
                 )}
-                <Box padding={0} w="auto" className="px-1">
+                <Box paddingX={1} w="auto">
                   <Font variant="body-bold" text={String(quantity)} />
                 </Box>
                 <Button variant="primary-icon-xs" icon={Plus} onClick={() => onIncrease(id)} />

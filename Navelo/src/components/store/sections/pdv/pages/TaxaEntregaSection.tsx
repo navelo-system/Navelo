@@ -11,7 +11,7 @@ import { Form } from "@/components/store/base/Form"
 import { Button } from "@/components/store/base/Button"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/store/base/Table"
-import { Plus, Edit2, Trash2, Truck } from "lucide-react"
+import { Plus, Edit2, Truck } from "lucide-react"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 
 export interface DeliveryFeeItem {

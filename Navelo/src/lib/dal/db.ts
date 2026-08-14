@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import Dexie, { type EntityTable } from 'dexie';
 
 export interface PlatformSettingEntity {
@@ -77,6 +78,8 @@ export interface Sale {
   company_id: string;
   tenant_id?: string;
   total: number;
+  subtotal?: number;
+  discount?: number;
   status: string;
   payment_method?: string;
   customer_id?: string;
@@ -85,6 +88,7 @@ export interface Sale {
   cash_register_id?: string;
   operator_id?: string;
   created_at?: string;
+  pdf_url?: string;
 }
 
 export interface SaleItem {

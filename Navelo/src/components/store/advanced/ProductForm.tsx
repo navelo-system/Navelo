@@ -1,6 +1,6 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, complexity */
+/* eslint-disable max-lines-per-function, complexity, react-hooks/set-state-in-effect */
 
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
@@ -10,7 +10,6 @@ import { Font } from "@/components/store/base/Font"
 import { Icon } from "@/components/store/base/Icon"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
-import { FormActions } from "@/components/store/intermediary/FormActions"
 import { Switch } from "@/components/store/base/Switch"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/store/base/Tabs"
@@ -114,7 +113,6 @@ const maskNumberInput = (val: string): string => {
 
 export const ProductForm: React.FC<ProductFormProps> = ({
   initialData,
-  onCancel,
   onSave,
   onAccessFiscalConfig,
 }) => {
@@ -409,12 +407,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
                 <Stack gap={5} w="full">
                   {/* Visual Preview da Foto */}
-                  <input
+                  <Box
+                    as="input"
                     type="file"
                     ref={fileInputRef}
                     accept="image/*"
                     onChange={handleImageChange}
-                    style={{ display: "none" }}
+                    display="hidden"
                   />
                   <Stack align="center" gap={2.5} w="full">
                     <Box

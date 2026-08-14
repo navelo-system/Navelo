@@ -1,5 +1,35 @@
 # Cycle Log
 
+## Ciclo #325 — Feature: Sistema de Comprovante PDF de Negociações (Compartilhar & Imprimir via Supabase Storage, QR Code e WhatsApp)
+- Data: 2026-08-14
+- Tipo: feature
+- Prompt original: "ta, agora vamos trabalhar a questão dos botões de compartilhar e imprimir dos modais de negociações, começando pelo de compartilhar, a gente precisa manter em mente que o app vai estar instalado na maquina do usuario porem ele vai ter uma versão online rodando no vercel, ou seja, vai ter um dominio publico, tanto o botão de imprimir quanto o botão de compartilhar vão resultar em mostrar um pdf seguindo esse formato do anexo..."
+- Intenção interpretada: Implementar sistema completo de geração de PDF para negociações com upload no Supabase Storage via Route Handler server-side (/api/upload-receipt), persistência do pdf_url no schema da venda, modal bottom sheet de compartilhamento (Salvar local / Enviar link) e modal de link com QR Code, copiar link e envio WhatsApp com mensagem pré-formatada.
+- Superfície tocada: `package.json`, `src/lib/dal/db.ts`, `supabase_schema_migration.sql`, `app/api/upload-receipt/route.ts`, `src/lib/pdf/generateSaleReceipt.ts`, `src/components/store/sections/pdv/modals/SaleShareModal.tsx`, `src/components/store/sections/pdv/modals/SaleLinkModal.tsx`, `src/components/store/sections/pdv/pages/PdvSection.tsx`, `src/components/store/sections/pdv/pages/NegociacoesSection.tsx`
+- Reviewer: approved (npm run build com exit code 0)
+- Decisões tomadas:
+  - Geração de PDF client-side com jsPDF e jspdf-autotable (importação dinâmica sob demanda).
+  - SUPABASE_SERVICE_ROLE_KEY usada exclusivamente na Route Handler do Next.js (/api/upload-receipt) garantindo segurança.
+  - Bucket `sale-receipts` público para leitura direta sem necessidade de tokens expiráveis.
+  - Suporte a geração on-demand para vendas sem PDF prévio (offline).
+- Estado antes → depois: Botões de compartilhar e imprimir eram placeholders vazios no modal de detalhes da negociação → agora possuem fluxo completo de PDF, download, QR Code, WhatsApp e impressão.
+
+## Ciclo #323 — Feature: Botão "Duplicar pedido" no modal de detalhes de negociações
+- Data: 2026-08-14
+- Tipo: feature
+- Prompt original: "vamos colocar no modal das negociações mais um botão de ação, um botão de duplicar, coloque ele pra ser o botão de confirmar do modal já que atualmente só tem um de cancelar, essa será a ação principal, o confirm do modal digamos assim, a função dele vai ser copiar os itens do pedido pro carrinho atual, lembrando que tem que ter a checagem de estoque pra não passar do limite"
+- Intenção interpretada: Adicionar botão "Duplicar pedido" como ação confirm (onSuccess) do Modal de detalhes em NegociacoesSection.tsx, que copia os itens da venda selecionada para o carrinho ativo do PDV com checagem de estoque efetivo.
+- Superfície tocada: `NegociacoesSection.tsx`, `PdvSection.tsx`
+- Mudanças:
+  - Adicionada prop `onDuplicateToCart?: (items: CartItemType[]) => void` em `NegociacoesSectionProps`.
+  - Criada função `handleDuplicate` que resolve itens da venda para `CartItemType[]` e chama `onDuplicateToCart`, fechando o modal após.
+  - Adicionados `showCancelButton`, `successText="Duplicar pedido"`, `onSuccess={handleDuplicate}` ao `<Modal>` de detalhes.
+  - Criada `handleDuplicateToCart` (useCallback) em `PdvSection.tsx` que faz merge dos itens no carrinho respeitando `getEffectiveAvailableStock` para cada produto; após a cópia, retorna subView para "none".
+- Reviewer: approved (build exit code 0, 0 erros TypeScript)
+- Decisões tomadas: Checagem de estoque deduz quantidade já no carrinho + comprometida em outras comandas abertas. Itens sem estoque disponível são silenciosamente ignorados.
+- Mudanças no truth/: nenhuma
+- Estado antes → depois: Modal de negociações tinha apenas botão Cancelar → agora possui par completo Cancelar + Duplicar pedido.
+
 ## Ciclo #321 — Feature: Integração funcional CRUD completa de Produtos, Clientes, Comandas e Estoque com Dexie (Local-First DAL)
 - Data: 2026-08-06
 - Tipo: feature

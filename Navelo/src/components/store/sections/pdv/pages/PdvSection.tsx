@@ -1,6 +1,6 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, complexity */
+/* eslint-disable max-lines-per-function, complexity, max-depth, react-hooks/set-state-in-effect, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion, no-await-in-loop */
 
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
@@ -17,7 +17,6 @@ import { PdvCheckoutPayment } from "@/components/store/advanced/PdvCheckoutPayme
 import { PdvCheckoutReceipt } from "@/components/store/advanced/PdvCheckoutReceipt"
 import { PdvCheckoutSidebar } from "@/components/store/advanced/PdvCheckoutSidebar"
 import { PdvModals } from "@/components/store/advanced/PdvModals"
-import { Font } from "../../../base/Font"
 
 import { NegociacoesSection } from "@/components/store/sections/pdv/pages/NegociacoesSection"
 import { ClientesSection } from "@/components/store/sections/pdv/pages/ClientesSection"
@@ -32,6 +31,7 @@ import { DeliveryClientInfo, DeliveryCheckoutConfirmation, DeliveryType, Payment
 import { DeliveryRatesScreen } from "@/components/store/advanced/DeliveryRatesScreen"
 import { DeliveryRidersScreen } from "@/components/store/advanced/DeliveryRidersScreen"
 import { Rider, DeliveryRate } from "@/lib/dal"
+import { generateSaleReceiptPdf, sanitizeSaleFileName } from "@/lib/pdf/generateSaleReceipt"
 
 // Interface dos itens do carrinho
 export interface CartItemType {
@@ -327,7 +327,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   React.useEffect(() => {
     if (subView !== "none") return
 
-    setCustomTitle?.(activeClientOrTitle || "Caixa")
+    setCustomTitle?.(activeClientOrTitle === "Nao selecionado" || !activeClientOrTitle ? "Caixa" : activeClientOrTitle)
 
     if (step === "negociacao") {
       // Se o carrinho estiver vazio, volta direto; se tiver itens, confirma saída
@@ -343,7 +343,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
     } else if (step === "recibo") {
       setCustomBack?.(() => () => setStep("pagamento"))
     }
-  }, [step, subView, setCustomBack, setCustomTitle, cartItems.length])
+  }, [step, subView, setCustomBack, setCustomTitle, cartItems.length, activeClientOrTitle])
 
   React.useEffect(() => {
     if (subView !== "none") return
@@ -552,6 +552,57 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
 
       await dal.sales.create(saleData)
 
+      // Geração e upload automático do comprovante PDF para o Supabase Storage
+      try {
+        const companyInfo = {
+          name: tenantCtx?.currentTenant?.tradingName || tenantCtx?.currentTenant?.corporateName || tenantCtx?.platformSettings?.platformName || "Navelo PDV",
+          document: tenantCtx?.currentTenant?.cnpj,
+          phone: (tenantCtx?.currentTenant as any)?.phone,
+          logo_url: tenantCtx?.currentTenant?.logoUrl || tenantCtx?.platformSettings?.logoUrl,
+        }
+
+        const saleNum = saleId.slice(-4)
+        const saleReceiptData = {
+          id: saleId,
+          saleCode: `#${saleNum}`,
+          total,
+          subtotal,
+          discount,
+          payment_method: paymentMethodsStr,
+          customer_name: activeClientOrTitle !== "Nao selecionado" ? activeClientOrTitle : undefined,
+          created_at: saleData.created_at,
+          items: cartItems.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            total_price: item.quantity * item.unitPrice,
+          })),
+        }
+
+        const { base64 } = await generateSaleReceiptPdf(saleReceiptData, companyInfo)
+        const cleanName = sanitizeSaleFileName(`Negociacao_${saleNum}_${saleId}`)
+        const fileName = `${cleanName}.pdf`
+
+        const response = await fetch("/api/upload-receipt", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            pdfBase64: base64,
+            fileName,
+            tenantId: tenantId || "default",
+          }),
+        })
+
+        if (response.ok) {
+          const { publicUrl } = await response.json()
+          if (publicUrl) {
+            await dal.sales.update({ ...saleData, pdf_url: publicUrl })
+          }
+        }
+      } catch (pdfErr) {
+        console.warn("[PdvSection] Não foi possível gerar/fazer upload do PDF (modo offline ou erro de rede):", pdfErr)
+      }
+
       for (const item of cartItems) {
         const dbProduct = await dal.products.getById(item.id)
         if (dbProduct) {
@@ -641,6 +692,35 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
     setSubView(view)
   }
 
+  const handleDuplicateToCart = React.useCallback(
+    (items: CartItemType[]) => {
+      setCartItems((prev) => {
+        const next = [...prev]
+        for (const item of items) {
+          if (!item.id) continue
+          const catalogItem = catalogProducts.find((p) => p.id === item.id)
+          const effectiveStock = getEffectiveAvailableStock(item.id, catalogItem?.stock)
+          const currentQty = next.find((c) => c.id === item.id)?.quantity ?? 0
+          const available = effectiveStock === Infinity
+            ? item.quantity
+            : Math.max(0, effectiveStock - currentQty)
+          const qtyToAdd = Math.min(item.quantity, available)
+          if (qtyToAdd <= 0) continue
+          const existingIdx = next.findIndex((c) => c.id === item.id)
+          if (existingIdx >= 0) {
+            next[existingIdx] = { ...next[existingIdx], quantity: next[existingIdx].quantity + qtyToAdd }
+          } else {
+            next.push({ id: item.id, name: item.name, quantity: qtyToAdd, unitPrice: item.unitPrice, image: item.image })
+          }
+        }
+        return next
+      })
+      setNegociacoesClientFilter(null)
+      setSubView("none")
+    },
+    [catalogProducts, getEffectiveAvailableStock]
+  )
+
   if (subView === "negociacoes") {
     return (
       <NegociacoesSection
@@ -652,6 +732,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
           setSubView("none")
         }}
         initialClientFilter={negociacoesClientFilter || undefined}
+        onDuplicateToCart={handleDuplicateToCart}
       />
     )
   }

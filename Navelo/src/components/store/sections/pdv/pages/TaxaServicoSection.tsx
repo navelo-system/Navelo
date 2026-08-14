@@ -9,10 +9,10 @@ import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
 import { Form } from "@/components/store/base/Form"
 import { Button } from "@/components/store/base/Button"
-import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/store/base/Table"
+import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
-import { Plus, Edit2, Trash2, Coins, Percent } from "lucide-react"
+import { Plus, Edit2, Coins, Percent } from "lucide-react"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 
 export interface ServiceFeeItem {

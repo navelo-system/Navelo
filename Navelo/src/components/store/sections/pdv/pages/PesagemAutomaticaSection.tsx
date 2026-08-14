@@ -13,7 +13,7 @@ import { Switch } from "@/components/store/base/Switch"
 import { Icon } from "@/components/store/base/Icon"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { LinkDeviceModal } from "@/components/store/advanced/LinkDeviceModal"
-import { Scale, Monitor, ChevronRight, LayoutGrid, Plus, Trash2 } from "lucide-react"
+import { Scale, Monitor, ChevronRight, LayoutGrid, Plus } from "lucide-react"
 
 interface LinkedDevice {
   id: string

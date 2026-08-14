@@ -51,7 +51,7 @@ export const MobileHeaderSearch: React.FC<MobileHeaderSearchProps> = ({
     setIsSearchOpen(true)
   }
 
-  const closeSearch = () => {
+  const closeSearch = React.useCallback(() => {
     if (!searchMounted) return
     setIsSearchOpen(false)
     setSearchAnimation("search-collapse-out")
@@ -60,7 +60,7 @@ export const MobileHeaderSearch: React.FC<MobileHeaderSearchProps> = ({
       setSearchAnimation("search-expand-in")
       searchExitTimerRef.current = null
     }, SEARCH_ANIMATION_MS)
-  }
+  }, [searchMounted])
 
   React.useEffect(() => {
     if (!isSearchOpen) return
@@ -75,7 +75,7 @@ export const MobileHeaderSearch: React.FC<MobileHeaderSearchProps> = ({
       closeSearch()
     }
     prevQueryRef.current = searchQuery
-  }, [searchQuery, isSearchOpen])
+  }, [searchQuery, isSearchOpen, closeSearch])
 
   React.useEffect(() => {
     return () => {

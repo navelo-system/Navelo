@@ -306,7 +306,7 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
               />
             )}
 
-            <Box className="fab-fixed-bottom-right">
+            <Box position="fixed" bottom="24px" right="24px" zIndex="30">
               <Button
                 variant="secondary-pill-icon"
                 icon={Plus}

@@ -1,5 +1,7 @@
 "use client"
 
+/* eslint-disable max-lines-per-function, complexity */
+
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"

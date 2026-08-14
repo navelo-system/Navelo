@@ -1,6 +1,6 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, complexity */
+/* eslint-disable max-lines-per-function */
 
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"

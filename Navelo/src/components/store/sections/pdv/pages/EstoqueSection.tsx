@@ -292,7 +292,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
           <InvoicesTable invoices={filteredInvoices} />
 
           {/* Botão FAB fixo no canto inferior direito */}
-          <Box className="fab-fixed-bottom-right">
+          <Box position="fixed" bottom="24px" right="24px" zIndex="30">
             <Button
               variant="secondary-pill-icon"
               icon={Upload}

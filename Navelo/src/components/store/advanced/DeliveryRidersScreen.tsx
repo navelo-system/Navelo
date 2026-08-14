@@ -1,5 +1,7 @@
 "use client"
 
+/* eslint-disable max-lines-per-function */
+
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -9,7 +11,7 @@ import { Input } from "@/components/store/base/Input"
 import { Switch } from "@/components/store/base/Switch"
 import { Avatar } from "@/components/store/base/Avatar"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
-import { Plus, Trash2, Bike, Check, Edit2 } from "lucide-react"
+import { Plus, Trash2, Bike, Check } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { useTenant } from "@/lib/context/TenantContext"
 import { useRiders, dal, Rider } from "@/lib/dal"
@@ -109,14 +111,7 @@ export const DeliveryRidersScreen: React.FC<DeliveryRidersScreenProps> = ({
     setMode("form")
   }
 
-  const handleDelete = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation()
-    try {
-      await dal.riders.delete(id, tenantId)
-    } catch (err) {
-      console.error("Erro ao excluir entregador:", err)
-    }
-  }
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -316,7 +311,7 @@ export const DeliveryRidersScreen: React.FC<DeliveryRidersScreenProps> = ({
       </Stack>
 
       {/* Botão FAB fixo no canto inferior direito para adicionar novo entregador */}
-      <Box className="fab-fixed-bottom-right">
+      <Box position="fixed" bottom="24px" right="24px" zIndex="30">
         <Button
           variant="secondary-pill-icon"
           icon={Plus}

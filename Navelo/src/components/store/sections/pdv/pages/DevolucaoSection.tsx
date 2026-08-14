@@ -67,7 +67,6 @@ export const DevolucaoSection: React.FC<DevolucaoSectionProps> = ({
                 icon={Package}
                 title="Nenhum produto adicionado."
                 subtitle=""
-                variant="transparent"
               />
             ) : (
               <Stack gap={2.5} w="full" overflow="x-hidden y-auto" minH="0">

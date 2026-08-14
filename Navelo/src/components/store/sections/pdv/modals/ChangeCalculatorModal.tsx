@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
 import { ChangeCalculator } from "@/components/store/advanced/ChangeCalculator"

@@ -45,12 +45,12 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
     setModeHistory((prev) => [...prev, newMode])
   }, [])
 
+  const [editingClient, setEditingClient] = React.useState<Customer | null>(null)
+
   const popMode = React.useCallback(() => {
     setEditingClient(null)
     setModeHistory((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev))
   }, [])
-
-  const [editingClient, setEditingClient] = React.useState<Customer | null>(null)
 
   const handleEdit = (client: Customer) => {
     setEditingClient(client)

@@ -4,11 +4,13 @@
 -- todas as 12 tabelas, colunas company_id/tenant_id e políticas RLS
 -- ====================================================================
 
--- 0. REMOÇÃO DINÂMICA DE POLÍTICAS RLS E FOREIGN KEYS PRÉ-EXISTENTES QUE TRAVAM A CONVERSÃO DE TIPO
+-- 0. REMOÇÃO DINÂMICA DE POLÍTICAS RLS, FOREIGN KEYS E NOT-NULL CONSTRAINTS QUE TRAVAM A SINCRONIZAÇÃO
 DO $$
 DECLARE
     pol RECORD;
     fk RECORD;
+    chk RECORD;
+    col RECORD;
 BEGIN
     -- 0.1 Remover todas as políticas RLS pré-existentes que dependem de colunas
     FOR pol IN (
@@ -27,6 +29,33 @@ BEGIN
           AND tc.table_schema = 'public'
     ) LOOP
         EXECUTE 'ALTER TABLE public.' || quote_ident(fk.table_name) || ' DROP CONSTRAINT IF EXISTS ' || quote_ident(fk.constraint_name) || ' CASCADE;';
+    END LOOP;
+
+    -- 0.3 Remover todas as CHECK constraints pré-existentes que travam status ou tipos
+    FOR chk IN (
+        SELECT tc.table_name, tc.constraint_name
+        FROM information_schema.table_constraints tc
+        WHERE tc.constraint_type = 'CHECK'
+          AND tc.table_schema = 'public'
+    ) LOOP
+        EXECUTE 'ALTER TABLE public.' || quote_ident(chk.table_name) || ' DROP CONSTRAINT IF EXISTS ' || quote_ident(chk.constraint_name) || ' CASCADE;';
+    END LOOP;
+
+    -- 0.4 Remover restrições NOT NULL indevidas de todas as colunas (exceto ID)
+    FOR col IN (
+        SELECT table_name, column_name 
+        FROM information_schema.columns 
+        WHERE table_schema = 'public' 
+          AND is_nullable = 'NO' 
+          AND column_name != 'id'
+          AND table_name IN (
+            'platform_settings', 'companies', 'categories', 'products', 'branches', 
+            'customers', 'sales', 'sale_items', 'tabs', 'delivery_orders', 'users', 
+            'cash_registers', 'cash_movements', 'suppliers', 'units', 'print_points', 
+            'riders', 'delivery_rates', 'restaurant_tables'
+          )
+    ) LOOP
+        EXECUTE 'ALTER TABLE public.' || quote_ident(col.table_name) || ' ALTER COLUMN ' || quote_ident(col.column_name) || ' DROP NOT NULL;';
     END LOOP;
 END $$;
 
@@ -114,6 +143,7 @@ CREATE TABLE IF NOT EXISTS products (
 );
 ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS company_id text;
 ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS type text DEFAULT 'PRODUCT';
 ALTER TABLE IF EXISTS products ALTER COLUMN id TYPE text USING id::text;
 ALTER TABLE IF EXISTS products ALTER COLUMN company_id TYPE text USING company_id::text;
 ALTER TABLE IF EXISTS products ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
@@ -180,6 +210,21 @@ ALTER TABLE IF EXISTS sales ALTER COLUMN tenant_id TYPE text USING tenant_id::te
 ALTER TABLE IF EXISTS sales ALTER COLUMN customer_id TYPE text USING customer_id::text;
 ALTER TABLE IF EXISTS sales ALTER COLUMN cash_register_id TYPE text USING cash_register_id::text;
 ALTER TABLE IF EXISTS sales ALTER COLUMN operator_id TYPE text USING operator_id::text;
+ALTER TABLE IF EXISTS sales ADD COLUMN IF NOT EXISTS subtotal numeric DEFAULT 0;
+ALTER TABLE IF EXISTS sales ADD COLUMN IF NOT EXISTS discount numeric DEFAULT 0;
+ALTER TABLE IF EXISTS sales ADD COLUMN IF NOT EXISTS pdf_url text;
+
+-- ====================================================================
+-- BUCKET PARA COMPROVANTES PDF (executar UMA VEZ no Supabase)
+-- ====================================================================
+-- INSERT INTO storage.buckets (id, name, public)
+-- VALUES ('sale-receipts', 'sale-receipts', true)
+-- ON CONFLICT (id) DO UPDATE SET public = true;
+--
+-- CREATE POLICY IF NOT EXISTS "Public read sale-receipts"
+-- ON storage.objects FOR SELECT
+-- USING (bucket_id = 'sale-receipts');
+-- ====================================================================
 
 -- 8. TABELA TABS (COMANDAS)
 CREATE TABLE IF NOT EXISTS tabs (
@@ -198,6 +243,7 @@ CREATE TABLE IF NOT EXISTS tabs (
 );
 ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS company_id text;
 ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS identifier text;
 ALTER TABLE IF EXISTS tabs ALTER COLUMN id TYPE text USING id::text;
 ALTER TABLE IF EXISTS tabs ALTER COLUMN company_id TYPE text USING company_id::text;
 ALTER TABLE IF EXISTS tabs ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
@@ -239,6 +285,8 @@ CREATE TABLE IF NOT EXISTS users (
 );
 ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS company_id text;
 ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS password_hash text;
+ALTER TABLE IF EXISTS users ADD COLUMN IF NOT EXISTS password text;
 ALTER TABLE IF EXISTS users ALTER COLUMN id TYPE text USING id::text;
 ALTER TABLE IF EXISTS users ALTER COLUMN company_id TYPE text USING company_id::text;
 ALTER TABLE IF EXISTS users ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
@@ -287,6 +335,7 @@ CREATE TABLE IF NOT EXISTS sale_items (
   sale_id text,
   product_id text,
   product_name text,
+  name text,
   quantity numeric DEFAULT 1,
   unit_price numeric DEFAULT 0,
   total_price numeric DEFAULT 0,
@@ -294,6 +343,8 @@ CREATE TABLE IF NOT EXISTS sale_items (
 );
 ALTER TABLE IF EXISTS sale_items ADD COLUMN IF NOT EXISTS company_id text;
 ALTER TABLE IF EXISTS sale_items ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS sale_items ADD COLUMN IF NOT EXISTS product_name text;
+ALTER TABLE IF EXISTS sale_items ADD COLUMN IF NOT EXISTS name text;
 ALTER TABLE IF EXISTS sale_items ALTER COLUMN id TYPE text USING id::text;
 ALTER TABLE IF EXISTS sale_items ALTER COLUMN company_id TYPE text USING company_id::text;
 ALTER TABLE IF EXISTS sale_items ALTER COLUMN tenant_id TYPE text USING tenant_id::text;

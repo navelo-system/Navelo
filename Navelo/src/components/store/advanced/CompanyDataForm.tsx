@@ -78,12 +78,13 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
       padding={5}
       w="full"
     >
-      <input
+      <Box
+        as="input"
         type="file"
         ref={logoFileInputRef}
         accept="image/*"
         onChange={handleLogoChange}
-        style={{ display: "none" }}
+        display="hidden"
       />
       <Stack gap={5} w="full">
         {/* Logo / Upload */}

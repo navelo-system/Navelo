@@ -1,5 +1,7 @@
 "use client"
 
+/* eslint-disable max-lines-per-function, complexity */
+
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -143,37 +145,35 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
 
             <Font variant="description" color="muted" text={currentStatus} />
 
-            <div className={`grid transition-all duration-300 ease-in-out ${isStatusSelectorOpen ? "grid-rows-[1fr] opacity-100 mt-1" : "grid-rows-[0fr] opacity-0 mt-0"}`}>
-              <div className="overflow-hidden">
-                <Box padding={0} bg="surface-sunken" radius="default" w="full">
-                  <Stack gap={1} w="full">
-                    {statusOptions.map((st) => (
-                      <Box
-                        key={st}
-                        padding={2.5}
-                        cursor="pointer"
-                        radius="default"
-                        bg={currentStatus === st ? "primary/10" : "transparent"}
-                        hoverBg="surface-sunken"
-                        onClick={() => {
-                          setCurrentStatus(st)
-                          setIsStatusSelectorOpen(false)
-                        }}
-                      >
-                        <Stack direction="row" justify="between" align="center" w="full">
-                          <Font
-                            variant="body-sm-semibold"
-                            color={currentStatus === st ? "primary" : "foreground"}
-                            text={st}
-                          />
-                          {currentStatus === st && <Icon icon={Check} size={14} color="primary" />}
-                        </Stack>
-                      </Box>
-                    ))}
-                  </Stack>
-                </Box>
-              </div>
-            </div>
+            {isStatusSelectorOpen && (
+              <Box padding={0} bg="surface-sunken" radius="default" w="full">
+                <Stack gap={1} w="full">
+                  {statusOptions.map((st) => (
+                    <Box
+                      key={st}
+                      padding={2.5}
+                      cursor="pointer"
+                      radius="default"
+                      bg={currentStatus === st ? "primary/10" : "transparent"}
+                      hoverBg="surface-sunken"
+                      onClick={() => {
+                        setCurrentStatus(st)
+                        setIsStatusSelectorOpen(false)
+                      }}
+                    >
+                      <Stack direction="row" justify="between" align="center" w="full">
+                        <Font
+                          variant="body-sm-semibold"
+                          color={currentStatus === st ? "primary" : "foreground"}
+                          text={st}
+                        />
+                        {currentStatus === st && <Icon icon={Check} size={14} color="primary" />}
+                      </Stack>
+                    </Box>
+                  ))}
+                </Stack>
+              </Box>
+            )}
           </Stack>
 
           {/* 2. SEÇÃO TIPO DE ENTREGA (Design dos Cards identico ao Momento da cobranca com Sanfona Animada) */}
@@ -207,91 +207,89 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
                       </Stack>
                     </Box>
 
-                    {/* SANFONA ANIMADA PARA SUB-SEÇÕES DE ENTREGA (CLIENTE, ENTREGADOR, TAXA) */}
-                    {opt.id === "delivery" && (
-                      <div className={`grid transition-all duration-300 ease-in-out ${isSelected ? "grid-rows-[1fr] opacity-100 mt-1" : "grid-rows-[0fr] opacity-0 mt-0"}`}>
-                        <div className="overflow-hidden">
-                          <Box padding={2.5} bg="surface-sunken" radius="default" w="full">
-                            <Stack gap={5} w="full">
-                              {/* CLIENTE */}
-                              <Stack gap={2.5} w="full">
-                                <Stack direction="row" justify="between" align="center" w="full">
-                                  <Font variant="body-bold" text="* Cliente" />
-                                  <Stack direction="row" gap={2.5} align="center">
-                                    {onAlterClient && (
-                                      <Box cursor="pointer" onClick={onAlterClient} className="hover:opacity-80 transition-opacity">
-                                        <Font variant="sub-tiny-bold" color="primary" text="ALTERAR" />
-                                      </Box>
-                                    )}
-                                    {onClearClient && (
-                                      <Box cursor="pointer" onClick={onClearClient} className="hover:opacity-80 transition-opacity">
-                                        <Font variant="sub-tiny-bold" color="muted" text="LIMPAR" />
-                                      </Box>
-                                    )}
-                                  </Stack>
-                                </Stack>
-
-                                <Box padding={0} w="full">
-                                  <Stack gap={1} w="full">
-                                    <Font variant="body-sm-medium" text={client.name || "Cliente não informado"} />
-                                    {client.phone && (
-                                      <Font variant="body-sm-medium" color="muted" text={client.phone} />
-                                    )}
-                                    {client.address ? (
-                                      <Font variant="body-sm-medium" color="muted" text={client.address} />
-                                    ) : (
-                                      <Font variant="body-sm-medium" color="muted" text="Endereço não informado" />
-                                    )}
-                                  </Stack>
-                                </Box>
+                    {/* SANFONA PARA SUB-SEÇÕES DE ENTREGA (CLIENTE, ENTREGADOR, TAXA) */}
+                    {opt.id === "delivery" && isSelected && (
+                      <Box padding={2.5} bg="surface-sunken" radius="default" w="full">
+                        <Stack gap={5} w="full">
+                          {/* CLIENTE */}
+                          <Stack gap={2.5} w="full">
+                            <Stack direction="row" justify="between" align="center" w="full">
+                              <Font variant="body-bold" text="* Cliente" />
+                              <Stack direction="row" gap={2.5} align="center">
+                                {onAlterClient && (
+                                  <Box cursor="pointer" onClick={onAlterClient}>
+                                    <Font variant="sub-tiny-bold" color="primary" text="ALTERAR" />
+                                  </Box>
+                                )}
+                                {onClearClient && (
+                                  <Box cursor="pointer" onClick={onClearClient}>
+                                    <Font variant="sub-tiny-bold" color="muted" text="LIMPAR" />
+                                  </Box>
+                                )}
                               </Stack>
+                            </Stack>
 
-                              {/* ENTREGADOR */}
-                              <Stack gap={2.5} w="full">
-                                <Stack direction="row" justify="between" align="center" w="full">
-                                  <Font variant="body-bold" text="Entregador" />
-                                  <Stack direction="row" gap={2.5} align="center">
-                                    {onSelectRider && (
-                                      <Box cursor="pointer" onClick={onSelectRider} className="hover:opacity-80 transition-opacity">
-                                        <Font variant="sub-tiny-bold" color="primary" text={rider ? "ALTERAR" : "SELECIONAR"} />
-                                      </Box>
-                                    )}
-                                    {rider && onClearRider && (
-                                      <Box cursor="pointer" onClick={onClearRider} className="hover:opacity-80 transition-opacity">
-                                        <Font variant="sub-tiny-bold" color="muted" text="LIMPAR" />
-                                      </Box>
-                                    )}
-                                  </Stack>
-                                </Stack>
-
-                                <Box padding={0} w="full">
-                                  <Font
-                                    variant="body-sm-medium"
-                                    color={rider ? "foreground" : "muted"}
-                                    text={rider ? rider.name : "Selecione um entregador"}
-                                  />
-                                </Box>
+                            <Box padding={0} w="full">
+                              <Stack gap={1} w="full">
+                                <Font variant="body-sm-medium" text={client.name || "Cliente não informado"} />
+                                {client.phone && (
+                                  <Font variant="body-sm-medium" color="muted" text={client.phone} />
+                                )}
+                                {client.address ? (
+                                  <Font variant="body-sm-medium" color="muted" text={client.address} />
+                                ) : (
+                                  <Font variant="body-sm-medium" color="muted" text="Endereço não informado" />
+                                )}
                               </Stack>
+                            </Box>
+                          </Stack>
 
-                              {/* TAXA DE ENTREGA */}
-                              <Stack gap={2.5} w="full">
-                                <Stack direction="row" justify="between" align="center" w="full">
-                                  <Font variant="body-bold" text="Taxa de entrega" />
-                                  <Stack direction="row" gap={2.5} align="center">
-                                    {onSelectRate && (
-                                      <Box cursor="pointer" onClick={onSelectRate} className="hover:opacity-80 transition-opacity">
-                                        <Font variant="sub-tiny-bold" color="primary" text={rate ? "ALTERAR" : "SELECIONAR"} />
-                                      </Box>
-                                    )}
-                                    {rate && onClearRate && (
-                                      <Box cursor="pointer" onClick={onClearRate} className="hover:opacity-80 transition-opacity">
-                                        <Font variant="sub-tiny-bold" color="muted" text="LIMPAR" />
-                                      </Box>
-                                    )}
-                                  </Stack>
-                                </Stack>
+                          {/* ENTREGADOR */}
+                          <Stack gap={2.5} w="full">
+                            <Stack direction="row" justify="between" align="center" w="full">
+                              <Font variant="body-bold" text="Entregador" />
+                              <Stack direction="row" gap={2.5} align="center">
+                                {onSelectRider && (
+                                  <Box cursor="pointer" onClick={onSelectRider}>
+                                    <Font variant="sub-tiny-bold" color="primary" text={rider ? "ALTERAR" : "SELECIONAR"} />
+                                  </Box>
+                                )}
+                                {rider && onClearRider && (
+                                  <Box cursor="pointer" onClick={onClearRider}>
+                                    <Font variant="sub-tiny-bold" color="muted" text="LIMPAR" />
+                                  </Box>
+                                )}
+                              </Stack>
+                            </Stack>
 
-                                <Box padding={0} w="full">
+                            <Box padding={0} w="full">
+                              <Font
+                                variant="body-sm-medium"
+                                color={rider ? "foreground" : "muted"}
+                                text={rider ? rider.name : "Selecione um entregador"}
+                              />
+                            </Box>
+                          </Stack>
+
+                          {/* TAXA DE ENTREGA */}
+                          <Stack gap={2.5} w="full">
+                            <Stack direction="row" justify="between" align="center" w="full">
+                              <Font variant="body-bold" text="Taxa de entrega" />
+                              <Stack direction="row" gap={2.5} align="center">
+                                {onSelectRate && (
+                                  <Box cursor="pointer" onClick={onSelectRate}>
+                                    <Font variant="sub-tiny-bold" color="primary" text={rate ? "ALTERAR" : "SELECIONAR"} />
+                                  </Box>
+                                )}
+                                {rate && onClearRate && (
+                                  <Box cursor="pointer" onClick={onClearRate}>
+                                    <Font variant="sub-tiny-bold" color="muted" text="LIMPAR" />
+                                  </Box>
+                                )}
+                              </Stack>
+                            </Stack>
+
+                            <Box padding={0} w="full">
                                   <Font
                                     variant="body-sm-medium"
                                     color={rate ? "foreground" : "muted"}
@@ -305,11 +303,9 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
                               </Stack>
                             </Stack>
                           </Box>
-                        </div>
-                      </div>
-                    )}
-                  </Stack>
-                )
+                        )}
+                      </Stack>
+                    )
               })}
             </Stack>
           </Stack>

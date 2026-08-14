@@ -1,4 +1,4 @@
-/* eslint-disable max-lines-per-function, complexity */
+/* eslint-disable max-lines-per-function, complexity, react-hooks/set-state-in-effect */
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"

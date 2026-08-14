@@ -223,11 +223,6 @@ function HomeContent() {
     setCurrentView("caixa")
   }
 
-  const handleStartAvulsoComanda = () => {
-    const tempId = `avulso-${Date.now()}`
-    setActiveComandaId(tempId)
-    setCurrentView("caixa")
-  }
 
   const handleAddComanda = async (label: string) => {
     const comandaId = Math.floor(100 + Math.random() * 900).toString()

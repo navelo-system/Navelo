@@ -134,7 +134,6 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       confirmDescription,
       confirmIcon,
       confirmSuccessText,
-      confirmCancelText,
       onConfirm,
       className,
       onClick,

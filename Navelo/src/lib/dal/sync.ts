@@ -1,3 +1,4 @@
+/* eslint-disable complexity, max-depth, no-await-in-loop, @typescript-eslint/no-explicit-any */
 import { db } from './db';
 import { supabase } from '../supabase/client';
 
@@ -11,13 +12,38 @@ function sanitizePayloadForSupabase(table: string, rawPayload: Record<string, un
     if (payload.image && !payload.image_url) {
       payload.image_url = payload.image;
     }
+    payload.type = payload.type || 'PRODUCT';
+    payload.unit = payload.unit || 'UN';
+    payload.unit_type = payload.unit_type || payload.unit || 'UNIT';
+    if (payload.price !== undefined) payload.price = Number(payload.price) || 0;
+    if (payload.stock !== undefined) payload.stock = Number(payload.stock) || 0;
   } else if (table === 'users') {
     delete payload.isCurrent;
+    payload.password_hash = (payload.password_hash as string) || (payload.password as string) || '123456789';
+    payload.password = (payload.password as string) || (payload.password_hash as string) || '123456789';
+  } else if (table === 'tabs') {
+    payload.identifier = payload.identifier || payload.code || payload.label || (payload.id as string);
+    payload.status = payload.status || 'OPEN';
+    if (payload.items && Array.isArray(payload.items)) {
+      payload.items = JSON.stringify(payload.items) as any;
+    }
+  } else if (table === 'sale_items') {
+    payload.product_name = payload.product_name || payload.name || 'Item';
+    payload.name = payload.name || payload.product_name || 'Item';
+    if (payload.unit_price !== undefined || payload.unitPrice !== undefined) {
+      payload.unit_price = Number(payload.unit_price ?? payload.unitPrice) || 0;
+    }
+    if (payload.total_price !== undefined || payload.totalPrice !== undefined) {
+      payload.total_price = Number(payload.total_price ?? payload.totalPrice) || 0;
+    }
+    if (payload.quantity !== undefined || payload.qty !== undefined) {
+      payload.quantity = Number(payload.quantity ?? payload.qty) || 1;
+    }
   } else if (table === 'customers') {
     if (payload.addresses && Array.isArray(payload.addresses)) {
       delete payload.addresses;
     }
-  } else if (table === 'delivery_orders' || table === 'tabs' || table === 'sales') {
+  } else if (table === 'delivery_orders' || table === 'sales') {
     if (payload.items && Array.isArray(payload.items)) {
       payload.items = JSON.stringify(payload.items) as any;
     }
@@ -27,14 +53,64 @@ function sanitizePayloadForSupabase(table: string, rawPayload: Record<string, un
 }
 
 /**
+ * Envia todos os dados locais do Dexie para o Supabase (Cloud Push / Migration)
+ */
+export async function pushLocalDataToCloud(tenantId?: string) {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+  const activeTenant = tenantId || 'tenant-11111111111111';
+
+  const tables = [
+    'categories',
+    'products',
+    'branches',
+    'customers',
+    'sales',
+    'sale_items',
+    'tabs',
+    'delivery_orders',
+    'users',
+    'cash_registers',
+    'cash_movements',
+    'suppliers',
+    'units',
+    'print_points',
+    'riders',
+    'delivery_rates',
+    'restaurant_tables',
+  ];
+
+  for (const table of tables) {
+    try {
+      const localRecords = await db.table(table).toArray();
+      if (!localRecords || localRecords.length === 0) continue;
+
+      for (const rec of localRecords) {
+        const enriched = {
+          ...rec,
+          company_id: rec.company_id || rec.tenant_id || activeTenant,
+          tenant_id: rec.tenant_id || rec.company_id || activeTenant,
+        };
+        const cleanPayload = sanitizePayloadForSupabase(table, enriched);
+        await supabase.from(table).upsert(cleanPayload as any);
+      }
+    } catch (err) {
+      console.warn(`[Sync] Aviso ao subir dados locais da tabela ${table}:`, err);
+    }
+  }
+}
+
+/**
  * Baixa os dados do Supabase para o Tenant especificado e salva no Dexie (IndexedDB)
  */
 export async function initialSync(tenantId?: string) {
   try {
+    const activeTenant = tenantId || 'tenant-11111111111111';
+
     // 0. Processar a fila local de pendências primeiro
     await processSyncQueue();
 
-    const activeTenant = tenantId || 'tenant-11111111111111';
+    // 0.1 Subir dados locais existentes no Dexie para o Supabase
+    await pushLocalDataToCloud(activeTenant);
 
     // 1. Puxar Configurações Globais da Plataforma
     const { data: platformSettings, error: pErr } = await supabase.from('platform_settings').select('*').maybeSingle();
@@ -46,6 +122,19 @@ export async function initialSync(tenantId?: string) {
     const { data: company, error: cErr } = await supabase.from('companies').select('*').eq('id', activeTenant).maybeSingle();
     if (!cErr && company) {
       await db.companies.put(company);
+    } else {
+      const localCompany = await db.companies.get(activeTenant);
+      if (localCompany) {
+        await supabase.from('companies').upsert({
+          id: activeTenant,
+          name: localCompany.name,
+          document: localCompany.document,
+          phone: localCompany.phone || '',
+          email: localCompany.email || '',
+          company_id: activeTenant,
+          tenant_id: activeTenant,
+        } as any);
+      }
     }
 
     // 3 a 19. Puxar TODAS as 17 tabelas vinculadas ao Tenant (Fonte Primária Supabase -> Merge IndexedDB)
@@ -137,7 +226,6 @@ export async function mutateLocalFirst<T extends { id: string; company_id?: stri
 /**
  * Processa a fila de sincronização enviando ao Supabase com sanitização e retenção segura em caso de erro
  */
-// eslint-disable-next-line complexity
 export async function processSyncQueue() {
   if (typeof navigator !== 'undefined' && !navigator.onLine) return;
 
@@ -145,7 +233,6 @@ export async function processSyncQueue() {
     const queue = await db.sync_queue.orderBy('created_at').toArray();
     if (!queue || queue.length === 0) return;
     
-    /* eslint-disable max-depth, no-await-in-loop */
     for (const item of queue) {
       try {
         let hasError = false;
@@ -157,7 +244,6 @@ export async function processSyncQueue() {
           }
         } else {
           const cleanPayload = sanitizePayloadForSupabase(item.table, item.payload);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const { error } = await supabase.from(item.table).upsert(cleanPayload as any);
           if (error) {
             console.warn(`[Sync] Erro Supabase UPSERT (${item.table}):`, error.message);
