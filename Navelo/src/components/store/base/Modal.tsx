@@ -2,6 +2,7 @@
 "use client"
 
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { LucideIcon } from "lucide-react"
 import { Stack } from "./Stack"
 import { Box } from "./Box"
@@ -21,7 +22,9 @@ export type ModalProps =
     onSuccess?: () => void
     isSubmit?: boolean
     showCancelButton?: boolean
+    cancelText?: string
     cancelVariant?: ButtonVariant
+    zIndex?: number
     variant?: "default" | "bottom" | "sidebar"
     children: React.ReactNode
     footer?: React.ReactNode
@@ -36,7 +39,9 @@ export type ModalProps =
     onSuccess?: never
     isSubmit?: never
     showCancelButton?: never
+    cancelText?: string
     cancelVariant?: never
+    zIndex?: number
     variant?: "default" | "bottom" | "sidebar"
     children: React.ReactNode
     footer?: React.ReactNode
@@ -53,6 +58,8 @@ export function Modal(props: ModalProps) {
     onSuccess,
     isSubmit = false,
     showCancelButton = true,
+    cancelText = "Cancelar",
+    zIndex = 100,
     variant = "default",
     cancelVariant = "secondary",
     children,
@@ -122,20 +129,26 @@ export function Modal(props: ModalProps) {
   }
 
   // Variant: sidebar (drawer deslizando da direita)
+  let modalContent: React.ReactNode = null
+
   if (isSidebar) {
-    return (
-      <div className="fixed inset-0 z-[100] flex justify-end">
+    modalContent = (
+      <div className="fixed inset-0 flex justify-end" style={{ zIndex }}>
         <div
           className="absolute inset-0 bg-black/50"
           style={backdropStyle}
-          onClick={handleClose}
+          onClick={(e) => {
+            e.stopPropagation()
+            handleClose()
+          }}
           aria-hidden="true"
         />
         <div
           role="dialog"
           aria-modal="true"
-          style={dialogStyle}
-          className="relative z-[101] w-full max-w-xs h-full bg-surface border-l-2 border-border shadow-2xl flex flex-col"
+          style={{ ...dialogStyle, zIndex: zIndex + 1 }}
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-full max-w-xs h-full bg-surface border-l-2 border-border shadow-2xl flex flex-col"
         >
           <div className="p-5">
             <Stack direction="row" align="center" justify="between" w="full">
@@ -158,23 +171,25 @@ export function Modal(props: ModalProps) {
         </div>
       </div>
     )
-  }
-
-  // Modo Simplificado com title
-  if (title) {
+  } else if (title) {
     if (isBottom) {
-      return (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center">
+      modalContent = (
+        <div className="fixed inset-0 flex items-end justify-center" style={{ zIndex }}>
           <div
             className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
-            onClick={handleClose}
+            style={backdropStyle}
+            onClick={(e) => {
+              e.stopPropagation()
+              handleClose()
+            }}
             aria-hidden="true"
           />
           <div
             role="dialog"
             aria-modal="true"
-            style={dialogStyle}
-            className="relative z-[101] w-full bg-surface shadow-2xl rounded-t-[24px] border-t-2 border-border p-6"
+            style={{ ...dialogStyle, zIndex: zIndex + 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full bg-surface shadow-2xl rounded-t-[24px] border-t-2 border-border p-6"
           >
             <Stack gap={5} w="full">
               <Stack direction="col" mobileDirection="row" align="center" mobileAlign="center" justify="between" w="full" gap={5}>
@@ -187,7 +202,7 @@ export function Modal(props: ModalProps) {
                     <Button
                       type="button"
                       variant="ghost"
-                      label="Cancelar"
+                      label={cancelText}
                       onClick={handleClose}
                     />
                   )}
@@ -213,91 +228,104 @@ export function Modal(props: ModalProps) {
           </div>
         </div>
       )
+    } else {
+      modalContent = (
+        <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex }}>
+          <div
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+            style={backdropStyle}
+            onClick={(e) => {
+              e.stopPropagation()
+              handleClose()
+            }}
+            aria-hidden="true"
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            style={{ ...dialogStyle, zIndex: zIndex + 1 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-lg rounded-[5px] border-2 border-border bg-surface shadow-lg sm:rounded-[8px]"
+          >
+            <ModalHeader title={title} subtitle={subtitle} icon={icon} />
+            <div className="h-[2px] bg-border w-full" />
+            <ModalBody>
+              {children}
+            </ModalBody>
+            {(showCancelButton || successText) && (
+              <>
+                <div className="h-[2px] bg-border w-full" />
+                <div className="p-5">
+                  <Stack direction="col" mobileDirection="row" gap={2.5} w="full">
+                    {showCancelButton && (
+                      <Box flex="1">
+                        <Button
+                          type="button"
+                          variant={cancelVariant}
+                          label={cancelText}
+                          onClick={handleClose}
+                          fullWidth
+                        />
+                      </Box>
+                    )}
+                    {successText && (
+                      <Box flex="1">
+                        <Button
+                          type={isSubmit ? "submit" : "button"}
+                          variant="primary"
+                          label={successText}
+                          onClick={onSuccess}
+                          fullWidth
+                        />
+                      </Box>
+                    )}
+                  </Stack>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )
     }
+  } else {
+    // Modo Legado / Composto
+    const childrenArray = React.Children.toArray(children).filter(Boolean)
+    const renderedChildren = childrenArray.map((child, index) => {
+      const isLast = index === childrenArray.length - 1
+      return (
+        <React.Fragment key={index}>
+          {child}
+          {!isLast && <div className="h-[2px] bg-border w-full" />}
+        </React.Fragment>
+      )
+    })
 
-    return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    modalContent = (
+      <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex }}>
         <div
           className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
-          onClick={handleClose}
+          style={backdropStyle}
+          onClick={(e) => {
+            e.stopPropagation()
+            handleClose()
+          }}
           aria-hidden="true"
         />
         <div
           role="dialog"
           aria-modal="true"
-          style={dialogStyle}
-          className="relative z-[101] w-full max-w-lg rounded-[5px] border-2 border-border bg-surface shadow-lg sm:rounded-[8px]"
+          style={{ ...dialogStyle, zIndex: zIndex + 1 }}
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-full max-w-lg rounded-[5px] border-2 border-border bg-surface shadow-lg sm:rounded-[8px]"
         >
-          <ModalHeader title={title} subtitle={subtitle} icon={icon} />
-          <div className="h-[2px] bg-border w-full" />
-          <ModalBody>
-            {children}
-          </ModalBody>
-          {(showCancelButton || successText) && (
-            <>
-              <div className="h-[2px] bg-border w-full" />
-              <div className="p-5">
-                <Stack direction="col" mobileDirection="row" gap={2.5} w="full">
-                  {showCancelButton && (
-                    <Box flex="1">
-                      <Button
-                        type="button"
-                        variant={cancelVariant}
-                        label="Cancelar"
-                        onClick={handleClose}
-                        fullWidth
-                      />
-                    </Box>
-                  )}
-                  {successText && (
-                    <Box flex="1">
-                      <Button
-                        type={isSubmit ? "submit" : "button"}
-                        variant="primary"
-                        label={successText}
-                        onClick={onSuccess}
-                        fullWidth
-                      />
-                    </Box>
-                  )}
-                </Stack>
-              </div>
-            </>
-          )}
+          {renderedChildren}
         </div>
       </div>
     )
   }
 
-  // Modo Legado / Composto
-  const childrenArray = React.Children.toArray(children).filter(Boolean)
-  const renderedChildren = childrenArray.map((child, index) => {
-    const isLast = index === childrenArray.length - 1
-    return (
-      <React.Fragment key={index}>
-        {child}
-        {!isLast && <div className="h-[2px] bg-border w-full" />}
-      </React.Fragment>
-    )
-  })
-
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
-        onClick={handleClose}
-        aria-hidden="true"
-      />
-      <div
-        role="dialog"
-        aria-modal="true"
-        style={dialogStyle}
-        className="relative z-[101] w-full max-w-lg rounded-[5px] border-2 border-border bg-surface shadow-lg sm:rounded-[8px]"
-      >
-        {renderedChildren}
-      </div>
-    </div>
-  )
+  if (typeof document === "undefined") return null
+  return createPortal(modalContent, document.body)
 }
 
 export interface ModalHeaderProps {

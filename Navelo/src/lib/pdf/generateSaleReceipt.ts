@@ -86,7 +86,19 @@ export async function generateSaleReceiptPdf(
   const { default: jsPDF } = await import("jspdf")
   const { default: autoTable } = await import("jspdf-autotable")
 
-  const items = sale.items || []
+  const rawItems = sale.items || []
+  const items = Array.isArray(rawItems)
+    ? rawItems
+    : typeof rawItems === "string"
+      ? (() => {
+          try {
+            const parsed = JSON.parse(rawItems)
+            return Array.isArray(parsed) ? parsed : []
+          } catch {
+            return []
+          }
+        })()
+      : []
   const payments = sale.payments || []
   const hasMultiplePayments = payments.length > 0
 

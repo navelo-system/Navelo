@@ -1,10 +1,11 @@
 import * as React from "react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
-import { LucideIcon, Trash2 } from "lucide-react"
+import { LucideIcon, Trash2, Printer } from "lucide-react"
 import { Icon as BaseIcon } from "./Icon"
 import { Font } from "./Font"
 import { Modal } from "./Modal"
+import { db } from "@/lib/dal/db"
 
 export type ButtonVariant =
   | "primary"
@@ -35,6 +36,22 @@ export type ButtonVariant =
   | "danger-icon-xs-confirm"
   | "danger-pill-icon-confirm"
   | "danger-pill-confirm-xs"
+  | "primary-print"
+  | "primary-print-lg"
+  | "primary-print-sm"
+  | "primary-print-xs"
+  | "primary-icon-print"
+  | "primary-icon-xs-print"
+  | "primary-pill-icon-print"
+  | "primary-pill-print-xs"
+  | "secondary-print"
+  | "secondary-lg-print"
+  | "secondary-print-sm"
+  | "secondary-print-xs"
+  | "secondary-icon-print"
+  | "secondary-icon-xs-print"
+  | "secondary-pill-icon-print"
+  | "secondary-pill-print-xs"
   | "success-sm"
   | "outline"
   | "outline-lg"
@@ -77,6 +94,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   confirmSuccessText?: string
   confirmCancelText?: string
   onConfirm?: () => void
+  onPrint?: () => void
 }
 
 const variantStyles: Record<string, string> = {
@@ -135,6 +153,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       confirmIcon,
       confirmSuccessText,
       onConfirm,
+      onPrint,
       className,
       onClick,
       ...props
@@ -143,14 +162,24 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     const [isSpinning, setIsSpinning] = React.useState(false)
     const [isConfirmOpen, setIsConfirmOpen] = React.useState(false)
+    const [isNoPrintOpen, setIsNoPrintOpen] = React.useState(false)
     const clickEventRef = React.useRef<React.MouseEvent<HTMLButtonElement> | null>(null)
 
     const activeVariant = variant
     const isConfirmVariant = activeVariant.includes("-confirm")
     const isConfirmButton = isConfirmVariant || Boolean(confirmModal) || Boolean(confirmTitle)
 
-    // Define o ícone padrão como Trash2 se for um botão de confirmação de exclusão
-    const IconComponent = PassedIconComponent || (isConfirmVariant || confirmModal || confirmTitle ? Trash2 : undefined)
+    const isPrintVariant = activeVariant.includes("-print")
+    const isPrintButton = isPrintVariant || Boolean(onPrint)
+
+    // Define o ícone padrão como Trash2 se for exclusão, ou Printer se for impressão
+    const IconComponent =
+      PassedIconComponent ||
+      (isConfirmVariant || confirmModal || confirmTitle
+        ? Trash2
+        : isPrintButton
+          ? Printer
+          : undefined)
 
     const isPill = activeVariant.includes("-pill")
 
@@ -167,7 +196,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     else if (activeVariant.includes("-ghost")) logicalSize = "ghost"
 
     let baseColor = activeVariant as string
-    const modifiers = ["-confirm", "-pill", "-icon-xs", "-icon", "-xs", "-sm", "-lg", "-ghost"]
+    const modifiers = ["-confirm", "-print", "-pill", "-icon-xs", "-icon", "-xs", "-sm", "-lg", "-ghost"]
     modifiers.forEach((mod) => {
       baseColor = baseColor.replace(mod, "")
     })
@@ -175,17 +204,46 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const isGhost =
       baseColor === "ghost" || baseColor === "ghost-secondary" || baseColor === "ghost-primary" || baseColor === "ghost-menu"
 
-    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault()
+      e.stopPropagation()
+
       if (spinOnClick) {
         setIsSpinning(true)
         setTimeout(() => setIsSpinning(false), 450)
       }
 
       if (isConfirmButton) {
-        e.preventDefault()
-        e.stopPropagation()
         clickEventRef.current = e
         setIsConfirmOpen(true)
+        return
+      }
+
+      if (isPrintButton) {
+        clickEventRef.current = e
+
+        try {
+          const points = await db.print_points.toArray()
+          const hasConfiguredPoint =
+            Array.isArray(points) &&
+            points.length > 0 &&
+            points.some(
+              (p) =>
+                p.enabled !== false &&
+                (Boolean(p.serverIp && p.serverIp.trim()) || Boolean(p.linkingCode && p.linkingCode.trim()))
+            )
+
+          if (!hasConfiguredPoint) {
+            setIsNoPrintOpen(true)
+            return
+          }
+        } catch {
+          setIsNoPrintOpen(true)
+          return
+        }
+
+        onClick?.(e)
+        onPrint?.()
         return
       }
 
@@ -197,6 +255,31 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       onConfirm?.()
       if (clickEventRef.current) {
         onClick?.(clickEventRef.current)
+      }
+    }
+
+    const handleRetryPrint = async () => {
+      try {
+        const points = await db.print_points.toArray()
+        const hasConfiguredPoint =
+          Array.isArray(points) &&
+          points.length > 0 &&
+          points.some(
+            (p) =>
+              p.enabled !== false &&
+              (Boolean(p.serverIp && p.serverIp.trim()) || Boolean(p.linkingCode && p.linkingCode.trim()))
+          )
+
+        if (hasConfiguredPoint) {
+          setIsNoPrintOpen(false)
+          if (clickEventRef.current) {
+            onClick?.(clickEventRef.current)
+          }
+          onPrint?.()
+          return
+        }
+      } catch {
+        // ignore
       }
     }
 
@@ -264,8 +347,30 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         successText={modalSuccessText}
         onSuccess={handleConfirmSuccess}
         showCancelButton={true}
+        zIndex={200}
       >
         <Font variant="body-sm-medium" text={modalParagraph} />
+      </Modal>
+    ) : null
+
+    const noPrintModalElement = isPrintButton ? (
+      <Modal
+        isOpen={isNoPrintOpen}
+        onClose={() => setIsNoPrintOpen(false)}
+        title="Ponto de impressão não encontrado"
+        subtitle="Impressora não configurada"
+        icon={Printer}
+        showCancelButton={true}
+        cancelVariant="secondary"
+        cancelText="Continuar"
+        successText="Tentar novamente"
+        zIndex={200}
+        onSuccess={handleRetryPrint}
+      >
+        <Font
+          variant="body-sm-medium"
+          text="Não foi possível identificar pontos de impressão configurados no sistema para realizar a impressão do comprovante."
+        />
       </Modal>
     ) : null
 
@@ -276,6 +381,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             {content}
           </Link>
           {confirmModalElement}
+          {noPrintModalElement}
         </>
       )
     }
@@ -292,8 +398,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           {content}
         </button>
         {confirmModalElement}
+        {noPrintModalElement}
       </>
     )
   }
 )
 Button.displayName = "Button"
+

@@ -7,7 +7,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Icon } from "@/components/store/base/Icon"
-import { CheckCircle2, Printer, ArrowRight } from "lucide-react"
+import { CheckCircle2, ArrowRight } from "lucide-react"
 
 interface SaleSuccessModalProps {
   isOpen: boolean
@@ -66,9 +66,8 @@ export const SaleSuccessModal: React.FC<SaleSuccessModalProps> = ({
         <Stack gap={2.5} w="full">
           {onPrintReceipt && (
             <Button
-              variant="secondary-lg"
+              variant="secondary-lg-print"
               fullWidth
-              icon={Printer}
               label="Imprimir Comprovante / Recibo"
               onClick={onPrintReceipt}
             />

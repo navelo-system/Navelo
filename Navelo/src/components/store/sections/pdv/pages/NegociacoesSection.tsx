@@ -13,7 +13,7 @@ import { Icon } from "@/components/store/base/Icon"
 import { Avatar } from "@/components/store/base/Avatar"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { FilterPanel } from "@/components/store/intermediary/FilterPanel"
-import { FileText, Filter, Calendar, User, DollarSign, Share2, Printer, Trash2, ChevronDown, ChevronUp, Package } from "lucide-react"
+import { FileText, Filter, Calendar, User, DollarSign, Share2, Trash2, ChevronDown, ChevronUp, Package } from "lucide-react"
 import { useSales, useProducts, Sale, dal } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
 import { CartItemType } from "@/components/store/sections/pdv/pages/PdvSection"
@@ -29,6 +29,19 @@ interface NegociacoesSectionProps {
   onBack: () => void
   initialClientFilter?: string
   onDuplicateToCart?: (items: CartItemType[]) => void
+}
+
+function parseSaleItems(items: any): any[] {
+  if (Array.isArray(items)) return items
+  if (typeof items === "string") {
+    try {
+      const parsed = JSON.parse(items)
+      if (Array.isArray(parsed)) return parsed
+    } catch {
+      return []
+    }
+  }
+  return []
 }
 
 export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
@@ -170,6 +183,7 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
       }
 
       const saleCode = getSaleCode(sale)
+      const parsedItems = parseSaleItems(sale.items)
       const saleReceiptData = {
         id: sale.id,
         saleCode,
@@ -179,14 +193,12 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
         payment_method: sale.payment_method,
         customer_name: sale.customer_name,
         created_at: sale.created_at,
-        items: Array.isArray(sale.items)
-          ? sale.items.map((item: any) => ({
-              product_name: item.product_name || item.name || productMap.get(item.product_id || item.productId || item.id)?.name || "Item",
-              quantity: item.quantity ?? item.qty ?? item.amount ?? 1,
-              unit_price: item.unit_price ?? item.unitPrice ?? item.price ?? productMap.get(item.product_id || item.productId || item.id)?.price ?? 0,
-              total_price: item.total_price ?? ((item.quantity ?? 1) * (item.unit_price ?? item.unitPrice ?? 0)),
-            }))
-          : [],
+        items: parsedItems.map((item: any) => ({
+          product_name: item.product_name || item.name || productMap.get(item.product_id || item.productId || item.id)?.name || "Item",
+          quantity: item.quantity ?? item.qty ?? item.amount ?? 1,
+          unit_price: item.unit_price ?? item.unitPrice ?? item.price ?? productMap.get(item.product_id || item.productId || item.id)?.price ?? 0,
+          total_price: item.total_price ?? ((item.quantity ?? 1) * (item.unit_price ?? item.unitPrice ?? 0)),
+        })),
       }
 
       const { base64, blob } = await generateSaleReceiptPdf(saleReceiptData, companyInfo)
@@ -236,9 +248,10 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
   }
 
   const handleDuplicate = () => {
-    if (!selectedSale || !Array.isArray(selectedSale.items)) return
+    const saleItems = parseSaleItems(selectedSale?.items)
+    if (!selectedSale || saleItems.length === 0) return
 
-    const items: CartItemType[] = selectedSale.items
+    const items: CartItemType[] = saleItems
       .map((item: any) => {
         const itemProductId: string = item.product_id || item.productId || item.id || ""
         const rawName: string = item.product_name || item.name || item.title || item.productName || item.description || ""
@@ -250,15 +263,18 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
         return {
           id: itemProductId,
           name: finalName,
-          quantity: finalQty,
           unitPrice: finalUnitPrice,
+          quantity: finalQty,
           image: finalImage,
+          category: item.category || productMap.get(itemProductId)?.category,
         } as CartItemType
       })
-      .filter((item: CartItemType) => item.id && item.quantity > 0)
+      .filter((i) => Boolean(i.name))
 
-    onDuplicateToCart?.(items)
-    setSelectedSale(null)
+    if (items.length > 0 && onDuplicateToCart) {
+      onDuplicateToCart(items)
+      setSelectedSale(null)
+    }
   }
 
   const renderFilterInputs = () => (
@@ -466,11 +482,7 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
                       <Font
                         variant="auxiliary"
                         color="muted"
-                        text={`Itens: ${
-                          Array.isArray(selectedSale.items)
-                            ? selectedSale.items.reduce((acc: number, it: any) => acc + (it.quantity || it.qty || it.amount || 1), 0)
-                            : 0
-                        }`}
+                        text={`Itens: ${parseSaleItems(selectedSale.items).reduce((acc: number, it: any) => acc + (it.quantity || it.qty || it.amount || 1), 0)}`}
                       />
                     </Stack>
                     <Stack direction="row" align="center" gap={2.5}>
@@ -479,8 +491,15 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
                     </Stack>
                   </Stack>
 
-                  {/* Conteúdo Expandido da Sanfona de Pagamentos */}
-                  {isAccordionOpen && (
+                  {/* Conteúdo Expandido da Sanfona de Pagamentos com Animação Fluida */}
+                  <Box
+                    display="block"
+                    w="full"
+                    maxH={isAccordionOpen ? "96" : "0"}
+                    overflow="hidden"
+                    transition="all"
+                    opacity={isAccordionOpen ? "100" : "0"}
+                  >
                     <Box padding={1} w="full">
                       <Stack gap={2.5} w="full">
                         <Box border borderColor="border/30" w="full" />
@@ -501,7 +520,7 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
                         </Stack>
                       </Stack>
                     </Box>
-                  )}
+                  </Box>
                 </Stack>
               </Box>
 
@@ -511,8 +530,18 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
 
                 <Box maxH="240px" overflow="auto" w="full">
                   <Stack gap={2.5} w="full">
-                    {Array.isArray(selectedSale.items) && selectedSale.items.length > 0 ? (
-                      selectedSale.items.map((item: any, idx: number) => {
+                    {(() => {
+                      const saleItems = parseSaleItems(selectedSale.items)
+                      if (saleItems.length === 0) {
+                        return (
+                          <EmptyState
+                            icon={Package}
+                            title="Nenhum item detalhado"
+                            subtitle="Esta venda não possui itens registrados."
+                          />
+                        )
+                      }
+                      return saleItems.map((item: any, idx: number) => {
                         const itemProductId = item.product_id || item.productId || item.id || item.product?.id
                         const rawName = item.product_name || item.name || item.title || item.productName || item.description || item.product?.name || item.product?.product_name || ""
                         const itemProductName = rawName.toLowerCase().trim()
@@ -586,13 +615,7 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
                           </Box>
                         )
                       })
-                    ) : (
-                      <EmptyState
-                        icon={Package}
-                        title="Nenhum item detalhado"
-                        subtitle="Esta venda não possui itens registrados."
-                      />
-                    )}
+                    })()}
                   </Stack>
                 </Box>
               </Stack>
@@ -612,8 +635,7 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
                   title="Compartilhar negociação"
                 />
                 <Button
-                  variant="primary-pill-icon"
-                  icon={Printer}
+                  variant="primary-pill-icon-print"
                   onClick={handlePrintSale}
                   title="Imprimir comprovante"
                 />

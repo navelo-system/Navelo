@@ -128,6 +128,22 @@ export async function pushLocalDataToCloud(tenantId?: string) {
   }
 }
 
+function normalizeIncomingRecord(record: Record<string, unknown>, activeTenant: string): Record<string, unknown> {
+  const normalized: Record<string, unknown> = {
+    ...record,
+    company_id: activeTenant,
+    tenant_id: activeTenant,
+  };
+  if (typeof normalized.items === 'string') {
+    try {
+      normalized.items = JSON.parse(normalized.items as string);
+    } catch {
+      // ignore
+    }
+  }
+  return normalized;
+}
+
 /**
  * Baixa os dados do Supabase para o Tenant especificado e salva no Dexie (IndexedDB)
  */
@@ -197,11 +213,7 @@ export async function initialSync(tenantId?: string) {
         if (error) {
           console.warn(`[Sync] Aviso ao buscar tabela ${table}:`, error.message);
         } else if (data && data.length > 0) {
-          const normalized = data.map((record) => ({
-            ...record,
-            company_id: activeTenant,
-            tenant_id: activeTenant,
-          }));
+          const normalized = data.map((record) => normalizeIncomingRecord(record as Record<string, unknown>, activeTenant));
           await db.table(table).bulkPut(normalized);
         }
       } catch (tableErr) {
@@ -325,11 +337,7 @@ export function subscribeToRealtimeSync(tenantId?: string) {
           if (eventType === 'DELETE' && oldRecord?.id) {
             await db.table(table).delete(oldRecord.id as string);
           } else if ((eventType === 'INSERT' || eventType === 'UPDATE') && newRecord?.id) {
-            const normalizedRecord = {
-              ...newRecord,
-              company_id: activeTenant,
-              tenant_id: activeTenant,
-            };
+            const normalizedRecord = normalizeIncomingRecord(newRecord, activeTenant);
             await db.table(table).put(normalizedRecord);
           }
         } catch (err) {

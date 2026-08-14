@@ -3,7 +3,7 @@
 /* eslint-disable max-lines-per-function */
 
 import * as React from "react"
-import { Link2, Copy, Check, Send } from "lucide-react"
+import { Link2, Copy, Check, MessageCircle } from "lucide-react"
 import { Stack } from "@/components/store/base/Stack"
 import { Box } from "@/components/store/base/Box"
 import { Font } from "@/components/store/base/Font"
@@ -148,7 +148,7 @@ export const SaleLinkModal: React.FC<SaleLinkModalProps> = ({
               />
             </Box>
             <Button
-              variant={copied ? "primary" : "secondary"}
+              variant={copied ? "primary-icon" : "secondary-icon"}
               icon={copied ? Check : Copy}
               onClick={handleCopy}
               title={copied ? "Copiado!" : "Copiar link"}
@@ -163,7 +163,7 @@ export const SaleLinkModal: React.FC<SaleLinkModalProps> = ({
           <Box flex="1" h="fit-content" borderBottom />
         </Stack>
 
-        {/* Campo de número + Botão Enviar */}
+        {/* Campo de número + Botão Enviar WhatsApp */}
         <Stack direction="col" gap={2.5} w="full">
           <Font variant="body-sm-medium" text="Número do destinatário" color="muted" />
           <Stack direction="row" gap={2.5} w="full" align="center">
@@ -176,10 +176,10 @@ export const SaleLinkModal: React.FC<SaleLinkModalProps> = ({
               />
             </Box>
             <Button
-              variant="primary"
-              icon={Send}
-              label="Enviar"
+              variant="primary-icon"
+              icon={MessageCircle}
               onClick={handleSendWhatsApp}
+              title="Enviar via WhatsApp"
             />
           </Stack>
           <Font

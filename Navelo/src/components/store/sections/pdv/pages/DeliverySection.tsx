@@ -14,7 +14,7 @@ import { DeliveryRidersScreen } from "@/components/store/advanced/DeliveryRiders
 import { DeliveryClientInfo } from "@/components/store/advanced/DeliveryCheckoutConfirmation"
 import { PdvSection, CartItemType } from "@/components/store/sections/pdv/pages/PdvSection"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
-import { Truck, Plus, Printer } from "lucide-react"
+import { Truck, Plus } from "lucide-react"
 import { useTenant } from "@/lib/context/TenantContext"
 import { useDeliveryOrders, dal, Rider, DeliveryRate } from "@/lib/dal"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
@@ -175,7 +175,7 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
           placeholder="Buscar por cliente ou ID..."
         >
           {isDesktop && selectedOrderIdRef.current ? (
-            <Button variant="primary-icon" icon={Printer} title="Imprimir" />
+            <Button variant="primary-icon-print" title="Imprimir" />
           ) : null}
         </MobileHeaderSearch>
       )
@@ -184,7 +184,7 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
       setCustomBackRef.current?.(() => popView)
       setCustomActionsRef.current?.(
         selectedOrder ? (
-          <Button variant="primary-icon" icon={Printer} title="Imprimir" />
+          <Button variant="primary-icon-print" title="Imprimir" />
         ) : null
       )
     }
