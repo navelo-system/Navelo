@@ -109,10 +109,11 @@ export async function pushLocalDataToCloud(tenantId?: string) {
       const updatedLocals: any[] = [];
       for (const rec of localRecords) {
         const isLegacy = !rec.company_id || rec.company_id === 'tenant-11111111111111' || rec.company_id === 'tenant-demo-001' || rec.company_id === 'demo-tenant';
+        const targetTenant = (activeTenant !== 'tenant-11111111111111' ? activeTenant : (rec.company_id || activeTenant)) || 'tenant-36383365000190';
         const enriched = {
           ...rec,
-          company_id: isLegacy ? activeTenant : (rec.company_id || activeTenant),
-          tenant_id: isLegacy ? activeTenant : (rec.tenant_id || activeTenant),
+          company_id: isLegacy ? targetTenant : (rec.company_id || targetTenant),
+          tenant_id: isLegacy ? targetTenant : (rec.tenant_id || targetTenant),
         };
         updatedLocals.push(enriched);
         const cleanPayload = sanitizePayloadForSupabase(table, enriched);
@@ -191,15 +192,15 @@ export async function initialSync(tenantId?: string) {
         const { data, error } = await supabase
           .from(table)
           .select('*')
-          .or(`company_id.eq.${activeTenant},tenant_id.eq.${activeTenant},company_id.eq.tenant-11111111111111,tenant_id.eq.tenant-11111111111111`);
+          .or(`company_id.eq.${activeTenant},tenant_id.eq.${activeTenant},company_id.eq.tenant-36383365000190,tenant_id.eq.tenant-36383365000190,company_id.eq.tenant-11111111111111,tenant_id.eq.tenant-11111111111111,company_id.is.null`);
 
         if (error) {
           console.warn(`[Sync] Aviso ao buscar tabela ${table}:`, error.message);
         } else if (data && data.length > 0) {
           const normalized = data.map((record) => ({
             ...record,
-            company_id: activeTenant,
-            tenant_id: activeTenant,
+            company_id: record.company_id || record.tenant_id || activeTenant,
+            tenant_id: record.tenant_id || record.company_id || activeTenant,
           }));
           await db.table(table).bulkPut(normalized);
         }

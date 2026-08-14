@@ -37,11 +37,20 @@ export function useSyncStatus() {
   };
 }
 
+const LEGACY_TENANT_IDS = new Set(['tenant-11111111111111', 'tenant-demo-001', 'demo-tenant']);
+
+function matchesTenant(item: { company_id?: string; tenant_id?: string }, tenantId?: string): boolean {
+  if (!tenantId) return true;
+  const isDirectMatch = item.company_id === tenantId || item.tenant_id === tenantId;
+  const isLegacy = !item.company_id || LEGACY_TENANT_IDS.has(item.company_id) || LEGACY_TENANT_IDS.has(tenantId);
+  return isDirectMatch || isLegacy;
+}
+
 // Hooks de leitura reativos por Tenant/Company
 export function useProducts(tenantId?: string) {
   return useLiveQuery(() => {
     return db.products
-      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .filter((item) => matchesTenant(item, tenantId))
       .toArray();
   }, [tenantId]);
 }
@@ -49,7 +58,7 @@ export function useProducts(tenantId?: string) {
 export function useCategories(tenantId?: string) {
   return useLiveQuery(() => {
     return db.categories
-      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .filter((item) => matchesTenant(item, tenantId))
       .toArray();
   }, [tenantId]);
 }
@@ -57,7 +66,7 @@ export function useCategories(tenantId?: string) {
 export function useCustomers(tenantId?: string) {
   return useLiveQuery(() => {
     return db.customers
-      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .filter((item) => matchesTenant(item, tenantId))
       .toArray();
   }, [tenantId]);
 }
@@ -65,7 +74,7 @@ export function useCustomers(tenantId?: string) {
 export function useOperators(tenantId?: string) {
   return useLiveQuery(() => {
     return db.users
-      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .filter((item) => matchesTenant(item, tenantId))
       .toArray();
   }, [tenantId]);
 }
@@ -73,7 +82,7 @@ export function useOperators(tenantId?: string) {
 export function useCashRegisters(tenantId?: string) {
   return useLiveQuery(() => {
     return db.cash_registers
-      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .filter((item) => matchesTenant(item, tenantId))
       .toArray();
   }, [tenantId]);
 }
@@ -81,7 +90,7 @@ export function useCashRegisters(tenantId?: string) {
 export function useTables(tenantId?: string) {
   return useLiveQuery(() => {
     return db.restaurant_tables
-      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .filter((item) => matchesTenant(item, tenantId))
       .toArray();
   }, [tenantId]);
 }
@@ -89,7 +98,7 @@ export function useTables(tenantId?: string) {
 export function useTabs(tenantId?: string) {
   return useLiveQuery(() => {
     return db.tabs
-      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .filter((item) => matchesTenant(item, tenantId))
       .toArray();
   }, [tenantId]);
 }
@@ -97,7 +106,7 @@ export function useTabs(tenantId?: string) {
 export function useSuppliers(tenantId?: string) {
   return useLiveQuery(() => {
     return db.suppliers
-      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .filter((item) => matchesTenant(item, tenantId))
       .toArray();
   }, [tenantId]);
 }
@@ -105,7 +114,7 @@ export function useSuppliers(tenantId?: string) {
 export function useUnits(tenantId?: string) {
   return useLiveQuery(() => {
     return db.units
-      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .filter((item) => matchesTenant(item, tenantId))
       .toArray();
   }, [tenantId]);
 }
@@ -113,7 +122,7 @@ export function useUnits(tenantId?: string) {
 export function usePrintPoints(tenantId?: string) {
   return useLiveQuery(() => {
     return db.print_points
-      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .filter((item) => matchesTenant(item, tenantId))
       .toArray();
   }, [tenantId]);
 }
@@ -121,7 +130,7 @@ export function usePrintPoints(tenantId?: string) {
 export function useContingencyNotes(tenantId?: string) {
   return useLiveQuery(() => {
     return db.contingency_notes
-      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .filter((item) => matchesTenant(item, tenantId))
       .toArray();
   }, [tenantId]);
 }
@@ -129,7 +138,7 @@ export function useContingencyNotes(tenantId?: string) {
 export function useRiders(tenantId?: string) {
   return useLiveQuery(() => {
     return db.riders
-      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .filter((item) => matchesTenant(item, tenantId))
       .toArray();
   }, [tenantId]);
 }
@@ -137,7 +146,7 @@ export function useRiders(tenantId?: string) {
 export function useDeliveryRates(tenantId?: string) {
   return useLiveQuery(() => {
     return db.delivery_rates
-      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .filter((item) => matchesTenant(item, tenantId))
       .toArray();
   }, [tenantId]);
 }
@@ -145,7 +154,7 @@ export function useDeliveryRates(tenantId?: string) {
 export function useSales(tenantId?: string) {
   return useLiveQuery(() => {
     return db.sales
-      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .filter((item) => matchesTenant(item, tenantId))
       .toArray();
   }, [tenantId]);
 }
@@ -153,7 +162,7 @@ export function useSales(tenantId?: string) {
 export function useDeliveryOrders(tenantId?: string) {
   return useLiveQuery(() => {
     return db.delivery_orders
-      .filter((item) => !tenantId || item.company_id === tenantId || item.tenant_id === tenantId)
+      .filter((item) => matchesTenant(item, tenantId))
       .toArray();
   }, [tenantId]);
 }
