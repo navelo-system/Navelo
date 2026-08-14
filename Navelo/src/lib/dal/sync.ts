@@ -199,8 +199,8 @@ export async function initialSync(tenantId?: string) {
         } else if (data && data.length > 0) {
           const normalized = data.map((record) => ({
             ...record,
-            company_id: record.company_id || record.tenant_id || activeTenant,
-            tenant_id: record.tenant_id || record.company_id || activeTenant,
+            company_id: activeTenant,
+            tenant_id: activeTenant,
           }));
           await db.table(table).bulkPut(normalized);
         }
