@@ -82,28 +82,16 @@ textarea:focus {
 
 
 
-/* Custom Scrollbar - Themed with brand-primary */
+/* Ocultar todas as barras de rolagem (vertical e horizontal) sem afetar o scroll */
 * {
-  scrollbar-width: thin;
-  scrollbar-color: var(--brand-primary) color-mix(in srgb, var(--brand-primary) 10%, var(--background));
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE e Edge legado */
 }
 
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: color-mix(in srgb, var(--brand-primary) 10%, var(--background));
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--brand-primary);
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--brand-primary) 80%, #000);
+*::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Edge moderno e Opera */
+  width: 0 !important;
+  height: 0 !important;
 }
 
 /* ─── Button Shimmer Effect ────────────────────────────────────── */
