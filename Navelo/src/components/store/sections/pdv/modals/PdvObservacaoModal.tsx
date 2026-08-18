@@ -59,7 +59,7 @@ export const PdvObservacaoModal: React.FC<PdvObservacaoModalProps> = ({
       successText={UI_STRINGS.common.confirm}
       onSuccess={handleConfirm}
     >
-      <Stack gap={3.5} w="full" paddingY={2.5}>
+      <Stack gap={2.5} w="full">
         {description && (
           <Font variant="body" text={description} />
         )}

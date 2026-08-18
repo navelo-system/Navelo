@@ -1,10 +1,10 @@
 # Current State
 
 ## Última atualização
-Ciclo #338 — Feature: Fluxo em 2 Etapas de Sangria/Suprimento com Modal de Anotação, Variante Textarea e Persistência de Observações — 2026-08-18
+Ciclo #339 — Fix: Remoção de paddingY do Stack e Ajuste de GapToken em PdvObservacaoModal — 2026-08-18
 
 ## Status do ciclo ativo
-IDLE — Nenhum ciclo em andamento. Último ciclo concluído: Ciclo #338 (Fluxo de sangria em 2 etapas com textarea e persistência de observações).
+IDLE — Nenhum ciclo em andamento. Último ciclo concluído: Ciclo #339 (Ajuste de tokens e remoção de paddingY indevido em Stack).
 
 ## Estado do artefato
 ATIVO — truth/ preenchido com contexto real do projeto Navelo
