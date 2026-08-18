@@ -9,9 +9,10 @@ import { Button } from "@/components/store/base/Button"
 import { SettingsModal } from "./SettingsModal"
 import { CircularIcon } from "@/components/store/intermediary/CircularIcon"
 import { LayoutDashboard, Settings, Users, LogOut, User } from "lucide-react"
-
+import { UI_STRINGS } from "@/constants/strings"
 
 export const Sidebar: React.FC = () => {
+  const sb = UI_STRINGS.sidebar
   const [isSettingsOpen, setIsSettingsOpen] = React.useState(false)
   const [logoUrl, setLogoUrl] = React.useState<string>("")
 
@@ -51,15 +52,15 @@ export const Sidebar: React.FC = () => {
                   <Icon icon={Settings} size={16} color="white" />
                 </Stack>
               </Box>
-              <Font variant="body-bold" text="Navelo PDV" />
+              <Font variant="body-bold" text={sb.brandName} />
             </>
           )}
         </Stack>
 
         <Stack gap={2.5}>
-          <Button variant="primary" icon={LayoutDashboard} label="Design System" fullWidth justify="start" />
-          <Button variant="ghost" icon={Users} label="Componentes" fullWidth justify="start" />
-          <Button variant="ghost" icon={Settings} label="Configurações" fullWidth justify="start" />
+          <Button variant="primary" icon={LayoutDashboard} label={sb.designSystem} fullWidth justify="start" />
+          <Button variant="ghost" icon={Users} label={sb.components} fullWidth justify="start" />
+          <Button variant="ghost" icon={Settings} label={sb.settings} fullWidth justify="start" />
         </Stack>
       </Stack>
 
@@ -71,14 +72,14 @@ export const Sidebar: React.FC = () => {
         <Stack direction="row" align="center" gap={2.5}>
           <CircularIcon icon={User} />
           <Stack gap={0}>
-            <Font variant="body-medium" text="Admin Navelo" />
-            <Font variant="auxiliary" text="admin@navelo.com" />
+            <Font variant="body-medium" text={sb.adminName} />
+            <Font variant="auxiliary" text={sb.adminEmail} />
           </Stack>
         </Stack>
         <Stack direction="row" gap={2.5} w="full" wrap>
           <Button variant="primary-pill-icon" icon={Settings} onClick={() => setIsSettingsOpen(true)} />
           <Box flex="1">
-            <Button variant="danger-pill-icon" icon={LogOut} label="Sair da conta" fullWidth justify="start" />
+            <Button variant="danger-pill-icon" icon={LogOut} label={sb.logout} fullWidth justify="start" />
           </Box>
         </Stack>
       </Stack>

@@ -2,6 +2,7 @@ import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
 import { Font } from "@/components/store/base/Font"
 import { Printer } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface PrintStatusModalProps {
   isOpen: boolean
@@ -14,14 +15,16 @@ export const PrintStatusModal: React.FC<PrintStatusModalProps> = ({
   onClose,
   message
 }) => {
+  const c = UI_STRINGS.common
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Aviso"
-      subtitle="Status da operação"
+      title={c.notice}
+      subtitle={c.operationStatus}
       icon={Printer}
-      successText="Fechar"
+      successText={c.close}
       onSuccess={onClose}
       showCancelButton={false}
     >

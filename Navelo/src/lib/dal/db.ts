@@ -16,9 +16,23 @@ export interface Company {
   document: string;
   email: string;
   phone: string;
+  trade_name?: string;
+  state_registration?: string;
+  address_street?: string;
+  address_number?: string;
+  address_complement?: string;
+  address_neighborhood?: string;
+  address_city?: string;
+  address_state?: string;
+  address_cep?: string;
+  plan?: string;
+  status?: string;
   primary_color?: string;
   secondary_color?: string;
   logo_url?: string;
+  company_id?: string;
+  tenant_id?: string;
+  created_at?: string;
 }
 
 export interface Branch {

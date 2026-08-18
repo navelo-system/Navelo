@@ -13,6 +13,7 @@ import { ColorDot } from "@/components/store/base/ColorDot"
 import { ColorInput } from "@/components/store/base/ColorInput"
 import { Settings, RotateCcw } from "lucide-react"
 import { useTenant } from "@/lib/context/TenantContext"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface ThemeColors {
   primary: string
@@ -126,6 +127,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
 }) => {
   const [colors, setColors] = React.useState<ThemeColors>(loadSavedTheme)
   const tenantCtx = useTenant()
+  const s = UI_STRINGS.themeCustomizer
 
   React.useEffect(() => {
     if (isOpen) {
@@ -174,9 +176,9 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
   }
 
   const fields: { key: keyof ThemeColors; label: string; description: string }[] = [
-    { key: "primary", label: "Cor Primária", description: "Headers, destaques e navegação" },
-    { key: "primaryFg", label: "Sobreposição da Primária", description: "Texto/Ícones sobre o fundo primário" },
-    { key: "secondary", label: "Cor Secundária", description: "Ações principais e badges" },
+    { key: "primary", label: "Cor Primária", description: "Cabeçalho, botões e barras principais" },
+    { key: "primaryFg", label: "Sobreposição da Primária", description: "Texto/Ícones sobre a cor primária" },
+    { key: "secondary", label: "Cor Secundária (Destaque)", description: "Badges, valores e acentos de destaque" },
     { key: "secondaryFg", label: "Sobreposição da Secundária", description: "Texto/Ícones sobre a cor secundária" },
     { key: "foreground", label: "Texto Principal", description: "Títulos e textos correntes" },
     { key: "textSecondary", label: "Texto Secundário", description: "Subtítulos e descrições" },
@@ -187,17 +189,17 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Personalizar Cores do Tema"
-      subtitle="Ajuste as cores do PDV em tempo real"
+      title={s.title}
+      subtitle={s.subtitle}
       icon={Settings}
-      successText="Concluído"
+      successText={s.doneButton}
       onSuccess={onClose}
       showCancelButton={false}
     >
       <Stack gap={5} w="full">
         {/* Paletas Prontas (Presets) */}
         <Stack gap={2.5} w="full">
-          <Font variant="body-bold" text="Paletas Prontas" />
+          <Font variant="body-bold" text={s.presetsTitle} />
           <Grid cols={3} gap={2.5}>
             {PRESET_THEMES.map((p) => {
               const isActive =
@@ -232,7 +234,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
 
         {/* Seletores Individuais de Cor */}
         <Stack gap={2.5} w="full">
-          <Font variant="body-bold" text="Personalização Fina" />
+          <Font variant="body-bold" text={s.fineTuningTitle} />
           <Grid cols={2} gap={2.5}>
             {fields.map((f) => (
               <Box
@@ -277,7 +279,7 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
         <Box paddingY={2.5} w="full">
           <Button
             variant="outline"
-            label="Restaurar Cores Padrão"
+            label={s.restoreButton}
             icon={RotateCcw}
             onClick={handleResetDefault}
             fullWidth

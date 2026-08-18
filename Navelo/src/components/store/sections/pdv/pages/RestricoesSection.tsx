@@ -9,6 +9,7 @@ import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 import { Switch } from "@/components/store/base/Switch"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface RestricoesSectionProps {
   onCancel: () => void
@@ -42,6 +43,7 @@ export const RestricoesSection: React.FC<RestricoesSectionProps> = ({
   const [complemento, setComplemento] = React.useState(true)
   const [descontos, setDescontos] = React.useState(true)
   const [descontoLimite, setDescontoLimite] = React.useState("10,00")
+  const s = UI_STRINGS.restrictions
 
   const handleSaveClick = React.useCallback(() => {
     onSave?.({
@@ -58,14 +60,14 @@ export const RestricoesSection: React.FC<RestricoesSectionProps> = ({
   // Configure header title and back action (no top right save button anymore)
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Restrições de acesso")
+    setCustomTitle?.(s.title)
     setCustomActions?.(null)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
       setCustomActions?.(null)
     }
-  }, [setCustomBack, setCustomTitle, setCustomActions, onCancel])
+  }, [setCustomBack, setCustomTitle, setCustomActions, onCancel, s.title])
 
   return (
     <Box
@@ -77,39 +79,39 @@ export const RestricoesSection: React.FC<RestricoesSectionProps> = ({
       w="full"
     >
       <Stack gap={5} w="full">
-        <Font variant="body-bold" text="Ações" />
+        <Font variant="body-bold" text={UI_STRINGS.tabsConfig.actionsCol} />
 
         <Stack gap={5} w="full">
           <CustomCheckbox
             checked={cancelamento}
             onChange={() => setCancelamento(!cancelamento)}
-            label="Cancelamento de itens, vendas e pagamentos"
+            label={s.requireSupervisorForCancelToggle}
           />
           <CustomCheckbox
             checked={reimpressao}
             onChange={() => setReimpressao(!reimpressao)}
-            label="Reimpressão de tickets"
+            label={UI_STRINGS.restrictions.reprintToggle}
           />
           <CustomCheckbox
             checked={transferencia}
             onChange={() => setTransferencia(!transferencia)}
-            label="Transferência de produtos entre mesas"
+            label={UI_STRINGS.restrictions.transferToggle}
           />
           <CustomCheckbox
             checked={complemento}
             onChange={() => setComplemento(!complemento)}
-            label="Cadastrar itens de complemento na venda"
+            label={UI_STRINGS.restrictions.complementToggle}
           />
           <CustomCheckbox
             checked={descontos}
             onChange={() => setDescontos(!descontos)}
-            label="Aplicar descontos"
+            label={UI_STRINGS.restrictions.discountToggle}
           />
         </Stack>
 
         <Box w="full">
           <Input
-            label="Limite de desconto permitido ao usuário"
+            label={UI_STRINGS.restrictions.discountLimitLabel}
             value={`% ${descontoLimite}`}
             onChange={(e) => {
               const val = e.target.value.replace("% ", "")
@@ -119,12 +121,12 @@ export const RestricoesSection: React.FC<RestricoesSectionProps> = ({
         </Box>
 
         {/* Botão de Salvar na Cor Primária na parte inferior */}
-              <FormActions
-        confirmLabel="Salvar alterações"
-        onConfirm={handleSaveClick}
-        isSubmit={false}
-        onCancel={onCancel}
-      />
+        <FormActions
+          confirmLabel={UI_STRINGS.pdv.cart.saveChangesButton}
+          onConfirm={handleSaveClick}
+          isSubmit={false}
+          onCancel={onCancel}
+        />
       </Stack>
     </Box>
   )

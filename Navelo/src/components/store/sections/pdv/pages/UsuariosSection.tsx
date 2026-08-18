@@ -17,6 +17,7 @@ import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogTo
 import { useTenant } from "@/lib/context/TenantContext"
 import { useOperators, dal } from "@/lib/dal/hooks"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface UserItem {
   id: string
@@ -74,6 +75,7 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
   const activeTenant = tenantCtx?.currentTenant
   const tenantId = activeTenant?.id || "demo-tenant"
   const currentUser = tenantCtx?.currentUser
+  const s = UI_STRINGS.settings.usuarios
 
   // Busca lista reativa de operadores no IndexedDB
   const dbOperators = useOperators(tenantId)
@@ -174,7 +176,7 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
   React.useEffect(() => {
     if (mode === "form") {
       setCustomBack?.(() => () => setMode("list"))
-      setCustomTitle?.(editingUser ? "Editar Usuário" : "Novo Usuário")
+      setCustomTitle?.(editingUser ? s.editUserTitle : s.newUserTitle)
       setCustomActions?.(
         <Stack direction="row" align="center" gap={2.5}>
           {editingUser && !editingUser.isCurrent && (
@@ -195,12 +197,12 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
       )
     } else {
       setCustomBack?.(() => () => onCancel())
-      setCustomTitle?.("Usuários")
+      setCustomTitle?.(s.title)
       setCustomActions?.(
         <MobileHeaderSearch
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
-          placeholder="Buscar por nome ou perfil..."
+          placeholder={s.searchPlaceholder}
         />
       )
     }
@@ -210,7 +212,7 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
       setCustomActions?.(null)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, editingUser, searchQuery, formName, formLogin, formPassword, formConfirmPassword, formCommission, formRole, setCustomBack, setCustomTitle, setCustomActions, onCancel])
+  }, [mode, editingUser, searchQuery, formName, formLogin, formPassword, formConfirmPassword, formCommission, formRole, setCustomBack, setCustomTitle, setCustomActions, onCancel, s.editUserTitle, s.newUserTitle, s.title, s.searchPlaceholder])
 
   const handleEdit = (user: UserItem) => {
     setEditingUser(user)
@@ -283,12 +285,12 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
                         <Button
                           type="button"
                           variant="danger-icon-xs-confirm"
-                          confirmTitle="Excluir Usuário"
-                          confirmSubtitle="Confirmar exclusão de usuário"
+                          confirmTitle={s.deleteUserTitle}
+                          confirmSubtitle={s.deleteUserTitle}
                           confirmParagraph="Tem certeza que deseja remover este usuário do sistema?"
                           onConfirm={() => handleDelete(u.id)}
                           disabled={u.isCurrent}
-                          title={u.isCurrent ? "Não é possível excluir o usuário ativo" : "Excluir usuário"}
+                          title={u.isCurrent ? "Não é possível excluir o usuário ativo" : s.deleteUserTitle}
                         />
                       </Stack>
                     </Box>
@@ -301,8 +303,8 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
             ) : (
               <EmptyState
                 icon={Search}
-                title="Nenhum usuário encontrado"
-                subtitle="Tente pesquisar com outro termo ou cadastre um novo operador."
+                title={s.emptyTitle}
+                subtitle={s.emptySubtitle}
               />
             )}
 
@@ -311,7 +313,7 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
                 variant="secondary-pill-icon"
                 icon={Plus}
                 onClick={handleCreateNew}
-                title="Novo operador"
+                title={s.newOperatorButton}
               />
             </Box>
           </Box>
@@ -334,16 +336,16 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
           >
             <Stack gap={5} w="full">
               <Input
-                label="* Nome Completo"
-                placeholder="Ex: João da Silva"
+                label={s.nameLabel}
+                placeholder={s.namePlaceholder}
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 required
               />
 
               <Input
-                label="* Login do Usuário (PIN / Usuário)"
-                placeholder="Ex: joao.silva ou 1234"
+                label={s.emailLabel}
+                placeholder={s.emailPlaceholder}
                 value={formLogin}
                 onChange={(e) => setFormLogin(e.target.value)}
                 required
@@ -352,9 +354,9 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
               <Stack direction="col" mobileDirection="row" gap={2.5} w="full">
                 <Box flex="1">
                   <Input
-                    label={editingUser ? "Nova Senha (deixe em branco para manter)" : "* Senha"}
+                    label={editingUser ? s.passwordLabel : s.passwordLabel}
                     type="password"
-                    placeholder="••••••"
+                    placeholder={s.passwordPlaceholder}
                     value={formPassword}
                     onChange={(e) => setFormPassword(e.target.value)}
                     required={!editingUser}
@@ -362,9 +364,9 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
                 </Box>
                 <Box flex="1">
                   <Input
-                    label={editingUser ? "Confirmar Nova Senha" : "* Confirmar Senha"}
+                    label={editingUser ? s.passwordLabel : s.passwordLabel}
                     type="password"
-                    placeholder="••••••"
+                    placeholder={s.passwordPlaceholder}
                     value={formConfirmPassword}
                     onChange={(e) => setFormConfirmPassword(e.target.value)}
                     required={!editingUser || Boolean(formPassword)}
@@ -373,8 +375,8 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
               </Stack>
 
               <Input
-                label="Comissão (%)"
-                placeholder="% 0,00"
+                label={s.commissionLabel}
+                placeholder={s.commissionPlaceholder}
                 value={formCommission}
                 onChange={(e) => setFormCommission(e.target.value)}
               />
@@ -382,7 +384,7 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
               {/* Seleção do Perfil / Role */}
               <Box padding={5} bg="bg-surface-sunken" radius="default" w="full">
                 <Stack gap={2.5} w="full">
-                  <Font variant="body-bold" text="* Nível de Acesso / Perfil" />
+                  <Font variant="body-bold" text={s.accessProfileTitle} />
                   <Stack gap={2.5} w="full">
                     {OPERATOR_ROLES_FULL.map((r) => {
                       const isSelected = formRole === r.key

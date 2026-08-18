@@ -22,6 +22,7 @@ import {
   Settings,
   Check
 } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface CatalogoOnlineSectionProps {
   onCancel: () => void
@@ -40,15 +41,16 @@ export const CatalogoOnlineSection: React.FC<CatalogoOnlineSectionProps> = ({
 }) => {
   const [enabled, setEnabled] = React.useState(true)
   const [copied, setCopied] = React.useState(false)
+  const s = UI_STRINGS.onlineCatalog
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Catálogo Online")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   const handleCopy = () => {
     navigator.clipboard.writeText(CATALOG_URL).then(() => {
@@ -74,10 +76,10 @@ export const CatalogoOnlineSection: React.FC<CatalogoOnlineSectionProps> = ({
       <Box padding={5} w="full">
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack gap={1}>
-            <Font variant="body-bold" text="Habilitar" />
+            <Font variant="body-bold" text={UI_STRINGS.selfService.enableToggle} />
             <Font
               variant="description"
-              text="Você terá uma página na internet com os seus produtos e com a cara da sua loja."
+              text={s.enableDesc}
               color="muted"
             />
           </Stack>
@@ -111,14 +113,14 @@ export const CatalogoOnlineSection: React.FC<CatalogoOnlineSectionProps> = ({
             <Box
               cursor="pointer"
               onClick={handleOpenUrl}
-              title="Abrir no navegador"
+              title={s.openInBrowserTooltip}
             >
               <Icon icon={ExternalLink} size={16} color={enabled ? "primary" : "muted"} />
             </Box>
             <Box
               cursor="pointer"
               onClick={handleCopy}
-              title={copied ? "Copiado!" : "Copiar URL"}
+              title={copied ? s.copiedTooltip : s.copyUrlTooltip}
             >
               <Icon icon={Copy} size={16} color={enabled ? "primary" : "muted"} />
             </Box>
@@ -140,8 +142,8 @@ export const CatalogoOnlineSection: React.FC<CatalogoOnlineSectionProps> = ({
           <Stack direction="row" align="center" gap={5}>
             <Icon icon={LayoutGrid} size={20} color="primary" />
             <Stack gap={1}>
-              <Font variant="body-bold" text="Identificação" />
-              <Font variant="description" text="basenavelo" color="muted" />
+              <Font variant="body-bold" text={s.identificationTitle} />
+              <Font variant="description" text={s.identificationSlug} color="muted" />
             </Stack>
           </Stack>
           <Icon icon={ChevronRight} size={16} color="muted" />
@@ -162,8 +164,8 @@ export const CatalogoOnlineSection: React.FC<CatalogoOnlineSectionProps> = ({
           <Stack direction="row" align="center" gap={5}>
             <Icon icon={LayoutGrid} size={20} color="primary" />
             <Stack gap={1}>
-              <Font variant="body-bold" text="Produtos" />
-              <Font variant="description" text="52 produtos selecionados" color="muted" />
+              <Font variant="body-bold" text={s.productsTitle} />
+              <Font variant="description" text={s.productsSelectedCount} color="muted" />
             </Stack>
           </Stack>
           <Icon icon={ChevronRight} size={16} color="muted" />
@@ -184,8 +186,8 @@ export const CatalogoOnlineSection: React.FC<CatalogoOnlineSectionProps> = ({
           <Stack direction="row" align="center" gap={5}>
             <Icon icon={Clock} size={20} color="primary" />
             <Stack gap={1}>
-              <Font variant="body-bold" text="Horário de atendimento" />
-              <Font variant="description" text="Todos os dias" color="muted" />
+              <Font variant="body-bold" text={s.businessHoursTitle} />
+              <Font variant="description" text={s.everydayText} color="muted" />
             </Stack>
           </Stack>
           <Icon icon={ChevronRight} size={16} color="muted" />
@@ -205,7 +207,7 @@ export const CatalogoOnlineSection: React.FC<CatalogoOnlineSectionProps> = ({
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={5}>
             <Icon icon={CreditCard} size={20} color="primary" />
-            <Font variant="body-bold" text="Formas de pagamento" />
+            <Font variant="body-bold" text={s.paymentMethodsTitle} />
           </Stack>
           <Icon icon={ChevronRight} size={16} color="muted" />
         </Stack>
@@ -225,17 +227,17 @@ export const CatalogoOnlineSection: React.FC<CatalogoOnlineSectionProps> = ({
           <Stack direction="row" align="center" gap={5} flex="1">
             <Icon icon={MessageSquare} size={20} color="primary" />
             <Stack gap={1} flex="1">
-              <Font variant="body-bold" text="WhatsApp" align="left" />
+              <Font variant="body-bold" text={s.whatsappTitle} align="left" />
               <Font
                 variant="description"
-                text="Ative esta opção para enviar notificações automáticas para os clientes."
+                text={s.whatsappDesc}
                 color="muted"
                 align="left"
               />
             </Stack>
           </Stack>
           <Stack direction="row" align="center" justify="end" mobileJustify="end" gap={2.5} w="full">
-            <Badge variant="success" label="habilitado" icon={Check} />
+            <Badge variant="success" label={s.enabledBadge} icon={Check} />
             <Icon icon={ChevronRight} size={16} color="muted" />
           </Stack>
         </Stack>
@@ -254,7 +256,7 @@ export const CatalogoOnlineSection: React.FC<CatalogoOnlineSectionProps> = ({
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={5}>
             <Icon icon={Truck} size={20} color="primary" />
-            <Font variant="body-bold" text="Opções de entrega" />
+            <Font variant="body-bold" text={s.deliveryOptionsTitle} />
           </Stack>
           <Icon icon={ChevronRight} size={16} color="muted" />
         </Stack>
@@ -273,7 +275,7 @@ export const CatalogoOnlineSection: React.FC<CatalogoOnlineSectionProps> = ({
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={5}>
             <Icon icon={Settings} size={20} color="primary" />
-            <Font variant="body-bold" text="Opções de pedido" />
+            <Font variant="body-bold" text={s.orderOptionsTitle} />
           </Stack>
           <Icon icon={ChevronRight} size={16} color="muted" />
         </Stack>

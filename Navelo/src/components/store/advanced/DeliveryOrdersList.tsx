@@ -11,6 +11,7 @@ import { Button } from "@/components/store/base/Button"
 import { Icon } from "@/components/store/base/Icon"
 import { Filter, Check } from "lucide-react"
 import { DeliveryStatus } from "@/components/store/intermediary/DeliveryTimeline"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface DeliveryOrderItem {
   id: string
@@ -68,6 +69,8 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
 }) => {
   const [isFilterOpen, setIsFilterOpen] = React.useState(false)
   const [selectedStatuses, setSelectedStatuses] = React.useState<DeliveryStatus[]>([])
+  const d = UI_STRINGS.delivery
+  const common = UI_STRINGS.common
 
   const handleToggleStatusFilter = (st: DeliveryStatus) => {
     setSelectedStatuses((prev) =>
@@ -102,12 +105,12 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
       {/* Header do painel de pedidos */}
       <Box paddingX={2.5} paddingY={2.5} w="full">
         <Stack direction="row" align="center" justify="between" w="full">
-          <Font variant="body-bold" text="Pedidos" />
+          <Font variant="body-bold" text={d.ordersSectionTitle} />
           <Box position="relative">
             <Button
               variant="secondary-icon-xs"
               icon={Filter}
-              title="Filtrar por status"
+              title={d.filterByStatusTitle}
               onClick={() => setIsFilterOpen(!isFilterOpen)}
             />
 
@@ -126,7 +129,7 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
                 padding={2.5}
               >
                 <Stack gap={2.5} w="full">
-                  <Font variant="body-sm-semibold" text="Filtrar por status" />
+                  <Font variant="body-sm-semibold" text={d.filterByStatusTitle} />
                   <Stack gap={1} w="full">
                     {ALL_STATUS_OPTIONS.map((opt) => {
                       const count = getStatusCount(opt.key)
@@ -167,12 +170,12 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
                   <Stack direction="row" justify="between" gap={2.5} w="full">
                     <Button
                       variant="secondary-xs"
-                      label="Limpar"
+                      label={common.clear}
                       onClick={handleClearFilter}
                     />
                     <Button
                       variant="primary-xs"
-                      label="Aplicar"
+                      label={common.apply}
                       onClick={() => setIsFilterOpen(false)}
                     />
                   </Stack>

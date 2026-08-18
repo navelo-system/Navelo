@@ -36,18 +36,28 @@ export interface SaleReceiptData {
 
 export interface CompanyData {
   name?: string
+  trade_name?: string
   document?: string
   cnpj?: string
   ie?: string
   state_registration?: string
   address?: string
+  address_street?: string
   street?: string
+  address_number?: string
   number?: string
+  address_complement?: string
+  complement?: string
+  address_neighborhood?: string
   neighborhood?: string
+  address_city?: string
   city?: string
+  address_state?: string
   state?: string
+  address_cep?: string
   cep?: string
   phone?: string
+  email?: string
   logo_url?: string
 }
 
@@ -123,45 +133,73 @@ export async function generateSaleReceiptPdf(
 
   let y = 6
 
-  // ── 1. CABEÇALHO DA EMPRESA ──────────────────────────────────────────────
-  const companyName = (company?.name || "NAVELO PDV").toUpperCase()
-  const cnpj = company?.cnpj || company?.document || "36383365000190"
+  // ── 1. CABEÇALHO DA EMPRESA (100% DINÂMICO) ──────────────────────────────
+  const companyTitle = (company?.trade_name || company?.name || "COMPROVANTE DE VENDA").toUpperCase()
+  const corporateSubtitle =
+    company?.trade_name && company?.name && company.name !== company.trade_name ? company.name : null
+  const cnpj = company?.cnpj || company?.document || ""
   const ie = company?.ie || company?.state_registration || ""
-  const address =
-    company?.address ||
-    (company?.street
-      ? `${company.street}${company.number ? `, ${company.number}` : ""}${
-          company.neighborhood ? `, ${company.neighborhood}` : ""
-        }${company.city ? `, ${company.city}` : ""}${
-          company.state ? `-${company.state}` : ""
-        }`
-      : "RUA SAGRADA FAMÍLIA, 94, IPIRANGA, Teófilo Otoni-MG")
-  const cep = company?.cep || "39801-026"
-  const phone = company?.phone || "(33) 999565081"
+
+  const street = company?.address_street || company?.street || ""
+  const num = company?.address_number || company?.number || ""
+  const comp = company?.address_complement || company?.complement || ""
+  const neigh = company?.address_neighborhood || company?.neighborhood || ""
+  const city = company?.address_city || company?.city || ""
+  const uf = company?.address_state || company?.state || ""
+  const cep = company?.address_cep || company?.cep || ""
+  const phone = company?.phone || ""
+
+  let fullAddress = company?.address || ""
+  if (!fullAddress && street) {
+    fullAddress = `${street}${num ? `, ${num}` : ""}${comp ? ` - ${comp}` : ""}${neigh ? `, ${neigh}` : ""}${city ? `, ${city}` : ""}${uf ? `-${uf}` : ""}`
+  }
 
   doc.setTextColor(0, 0, 0)
 
-  // Nome da Empresa
+  // Nome Principal da Empresa (Fantasia ou Razão Social)
   doc.setFont("helvetica", "bold")
   doc.setFontSize(9.5)
-  doc.text(companyName, centerX, y, { align: "center" })
-  y += 4
+  doc.text(companyTitle, centerX, y, { align: "center" })
+  y += 3.8
 
-  // CNPJ e IE
-  doc.setFont("helvetica", "normal")
-  doc.setFontSize(7)
-  const cnpjText = `CNPJ: ${cnpj} IE: ${ie}`.trim()
-  doc.text(cnpjText, centerX, y, { align: "center" })
-  y += 3.5
+  // Razão Social Secundária (se existir e for diferente do nome fantasia)
+  if (corporateSubtitle) {
+    doc.setFont("helvetica", "normal")
+    doc.setFontSize(6.5)
+    doc.text(corporateSubtitle, centerX, y, { align: "center" })
+    y += 3.2
+  }
+
+  // CNPJ e Inscrição Estadual
+  if (cnpj || ie) {
+    doc.setFont("helvetica", "normal")
+    doc.setFontSize(7)
+    const docParts: string[] = []
+    if (cnpj) docParts.push(`CNPJ: ${cnpj}`)
+    if (ie) docParts.push(`IE: ${ie}`)
+    doc.text(docParts.join("  "), centerX, y, { align: "center" })
+    y += 3.2
+  }
 
   // Endereço
-  const splitAddress = doc.splitTextToSize(address, contentW)
-  doc.text(splitAddress, centerX, y, { align: "center" })
-  y += Array.isArray(splitAddress) ? splitAddress.length * 3.2 : 3.2
+  if (fullAddress) {
+    doc.setFont("helvetica", "normal")
+    doc.setFontSize(6.5)
+    const splitAddress = doc.splitTextToSize(fullAddress, contentW)
+    doc.text(splitAddress, centerX, y, { align: "center" })
+    y += (Array.isArray(splitAddress) ? splitAddress.length : 1) * 3.0
+  }
 
   // CEP e Telefone
-  doc.text(`${cep}, ${phone}`, centerX, y, { align: "center" })
-  y += 4
+  const contactParts: string[] = []
+  if (cep) contactParts.push(`CEP: ${cep}`)
+  if (phone) contactParts.push(`Tel: ${phone}`)
+  if (contactParts.length > 0) {
+    doc.setFont("helvetica", "normal")
+    doc.setFontSize(6.5)
+    doc.text(contactParts.join(" • "), centerX, y, { align: "center" })
+    y += 3.5
+  }
 
   // Linha divisória simples
   doc.setFont("helvetica", "normal")

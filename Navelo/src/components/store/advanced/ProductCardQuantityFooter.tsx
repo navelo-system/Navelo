@@ -4,15 +4,15 @@
 
 import React from "react"
 import { Box } from "@/components/store/base/Box"
-import { Stack } from "@/components/store/base/Stack"
-import { Font } from "@/components/store/base/Font"
-import { Button } from "@/components/store/base/Button"
-import { Minus, Plus, Trash2 } from "lucide-react"
+import { QuantityControl } from "@/components/store/intermediary/QuantityControl"
 
 const FOOTER_ANIMATION_MS = 240
 
 interface ProductCardQuantityFooterProps {
   quantity: number
+  stock?: number
+  maxQuantity?: number
+  isMaxReached?: boolean
   onIncrease?: () => void
   onDecrease?: () => void
   onRemove?: () => void
@@ -20,6 +20,8 @@ interface ProductCardQuantityFooterProps {
 
 export function ProductCardQuantityFooter({
   quantity,
+  stock,
+  maxQuantity,
   onIncrease,
   onDecrease,
   onRemove,
@@ -64,6 +66,8 @@ export function ProductCardQuantityFooter({
 
   if (!footerMounted || !footerAnimation) return null
 
+  const effectiveMax = maxQuantity ?? stock
+
   return (
     <Box
       position="absolute"
@@ -75,17 +79,15 @@ export function ProductCardQuantityFooter({
       padding={1}
       animation={footerAnimation}
     >
-      <Stack direction="row" align="center" justify="center" gap={2.5} w="full">
-        {displayQuantity === 1 ? (
-          <Button variant="danger-icon-xs" icon={Trash2} onClick={(e) => { e.stopPropagation(); onRemove?.(); }} />
-        ) : (
-          <Button variant="primary-icon-xs" icon={Minus} onClick={(e) => { e.stopPropagation(); onDecrease?.(); }} />
-        )}
-        <Box padding={0} w="w-4">
-          <Font variant="body-bold" text={String(displayQuantity)} align="center" />
-        </Box>
-        <Button variant="primary-icon-xs" icon={Plus} onClick={(e) => { e.stopPropagation(); onIncrease?.(); }} />
-      </Stack>
+      <QuantityControl
+        quantity={displayQuantity}
+        stock={effectiveMax}
+        maxQuantity={effectiveMax}
+        onIncrease={onIncrease}
+        onDecrease={onDecrease}
+        onRemove={onRemove}
+        stopPropagation={true}
+      />
     </Box>
   )
 }

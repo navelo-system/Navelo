@@ -15,6 +15,7 @@ import { useTenant } from "@/lib/context/TenantContext"
 import { useOperators, db } from "@/lib/dal"
 import { UserRole, User, Tenant } from "@/src/types/domain"
 import { ROLE_CAN_LOGIN } from "@/lib/permissions"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface LoginSectionProps {
   onLoginSuccess: (operatorName: string) => void
@@ -29,6 +30,7 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ onLoginSuccess, onSw
   const tenantCtx = useTenant()
   const activeTenant = tenantCtx?.currentTenant
   const tenantId = activeTenant?.id || "demo-tenant"
+  const s = UI_STRINGS.auth
 
   // Busca os operadores cadastrados no banco local IndexedDB
   const dbOperators = useOperators(tenantId)
@@ -136,7 +138,7 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ onLoginSuccess, onSw
           <Stack gap={5} w="full" align="stretch">
             <RegistrySection
               variant="card"
-              title={activeTenant?.tradingName || activeTenant?.corporateName || "Acesso de Operador"}
+              title={activeTenant?.tradingName || activeTenant?.corporateName || s.title}
               description={activeTenant?.cnpj ? `CNPJ: ${activeTenant.cnpj}` : ""}
               icon={UserIcon}
             >
@@ -144,14 +146,14 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ onLoginSuccess, onSw
                 <Stack gap={5}>
                   {/* Selecione o Operador */}
                   <Stack gap={1}>
-                    <Font variant="body-sm-semibold" text="Operador / Perfil" />
+                    <Font variant="body-sm-semibold" text={s.operatorRoleLabel} />
                     <CustomSelect
                       value={selectedUser}
                       onChange={(val) => {
                         setSelectedUser(val)
                         setErrorMsg("")
                       }}
-                      placeholder="Selecione o operador"
+                      placeholder={s.selectOperatorPlaceholder}
                     >
                       {operatorOptions.map((op) => (
                         <CustomSelectItem
@@ -166,7 +168,7 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ onLoginSuccess, onSw
 
                   {/* Senha do Operador */}
                   <Stack gap={1}>
-                    <Font variant="body-sm-semibold" text="* Senha do Operador" />
+                    <Font variant="body-sm-semibold" text={s.passwordLabel} />
                     <Input
                       type="password"
                       value={password}
@@ -174,7 +176,7 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ onLoginSuccess, onSw
                         setPassword(e.target.value)
                         setErrorMsg("")
                       }}
-                      placeholder="••••••••"
+                      placeholder={s.passwordPlaceholder}
                       icon={Lock}
                       required
                     />
@@ -193,14 +195,14 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ onLoginSuccess, onSw
                   <Stack direction="row" justify="between" w="full" gap={2.5}>
                     <Button
                       variant="ghost"
-                      label="Esquecer senha"
+                      label={s.forgotPasswordButton}
                       onClick={() => setMessage("Simulado: Instruções enviadas ao e-mail cadastrado.")}
                     />
                     {onSwitchTenant && (
                       <Button
                         variant="ghost"
                         icon={Building}
-                        label="Trocar CNPJ"
+                        label={s.switchCnpjButton}
                         onClick={onSwitchTenant}
                       />
                     )}
@@ -209,7 +211,7 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ onLoginSuccess, onSw
                   {/* Botão de Entrar */}
                   <Button
                     variant="primary"
-                    label="Entrar no Caixa"
+                    label={s.loginButton}
                     type="submit"
                     fullWidth
                   />

@@ -10,6 +10,7 @@ import { FilterBar } from "@/components/store/intermediary/FilterBar"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { AuditLog, AuditSeverity } from "@/src/types/domain"
 import { ArrowLeft, RefreshCw, Activity } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 const MOCK_LOGS: AuditLog[] = [
   { id: "1", userId: "admin-001", action: "Tenant 'Lanchonete Bom Sabor' criado", entityId: "tenant-001", entityType: "Tenant", createdAt: "2026-07-05 10:45:12", ipAddress: "192.168.1.15", severity: AuditSeverity.INFO },
@@ -23,11 +24,12 @@ const severityVariant = (s?: AuditSeverity) =>
   s === AuditSeverity.ERROR ? "danger" : s === AuditSeverity.WARNING ? "secondary" : "success"
 
 const severityLabel = (s?: AuditSeverity) =>
-  s === AuditSeverity.ERROR ? "ERRO" : s === AuditSeverity.WARNING ? "ALERTA" : "INFO"
+  s === AuditSeverity.ERROR ? UI_STRINGS.admin.audit.errorSeverity : s === AuditSeverity.WARNING ? UI_STRINGS.admin.audit.warningSeverity : UI_STRINGS.admin.audit.infoSeverity
 
 export function AuditLogsSection() {
   const [searchQuery, setSearchQuery] = React.useState("")
   const [logs, setLogs] = React.useState<AuditLog[]>(MOCK_LOGS)
+  const a = UI_STRINGS.admin.audit
 
   const handleRefresh = () => {
     setLogs(prev => [...prev])
@@ -44,20 +46,20 @@ export function AuditLogsSection() {
       <Stack direction="row" align="start" w="fit-content">
         <Button
           variant="ghost"
-          label="Voltar ao Painel"
+          label={a.backButton}
           icon={ArrowLeft}
           onClick={() => window.location.href = "/admin"}
         />
       </Stack>
 
       <RegistrySection
-        title="Histórico de Atividades"
-        description="Histórico de eventos e auditoria de ações na plataforma."
+        title={a.historyTitle}
+        description={a.historyDescription}
         icon={Activity}
         action={
           <Button
             variant="primary"
-            label="Atualizar"
+            label={a.refreshButton}
             icon={RefreshCw}
             onClick={handleRefresh}
           />
@@ -65,25 +67,25 @@ export function AuditLogsSection() {
       >
         <Stack gap={5}>
           <FilterBar
-            searchPlaceholder="Buscar por ação, tipo de entidade ou IP..."
+            searchPlaceholder={a.searchLogsPlaceholder}
             onSearch={setSearchQuery}
           />
 
           {filteredLogs.length === 0 ? (
             <EmptyState
               icon={Activity}
-              title="Nenhum log encontrado"
-              subtitle="Nenhum evento corresponde ao termo pesquisado."
+              title={a.emptyLogsTitle}
+              subtitle={a.emptyLogsSubtitle}
             />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead text="Data/Hora" />
-                  <TableHead text="Ação" />
-                  <TableHead text="Entidade" />
-                  <TableHead text="IP" />
-                  <TableHead align="right" text="Severidade" />
+                  <TableHead text={a.timestampColumn} />
+                  <TableHead text={a.actionTextColumn} />
+                  <TableHead text={a.entityColumn} />
+                  <TableHead text={a.ipColumn} />
+                  <TableHead align="right" text={a.severityColumn} />
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -7,8 +7,11 @@ import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
 import { Stack } from "@/components/store/base/Stack"
 import { ShieldAlert, Mail, Lock } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export const AuthAdminSection: React.FC = () => {
+  const a = UI_STRINGS.admin.auth
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Mock login redirect
@@ -21,14 +24,14 @@ export const AuthAdminSection: React.FC = () => {
       <Box />
       <RegistrySection
         variant="card"
-        title="Autenticação Administrativa"
-        description="Insira suas credenciais de super-admin"
+        title={a.title}
+        description={a.description}
         icon={ShieldAlert}
       >
         <Form onSubmit={handleSubmit}>
-          <Input label="E-mail" placeholder="admin@navelo.com" icon={Mail} required />
-          <Input label="Senha" type="password" placeholder="••••••••" icon={Lock} required />
-          <Button variant="primary" label="Acessar plataforma" fullWidth />
+          <Input label={a.emailLabel} placeholder={a.emailPlaceholder} icon={Mail} required />
+          <Input label={a.passwordLabel} type="password" placeholder={a.passwordPlaceholder} icon={Lock} required />
+          <Button variant="primary" label={a.submitButton} fullWidth />
         </Form>
       </RegistrySection>
       <Box />

@@ -1,4 +1,4 @@
-/* eslint-disable max-lines-per-function */
+/* eslint-disable max-lines-per-function, complexity */
 "use client"
 
 import * as React from "react"
@@ -9,6 +9,7 @@ import { Icon } from "@/components/store/base/Icon"
 import { Modal } from "@/components/store/base/Modal"
 import { Cloud, AlertTriangle } from "lucide-react"
 import { useSyncStatus } from "@/lib/dal/hooks"
+import { UI_STRINGS, formatString } from "@/constants/strings"
 
 interface PdvSidebarDrawerProps {
   isOpen: boolean
@@ -22,6 +23,8 @@ interface PdvSidebarDrawerProps {
   customerName?: string
   showOutOfStockProducts?: boolean
   onToggleShowOutOfStock?: (val: boolean) => void
+  hasCartItems?: boolean
+  onCancelOperation?: () => void
 }
 
 export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
@@ -36,11 +39,14 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
   customerName,
   showOutOfStockProducts = true,
   onToggleShowOutOfStock,
+  hasCartItems = false,
+  onCancelOperation,
 }) => {
   const syncStatus = useSyncStatus()
+  const d = UI_STRINGS.pdv.drawer
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Menu" variant="sidebar">
+    <Modal isOpen={isOpen} onClose={onClose} title={d.menuTitle} variant="sidebar">
       <Stack gap={5}>
         {/* Sincronizacao */}
         <Box
@@ -54,7 +60,7 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
           <Stack gap={1}>
             <Stack direction="row" align="center" gap={2.5}>
               <Icon icon={syncStatus.pendingCount > 0 ? AlertTriangle : Cloud} size={16} color="primary" />
-              <Font variant="body-bold" color="primary" text="Sincronização" align="left" />
+              <Font variant="body-bold" color="primary" text={d.syncTitle} align="left" />
             </Stack>
 
             <Font
@@ -62,8 +68,8 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
               color="muted"
               text={
                 syncStatus.pendingCount > 0
-                  ? `${syncStatus.pendingCount} alteração(ões) pendente(s)`
-                  : "Todos os dados estão sincronizados"
+                  ? formatString(d.syncPendingChanges, { count: syncStatus.pendingCount })
+                  : d.syncAllSynced
               }
               align="left"
             />
@@ -72,7 +78,7 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
 
         {/* Negociacao */}
         <Stack gap={2.5}>
-          <Font variant="body-xs-bold" color="muted" text="NEGOCIACAO" />
+          <Font variant="body-xs-bold" color="muted" text={d.negotiationHeader} />
           <Box display="flex" direction="col" bg="bg-surface" border={true} borderColor="border-border" radius="default" overflow="hidden">
             <Box
               padding={2.5}
@@ -81,7 +87,7 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
               hoverBg="secondary/10"
               onClick={() => { onClose(); onNavigate("negociacoes") }}
             >
-              <Font variant="body-sm-semibold" text="Buscar negociacoes" align="left" />
+              <Font variant="body-sm-semibold" text={d.searchNegotiations} align="left" />
             </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
             <Box
@@ -91,7 +97,7 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
               hoverBg="secondary/10"
               onClick={() => { onClose(); onNavigate("ultimas-negociacoes") }}
             >
-              <Font variant="body-sm-semibold" text="Ultimas negociacoes" align="left" />
+              <Font variant="body-sm-semibold" text={d.lastNegotiations} align="left" />
             </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
             <Box
@@ -99,19 +105,20 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
               w="full"
               cursor="pointer"
               hoverBg="secondary/10"
-              onClick={() => { onClose() }}
+              onClick={() => {
+                onClose()
+                if (onCancelOperation) {
+                  onCancelOperation()
+                } else {
+                  onBackToDashboard()
+                }
+              }}
             >
-              <Font variant="body-sm-semibold" text="Finalizar atendimentos" align="left" />
-            </Box>
-            <Box h="h-[1px]" w="full" bg="bg-border" />
-            <Box
-              padding={2.5}
-              w="full"
-              cursor="pointer"
-              hoverBg="secondary/10"
-              onClick={() => { onClose() }}
-            >
-              <Font variant="body-sm-semibold" text="Cancelar operacao" align="left" />
+              <Font
+                variant="body-sm-semibold"
+                text={hasCartItems ? d.cancelOperation : d.finalizeService}
+                align="left"
+              />
             </Box>
           </Box>
         </Stack>
@@ -128,10 +135,10 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
             >
               <Stack direction="row" align="center" justify="between" w="full" gap={2.5}>
                 <Box shrink="0">
-                  <Font variant="body-sm-semibold" text="Cliente" align="left" />
+                  <Font variant="body-sm-semibold" text={d.clientLabel} align="left" />
                 </Box>
                 <Box flex="1" minW="0" overflow="hidden" display="flex" justify="end">
-                  <Font as="div" variant="body-sm-medium" color="muted" align="right" truncate={true} lineClamp={1} text={customerName || "Nao selecionado"} />
+                  <Font as="div" variant="body-sm-medium" color="muted" align="right" truncate={true} lineClamp={1} text={customerName || UI_STRINGS.common.notSelected} />
                 </Box>
               </Stack>
             </Box>
@@ -144,7 +151,7 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
               onClick={() => { onClose(); onOpenDiscountModal() }}
             >
               <Stack direction="row" align="center" justify="between" w="full">
-                <Font variant="body-sm-semibold" text="Desconto na venda" align="left" />
+                <Font variant="body-sm-semibold" text={d.discountOnSale} align="left" />
                 <Font variant="body-sm-medium" color="muted" text="0,00%" />
               </Stack>
             </Box>
@@ -156,7 +163,7 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
               hoverBg="secondary/10"
               onClick={() => { onClose(); onOpenObservationModal() }}
             >
-              <Font variant="body-sm-semibold" text="Observacao" align="left" />
+              <Font variant="body-sm-semibold" text={d.observation} align="left" />
             </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
             <Box
@@ -166,7 +173,7 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
               hoverBg="secondary/10"
               onClick={() => { onClose(); onNavigate("recebimentos") }}
             >
-              <Font variant="body-sm-semibold" text="Recebimentos" align="left" />
+              <Font variant="body-sm-semibold" text={d.receipts} align="left" />
             </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
             <Box
@@ -176,14 +183,14 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
               hoverBg="secondary/10"
               onClick={() => { onClose(); onNavigate("devolucao") }}
             >
-              <Font variant="body-sm-semibold" text="Devolucao" align="left" />
+              <Font variant="body-sm-semibold" text={d.returns} align="left" />
             </Box>
           </Box>
         </Stack>
 
         {/* Outras operacoes */}
         <Stack gap={2.5}>
-          <Font variant="body-xs-bold" color="muted" text="OUTRAS OPERACOES" />
+          <Font variant="body-xs-bold" color="muted" text={d.otherOperationsHeader} />
           <Box display="flex" direction="col" bg="bg-surface" border={true} borderColor="border-border" radius="default" overflow="hidden">
             <Box
               padding={2.5}
@@ -192,7 +199,7 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
               hoverBg="secondary/10"
               onClick={() => { onClose(); onOpenSangriaModal("sangria") }}
             >
-              <Font variant="body-sm-semibold" text="Sangria" align="left" />
+              <Font variant="body-sm-semibold" text={d.sangria} align="left" />
             </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
             <Box
@@ -202,7 +209,7 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
               hoverBg="secondary/10"
               onClick={() => { onClose(); onOpenSangriaModal("suprimento") }}
             >
-              <Font variant="body-sm-semibold" text="Suprimento" align="left" />
+              <Font variant="body-sm-semibold" text={d.supply} align="left" />
             </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
             <Box
@@ -212,7 +219,7 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
               hoverBg="secondary/10"
               onClick={() => { onClose(); onNavigate("sangrias-suprimentos") }}
             >
-              <Font variant="body-sm-semibold" text="Buscar sangrias/suprimentos" align="left" />
+              <Font variant="body-sm-semibold" text={d.searchSangrias} align="left" />
             </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
             <Box
@@ -222,14 +229,14 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
               hoverBg="secondary/10"
               onClick={() => { onClose(); onNavigate("totais-em-caixa") }}
             >
-              <Font variant="body-sm-semibold" text="Totais em caixa" align="left" />
+              <Font variant="body-sm-semibold" text={d.cashTotals} align="left" />
             </Box>
           </Box>
         </Stack>
 
         {/* Opcoes */}
         <Stack gap={2.5}>
-          <Font variant="body-xs-bold" color="muted" text="OPCOES" />
+          <Font variant="body-xs-bold" color="muted" text={d.optionsHeader} />
           <Box display="flex" direction="col" bg="bg-surface" border={true} borderColor="border-border" radius="default" overflow="hidden">
             <Box
               padding={2.5}
@@ -239,7 +246,7 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
               onClick={() => onToggleShowOutOfStock?.(!showOutOfStockProducts)}
             >
               <Stack direction="row" align="center" justify="between" w="full">
-                <Font variant="body-sm-semibold" text="Exibir produtos sem estoque" align="left" />
+                <Font variant="body-sm-semibold" text={d.showOutOfStockProducts} align="left" />
                 <Font variant="body-sm-medium" color={showOutOfStockProducts ? "success" : "muted"} text={showOutOfStockProducts ? "Sim" : "Não"} />
               </Stack>
             </Box>
@@ -251,7 +258,7 @@ export const PdvSidebarDrawer: React.FC<PdvSidebarDrawerProps> = ({
               hoverBg="secondary/10"
               onClick={onBackToDashboard}
             >
-              <Font variant="body-sm-semibold" text="Voltar ao Painel Geral" align="left" />
+              <Font variant="body-sm-semibold" text={UI_STRINGS.pdv.drawer.backToDashboard} align="left" />
             </Box>
           </Box>
         </Stack>

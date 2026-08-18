@@ -84,6 +84,17 @@ CREATE TABLE IF NOT EXISTS companies (
 );
 ALTER TABLE IF EXISTS companies ADD COLUMN IF NOT EXISTS company_id text;
 ALTER TABLE IF EXISTS companies ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS companies ADD COLUMN IF NOT EXISTS trade_name text;
+ALTER TABLE IF EXISTS companies ADD COLUMN IF NOT EXISTS state_registration text;
+ALTER TABLE IF EXISTS companies ADD COLUMN IF NOT EXISTS address_street text;
+ALTER TABLE IF EXISTS companies ADD COLUMN IF NOT EXISTS address_number text;
+ALTER TABLE IF EXISTS companies ADD COLUMN IF NOT EXISTS address_complement text;
+ALTER TABLE IF EXISTS companies ADD COLUMN IF NOT EXISTS address_neighborhood text;
+ALTER TABLE IF EXISTS companies ADD COLUMN IF NOT EXISTS address_city text;
+ALTER TABLE IF EXISTS companies ADD COLUMN IF NOT EXISTS address_state text;
+ALTER TABLE IF EXISTS companies ADD COLUMN IF NOT EXISTS address_cep text;
+ALTER TABLE IF EXISTS companies ADD COLUMN IF NOT EXISTS plan text DEFAULT 'Pro';
+ALTER TABLE IF EXISTS companies ADD COLUMN IF NOT EXISTS status text DEFAULT 'active';
 ALTER TABLE IF EXISTS companies ALTER COLUMN id TYPE text USING id::text;
 ALTER TABLE IF EXISTS companies ALTER COLUMN company_id TYPE text USING company_id::text;
 ALTER TABLE IF EXISTS companies ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
@@ -597,6 +608,8 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon restaurant_tables') THEN
     CREATE POLICY "Allow all for anon restaurant_tables" ON restaurant_tables FOR ALL USING (true) WITH CHECK (true);
   END IF;
+END $$;
+
 -- ====================================================================
 -- HABILITA A REPLICAÇÃO SUPABASE REALTIME PARA TODAS AS TABELAS
 -- ====================================================================

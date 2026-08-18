@@ -12,6 +12,7 @@ import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { FilterPanel } from "@/components/store/intermediary/FilterPanel"
 import { Modal } from "@/components/store/base/Modal"
 import { Plus, ClipboardList } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface BalancoProduct {
   id: string
@@ -81,6 +82,8 @@ export const InventoryAuditTable: React.FC<InventoryAuditTableProps> = ({
   const [viewMode, setViewMode] = React.useState<"history" | "resumo">("history")
   const [sessions] = React.useState<BalancoSession[]>(DEFAULT_SESSIONS)
   const [auditProducts] = React.useState<BalancoProduct[]>(products)
+  const inv = UI_STRINGS.inventory
+  const common = UI_STRINGS.common
 
   // Filtros da barra lateral
   const [selectedPeriod, setSelectedPeriod] = React.useState<string>("3M")
@@ -164,8 +167,8 @@ export const InventoryAuditTable: React.FC<InventoryAuditTableProps> = ({
               ) : (
                 <EmptyState
                   icon={ClipboardList}
-                  title="Nenhum balanço encontrado"
-                  subtitle="Tente ajustar os filtros ao lado ou crie um novo balanço de estoque."
+                  title={inv.emptyBalancoTitle}
+                  subtitle={inv.emptyBalancoSubtitle}
                 />
               )}
             </Stack>
@@ -205,7 +208,7 @@ export const InventoryAuditTable: React.FC<InventoryAuditTableProps> = ({
           <Modal
             isOpen={isFilterDrawerOpen}
             onClose={onCloseFilterDrawer || (() => {})}
-            title="Filtros"
+            title={common.filter}
             variant="sidebar"
           >
             <FilterPanel
@@ -235,8 +238,8 @@ export const InventoryAuditTable: React.FC<InventoryAuditTableProps> = ({
         <Stack gap={5} w="full">
           {/* Cabeçalho da Lista: Produtos (esquerda) x Diferença (direita) */}
           <Stack direction="row" justify="between" align="center" w="full" paddingX={2.5}>
-            <Font variant="body-bold" color="muted" text="Produtos" />
-            <Font variant="body-bold" color="muted" text="Diferença" />
+            <Font variant="body-bold" color="muted" text={UI_STRINGS.products.title} />
+            <Font variant="body-bold" color="muted" text={inv.differenceHeader} />
           </Stack>
 
           {/* Lista de Produtos do Balanço */}
@@ -289,13 +292,13 @@ export const InventoryAuditTable: React.FC<InventoryAuditTableProps> = ({
             <Stack direction="col" mobileDirection="row" gap={2.5} w="full">
               <Button
                 variant="outline"
-                label="Salvar"
+                label={common.save}
                 fullWidth
                 onClick={handleSave}
               />
               <Button
                 variant="primary"
-                label="Finalizar"
+                label={common.finish}
                 fullWidth
                 onClick={handleFinalize}
               />

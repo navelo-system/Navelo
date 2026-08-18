@@ -9,6 +9,7 @@ import { Box } from "@/components/store/base/Box"
 import { Font } from "@/components/store/base/Font"
 import { Modal } from "@/components/store/base/Modal"
 import { CircularIcon } from "@/components/store/intermediary/CircularIcon"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface SaleShareModalProps {
   isOpen: boolean
@@ -30,6 +31,7 @@ export const SaleShareModal: React.FC<SaleShareModalProps> = ({
   onOpenLinkModal,
 }) => {
   const [isGenerating, setIsGenerating] = React.useState(false)
+  const s = UI_STRINGS.saleShare
 
   const resolveUrl = async (): Promise<string | null> => {
     if (pdfUrl) return pdfUrl
@@ -67,7 +69,7 @@ export const SaleShareModal: React.FC<SaleShareModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       variant="bottom"
-      title="Compartilhar Comprovante"
+      title={s.shareReceiptModalTitle}
       subtitle={saleName}
       icon={Share2}
       showCancelButton
@@ -86,8 +88,8 @@ export const SaleShareModal: React.FC<SaleShareModalProps> = ({
           <Stack direction="row" gap={2.5} align="center" w="full">
             <CircularIcon icon={Download} size={20} variant="solid" solidColor="primary" solidRadius="default" />
             <Stack direction="col" gap={1} align="start" flex="1">
-              <Font variant="body-medium" text={isGenerating ? "Gerando PDF..." : "Salvar arquivo"} />
-              <Font variant="auxiliary" color="muted" text="Download do PDF no dispositivo" />
+              <Font variant="body-medium" text={isGenerating ? s.generatingPdf : s.saveFile} />
+              <Font variant="auxiliary" color="muted" text={s.downloadPdfDevice} />
             </Stack>
           </Stack>
         </Box>
@@ -105,8 +107,8 @@ export const SaleShareModal: React.FC<SaleShareModalProps> = ({
           <Stack direction="row" gap={2.5} align="center" w="full">
             <CircularIcon icon={Link2} size={20} variant="solid" solidColor="secondary" solidRadius="default" />
             <Stack direction="col" gap={1} align="start" flex="1">
-              <Font variant="body-medium" text="Enviar link de download" />
-              <Font variant="auxiliary" color="muted" text="Compartilhe via QR Code ou WhatsApp" />
+              <Font variant="body-medium" text={s.sendDownloadLink} />
+              <Font variant="auxiliary" color="muted" text={s.shareQrOrWhatsApp} />
             </Stack>
           </Stack>
         </Box>

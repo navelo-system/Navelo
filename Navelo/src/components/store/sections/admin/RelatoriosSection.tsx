@@ -9,6 +9,7 @@ import { KpiCard } from "@/components/store/intermediary/KpiCard"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/store/base/Table"
 import { ArrowLeft, Download, BarChart3, PieChart } from "lucide-react"
 import { Tenant, Plan } from "@/src/types/domain"
+import { UI_STRINGS } from "@/constants/strings"
 
 /** Mock type para agrupar as informações */
 interface TenantRevenueRow {
@@ -26,26 +27,27 @@ const MOCK_REVENUE: TenantRevenueRow[] = [
 export function RelatoriosSection() {
   const [hideValues, setHideValues] = React.useState<boolean>(false)
   const toggleHideValues = () => setHideValues(prev => !prev)
+  const r = UI_STRINGS.admin.reports
 
   return (
     <>
       <Stack direction="row" align="start" w="fit-content">
         <Button
           variant="ghost"
-          label="Voltar ao Painel"
+          label={r.backButton}
           icon={ArrowLeft}
           onClick={() => window.location.href = "/admin"}
         />
       </Stack>
 
       <RegistrySection
-        title="Métricas Financeiras Globais"
-        description="Consolidação de receitas, MRR, churn e crescimento."
+        title={r.metricsTitle}
+        description={r.metricsDescription}
         icon={BarChart3}
         action={
           <Button
             variant="primary"
-            label="Exportar PDF"
+            label={r.exportPdfButton}
             icon={Download}
             onClick={() => {}}
           />
@@ -53,23 +55,23 @@ export function RelatoriosSection() {
       >
         <Grid cols={3} gap={5}>
           <KpiCard
-            title="MRR (Receita Mensal)"
+            title={r.mrrCardTitle}
             value="R$ 18.420,00"
-            subtitle="Crescimento de +12.4% este mês"
+            subtitle={r.mrrCardSubtitle}
             hideValues={hideValues}
             onToggleHide={toggleHideValues}
           />
           <KpiCard
-            title="ARR (Receita Anualizada)"
+            title={r.arrCardTitle}
             value="R$ 221.040,00"
-            subtitle="Previsão baseada no MRR atual"
+            subtitle={r.arrCardSubtitle}
             hideValues={hideValues}
             onToggleHide={toggleHideValues}
           />
           <KpiCard
-            title="LTV Médio (Tempo de Vida)"
+            title={r.ltvCardTitle}
             value="R$ 1.800,00"
-            subtitle="Ticket médio acumulado por tenant"
+            subtitle={r.ltvCardSubtitle}
             hideValues={hideValues}
             onToggleHide={toggleHideValues}
           />
@@ -77,17 +79,17 @@ export function RelatoriosSection() {
       </RegistrySection>
 
       <RegistrySection 
-        title="Receita por Locatário"
-        description="Faturamento detalhado por cada empresa cadastrada."
+        title={r.revenueTitle}
+        description={r.revenueDescription}
         icon={PieChart}
       >
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead text="Empresa" />
-              <TableHead text="Plano Contratado" />
-              <TableHead align="right" text="Faturamento Anual Previsto" />
-              <TableHead align="right" text="Faturamento Mensal" />
+              <TableHead text={r.companyColumn} />
+              <TableHead text={r.planColumn} />
+              <TableHead align="right" text={r.annualRevenueColumn} />
+              <TableHead align="right" text={r.monthlyRevenueColumn} />
             </TableRow>
           </TableHeader>
           <TableBody>

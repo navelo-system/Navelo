@@ -10,6 +10,7 @@ import { Plan, PlanFormModal } from "./modals/PlanFormModal"
 import { APP_FEATURES } from "@/src/constants/features"
 import { FilterBar } from "@/components/store/intermediary/FilterBar"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
+import { UI_STRINGS } from "@/constants/strings"
 
 // eslint-disable-next-line max-lines-per-function
 export const PlansCrudSection: React.FC = () => {
@@ -61,44 +62,46 @@ export const PlansCrudSection: React.FC = () => {
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  const p = UI_STRINGS.admin.plans
+
   return (
     <>
       <Stack direction="row" align="start" w="fit-content">
         <Button
           variant="ghost"
-          label="Voltar ao Painel"
+          label={p.backButton}
           icon={ArrowLeft}
           onClick={() => window.location.href = "/admin"}
         />
       </Stack>
 
       <RegistrySection
-        title="CRUD de Planos e Features"
-        description="Gerencie os níveis de assinatura e quais módulos cada plano pode acessar."
+        title={p.title}
+        description={p.description}
         icon={CreditCard}
-        action={<Button variant="primary" label="Novo Plano" icon={Plus} onClick={handleOpenCreate} />}
+        action={<Button variant="primary" label={p.newPlanButton} icon={Plus} onClick={handleOpenCreate} />}
       >
         <Stack gap={5}>
           <FilterBar
-            searchPlaceholder="Buscar plano por nome..."
+            searchPlaceholder={p.searchPlaceholder}
             onSearch={setSearchQuery}
           />
 
           {filteredPlans.length === 0 ? (
             <EmptyState
               icon={CreditCard}
-              title="Nenhum plano encontrado"
-              subtitle="Nenhum plano corresponde ao termo pesquisado."
+              title={p.emptyTitle}
+              subtitle={p.emptySubtitle}
             />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead text="Nome do Plano" />
-                  <TableHead text="Preço Mensal" />
-                  <TableHead text="Módulos Ativos" />
-                  <TableHead text="Status" />
-                  <TableHead align="right" text="Ações" />
+                  <TableHead text={p.planNameColumn} />
+                  <TableHead text={p.monthlyPriceColumn} />
+                  <TableHead text={p.activeModulesColumn} />
+                  <TableHead text={p.statusColumn} />
+                  <TableHead align="right" text={p.actionsColumn} />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -119,9 +122,9 @@ export const PlansCrudSection: React.FC = () => {
                         <Button variant="primary-icon-xs" icon={Edit2} onClick={() => handleOpenEdit(plan)} />
                         <Button
                           variant="danger-icon-xs-confirm"
-                          confirmTitle="Excluir Plano"
-                          confirmSubtitle="Confirmar exclusão de plano"
-                          confirmParagraph="Tem certeza que deseja excluir este plano de assinatura?"
+                          confirmTitle={p.deleteConfirmTitle}
+                          confirmSubtitle={p.deleteConfirmSubtitle}
+                          confirmParagraph={p.deleteConfirmParagraph}
                           onConfirm={() => handleDelete(plan.id)}
                         />
                       </Stack>

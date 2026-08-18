@@ -14,6 +14,7 @@ import { ListSectionLayout } from "@/components/store/intermediary/ListSectionLa
 import { ViewTransition } from "@/components/store/base/ViewTransition"
 import { useUnits, dal } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface UnitItem {
   id: string
@@ -36,6 +37,7 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
 }) => {
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id
+  const s = UI_STRINGS.settings.unidades
 
   const dbUnits = useUnits(tenantId)
 
@@ -69,7 +71,7 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
   React.useEffect(() => {
     if (mode === "form") {
       setCustomBack?.(() => handleBack)
-      setCustomTitle?.(editingUnit ? "Editar Unidade" : "Nova Unidade")
+      setCustomTitle?.(editingUnit ? s.editUnitTitle : s.newUnitTitle)
       setCustomActions?.(
         <Stack direction="row" gap={2.5} align="center">
           {editingUnit && (
@@ -82,7 +84,7 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
                 setMode("list")
                 setEditingUnit(null)
               }}
-              title="Excluir unidade"
+              title={s.deleteUnitTitle}
             />
           )}
           <Button
@@ -90,12 +92,12 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
             form="unit-form"
             variant="primary-pill-icon"
             icon={Check}
-            title="Salvar unidade"
+            title={s.saveUnitTitle}
           />
         </Stack>
       )
     }
-  }, [mode, editingUnit, tenantId, setCustomBack, setCustomTitle, setCustomActions, handleBack])
+  }, [mode, editingUnit, tenantId, setCustomBack, setCustomTitle, setCustomActions, handleBack, s.editUnitTitle, s.newUnitTitle, s.deleteUnitTitle, s.saveUnitTitle])
 
   const handleCreateNew = () => {
     setEditingUnit(null)
@@ -110,8 +112,6 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
     setFormDecimals(unit.decimals.toString())
     setMode("form")
   }
-
-
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -140,9 +140,10 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
   }
 
   const getDecimalText = (decimals: number) => {
-    if (decimals === 0) return "Nenhuma casa decimal"
-    if (decimals === 1) return "1 casa decimal"
-    return `${decimals} casas decimais`
+    if (decimals === 0) return s.zeroDecimals
+    if (decimals === 1) return s.oneDecimal
+    if (decimals === 2) return s.twoDecimals
+    return s.threeDecimals
   }
 
   return (
@@ -161,8 +162,8 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
         >
           <Stack gap={5} w="full">
             <Input
-              label="* Sigla/Nome da Unidade"
-              placeholder="Ex: KG"
+              label={s.nameLabel}
+              placeholder={s.namePlaceholder}
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
               icon={Clipboard}
@@ -170,28 +171,28 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
             />
 
             <Stack gap={1} w="full">
-              <Font variant="sub-tiny-bold" text="* Casas Decimais" />
+              <Font variant="sub-tiny-bold" text={s.decimalsLabel} />
               <CustomSelect
                 value={formDecimals}
                 onChange={(val) => setFormDecimals(val)}
               >
-                <CustomSelectItem value="0" text="Nenhuma casa decimal" icon={Binary} />
-                <CustomSelectItem value="1" text="1 casa decimal" icon={Binary} />
-                <CustomSelectItem value="2" text="2 casas decimais" icon={Binary} />
-                <CustomSelectItem value="3" text="3 casas decimais" icon={Binary} />
+                <CustomSelectItem value="0" text={s.zeroDecimals} icon={Binary} />
+                <CustomSelectItem value="1" text={s.oneDecimal} icon={Binary} />
+                <CustomSelectItem value="2" text={s.twoDecimals} icon={Binary} />
+                <CustomSelectItem value="3" text={s.threeDecimals} icon={Binary} />
               </CustomSelect>
             </Stack>
           </Stack>
         </Box>
       ) : (
         <ListSectionLayout<UnitItem>
-          title="Unidades"
+          title={s.title}
           items={units}
-          searchPlaceholder="Buscar por unidade..."
+          searchPlaceholder={s.searchPlaceholder}
           searchFilterFn={(unit, query) => unit.name.toLowerCase().includes(query.toLowerCase())}
           emptyIcon={Scale}
-          emptyTitle="Nenhuma unidade cadastrada"
-          emptySubtitle="Adicione novas unidades de medida para seus produtos."
+          emptyTitle={s.emptyTitle}
+          emptySubtitle={s.emptySubtitle}
           onAdd={handleCreateNew}
           getItemKey={(unit) => unit.id}
           setCustomBack={setCustomBack}

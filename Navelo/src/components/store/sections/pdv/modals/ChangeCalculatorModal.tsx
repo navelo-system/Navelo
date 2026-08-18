@@ -3,6 +3,7 @@ import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
 import { ChangeCalculator } from "@/components/store/advanced/ChangeCalculator"
 import { DollarSign } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface ChangeCalculatorModalProps {
   isOpen: boolean
@@ -18,6 +19,7 @@ export const ChangeCalculatorModal: React.FC<ChangeCalculatorModalProps> = ({
   launchAmount
 }) => {
   const [calculatorAmount, setCalculatorAmount] = React.useState(launchAmount)
+  const m = UI_STRINGS.pdv.modals
 
   React.useEffect(() => {
     if (isOpen) {
@@ -29,10 +31,10 @@ export const ChangeCalculatorModal: React.FC<ChangeCalculatorModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Calculadora de Troco"
-      subtitle="Calcule o troco a ser entregue ao cliente."
+      title={m.changeCalculatorTitle}
+      subtitle={m.changeCalculatorSubtitle}
       icon={DollarSign}
-      successText="Confirmar Pagamento"
+      successText={m.confirmPaymentButton}
       onSuccess={() => {
         const finalAmount = calculatorAmount > 0 ? calculatorAmount : launchAmount
         onConfirm(Math.min(finalAmount, launchAmount))

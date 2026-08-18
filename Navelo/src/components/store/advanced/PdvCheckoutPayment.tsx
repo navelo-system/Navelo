@@ -23,6 +23,7 @@ import {
   X,
   Minus
 } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 // Types
 import { CartItemType } from "@/components/store/sections/pdv/pages/PdvSection"
@@ -73,6 +74,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
   onIncreaseItem,
   onDecreaseItem,
 }) => {
+  const ch = UI_STRINGS.pdv.checkout
   const [itemToRemove, setItemToRemove] = React.useState<CartItemType | null>(null)
   const [editingPaymentIdx, setEditingPaymentIdx] = React.useState<number | null>(null)
   const [editPaymentInput, setEditPaymentInput] = React.useState("")
@@ -150,7 +152,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                   <EmptyState
                     variant="simple"
                     icon={DollarSign}
-                    title="Nenhum pagamento lançado"
+                    title={ch.noPaymentsTitle}
                   />
                 )}
               </Box>
@@ -162,17 +164,17 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                 <Stack gap={1} w="full">
                   {/* Resumo da Venda */}
                   <Stack direction="row" justify="between" align="center">
-                    <Font variant="description" color="muted" text="Subtotal" />
+                    <Font variant="description" color="muted" text={ch.subtotal} />
                     <Font variant="description" text={formatPrice(subtotal)} />
                   </Stack>
 
                   <Stack direction="row" justify="between" align="center">
-                    <Font variant="description" color="muted" text="Desconto na venda" />
+                    <Font variant="description" color="muted" text={ch.discountOnSale} />
                     <Font variant="description" color={discount > 0 ? "danger" : "muted"} text={`- ${formatPrice(discount)}`} />
                   </Stack>
 
                   <Stack direction="row" justify="between" align="center">
-                    <Font variant="body-bold" text="Total" />
+                    <Font variant="body-bold" text={ch.total} />
                     <Font variant="body-bold" text={formatPrice(total)} />
                   </Stack>
 
@@ -180,12 +182,12 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
 
                   {/* Situação do Pagamento */}
                   <Stack direction="row" justify="between" align="center">
-                    <Font variant="description" color="muted" text="Total pago" />
+                    <Font variant="description" color="muted" text={ch.totalPaid} />
                     <Font variant="body-bold" color="success" text={formatPrice(totalPaid)} />
                   </Stack>
 
                   <Stack direction="row" justify="between" align="center">
-                    <Font variant="body-bold" text="Falta pagar" />
+                    <Font variant="body-bold" text={ch.amountDue} />
                     <Font variant="body-bold" color={amountDue > 0 ? "danger" : "muted"} text={formatPrice(amountDue)} />
                   </Stack>
                 </Stack>
@@ -199,7 +201,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
               <Button
                 variant="outline"
                 icon={DollarSign}
-                label="D - Dinheiro"
+                label={ch.moneyOptionShort}
                 disabled={amountDue <= 0}
                 onClick={onOpenChangeModal}
                 fullWidth
@@ -208,7 +210,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
               <Button
                 variant="outline"
                 icon={CreditCard}
-                label="C - Cartão"
+                label={ch.cardOptionShort}
                 disabled={amountDue <= 0}
                 onClick={onOpenCardModal}
                 fullWidth
@@ -217,7 +219,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
               <Button
                 variant="outline"
                 icon={Users}
-                label="N - Crediário"
+                label={ch.creditOptionShort}
                 disabled={amountDue <= 0}
                 onClick={() => onLaunchPayment("Crediário", launchAmount)}
                 fullWidth
@@ -226,7 +228,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
               <Button
                 variant="outline"
                 icon={QrCode}
-                label="P - Pix"
+                label={ch.pixOptionShort}
                 disabled={amountDue <= 0}
                 onClick={() => onLaunchPayment("Pix", launchAmount)}
                 fullWidth
@@ -239,7 +241,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
             <Button
               variant="primary-lg"
               fullWidth
-              label="Enter ou F9 - Finalizar"
+              label={ch.finalizeMobileButton}
               disabled={amountDue > 0 || total === 0}
               onClick={onFinalizeSale}
             />
@@ -255,7 +257,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
             <Stack gap={5} flex="1" minH="0" h="full" justify="between">
               <Box shrink="0" w="full">
                 <Stack gap={2.5} w="full">
-                  <Font variant="h3" text="Resumo da Conta" />
+                  <Font variant="h3" text={ch.accountSummaryTitle} />
                   <Box h="h-[2px]" bg="bg-border" w="full" />
                 </Stack>
               </Box>
@@ -284,15 +286,15 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
               <Box shrink="0" w="full">
                 <Stack gap={2.5}>
                   <Stack direction="row" justify="between" align="center">
-                    <Font variant="description" color="muted" text="Subtotal" />
+                    <Font variant="description" color="muted" text={ch.subtotal} />
                     <Font variant="description" text={formatPrice(subtotal)} />
                   </Stack>
                   <Stack direction="row" justify="between" align="center">
-                    <Font variant="description" color="muted" text="Desconto" />
+                    <Font variant="description" color="muted" text={ch.discount} />
                     <Font variant="description" color="danger" text={`-${formatPrice(discount)}`} />
                   </Stack>
                   <Stack direction="row" justify="between" align="center">
-                    <Font variant="body-bold" text="Total a Cobrar" />
+                    <Font variant="body-bold" text={ch.totalToCharge} />
                     <Font variant="h3" color="success" text={formatPrice(total)} />
                   </Stack>
                 </Stack>
@@ -305,26 +307,26 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
             <Stack gap={5} flex="1" minH="0" h="full" justify="between">
               <Box shrink="0" w="full">
                 <Stack gap={2.5} w="full">
-                  <Font variant="h3" text="Quitação de Valores" />
+                  <Font variant="h3" text={ch.settlementTitle} />
                   <Box h="h-[2px]" bg="bg-border" w="full" shrink="0" />
 
                   {/* Totalizadores de Quitação */}
                   <Grid cols={3} gap={2.5}>
                     <Box padding={2.5} border={true} borderColor="border-border" radius="default">
                       <Stack gap={1} align="center">
-                        <Font variant="sub-tiny" color="muted" text="Total" />
+                        <Font variant="sub-tiny" color="muted" text={ch.settlementTotal} />
                         <Font variant="body-bold" text={formatPrice(total)} />
                       </Stack>
                     </Box>
                     <Box padding={2.5} border={true} borderColor="border-border" radius="default">
                       <Stack gap={1} align="center">
-                        <Font variant="sub-tiny" color="muted" text="Total Pago" />
+                        <Font variant="sub-tiny" color="muted" text={ch.settlementTotalPaid} />
                         <Font variant="body-bold" color="success" text={formatPrice(totalPaid)} />
                       </Stack>
                     </Box>
                     <Box padding={2.5} border={true} borderColor="border-border" radius="default">
                       <Stack gap={1} align="center">
-                        <Font variant="sub-tiny" color="muted" text="Restante" />
+                        <Font variant="sub-tiny" color="muted" text={ch.settlementRemaining} />
                         <Font variant="body-bold" color={amountDue > 0 ? "danger" : "secondary"} text={formatPrice(amountDue)} />
                       </Stack>
                     </Box>
@@ -338,8 +340,8 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                   {payments.length === 0 ? (
                     <EmptyState
                       icon={DollarSign}
-                      title="Sem pagamentos"
-                      subtitle="Nenhum pagamento lançado."
+                      title={ch.emptyPaymentsTitle}
+                      subtitle={ch.emptyPaymentsSubtitle}
                     />
                   ) : (
                     payments.map((p, idx) => (
@@ -372,9 +374,9 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                                 <Button variant="primary-icon-xs" icon={Pencil} onClick={() => startEditPayment(idx, p.amount)} />
                                 <Button
                                   variant="danger-icon-xs-confirm"
-                                  confirmTitle="Remover Pagamento"
-                                  confirmSubtitle="Confirmar remoção de pagamento"
-                                  confirmParagraph="Tem certeza que deseja remover este lançamento de pagamento?"
+                                  confirmTitle={ch.removePaymentTitle}
+                                  confirmSubtitle={ch.removePaymentSubtitle}
+                                  confirmParagraph={ch.removePaymentParagraph}
                                   onConfirm={() => onRemovePayment(idx)}
                                 />
                               </Stack>
@@ -392,37 +394,37 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                 <Stack gap={5}>
                   <Stack gap={2.5}>
                     <Input
-                      label="Valor a Lançar (R$)"
+                      label={ch.amountToLaunchLabel}
                       placeholder="0,00"
                       value={paymentAmountInput}
                       onChange={(e) => onChangePaymentAmountInput(e.target.value)}
                     />
-                    <Font variant="body-bold" text="Lançar Forma de Pagamento" />
+                    <Font variant="body-bold" text={ch.launchPaymentMethodTitle} />
                     <Grid cols={2} gap={2.5}>
                       <Button
                         variant="outline"
-                        label="Dinheiro (Troco)"
+                        label={ch.cashChangeOption}
                         icon={DollarSign}
                         disabled={amountDue <= 0}
                         onClick={onOpenChangeModal}
                       />
                       <Button
                         variant="outline"
-                        label="Pix Instantâneo"
+                        label={ch.pixInstantOption}
                         icon={QrCode}
                         disabled={amountDue <= 0}
                         onClick={() => onLaunchPayment("Pix", launchAmount)}
                       />
                       <Button
                         variant="outline"
-                        label="Crédito/Débito"
+                        label={ch.creditDebitOption}
                         icon={CreditCard}
                         disabled={amountDue <= 0}
                         onClick={onOpenCardModal}
                       />
                       <Button
                         variant="outline"
-                        label="Crediário Fiado"
+                        label={ch.crediarioOption}
                         icon={Users}
                         disabled={amountDue <= 0}
                         onClick={() => onLaunchPayment("Crediário", launchAmount)}
@@ -433,7 +435,7 @@ export const PdvCheckoutPayment: React.FC<PdvCheckoutPaymentProps> = ({
                   <Button
                     variant="primary-lg"
                     fullWidth
-                    label="Enter ou F9 - Finalizar Venda"
+                    label={ch.finalizeSaleButton}
                     disabled={amountDue > 0 || total === 0}
                     onClick={onFinalizeSale}
                   />

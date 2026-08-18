@@ -28,9 +28,11 @@ import { PdvSangriaModal } from "@/components/store/sections/pdv/modals/PdvSangr
 import { SaleSuccessModal } from "@/components/store/sections/pdv/modals/SaleSuccessModal"
 
 import { DeliveryClientInfo, DeliveryCheckoutConfirmation, DeliveryType, PaymentMoment } from "@/components/store/advanced/DeliveryCheckoutConfirmation"
+import { UI_STRINGS } from "@/constants/strings"
 import { DeliveryRatesScreen } from "@/components/store/advanced/DeliveryRatesScreen"
 import { DeliveryRidersScreen } from "@/components/store/advanced/DeliveryRidersScreen"
 import { Rider, DeliveryRate } from "@/lib/dal"
+import { useLiveQuery } from "dexie-react-hooks"
 import { generateSaleReceiptPdf, sanitizeSaleFileName } from "@/lib/pdf/generateSaleReceipt"
 
 // Interface dos itens do carrinho
@@ -40,6 +42,7 @@ export interface CartItemType {
   quantity: number
   unitPrice: number
   image?: string
+  stock?: number
 }
 
 export interface DeliveryOrderPayload {
@@ -93,6 +96,10 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   const dbCategories = useCategories(tenantId)
   const dbTabs = useTabs(tenantId)
   const dbDeliveryOrders = useDeliveryOrders(tenantId)
+  const dbCompany = useLiveQuery(async () => {
+    if (!tenantId) return null
+    return await db.companies.get(tenantId)
+  }, [tenantId])
 
   // Mapa de id ou nome da categoria -> Nome oficial da categoria
   const categoryMap = React.useMemo(() => {
@@ -164,6 +171,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         }
 
         const subgroupName = p.subgroup && p.subgroup.trim() ? p.subgroup.trim() : undefined
+        const effectiveStock = getEffectiveAvailableStock(p.id, p.stock)
 
         return {
           id: p.id,
@@ -172,14 +180,14 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
           subgroup: subgroupName,
           unitPrice: p.price || 0,
           unit: p.unit || "UN",
-          stock: p.stock ?? 0,
+          stock: effectiveStock !== undefined && effectiveStock !== Infinity ? effectiveStock : (p.stock ?? 0),
           barcode: p.barcodes?.[0] || p.barcode || `78900000000${idx}`,
           image: p.image_url || ""
         }
       })
     }
     return []
-  }, [dbProducts, categoryMap])
+  }, [dbProducts, categoryMap, getEffectiveAvailableStock])
 
   // Configuração booleana para mostrar produtos sem estoque
   const [showOutOfStockProducts, setShowOutOfStockProducts] = React.useState<boolean>(() => {
@@ -235,18 +243,54 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   )
   const [activeCategory, setActiveCategory] = React.useState("Todos")
   const [searchQuery, setSearchQuery] = React.useState("")
-  const [viewMode, setViewMode] = React.useState<"grade" | "lista">("grade")
+  const [viewMode, setViewModeState] = React.useState<"grade" | "lista">(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("pdv_catalog_view_mode")
+      if (saved === "grade" || saved === "lista") return saved
+    }
+    return "grade"
+  })
+
+  const setViewMode = React.useCallback((mode: "grade" | "lista") => {
+    setViewModeState(mode)
+    if (typeof window !== "undefined") {
+      localStorage.setItem("pdv_catalog_view_mode", mode)
+    }
+  }, [])
   const [quantityMultiplier, setQuantityMultiplier] = React.useState(1)
 
-  // Carrega os itens da comanda salva ao abrir
+  // Carrega os itens e observação da comanda salva apenas uma vez ao abrir a comanda
+  const loadedComandaIdRef = React.useRef<string | null>(null)
   React.useEffect(() => {
     if (activeComandaId && !activeComandaId.startsWith("avulso-") && dbTabs) {
-      const activeTab = dbTabs.find((t) => t.id === activeComandaId)
-      if (activeTab && Array.isArray(activeTab.items)) {
-        setCartItems((activeTab.items as unknown) as CartItemType[])
+      if (loadedComandaIdRef.current !== activeComandaId) {
+        const activeTab = dbTabs.find((t) => t.id === activeComandaId)
+        if (activeTab) {
+          if (Array.isArray(activeTab.items)) {
+            setCartItems((activeTab.items as unknown) as CartItemType[])
+          }
+          if ((activeTab as any).observation) {
+            setObservationText((activeTab as any).observation)
+          } else {
+            setObservationText("")
+          }
+          loadedComandaIdRef.current = activeComandaId
+        }
       }
+    } else if (!activeComandaId) {
+      loadedComandaIdRef.current = null
     }
   }, [activeComandaId, dbTabs])
+
+  const enrichedCartItems: CartItemType[] = React.useMemo(() => {
+    return cartItems.map((item) => {
+      const catalogItem = catalogProducts.find((p) => p.id === item.id)
+      return {
+        ...item,
+        stock: catalogItem?.stock ?? item.stock,
+      }
+    })
+  }, [cartItems, catalogProducts])
 
   const handleSaveComandaAndExit = async () => {
     if (activeComandaId && !activeComandaId.startsWith("avulso-")) {
@@ -257,7 +301,8 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
             ...existingTab,
             items: cartItems,
             total: subtotal,
-          })
+            observation: observationText,
+          } as any)
         }
       } catch (err) {
         console.error("Erro ao salvar comanda na DAL:", err)
@@ -282,9 +327,72 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   const [isExitConfirmOpen, setIsExitConfirmOpen] = React.useState(false)
   const [isObservationModalOpen, setIsObservationModalOpen] = React.useState(false)
   const [isSangriaModalOpen, setIsSangriaModalOpen] = React.useState(false)
+  const [isSangriaObsModalOpen, setIsSangriaObsModalOpen] = React.useState(false)
   const [sangriaModalMode, setSangriaModalMode] = React.useState<"sangria" | "suprimento">("sangria")
+  const [pendingSangriaAmount, setPendingSangriaAmount] = React.useState<number>(0)
   const [observationText, setObservationText] = React.useState("")
   const [selectedCustomerName, setSelectedCustomerName] = React.useState<string | null>(null)
+
+  const handleSaveObservation = async (obs: string) => {
+    setObservationText(obs)
+    if (activeComandaId && !activeComandaId.startsWith("avulso-")) {
+      try {
+        const existingTab = await db.tabs.get(activeComandaId)
+        if (existingTab) {
+          await dal.tabs.update({
+            ...existingTab,
+            observation: obs,
+          } as any)
+        }
+      } catch (err) {
+        console.error("Erro ao sincronizar observacao na comanda:", err)
+      }
+    }
+  }
+
+  const handleSaveSangriaMovement = async (obs: string) => {
+    if (pendingSangriaAmount > 0) {
+      try {
+        const movementId = crypto.randomUUID()
+        const type = sangriaModalMode === "suprimento" ? "SUPPLY" : "BLEED"
+        const desc = obs.trim() || (sangriaModalMode === "suprimento" ? "Suprimento manual" : "Sangria manual")
+        const now = new Date().toISOString()
+
+        await db.cash_movements.add({
+          id: movementId,
+          cash_register_id: tenantId || "caixa-padrao",
+          company_id: tenantId || "demo-tenant",
+          tenant_id: tenantId || "demo-tenant",
+          type,
+          amount: pendingSangriaAmount,
+          description: desc,
+          operator_name: tenantCtx?.currentUser?.name || "Administrador",
+          created_at: now,
+        })
+
+        await db.sync_queue.add({
+          id: crypto.randomUUID(),
+          table: "cash_movements",
+          action: "INSERT",
+          tenant_id: tenantId || "demo-tenant",
+          payload: {
+            id: movementId,
+            cash_register_id: tenantId || "caixa-padrao",
+            type,
+            amount: pendingSangriaAmount,
+            description: desc,
+            operator_name: tenantCtx?.currentUser?.name || "Administrador",
+            created_at: now,
+          },
+          created_at: now,
+        })
+      } catch (err) {
+        console.error("Erro ao salvar movimentacao de sangria/suprimento:", err)
+      }
+    }
+    setIsSangriaObsModalOpen(false)
+    setPendingSangriaAmount(0)
+  }
 
   const activeClientOrTitle = React.useMemo(() => {
     if (deliveryContext?.client?.name) {
@@ -353,7 +461,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         <MobileHeaderSearch
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
-          placeholder="Pesquisar produto pelo nome..."
+          placeholder={UI_STRINGS.pdv.searchPlaceholder}
         >
           <Button
             variant="primary-pill-icon"
@@ -366,7 +474,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
       setCustomActions?.(
         <Button
           variant="ghost-primary"
-          label="F6 - Descontos na Venda"
+          label={UI_STRINGS.pdv.discountShortcutLabel}
           onClick={() => setIsDiscountModalOpen(true)}
         />
       )
@@ -402,7 +510,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   // Adicionar produto
   const handleAddProduct = (prod: MockProduct) => {
     const catalogItem = catalogProducts.find((p) => p.id === prod.id)
-    const effectiveStock = getEffectiveAvailableStock(prod.id, catalogItem?.stock)
+    const effectiveStock = catalogItem?.stock ?? prod.stock
 
     setCartItems((prev) => {
       const existing = prev.find((item) => item.id === prod.id)
@@ -418,14 +526,14 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
           item.id === prod.id ? { ...item, quantity: item.quantity + quantityMultiplier } : item
         )
       }
-      return [...prev, { id: prod.id, name: prod.name, quantity: quantityMultiplier, unitPrice: prod.unitPrice, image: prod.image }]
+      return [...prev, { id: prod.id, name: prod.name, quantity: quantityMultiplier, unitPrice: prod.unitPrice, image: prod.image, stock: effectiveStock }]
     })
     setQuantityMultiplier(1) // reseta o multiplicador
   }
 
   const handleIncrease = (id: string) => {
     const catalogItem = catalogProducts.find((p) => p.id === id)
-    const effectiveStock = getEffectiveAvailableStock(id, catalogItem?.stock)
+    const effectiveStock = catalogItem?.stock
 
     setCartItems((prev) =>
       prev.map((item) => {
@@ -539,6 +647,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         status: "COMPLETED",
         payment_method: paymentMethodsStr,
         customer_name: activeClientOrTitle !== "Nao selecionado" ? activeClientOrTitle : undefined,
+        observation: observationText.trim() || undefined,
         created_at: new Date().toISOString(),
         items: cartItems.map((item) => ({
           id: `si-${Date.now()}-${item.id}`,
@@ -554,13 +663,6 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
 
       // Geração e upload automático do comprovante PDF para o Supabase Storage
       try {
-        const companyInfo = {
-          name: tenantCtx?.currentTenant?.tradingName || tenantCtx?.currentTenant?.corporateName || tenantCtx?.platformSettings?.platformName || "Navelo PDV",
-          document: tenantCtx?.currentTenant?.cnpj,
-          phone: (tenantCtx?.currentTenant as any)?.phone,
-          logo_url: tenantCtx?.currentTenant?.logoUrl || tenantCtx?.platformSettings?.logoUrl,
-        }
-
         const saleNum = saleId.slice(-4)
         const saleReceiptData = {
           id: saleId,
@@ -579,7 +681,8 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
           })),
         }
 
-        const { base64 } = await generateSaleReceiptPdf(saleReceiptData, companyInfo)
+        const companyData = dbCompany || (tenantCtx?.currentTenant as any) || undefined
+        const { base64 } = await generateSaleReceiptPdf(saleReceiptData, companyData)
         const cleanName = sanitizeSaleFileName(`Negociacao_${saleNum}_${saleId}`)
         const fileName = `${cleanName}.pdf`
 
@@ -699,9 +802,9 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         for (const item of items) {
           if (!item.id) continue
           const catalogItem = catalogProducts.find((p) => p.id === item.id)
-          const effectiveStock = getEffectiveAvailableStock(item.id, catalogItem?.stock)
+          const effectiveStock = catalogItem?.stock
           const currentQty = next.find((c) => c.id === item.id)?.quantity ?? 0
-          const available = effectiveStock === Infinity
+          const available = effectiveStock === undefined || effectiveStock === Infinity
             ? item.quantity
             : Math.max(0, effectiveStock - currentQty)
           const qtyToAdd = Math.min(item.quantity, available)
@@ -710,7 +813,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
           if (existingIdx >= 0) {
             next[existingIdx] = { ...next[existingIdx], quantity: next[existingIdx].quantity + qtyToAdd }
           } else {
-            next.push({ id: item.id, name: item.name, quantity: qtyToAdd, unitPrice: item.unitPrice, image: item.image })
+            next.push({ id: item.id, name: item.name, quantity: qtyToAdd, unitPrice: item.unitPrice, image: item.image, stock: effectiveStock })
           }
         }
         return next
@@ -718,7 +821,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
       setNegociacoesClientFilter(null)
       setSubView("none")
     },
-    [catalogProducts, getEffectiveAvailableStock]
+    [catalogProducts]
   )
 
   if (subView === "negociacoes") {
@@ -797,7 +900,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   if (subView === "sangrias-suprimentos") {
     return (
       <NegociacoesSection
-        title="Sangrias e suprimentos"
+        title={UI_STRINGS.sangrias.sectionTitle}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
         setCustomActions={setCustomActions}
@@ -877,7 +980,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
                     onAddProduct={handleAddProduct}
                     categories={categories}
                     viewMode={viewMode}
-                    cartItems={cartItems}
+                    cartItems={enrichedCartItems}
                     onIncrease={handleIncrease}
                     onDecrease={handleDecrease}
                     onRemove={handleRemove}
@@ -890,7 +993,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
               {/* Lado Direito - Carrinho e Totais (Visível apenas no Desktop) */}
               <Box display="hidden md:flex" w="1/4" direction="col" minH="0">
                 <PdvCheckoutSidebar
-                  cartItems={cartItems}
+                  cartItems={enrichedCartItems}
                   discount={discount}
                   total={total}
                   formatPrice={formatPrice}
@@ -984,7 +1087,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
                 <Button
                   variant="primary-lg"
                   fullWidth
-                  label="Salvar alterações"
+                  label={UI_STRINGS.pdv.cart.saveChangesButton}
                   disabled={cartItems.length === 0}
                   onClick={() => deliveryContext.onSaveEdits!(cartItems, subtotal, discount, total)}
                 />
@@ -992,7 +1095,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
                 <Button
                   variant="primary-lg"
                   fullWidth
-                  label="F9 - Pagamento"
+                  label={UI_STRINGS.pdv.cart.payButton}
                   disabled={cartItems.length === 0}
                   onClick={handleGoToPayment}
                 />
@@ -1001,7 +1104,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
                 <Button
                   variant="secondary-lg"
                   fullWidth
-                  label="Salvar"
+                  label={UI_STRINGS.pdv.cart.saveButton}
                   onClick={handleSaveComandaAndExit}
                 />
               )}
@@ -1013,7 +1116,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
       <PdvCartDrawer
         isOpen={isCartDrawerOpen}
         onClose={() => setIsCartDrawerOpen(false)}
-        cartItems={cartItems}
+        cartItems={enrichedCartItems}
         discount={discount}
         total={total}
         formatPrice={formatPrice}
@@ -1048,13 +1151,22 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         customerName={activeClientOrTitle}
         showOutOfStockProducts={showOutOfStockProducts}
         onToggleShowOutOfStock={handleToggleShowOutOfStock}
+        hasCartItems={cartItems.length > 0}
+        onCancelOperation={() => {
+          setIsSidebarOpen(false)
+          if (cartItems.length === 0) {
+            onBackToDashboardRef.current()
+          } else {
+            setIsExitConfirmOpen(true)
+          }
+        }}
       />
 
       <PdvObservacaoModal
         isOpen={isObservationModalOpen}
         onClose={() => setIsObservationModalOpen(false)}
         initialObservation={observationText}
-        onSaveObservation={(obs) => setObservationText(obs)}
+        onSaveObservation={handleSaveObservation}
       />
 
       <PdvSangriaModal
@@ -1062,7 +1174,25 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         onClose={() => setIsSangriaModalOpen(false)}
         mode={sangriaModalMode}
         cashAvailable={39.00}
-        onConfirmSangria={() => {}}
+        onConfirmSangria={(amount, mode) => {
+          setPendingSangriaAmount(amount)
+          setSangriaModalMode(mode)
+          setIsSangriaModalOpen(false)
+          setIsSangriaObsModalOpen(true)
+        }}
+      />
+
+      <PdvObservacaoModal
+        isOpen={isSangriaObsModalOpen}
+        onClose={() => {
+          setIsSangriaObsModalOpen(false)
+          setPendingSangriaAmount(0)
+        }}
+        title={sangriaModalMode === "suprimento" ? "Suprimento" : "Sangria"}
+        description={`Você está fazendo ${sangriaModalMode === "suprimento" ? "um suprimento" : "uma sangria"} de ${formatPrice(pendingSangriaAmount)}.`}
+        placeholder="Observação"
+        initialObservation=""
+        onSaveObservation={handleSaveSangriaMovement}
       />
 
       {/* Modal de confirmação de saída */}

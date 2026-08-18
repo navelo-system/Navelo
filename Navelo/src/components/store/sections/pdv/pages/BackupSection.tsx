@@ -8,6 +8,7 @@ import { Button } from "@/components/store/base/Button"
 import { BackupSuccessModal } from "@/components/store/sections/pdv/modals/BackupSuccessModal"
 import { Cloud } from "lucide-react"
 import { CircularIcon } from "@/components/store/intermediary/CircularIcon"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface BackupSectionProps {
   onCancel: () => void
@@ -22,15 +23,16 @@ export const BackupSection: React.FC<BackupSectionProps> = ({
 }) => {
   const [backingUp, setBackingUp] = React.useState(false)
   const [showModal, setShowModal] = React.useState(false)
+  const s = UI_STRINGS.backup
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Backup")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   const handleBackup = () => {
     setBackingUp(true)
@@ -55,7 +57,7 @@ export const BackupSection: React.FC<BackupSectionProps> = ({
 
           <Font
             variant="description"
-            text="Faça backup dos seus dados e salve-os em um local seguro."
+            text={s.description}
             color="muted"
             align="center"
           />
@@ -64,7 +66,7 @@ export const BackupSection: React.FC<BackupSectionProps> = ({
             <Button
               type="button"
               variant="primary"
-              label={backingUp ? "Realizando backup..." : "Fazer backup"}
+              label={backingUp ? s.inProgressButton : s.exportBackupButton}
               onClick={handleBackup}
               disabled={backingUp}
             />

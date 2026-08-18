@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/store/base/Checkbox"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Monitor } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface OpcoesPedidoSectionProps {
   onCancel: () => void
@@ -28,15 +29,16 @@ export const OpcoesPedidoSection: React.FC<OpcoesPedidoSectionProps> = ({
   const [avisoSonoro, setAvisoSonoro] = React.useState(true)
   const [avisoContinuo, setAvisoContinuo] = React.useState(false)
   const [dispositivo, setDispositivo] = React.useState("dev-06")
+  const s = UI_STRINGS.orderOptions
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Opções de Pedido")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   const handleSave = () => {
     onCancel()
@@ -60,10 +62,10 @@ export const OpcoesPedidoSection: React.FC<OpcoesPedidoSectionProps> = ({
               onChange={(e) => setLogin(e.target.checked)}
             />
             <Stack gap={1} flex="1">
-              <Font variant="body-bold" text="Login do usuário" />
+              <Font variant="body-bold" text={s.askCustomerNameToggle} />
               <Font
                 variant="description"
-                text="Será obrigatório o login para realizar pedidos e acessar histórico, cartões e endereços."
+                text={UI_STRINGS.orderOptions.loginDesc}
                 color="muted"
               />
             </Stack>
@@ -78,10 +80,10 @@ export const OpcoesPedidoSection: React.FC<OpcoesPedidoSectionProps> = ({
               onChange={(e) => setBloquearForaHorario(e.target.checked)}
             />
             <Stack gap={1} flex="1">
-              <Font variant="body-bold" text="Bloquear pedidos fora do horário" />
+              <Font variant="body-bold" text={UI_STRINGS.orderOptions.blockOutOfHoursToggle} />
               <Font
                 variant="description"
-                text="Não será possível realizar pedidos fora do horário de atendimento."
+                text={UI_STRINGS.orderOptions.blockOutOfHoursDesc}
                 color="muted"
               />
             </Stack>
@@ -96,10 +98,10 @@ export const OpcoesPedidoSection: React.FC<OpcoesPedidoSectionProps> = ({
               onChange={(e) => setNotificacao(e.target.checked)}
             />
             <Stack gap={1} flex="1">
-              <Font variant="body-bold" text="Notificação" />
+              <Font variant="body-bold" text={UI_STRINGS.ifood.notificationCheckboxLabel} />
               <Font
                 variant="description"
-                text="Receberá uma notificação quando um novo pedido for recebido do Catálogo Online."
+                text={UI_STRINGS.orderOptions.notificationDesc}
                 color="muted"
               />
             </Stack>
@@ -114,10 +116,10 @@ export const OpcoesPedidoSection: React.FC<OpcoesPedidoSectionProps> = ({
               onChange={(e) => setAvisoSonoro(e.target.checked)}
             />
             <Stack gap={1} flex="1">
-              <Font variant="body-bold" text="Aviso sonoro" />
+              <Font variant="body-bold" text={UI_STRINGS.orderOptions.soundAlertToggle} />
               <Font
                 variant="description"
-                text="Será emitido um aviso sonoro quando um novo pedido for recebido."
+                text={UI_STRINGS.orderOptions.soundAlertDesc}
                 color="muted"
               />
             </Stack>
@@ -134,10 +136,10 @@ export const OpcoesPedidoSection: React.FC<OpcoesPedidoSectionProps> = ({
                   onChange={(e) => setAvisoContinuo(e.target.checked)}
                 />
                 <Stack gap={1} flex="1">
-                  <Font variant="body-bold" text="Aviso sonoro contínuo" />
+                  <Font variant="body-bold" text={UI_STRINGS.ifood.continuousSoundCheckboxLabel} />
                   <Font
                     variant="description"
-                    text='O aviso sonoro será contínuo até que o pedido do Catálogo Online seja alterado para "Aberto" ou excluído.'
+                    text={UI_STRINGS.orderOptions.continuousSoundDesc}
                     color="muted"
                   />
                 </Stack>
@@ -149,15 +151,15 @@ export const OpcoesPedidoSection: React.FC<OpcoesPedidoSectionProps> = ({
 
           {/* Selecionar dispositivo */}
           <Stack gap={2.5} w="full">
-            <Font variant="description" text="Dispositivo que receberá os pedidos" color="muted" />
+            <Font variant="description" text={UI_STRINGS.orderOptions.deviceReceivingOrdersLabel} color="muted" />
             <CustomSelect
               value={dispositivo}
               onChange={(val) => setDispositivo(val)}
-              placeholder="Selecione um dispositivo"
+              placeholder={UI_STRINGS.orderOptions.selectDevicePlaceholder}
             >
-              <CustomSelectItem value="dev-06" text="Dispositivo 06" icon={Monitor} />
-              <CustomSelectItem value="dev-01" text="Dispositivo 01" icon={Monitor} />
-              <CustomSelectItem value="dev-caixa" text="Caixa Principal" icon={Monitor} />
+              <CustomSelectItem value="dev-06" text={UI_STRINGS.orderOptions.device06} icon={Monitor} />
+              <CustomSelectItem value="dev-01" text={UI_STRINGS.orderOptions.device01} icon={Monitor} />
+              <CustomSelectItem value="dev-caixa" text={UI_STRINGS.orderOptions.mainCashierDevice} icon={Monitor} />
             </CustomSelect>
           </Stack>
         </Stack>
@@ -174,14 +176,14 @@ export const OpcoesPedidoSection: React.FC<OpcoesPedidoSectionProps> = ({
       >
         <Font
           variant="description"
-          text="ℹ️ O dispositivo selecionado receberá tanto os pedidos do Catálogo Online, quanto do Menu Digital."
+          text={UI_STRINGS.orderOptions.deviceInfoNote}
           color="muted"
         />
       </Box>
 
       {/* Botões de Ação */}
-            <FormActions
-        confirmLabel="Salvar alterações"
+      <FormActions
+        confirmLabel={UI_STRINGS.pdv.cart.saveChangesButton}
         onConfirm={handleSave}
         onCancel={onCancel}
       />

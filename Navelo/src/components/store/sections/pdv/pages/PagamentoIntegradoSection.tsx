@@ -12,6 +12,7 @@ import { Icon } from "@/components/store/base/Icon"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { LinkPosModal } from "@/components/store/sections/pdv/modals/LinkPosModal"
 import { CreditCard, Plus, Trash2 } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface PagamentoIntegradoSectionProps {
   onCancel: () => void
@@ -32,8 +33,9 @@ export const PagamentoIntegradoSection: React.FC<PagamentoIntegradoSectionProps>
 
   const [linkedPosList, setLinkedPosList] = React.useState<string[]>([])
   const [isModalOpen, setIsModalOpen] = React.useState(false)
+  const s = UI_STRINGS.integratedPayment
 
-  const pageTitle = type === "integrated" ? "Pagamento Integrado" : "Ordem de Pagamento"
+  const pageTitle = type === "integrated" ? s.title : "Ordem de Pagamento"
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
@@ -68,7 +70,7 @@ export const PagamentoIntegradoSection: React.FC<PagamentoIntegradoSectionProps>
         <Font variant="body-bold" text={type === "integrated" ? "POS's vinculados" : "POS's vinculados:"} align="left" />
         <Button
           variant="primary"
-          label="Vincular POS"
+          label={s.providerTitle}
           icon={Plus}
           onClick={() => setIsModalOpen(true)}
         />
@@ -77,8 +79,8 @@ export const PagamentoIntegradoSection: React.FC<PagamentoIntegradoSectionProps>
       {linkedPosList.length === 0 ? (
         <EmptyState
           icon={CreditCard}
-          title="Nenhum POS vinculado."
-          subtitle="Vincule um dispositivo POS para realizar pagamentos."
+          title={UI_STRINGS.pagamentoIntegrado.emptyPosTitle}
+          subtitle={UI_STRINGS.pagamentoIntegrado.emptyPosSubtitle}
         />
       ) : (
         <Stack gap={2.5} w="full">
@@ -99,7 +101,7 @@ export const PagamentoIntegradoSection: React.FC<PagamentoIntegradoSectionProps>
                 </Stack>
                 <Button
                   variant="outline"
-                  label="Desvincular"
+                  label={UI_STRINGS.common.delete}
                   icon={Trash2}
                   onClick={() => handleUnlinkPos(idx)}
                 />
@@ -126,16 +128,16 @@ export const PagamentoIntegradoSection: React.FC<PagamentoIntegradoSectionProps>
           <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" gap={5} w="full">
             <Box flex="1" w="full">
               <Input
-                label="Nome deste dispositivo"
+                label={s.terminalIdLabel}
                 value={isEditingName ? tempDeviceName : deviceName}
                 onChange={(e) => setTempDeviceName(e.target.value)}
                 disabled={!isEditingName}
-                placeholder="Digite o nome do dispositivo"
+                placeholder={s.terminalIdPlaceholder}
               />
               <Box paddingY={1}>
                 <Font
                   variant="description"
-                  text='Nome que será exibido no aplicativo "Pagamento Integrado".'
+                  text={UI_STRINGS.pagamentoIntegrado.deviceNameNote}
                   align="left"
                 />
               </Box>
@@ -143,7 +145,7 @@ export const PagamentoIntegradoSection: React.FC<PagamentoIntegradoSectionProps>
             <Box shrink="0" w="full" display="flex">
               <Button
                 variant="primary"
-                label={isEditingName ? "SALVAR" : "EDITAR"}
+                label={isEditingName ? UI_STRINGS.common.save : UI_STRINGS.common.edit}
                 onClick={handleEditClick}
               />
             </Box>

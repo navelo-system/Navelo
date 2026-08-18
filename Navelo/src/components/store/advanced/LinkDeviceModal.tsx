@@ -6,6 +6,7 @@ import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
 import { Modal } from "@/components/store/base/Modal"
 import { Barcode, LucideIcon } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface LinkDeviceModalProps {
   isOpen: boolean
@@ -19,11 +20,12 @@ export const LinkDeviceModal: React.FC<LinkDeviceModalProps> = ({
   isOpen,
   onClose,
   onConfirm,
-  appName = "Vincular Dispositivo",
+  appName,
   appIcon = Barcode
 }) => {
   const [linkCode, setLinkCode] = React.useState("")
   const [deviceName, setDeviceName] = React.useState("")
+  const pl = UI_STRINGS.posLink
 
   const handleClose = () => {
     setLinkCode("")
@@ -42,29 +44,29 @@ export const LinkDeviceModal: React.FC<LinkDeviceModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={appName}
-      subtitle="Vincule um dispositivo ao aplicativo"
+      title={appName || pl.defaultModalTitle}
+      subtitle={pl.modalSubtitle}
       icon={appIcon}
-      successText="VINCULAR"
+      successText={pl.linkButton}
       onSuccess={handleConfirm}
     >
       <Stack gap={5} w="full">
         <Stack gap={2.5} w="full">
           <Input
-            label="* Código de vinculação"
-            placeholder="Código de vinculação"
+            label={pl.linkingCodeRequiredLabel}
+            placeholder={pl.linkingCodeLabel}
             value={linkCode}
             onChange={(e) => setLinkCode(e.target.value)}
           />
           <Font
             variant="description"
-            text="Informe o código apresentado no aplicativo"
+            text={pl.linkingCodeHelpText}
           />
         </Stack>
 
         <Input
-          label="* Nome do dispositivo"
-          placeholder="Nome do dispositivo"
+          label={pl.deviceNameRequiredLabel}
+          placeholder={pl.deviceNamePlaceholder}
           value={deviceName}
           onChange={(e) => setDeviceName(e.target.value)}
         />

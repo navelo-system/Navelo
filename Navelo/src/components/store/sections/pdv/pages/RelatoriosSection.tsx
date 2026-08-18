@@ -22,6 +22,7 @@ import {
   FileSpreadsheet,
   Filter
 } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface RelatoriosSectionProps {
   onBackToDashboard: () => void
@@ -360,15 +361,15 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
       {/* Produto */}
       <Stack gap={2.5} w="full">
         <Input
-          label="Grupo"
-          placeholder="Selecione ou digite..."
+          label={UI_STRINGS.reports.groupLabel}
+          placeholder={UI_STRINGS.reports.groupPlaceholder}
           value={productGroup}
           onChange={(e) => setProductGroup(e.target.value)}
           iconRight={productGroup ? X : undefined}
         />
         <Input
-          label="Subgrupo"
-          placeholder="Selecione ou digite..."
+          label={UI_STRINGS.reports.subgroupLabel}
+          placeholder={UI_STRINGS.reports.subgroupPlaceholder}
           value={productSubgroup}
           onChange={(e) => setProductSubgroup(e.target.value)}
           iconRight={productSubgroup ? X : undefined}
@@ -377,8 +378,8 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
 
       {/* Cliente */}
       <Input
-        label="Cliente"
-        placeholder="Selecione o cliente..."
+        label={UI_STRINGS.reports.clientLabel}
+        placeholder={UI_STRINGS.reports.clientPlaceholder}
         value={client}
         onChange={(e) => setClient(e.target.value)}
         iconRight={client ? X : undefined}
@@ -386,8 +387,8 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
 
       {/* Usuário */}
       <Input
-        label="Usuário"
-        placeholder="Selecione o usuário..."
+        label={UI_STRINGS.reports.userLabel}
+        placeholder={UI_STRINGS.reports.userPlaceholder}
         value={user}
         onChange={(e) => setUser(e.target.value)}
         iconRight={user ? X : undefined}
@@ -395,8 +396,8 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
 
       {/* Dispositivo */}
       <Input
-        label="Dispositivo"
-        placeholder="Selecione o dispositivo..."
+        label={UI_STRINGS.reports.deviceLabel}
+        placeholder={UI_STRINGS.reports.devicePlaceholder}
         value={device}
         onChange={(e) => setDevice(e.target.value)}
         iconRight={device ? X : undefined}
@@ -404,7 +405,7 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
 
       {/* Custo */}
       <Stack gap={2.5} w="full">
-        <Font variant="body-sm-semibold" color="muted" text="Custo" />
+        <Font variant="body-sm-semibold" color="muted" text={UI_STRINGS.reports.costLabel} />
         <Grid cols={2} gap={2.5} w="full">
           {(["Vendido", "Atual"] as const).map((c) => {
             const isActive = cost === c
@@ -425,8 +426,8 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
       {/* Ordenação */}
       <Stack gap={2.5} w="full">
         <Stack direction="row" justify="between" align="center" w="full">
-          <Font variant="body-sm-semibold" color="muted" text="Ordenação" />
-          <Button variant="ghost" label="A-Z ▼" />
+          <Font variant="body-sm-semibold" color="muted" text={UI_STRINGS.reports.orderLabel} />
+          <Button variant="ghost" label={UI_STRINGS.reports.azSortButton} />
         </Stack>
         <Grid cols={2} gap={2.5} w="full">
           {(["Descrição", "Margem bruta"] as const).map((o) => {
@@ -493,11 +494,11 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
             <Box shrink="0" w="full">
               <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
                 <Stack gap={1} flex="1" minW="0">
-                  <Font variant="h3" text={reportDetails?.title || "Relatório"} align="left" />
+                  <Font variant="h3" text={reportDetails?.title || UI_STRINGS.reports.title} align="left" />
                   <Font variant="description" text={reportDetails?.description || ""} align="left" />
                 </Stack>
                 <Box shrink="0">
-                  <Button variant="secondary" label="Exportar CSV" icon={Download} onClick={() => {}} />
+                  <Button variant="secondary" label={UI_STRINGS.reports.exportCsvButton} icon={Download} onClick={() => {}} />
                 </Box>
               </Stack>
             </Box>
@@ -517,10 +518,10 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
                         <Stack align="center" justify="center" gap={5} w="full">
                           <Icon icon={FileSpreadsheet} size={48} color="primary" />
                           <Stack align="center" gap={1} maxWidth="5xl">
-                            <Font variant="h3" text="Exportação de Lote XML" align="center" />
-                            <Font variant="description" text="O download conterá todos os arquivos XML gerados conforme os parâmetros informados no painel de filtros." align="center" />
+                            <Font variant="h3" text={UI_STRINGS.reports.xmlExportTitle} align="center" />
+                            <Font variant="description" text={UI_STRINGS.reports.xmlExportDesc} align="center" />
                           </Stack>
-                          <Button variant="primary" label="Gerar e Baixar Lote (ZIP)" icon={Download} onClick={() => {}} />
+                          <Button variant="primary" label={UI_STRINGS.reports.generateZipButton} icon={Download} onClick={() => {}} />
                         </Stack>
                       </Box>
                     ) : (
@@ -565,7 +566,7 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
               <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
                 {renderFilterPanel(false)}
               </Box>
-              <Modal isOpen={isFilterDrawerOpen} onClose={() => setIsFilterDrawerOpen(false)} title="Filtros" variant="sidebar">
+              <Modal isOpen={isFilterDrawerOpen} onClose={() => setIsFilterDrawerOpen(false)} title={UI_STRINGS.common.filter} variant="sidebar">
                 {renderFilterPanel(true)}
               </Modal>
             </Stack>

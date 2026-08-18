@@ -1,5 +1,7 @@
 "use client"
 
+/* eslint-disable max-lines-per-function */
+
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -8,6 +10,7 @@ import { Input } from "@/components/store/base/Input"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Package, Plus, Minus } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface ManualMovementFormProps {
   products: { id: string; name: string; systemStock: number }[]
@@ -24,6 +27,7 @@ export const ManualMovementForm: React.FC<ManualMovementFormProps> = ({
   const [type, setType] = React.useState("Entrada")
   const [qty, setQty] = React.useState("")
   const [reason, setReason] = React.useState("")
+  const inv = UI_STRINGS.inventory
 
   const [prevProducts, setPrevProducts] = React.useState(products)
 
@@ -48,7 +52,7 @@ export const ManualMovementForm: React.FC<ManualMovementFormProps> = ({
         <Stack gap={5}>
           {/* Produto */}
           <Stack gap={1}>
-            <Font variant="body-sm-semibold" text="Selecionar Produto" />
+            <Font variant="body-sm-semibold" text={inv.selectProductLabel} />
             <CustomSelect value={productId} onChange={(val) => setProductId(val)}>
               {products.map((p) => (
                 <CustomSelectItem
@@ -63,18 +67,18 @@ export const ManualMovementForm: React.FC<ManualMovementFormProps> = ({
 
           {/* Tipo de Movimentação */}
           <Stack gap={1}>
-            <Font variant="body-sm-semibold" text="Tipo de Movimentação" />
+            <Font variant="body-sm-semibold" text={inv.movementTypeLabel} />
             <CustomSelect value={type} onChange={(val) => setType(val)}>
-              <CustomSelectItem value="Entrada" text="Entrada (+)" icon={Plus} />
-              <CustomSelectItem value="Saída" text="Saída (-)" icon={Minus} />
+              <CustomSelectItem value="Entrada" text={inv.entryPlusOption} icon={Plus} />
+              <CustomSelectItem value="Saída" text={inv.exitMinusOption} icon={Minus} />
             </CustomSelect>
           </Stack>
 
           {/* Quantidade */}
           <Stack gap={1}>
-            <Font variant="body-sm-semibold" text="Quantidade" />
+            <Font variant="body-sm-semibold" text={inv.quantityUnitsLabel} />
             <Input
-              placeholder="Quantidade em unidades"
+              placeholder={inv.quantityUnitsPlaceholder}
               value={qty}
               onChange={(e) => setQty(e.target.value)}
               required
@@ -83,21 +87,21 @@ export const ManualMovementForm: React.FC<ManualMovementFormProps> = ({
 
           {/* Motivação */}
           <Stack gap={1}>
-            <Font variant="body-sm-semibold" text="Motivo / Justificativa" />
+            <Font variant="body-sm-semibold" text={inv.movementReasonLabel} />
             <Input
-              placeholder="Ex: Ajuste de quebra, consumo da equipe..."
+              placeholder={inv.movementReasonPlaceholder}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
             />
           </Stack>
 
           {/* Botões */}
-                <FormActions
-        confirmLabel="Confirmar Movimentação"
-        onConfirm={() => {}}
-        isSubmit={true}
-        onCancel={onCancel}
-      />
+          <FormActions
+            confirmLabel={inv.confirmMovementButton}
+            onConfirm={() => {}}
+            isSubmit={true}
+            onCancel={onCancel}
+          />
         </Stack>
       </Box>
     </Box>

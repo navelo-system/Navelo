@@ -6,6 +6,7 @@ import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { Modal } from "@/components/store/base/Modal"
 import { ShoppingBag, Copy } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface IFoodActivationModalProps {
   isOpen: boolean
@@ -19,6 +20,8 @@ export const IFoodActivationModal: React.FC<IFoodActivationModalProps> = ({
   onActivate
 }) => {
   const [activationCode, setActivationCode] = React.useState("")
+  const s = UI_STRINGS.ifood
+  const c = UI_STRINGS.common
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText("PDDD-FPSG")
@@ -34,10 +37,10 @@ export const IFoodActivationModal: React.FC<IFoodActivationModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Ativar aplicativo"
-      subtitle="Vincule sua conta iFood com o Navelo PDV"
+      title={s.activationModalTitle}
+      subtitle={s.activationModalSubtitle}
       icon={ShoppingBag}
-      successText="CONCLUIR"
+      successText={c.finish}
       onSuccess={handleConfirm}
     >
       <Stack gap={5} w="full">
@@ -51,13 +54,13 @@ export const IFoodActivationModal: React.FC<IFoodActivationModalProps> = ({
           w="full"
         >
           <Stack align="center" gap={2.5} w="full">
-            <Font variant="description" text="Código de ativação" />
-            <Font variant="h1" text="PDDD-FPSG" />
+            <Font variant="description" text={s.activationCodeLabel} />
+            <Font variant="h1" text={s.mockActivationCode} />
             
             {/* Botão Copiar */}
             <Button
               variant="primary"
-              label="COPIAR"
+              label={c.copy}
               icon={Copy}
               onClick={handleCopyCode}
             />
@@ -67,32 +70,32 @@ export const IFoodActivationModal: React.FC<IFoodActivationModalProps> = ({
         {/* Passo 1 instrução */}
         <Font
           variant="body"
-          text="Acesse a URL abaixo e cole o código de ativação na plataforma do iFood para ativar o aplicativo."
+          text={s.step1Instruction}
           align="center"
         />
         
         <Box
           as="a"
-          href="https://portal.ifood.com.br/apps/code"
+          href={s.portalUrl}
           target="_blank"
           display="block"
         >
-          <Font variant="body-bold" color="primary" align="center" text="https://portal.ifood.com.br/apps/code" />
+          <Font variant="body-bold" color="primary" align="center" text={s.portalUrl} />
         </Box>
 
         {/* Passo 2 instrução */}
         <Font
           variant="body"
-          text="Para concluir a ativação do aplicativo, informe o código de ativação gerado pelo iFood."
+          text={s.step2Instruction}
           align="center"
         />
 
         {/* Input do código gerado */}
         <Input
-          label="* Código de ativação"
+          label={s.activationCodeInputLabel}
           value={activationCode}
           onChange={(e) => setActivationCode(e.target.value)}
-          placeholder="Cole o código retornado pelo iFood"
+          placeholder={s.activationCodeInputPlaceholder}
         />
       </Stack>
     </Modal>

@@ -9,6 +9,7 @@ import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { Check, X } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface FilterStatusOption {
   id: string
@@ -54,6 +55,8 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
   onFilter,
   children,
 }) => {
+  const common = UI_STRINGS.common
+
   return (
     <Box
       bg={borderless ? undefined : "bg-white"}
@@ -77,7 +80,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           {/* Período */}
           {periodOptions && periodOptions.length > 0 && (
             <Stack gap={2.5} w="full">
-              <Font variant="auxiliary" color="muted" text="Período" />
+              <Font variant="auxiliary" color="muted" text={common.period} />
               <Stack direction="row" wrap gap={2.5} w="full">
                 {periodOptions.map((period) => {
                   const isSelected = selectedPeriod === period
@@ -101,7 +104,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               {startDate !== undefined && (
                 <Input
                   variant="date"
-                  label="Inicial"
+                  label={common.startDate}
                   value={startDate}
                   onChange={(e) => onStartDateChange?.(e.target.value)}
                   iconRight={X}
@@ -110,7 +113,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               {endDate !== undefined && (
                 <Input
                   variant="date"
-                  label="Final"
+                  label={common.endDate}
                   value={endDate}
                   onChange={(e) => onEndDateChange?.(e.target.value)}
                   iconRight={X}
@@ -122,7 +125,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
           {/* Status Options */}
           {statusOptions && statusOptions.length > 0 && (
             <Stack gap={2.5} w="full">
-              <Font variant="auxiliary" color="muted" text="Status" />
+              <Font variant="auxiliary" color="muted" text={common.status} />
               <Stack direction="row" wrap gap={2.5} w="full">
                 {statusOptions.map((opt) => {
                   const isSelected = selectedStatusIds.includes(opt.id)
@@ -152,7 +155,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               <Box h="h-[1px]" bg="bg-border" w="full" />
               <Button
                 variant="primary"
-                label="Filtrar"
+                label={common.filterAction}
                 fullWidth
                 onClick={onFilter}
                 type="button"

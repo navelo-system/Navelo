@@ -13,6 +13,7 @@ import { Plus, Edit2, MapPin, Globe } from "lucide-react"
 
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { FormActions } from "@/components/store/intermediary/FormActions"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface CityItem {
   id: string
@@ -39,6 +40,7 @@ export const CidadesSection: React.FC<CidadesSectionProps> = ({
   setCustomTitle,
   setCustomActions
 }) => {
+  const s = UI_STRINGS.cities
   const [cities, setCities] = React.useState<CityItem[]>([
     { id: "1", name: "Abadia de Goiás", uf: "GO" },
     { id: "2", name: "Abadia dos Dourados", uf: "MG" },
@@ -71,14 +73,14 @@ export const CidadesSection: React.FC<CidadesSectionProps> = ({
 
   React.useEffect(() => {
     setCustomBack?.(() => handleBack)
-    setCustomTitle?.(mode === "form" ? (editingCity ? "Editar Cidade" : "Nova Cidade") : "Cidades")
+    setCustomTitle?.(mode === "form" ? (editingCity ? s.editCityTitle : s.newCityTitle) : s.title)
 
     if (mode === "list") {
       setCustomActions?.(
         <MobileHeaderSearch
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
-          placeholder="Buscar por cidade ou UF..."
+          placeholder={s.searchPlaceholder}
         />
       )
     } else {
@@ -90,7 +92,7 @@ export const CidadesSection: React.FC<CidadesSectionProps> = ({
       setCustomTitle?.(null)
       setCustomActions?.(null)
     }
-  }, [mode, editingCity, searchQuery, setCustomBack, setCustomTitle, setCustomActions, handleBack])
+  }, [mode, editingCity, searchQuery, setCustomBack, setCustomTitle, setCustomActions, handleBack, s.editCityTitle, s.newCityTitle, s.title, s.searchPlaceholder])
 
   const handleCreateNew = () => {
     setEditingCity(null)
@@ -149,7 +151,7 @@ export const CidadesSection: React.FC<CidadesSectionProps> = ({
           <Stack direction="row" align="center" justify="end" w="full">
             <Button
               variant="primary"
-              label="Adicionar cidade"
+              label={s.addCityButton}
               icon={Plus}
               onClick={handleCreateNew}
             />
@@ -192,9 +194,9 @@ export const CidadesSection: React.FC<CidadesSectionProps> = ({
                         />
                         <Button
                           variant="danger-icon-xs-confirm"
-                          confirmTitle="Excluir Cidade"
-                          confirmSubtitle="Confirmar exclusão de cadastro"
-                          confirmParagraph="Tem certeza que deseja excluir esta cidade cadastrada?"
+                          confirmTitle={s.deleteCityConfirmTitle}
+                          confirmSubtitle={s.deleteCityConfirmSubtitle}
+                          confirmParagraph={s.deleteCityConfirmParagraph}
                           onConfirm={() => handleDelete(city.id)}
                         />
                       </Stack>
@@ -219,8 +221,8 @@ export const CidadesSection: React.FC<CidadesSectionProps> = ({
         >
           <Stack gap={5} w="full">
             <Input
-              label="* Nome da Cidade"
-              placeholder="Ex: Goiânia"
+              label={s.cityNameLabel}
+              placeholder={s.cityNamePlaceholder}
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
               icon={MapPin}
@@ -228,7 +230,7 @@ export const CidadesSection: React.FC<CidadesSectionProps> = ({
             />
 
             <Stack gap={1} w="full">
-              <Font variant="sub-tiny-bold" text="* Estado / UF" />
+              <Font variant="sub-tiny-bold" text={s.stateUfLabel} />
               <CustomSelect
                 value={formUf}
                 onChange={(val) => setFormUf(val)}
@@ -241,7 +243,7 @@ export const CidadesSection: React.FC<CidadesSectionProps> = ({
 
             {/* Ações de Formulário */}
             <FormActions
-              confirmLabel={editingCity ? "Salvar alterações" : "Salvar cidade"}
+              confirmLabel={editingCity ? UI_STRINGS.common.save : s.saveCityButton}
               onConfirm={() => {}}
               onCancel={() => setMode("list")}
               isSubmit={true}

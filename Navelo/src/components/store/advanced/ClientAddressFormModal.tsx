@@ -9,6 +9,7 @@ import { Grid } from "@/components/store/base/Grid"
 import { Input } from "@/components/store/base/Input"
 import { Form } from "@/components/store/base/Form"
 import { MapPin } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface AddressFormData {
   id?: string
@@ -42,6 +43,8 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
   const [complement, setComplement] = React.useState("")
   const [neighborhood, setNeighborhood] = React.useState("")
   const [city, setCity] = React.useState("")
+  const cust = UI_STRINGS.customers
+  const common = UI_STRINGS.common
 
   React.useEffect(() => {
     if (isOpen) {
@@ -89,17 +92,19 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
-    if (!name.trim()) return
+
+    const finalName = name.trim() || "Principal"
 
     onSave({
       id: initialData?.id,
-      name: name.trim(),
+      name: finalName,
       zip: zip.trim(),
       street: street.trim(),
-      number: number.trim(),
+      number: number.trim() || "S/N",
       complement: complement.trim(),
       neighborhood: neighborhood.trim(),
       city: city.trim(),
+      reference_point: initialData?.reference_point,
     })
 
     onClose()
@@ -110,17 +115,18 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
       <Modal
         isOpen={isOpen}
         onClose={onClose}
-        title={initialData ? "Editar Endereço" : "Dados do endereço"}
-        subtitle="Preencha as informações do endereço para entregas."
+        title={initialData ? cust.addressModalTitleEdit : cust.addressModalTitleNew}
+        subtitle={cust.addressModalSubtitle}
         icon={MapPin}
-        successText={initialData ? "Salvar" : "Adicionar"}
+        successText={initialData ? common.save : cust.addButton}
         isSubmit={true}
+        onSuccess={handleSubmit}
       >
         <Stack gap={2.5}>
           {/* 1. * Nome do Endereço */}
           <Input
-            label="* Nome do Endereço"
-            placeholder="Ex: Casa, Trabalho"
+            label={cust.addressNameLabel}
+            placeholder={cust.addressNamePlaceholder}
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -129,9 +135,9 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
           {/* 2. CEP */}
           <Grid cols={2} gap={2.5}>
             <Input
-              label="CEP"
+              label={cust.cepLabel}
               variant="cep"
-              placeholder="00000-000"
+              placeholder={cust.cepPlaceholder}
               value={zip}
               onChange={handleZipChange}
             />
@@ -139,8 +145,8 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
 
           {/* 3. Logradouro */}
           <Input
-            label="Logradouro"
-            placeholder="Rua, Avenida..."
+            label={cust.streetLabel}
+            placeholder={cust.streetPlaceholder}
             value={street}
             onChange={(e) => setStreet(e.target.value)}
           />
@@ -148,14 +154,14 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
           {/* 4. Número e Complemento */}
           <Grid cols={2} gap={2.5}>
             <Input
-              label="Número"
-              placeholder="Ex: 123"
+              label={cust.numberLabel}
+              placeholder={cust.numberPlaceholder}
               value={number}
               onChange={(e) => setNumber(e.target.value)}
             />
             <Input
-              label="Complemento"
-              placeholder="Apto, Bloco..."
+              label={cust.complementLabel}
+              placeholder={cust.complementPlaceholder}
               value={complement}
               onChange={(e) => setComplement(e.target.value)}
             />
@@ -163,16 +169,16 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
 
           {/* 5. Bairro */}
           <Input
-            label="Bairro"
-            placeholder="Nome do bairro"
+            label={cust.neighborhoodLabel}
+            placeholder={cust.neighborhoodPlaceholder}
             value={neighborhood}
             onChange={(e) => setNeighborhood(e.target.value)}
           />
 
           {/* 6. * Cidade */}
           <Input
-            label="* Cidade"
-            placeholder="Nome da cidade"
+            label={cust.cityLabel}
+            placeholder={cust.cityPlaceholder}
             value={city}
             onChange={(e) => setCity(e.target.value)}
             required

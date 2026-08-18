@@ -8,6 +8,7 @@ import { Icon } from "@/components/store/base/Icon"
 import { Button } from "@/components/store/base/Button"
 import { SettingsModal } from "./SettingsModal"
 import { Eye, LogOut, Settings, Store } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 
 const useHeaderScroll = () => {
@@ -44,6 +45,7 @@ const useHeaderScroll = () => {
 }
 
 export const Header: React.FC = () => {
+  const common = UI_STRINGS.common
   const [isSettingsOpen, setIsSettingsOpen] = React.useState(false)
   const [logoUrl, setLogoUrl] = React.useState<string>("")
   const [isEyeActive, setIsEyeActive] = React.useState(false)
@@ -70,7 +72,7 @@ export const Header: React.FC = () => {
           ) : (
             <Stack direction="row" align="center" gap={2.5} h="h-8">
               <Icon icon={Store} size={32} color="brand-secondary" />
-              <Font variant="body-bold" color="brand-secondary" text="Sua Logo" />
+              <Font variant="body-bold" color="brand-secondary" text={common.yourLogo} />
             </Stack>
           )}
         </Stack>
@@ -101,7 +103,7 @@ export const Header: React.FC = () => {
                 />
                 <Button variant="danger-pill-icon" icon={LogOut} />
               </Stack>
-              <Button variant="secondary-sm" label="Administrador" icon={LogOut} justify="center" />
+              <Button variant="secondary-sm" label={common.administrator} icon={LogOut} justify="center" />
           </Stack>
         </Box>
       </Stack>

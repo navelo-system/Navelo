@@ -11,6 +11,7 @@ import { Switch } from "@/components/store/base/Switch"
 import { Font } from "@/components/store/base/Font"
 import { ArrowLeft, Save, Upload, Palette, Settings } from "lucide-react"
 import { GlobalConfig } from "@/src/types/domain"
+import { UI_STRINGS } from "@/constants/strings"
 
 const MOCK_CONFIG: GlobalConfig = {
   systemName: "Navelo SaaS",
@@ -27,7 +28,7 @@ const MOCK_CONFIG: GlobalConfig = {
 // eslint-disable-next-line max-lines-per-function
 export function ConfiguracoesSection() {
   const [config, setConfig] = React.useState<GlobalConfig>(MOCK_CONFIG)
-
+  const s = UI_STRINGS.admin.settings
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -59,28 +60,28 @@ export function ConfiguracoesSection() {
       <Stack direction="row" align="start" w="fit-content">
         <Button
           variant="ghost"
-          label="Voltar ao Painel"
+          label={s.backButton}
           icon={ArrowLeft}
           onClick={() => window.location.href = "/admin"}
         />
       </Stack>
 
       <RegistrySection 
-        title="Parâmetros do Sistema"
-        description="Defina os parâmetros operacionais da plataforma SaaS."
+        title={s.systemParamsTitle}
+        description={s.systemParamsDesc}
         icon={Settings}
       >
         <Stack gap={5}>
           <Input
-            label="Nome da Plataforma"
-            placeholder="Digite o nome da plataforma"
+            label={s.platformNameLabel}
+            placeholder={s.platformNamePlaceholder}
             value={config.systemName}
             onChange={(e) => setConfig({ ...config, systemName: e.target.value })}
           />
 
           <Input
-            label="E-mail de Suporte Administrativo"
-            placeholder="Ex: suporte@empresa.com"
+            label={s.adminEmailSupportLabel}
+            placeholder={s.adminEmailSupportPlaceholder}
             value={config.adminEmail}
             onChange={(e) => setConfig({ ...config, adminEmail: e.target.value })}
           />
@@ -88,8 +89,8 @@ export function ConfiguracoesSection() {
           <Stack gap={5}>
             <Stack direction="row" align="center" justify="between">
               <Stack gap={1}>
-                <Font variant="body-bold" text="Permitir novos cadastros" />
-                <Font variant="auxiliary" text="Novos locatários podem se registrar de forma autônoma." />
+                <Font variant="body-bold" text={s.allowRegistrationLabel} />
+                <Font variant="auxiliary" text={s.allowRegistrationDesc} />
               </Stack>
               <Switch
                 checked={config.allowRegistration}
@@ -99,8 +100,8 @@ export function ConfiguracoesSection() {
 
             <Stack direction="row" align="center" justify="between">
               <Stack gap={1}>
-                <Font variant="body-bold" text="Modo de manutenção" />
-                <Font variant="auxiliary" text="Bloqueia temporariamente o acesso de todos os inquilinos." />
+                <Font variant="body-bold" text={s.maintenanceModeLabel} />
+                <Font variant="auxiliary" text={s.maintenanceModeDesc} />
               </Stack>
               <Switch
                 checked={config.maintenanceMode}
@@ -112,21 +113,21 @@ export function ConfiguracoesSection() {
       </RegistrySection>
 
       <RegistrySection 
-        title="Identidade Visual & Cores (Whitelabel)"
-        description="Personalize as cores e o logotipo de sua plataforma."
+        title={s.visualIdentityTitle}
+        description={s.visualIdentityDesc}
         icon={Palette}
       >
         <Stack gap={5}>
           <Grid cols={2} gap={5}>
             <Input
               type="color"
-              label="Cor Primária (Tema)"
+              label={s.primaryColorLabel}
               value={config.whitelabel.primaryColor}
               onChange={(e) => setConfig({ ...config, whitelabel: { ...config.whitelabel, primaryColor: e.target.value } })}
             />
             <Input
               type="color"
-              label="Cor Secundária (Destaques)"
+              label={s.secondaryColorLabel}
               value={config.whitelabel.secondaryColor}
               onChange={(e) => setConfig({ ...config, whitelabel: { ...config.whitelabel, secondaryColor: e.target.value } })}
             />
@@ -135,8 +136,8 @@ export function ConfiguracoesSection() {
           <Stack gap={2.5}>
             <Input
               variant="image-upload"
-              label="Logotipo da Plataforma"
-              placeholder="Clique ou arraste para enviar logotipo customizado"
+              label={s.platformLogoLabel}
+              placeholder={s.platformLogoPlaceholder}
               icon={Upload}
               onChange={handleLogoChange}
             />
@@ -149,7 +150,7 @@ export function ConfiguracoesSection() {
                 </Box>
                 <Button
                   variant="outline"
-                  label="Remover Logotipo"
+                  label={s.removeLogoButton}
                   onClick={() => setConfig({ ...config, whitelabel: { ...config.whitelabel, logoUrl: "" } })}
                 />
               </Stack>
@@ -159,7 +160,7 @@ export function ConfiguracoesSection() {
           <Stack direction="row" justify="end">
             <Button
               variant="primary"
-              label="Salvar Alterações"
+              label={s.saveChangesButton}
               icon={Save}
               onClick={handleSave}
             />

@@ -11,6 +11,7 @@ import { Button } from "@/components/store/base/Button"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 import { Upload, LucideIcon, Building, MapPin, User, Phone, FileText } from "lucide-react"
 import { WhatsAppIcon } from "@/components/store/base/WhatsAppIcon"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface CompanyDataFormProps {
   onCancel: () => void
@@ -21,6 +22,7 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
   onCancel,
   onSave
 }) => {
+  const cd = UI_STRINGS.companyData
   const [logo, setLogo] = React.useState<string | null>("/logo-default.svg")
   const [razaoSocial, setRazaoSocial] = React.useState("NAVELO PDV")
   const [nomeFantasia, setNomeFantasia] = React.useState("NAVELO PDV")
@@ -95,17 +97,17 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
                 <Box
                   as="img"
                   src={logo}
-                  alt="Logo da empresa"
+                  alt={cd.logoAlt}
                   w="h-16"
                   h="h-16"
                   objectFit="contain"
                   cursor="pointer"
                   onClick={() => logoFileInputRef.current?.click()}
-                  title="Clique na imagem para alterar o logotipo"
+                  title={cd.clickToChangeLogoTitle}
                 />
                 <Button
                   variant="secondary"
-                  label="Remover logo"
+                  label={cd.removeLogoButton}
                   onClick={() => setLogo(null)}
                 />
               </Stack>
@@ -113,7 +115,7 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
               <Box w="full">
                 <Input
                   variant="image-upload"
-                  placeholder="Clique ou arraste para enviar o logotipo"
+                  placeholder={cd.uploadLogoPlaceholder}
                   icon={Upload}
                   onChange={handleLogoChange}
                 />
@@ -125,26 +127,26 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
         {/* Dados Gerais */}
         <Stack gap={5} w="full">
           <Input
-            label="* Razão social"
+            label={cd.corporateReasonLabel}
             value={razaoSocial}
             onChange={(e) => setRazaoSocial(e.target.value)}
             icon={Building}
           />
           <Input
-            label="* Nome fantasia"
+            label={cd.tradeNameLabel}
             value={nomeFantasia}
             onChange={(e) => setNomeFantasia(e.target.value)}
             icon={Building}
           />
           <Input
-            label="CNPJ"
+            label={cd.cnpjLabel}
             variant="cnpj"
             value={cnpj}
             onChange={(e) => setCnpj(e.target.value)}
             icon={FileText}
           />
           <Input
-            label="IE"
+            label={cd.ieLabel}
             value={ie}
             onChange={(e) => setIe(e.target.value)}
             icon={FileText}
@@ -153,11 +155,11 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
 
         {/* Seção Endereço */}
         <Stack gap={5} w="full">
-          <Font variant="body-bold" text="Endereço" />
+          <Font variant="body-bold" text={cd.addressSectionTitle} />
           <Stack direction="row" gap={5} w="full">
             <Box w="w-full md:w-1/3">
               <Input
-                label="* CEP"
+                label={cd.cepLabel}
                 variant="cep"
                 value={cep}
                 onChange={(e) => setCep(e.target.value)}
@@ -166,7 +168,7 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
             </Box>
           </Stack>
           <Input
-            label="* Logradouro"
+            label={cd.streetLabel}
             value={logradouro}
             onChange={(e) => setLogradouro(e.target.value)}
             icon={MapPin}
@@ -174,7 +176,7 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
           <Stack direction="row" gap={5} w="full">
             <Box flex="1">
               <Input
-                label="* Número"
+                label={cd.numberLabel}
                 value={numero}
                 onChange={(e) => setNumero(e.target.value)}
                 icon={MapPin}
@@ -182,7 +184,7 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
             </Box>
             <Box flex="1">
               <Input
-                label="Complemento"
+                label={cd.complementLabel}
                 value={complemento}
                 onChange={(e) => setComplemento(e.target.value)}
                 icon={MapPin}
@@ -190,13 +192,13 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
             </Box>
           </Stack>
           <Input
-            label="* Bairro"
+            label={cd.neighborhoodLabel}
             value={bairro}
             onChange={(e) => setBairro(e.target.value)}
             icon={MapPin}
           />
           <Input
-            label="* Cidade"
+            label={cd.cityLabel}
             value={cidade}
             onChange={(e) => setCidade(e.target.value)}
             icon={MapPin}
@@ -205,15 +207,15 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
 
         {/* Seção Contato */}
         <Stack gap={5} w="full">
-          <Font variant="body-bold" text="Contato" />
+          <Font variant="body-bold" text={cd.contactSectionTitle} />
           <Input
-            label="Nome"
+            label={cd.contactNameLabel}
             value={contatoNome}
             onChange={(e) => setContatoNome(e.target.value)}
             icon={User}
           />
           <Input
-            label="Telefone"
+            label={cd.contactPhoneLabel}
             variant="phone"
             icon={Phone}
             iconRight={WhatsAppIcon as unknown as LucideIcon}
@@ -223,7 +225,7 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
         </Stack>
 
         <FormActions
-          confirmLabel="Salvar alterações"
+          confirmLabel={cd.saveChangesButton}
           onConfirm={() => {}}
           isSubmit={true}
           onCancel={onCancel}

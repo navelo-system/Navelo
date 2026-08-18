@@ -5,21 +5,24 @@ import { RegistrySection } from "@/components/store/advanced/RegistrySection"
 import { BentoModulesGrid } from "@/components/store/intermediary/BentoModulesGrid"
 import { AuditLogTable } from "@/components/store/intermediary/AuditLogTable"
 import { LayoutDashboard, History } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export function DashboardSection() {
+  const d = UI_STRINGS.admin.dashboard
+
   return (
     <>
       <RegistrySection
         icon={LayoutDashboard}
-        title="Olá, Administrador 👋"
-        description="Selecione o módulo que deseja acessar para gerenciar a plataforma."
+        title={d.title}
+        description={d.description}
       >
         <BentoModulesGrid />
       </RegistrySection>
 
       <RegistrySection
-        title="Atividades Recentes"
-        description="Últimos 5 logs registrados na plataforma."
+        title={d.activitiesTitle}
+        description={d.activitiesDescription}
         icon={History}
       >
         <AuditLogTable />

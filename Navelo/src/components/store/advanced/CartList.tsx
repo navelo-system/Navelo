@@ -5,6 +5,7 @@ import { Font } from "@/components/store/base/Font"
 import { CartItem } from "@/components/store/intermediary/CartItem"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { ShoppingCart } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface CartListItemType {
   id: string
@@ -12,6 +13,7 @@ export interface CartListItemType {
   quantity: number
   unitPrice: number
   image?: string
+  stock?: number
 }
 
 export interface CartListProps {
@@ -31,12 +33,14 @@ export const CartList: React.FC<CartListProps> = ({
   hideHeader = false,
   flushContent = false,
 }) => {
+  const cartStrings = UI_STRINGS.pdv.cart
+
   return (
     <Box padding={0} bg="bg-surface" radius="default" flex="1" display="flex" direction="col" overflow="hidden" minH="0">
       {!hideHeader && (
         <>
           <Box padding={5} bg="bg-surface">
-            <Font variant="h3" text="Carrinho" />
+            <Font variant="h3" text={cartStrings.title} />
           </Box>
           <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
         </>
@@ -47,8 +51,8 @@ export const CartList: React.FC<CartListProps> = ({
           {items.length === 0 ? (
             <EmptyState
               icon={ShoppingCart}
-              title="Carrinho vazio"
-              subtitle="Adicione produtos ao carrinho para iniciar uma venda."
+              title={cartStrings.emptyTitle}
+              subtitle={cartStrings.emptyCartSubtitle}
             />
           ) : (
             items.map((item, idx) => (

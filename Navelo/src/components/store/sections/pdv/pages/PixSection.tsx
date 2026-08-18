@@ -12,6 +12,7 @@ import { Switch } from "@/components/store/base/Switch"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Icon } from "@/components/store/base/Icon"
 import { ShoppingBag, Globe, Info, Key } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface PixSectionProps {
   onCancel: () => void
@@ -32,15 +33,16 @@ export const PixSection: React.FC<PixSectionProps> = ({
   const [beneficiaryName, setBeneficiaryName] = React.useState("js soluções")
   const [beneficiaryCity, setBeneficiaryCity] = React.useState("Teófilo Otoni")
   const [additionalInfo, setAdditionalInfo] = React.useState("")
+  const s = UI_STRINGS.pix
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Pix")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   const handleSave = () => {
     // Simulação de salvamento
@@ -60,10 +62,10 @@ export const PixSection: React.FC<PixSectionProps> = ({
       >
         <Stack gap={5} w="full">
           <Stack gap={1}>
-            <Font variant="body-bold" text="QR Code Pix" />
+            <Font variant="body-bold" text={s.keyTitle} />
             <Font
               variant="description"
-              text="Quando habilitado, o sistema apresentará o QR Code da chave Pix na finalização da compra."
+              text={s.autoConfirmDesc}
             />
           </Stack>
 
@@ -74,7 +76,7 @@ export const PixSection: React.FC<PixSectionProps> = ({
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
               <Stack direction="row" align="center" gap={2.5}>
                 <Icon icon={ShoppingBag} size={20} color="muted" />
-                <Font variant="body" text="Caixa" />
+                <Font variant="body" text={UI_STRINGS.modules.caixa} />
               </Stack>
               <Switch
                 checked={caixaEnabled}
@@ -85,7 +87,7 @@ export const PixSection: React.FC<PixSectionProps> = ({
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
               <Stack direction="row" align="center" gap={2.5}>
                 <Icon icon={Globe} size={20} color="muted" />
-                <Font variant="body" text="Catálogo Online" />
+                <Font variant="body" text={UI_STRINGS.onlineCatalog.title} />
               </Stack>
               <Switch
                 checked={catalogoEnabled}
@@ -121,38 +123,38 @@ export const PixSection: React.FC<PixSectionProps> = ({
               </Box>
               <Font
                 variant="description"
-                text="A confirmação do pagamento deve ser feita por ferramenta própria da sua instituição financeira."
+                text={s.autoConfirmDesc}
               />
             </Stack>
           </Box>
 
           {/* Campos do Formulário */}
           <Stack gap={2.5} w="full">
-            <Font variant="body-bold" text="Tipo de chave" />
+            <Font variant="body-bold" text={s.keyTypeLabel} />
             <CustomSelect
               value={keyType}
               onChange={setKeyType}
             >
-              <CustomSelectItem value="CPF/CNPJ" text="CPF/CNPJ" icon={Key} />
-              <CustomSelectItem value="E-mail" text="E-mail" icon={Key} />
-              <CustomSelectItem value="Telefone" text="Telefone" icon={Key} />
-              <CustomSelectItem value="Chave Aleatória" text="Chave Aleatória" icon={Key} />
+              <CustomSelectItem value="CPF/CNPJ" text={s.cpfCnpjOption} icon={Key} />
+              <CustomSelectItem value="E-mail" text={s.emailOption} icon={Key} />
+              <CustomSelectItem value="Telefone" text={s.phoneOption} icon={Key} />
+              <CustomSelectItem value="Chave Aleatória" text={s.randomKeyOption} icon={Key} />
             </CustomSelect>
           </Stack>
 
           <Input
-            label="* Chave pix"
+            label={s.keyLabel}
             value={pixKey}
             onChange={(e) => setPixKey(e.target.value)}
-            placeholder="Digite a sua chave Pix"
+            placeholder={s.keyPlaceholder}
           />
 
           <Stack gap={1} w="full">
             <Input
-              label="* Nome do beneficiário"
+              label={s.holderNameLabel}
               value={beneficiaryName}
               onChange={(e) => setBeneficiaryName(e.target.value.slice(0, 25))}
-              placeholder="Nome do beneficiário"
+              placeholder={s.holderNamePlaceholder}
             />
             <Stack direction="row" justify="end" w="full" gap={0}>
               <Font
@@ -164,10 +166,10 @@ export const PixSection: React.FC<PixSectionProps> = ({
 
           <Stack gap={1} w="full">
             <Input
-              label="* Cidade do beneficiário"
+              label={s.cityLabel}
               value={beneficiaryCity}
               onChange={(e) => setBeneficiaryCity(e.target.value.slice(0, 15))}
-              placeholder="Cidade do beneficiário"
+              placeholder={s.cityPlaceholder}
             />
             <Stack direction="row" justify="end" w="full" gap={0}>
               <Font
@@ -178,16 +180,16 @@ export const PixSection: React.FC<PixSectionProps> = ({
           </Stack>
 
           <Input
-            label="Informação adicional"
+            label={UI_STRINGS.fiscal.additionalInfoLabel}
             value={additionalInfo}
             onChange={(e) => setAdditionalInfo(e.target.value)}
-            placeholder="Informação adicional para o Pix"
+            placeholder={UI_STRINGS.fiscal.additionalInfoLabel}
           />
         </Stack>
       </Box>
 
       <FormActions
-        confirmLabel="Salvar alterações"
+        confirmLabel={UI_STRINGS.pdv.cart.saveChangesButton}
         onConfirm={handleSave}
         onCancel={onCancel}
       />

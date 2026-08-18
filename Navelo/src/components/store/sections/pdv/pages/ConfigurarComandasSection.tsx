@@ -14,6 +14,7 @@ import { Badge } from "@/components/store/base/Badge"
 import { Form } from "@/components/store/advanced/Form"
 import { Plus, Edit2, Receipt } from "lucide-react"
 import { FormActions } from "@/components/store/intermediary/FormActions"
+import { UI_STRINGS, formatString } from "@/constants/strings"
 
 export interface ComandaItem {
   id: string
@@ -41,6 +42,7 @@ export const ConfigurarComandasSection: React.FC<ConfigurarComandasSectionProps>
 
   const [mode, setMode] = React.useState<"list" | "form">("list")
   const [editingComanda, setEditingComanda] = React.useState<ComandaItem | null>(null)
+  const s = UI_STRINGS.tabsConfig
   
   // Form states
   const [formNumber, setFormNumber] = React.useState("")
@@ -56,13 +58,13 @@ export const ConfigurarComandasSection: React.FC<ConfigurarComandasSectionProps>
 
   React.useEffect(() => {
     setCustomBack?.(() => handleBack)
-    setCustomTitle?.(mode === "form" ? (editingComanda ? "Editar comanda" : "Nova comanda") : "Configurar comandas")
+    setCustomTitle?.(mode === "form" ? (editingComanda ? s.editTabTitle : s.newTabTitle) : s.title)
 
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, handleBack, mode, editingComanda])
+  }, [setCustomBack, setCustomTitle, handleBack, mode, editingComanda, s.editTabTitle, s.newTabTitle, s.title])
 
   const handleAddClick = () => {
     setEditingComanda(null)
@@ -117,8 +119,8 @@ export const ConfigurarComandasSection: React.FC<ConfigurarComandasSectionProps>
           <Form onSubmit={handleSave}>
             <Stack gap={5} w="full">
               <Input
-                label="* Número/Código da Comanda"
-                placeholder="Ex: 05"
+                label={s.tabNumberLabel}
+                placeholder={s.tabNumberPlaceholder}
                 value={formNumber}
                 onChange={(e) => setFormNumber(e.target.value)}
                 required
@@ -126,7 +128,7 @@ export const ConfigurarComandasSection: React.FC<ConfigurarComandasSectionProps>
 
               {/* Botões de Ações no Rodapé do Formulário */}
               <FormActions
-                confirmLabel={editingComanda ? "Salvar alterações" : "Adicionar comanda"}
+                confirmLabel={editingComanda ? UI_STRINGS.common.save : s.addTabButton}
                 onConfirm={() => {}}
                 onCancel={() => {
                   setMode("list")
@@ -154,13 +156,13 @@ export const ConfigurarComandasSection: React.FC<ConfigurarComandasSectionProps>
         >
           <Stack gap={5} align="center" justify="center" w="full">
             <EmptyState
-              title="Nenhuma comanda cadastrada"
-              subtitle="Cadastre comandas para gerenciar o lançamento de pedidos."
+              title={s.emptyTitle}
+              subtitle={s.emptySubtitle}
               icon={Receipt}
             />
             <Button
               variant="primary"
-              label="Adicionar comanda"
+              label={s.addTabButton}
               icon={Plus}
               onClick={handleAddClick}
             />
@@ -170,10 +172,10 @@ export const ConfigurarComandasSection: React.FC<ConfigurarComandasSectionProps>
         <Stack gap={5} w="full">
           {/* Cabeçalho de Controle */}
           <Stack direction="row" align="center" justify="between" w="full">
-            <Font variant="body-bold" text="Comandas" />
+            <Font variant="body-bold" text={s.tabsTableTitle} />
             <Button
               variant="primary"
-              label="Adicionar comanda"
+              label={s.addTabButton}
               icon={Plus}
               onClick={handleAddClick}
             />
@@ -191,21 +193,21 @@ export const ConfigurarComandasSection: React.FC<ConfigurarComandasSectionProps>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead text="Identificação" />
-                  <TableHead text="Status" />
-                  <TableHead text="Ações" align="right" w="w-[100px]" />
+                  <TableHead text={s.identificationCol} />
+                  <TableHead text={s.statusCol} />
+                  <TableHead text={s.actionsCol} align="right" w="w-[100px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {comandas.map((comanda) => (
                   <TableRow key={comanda.id}>
                     <TableCell>
-                      <Font variant="body-bold" text={`Comanda ${comanda.number}`} />
+                      <Font variant="body-bold" text={formatString(s.tabItemNameTemplate, { number: comanda.number })} />
                     </TableCell>
                     <TableCell>
                       <Badge
                         variant={comanda.status === "available" ? "success" : "secondary"}
-                        label={comanda.status === "available" ? "Disponível" : "Em uso"}
+                        label={comanda.status === "available" ? s.statusAvailable : s.statusInUse}
                       />
                     </TableCell>
                     <TableCell>
@@ -217,9 +219,9 @@ export const ConfigurarComandasSection: React.FC<ConfigurarComandasSectionProps>
                         />
                         <Button
                           variant="danger-icon-xs-confirm"
-                          confirmTitle="Excluir Comanda"
-                          confirmSubtitle="Confirmar exclusão de comanda"
-                          confirmParagraph="Tem certeza que deseja excluir esta comanda?"
+                          confirmTitle={s.deleteConfirmTitle}
+                          confirmSubtitle={s.deleteConfirmSubtitle}
+                          confirmParagraph={s.deleteConfirmParagraph}
                           onConfirm={() => handleDeleteClick(comanda.id)}
                         />
                       </Stack>

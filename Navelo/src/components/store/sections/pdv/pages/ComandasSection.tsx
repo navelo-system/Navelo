@@ -14,6 +14,7 @@ import { ComandasMenuSidebar } from "@/components/store/sections/pdv/modals/Coma
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { Receipt, Menu } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface ComandaItem {
   id: string
@@ -83,6 +84,7 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false)
   const [gridColumns, gridContainerRef] = useGridColumnCount(130, 20)
+  const s = UI_STRINGS.tables
 
   const filtered = comandas.filter((c) =>
     c.label.toLowerCase().includes(searchQuery.toLowerCase()) || c.id.includes(searchQuery)
@@ -99,7 +101,7 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
       <MobileHeaderSearch
         searchQuery={searchQuery}
         onSearchQueryChange={setSearchQuery}
-        placeholder="Pesquisar comanda ativa..."
+        placeholder={s.searchComandaPlaceholder}
       >
         <Button
           variant="primary-pill-icon"
@@ -110,7 +112,7 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
     )
 
     return () => setCustomActions?.(null)
-  }, [setCustomActions, searchQuery])
+  }, [setCustomActions, searchQuery, s.searchComandaPlaceholder])
 
 
   return (
@@ -121,8 +123,8 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
         {filtered.length === 0 ? (
           <EmptyState
             icon={Receipt}
-            title="Nenhuma comanda ativa"
-            subtitle="Abra uma comanda pelo menu para iniciar o consumo."
+            title={s.emptyComandasTitle}
+            subtitle={s.emptyComandasSubtitle}
           />
         ) : (
           <Box ref={gridContainerRef} w="full">

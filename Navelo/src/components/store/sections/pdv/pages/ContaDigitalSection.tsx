@@ -17,6 +17,7 @@ import {
   Smartphone,
   ExternalLink
 } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface ContaDigitalSectionProps {
   onCancel: () => void
@@ -29,12 +30,73 @@ export const ContaDigitalSection: React.FC<ContaDigitalSectionProps> = ({
   setCustomBack,
   setCustomTitle
 }) => {
-  const [enabled, setEnabled] = React.useState(false)
-  const [caixaPix, setCaixaPix] = React.useState(false)
-  const [catalogoCartao, setCatalogoCartao] = React.useState(false)
-  const [catalogoPix, setCatalogoPix] = React.useState(false)
-  const [entregadorPix, setEntregadorPix] = React.useState(false)
-  const [autoatendimentoPix, setAutoatendimentoPix] = React.useState(false)
+  const [enabled, setEnabled] = React.useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("navelo_digital_account_config")
+        if (saved) return Boolean(JSON.parse(saved).enabled)
+      } catch {
+        return false
+      }
+    }
+    return false
+  })
+  const [caixaPix, setCaixaPix] = React.useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("navelo_digital_account_config")
+        if (saved) return Boolean(JSON.parse(saved).caixaPix)
+      } catch {
+        return false
+      }
+    }
+    return false
+  })
+  const [catalogoCartao, setCatalogoCartao] = React.useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("navelo_digital_account_config")
+        if (saved) return Boolean(JSON.parse(saved).catalogoCartao)
+      } catch {
+        return false
+      }
+    }
+    return false
+  })
+  const [catalogoPix, setCatalogoPix] = React.useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("navelo_digital_account_config")
+        if (saved) return Boolean(JSON.parse(saved).catalogoPix)
+      } catch {
+        return false
+      }
+    }
+    return false
+  })
+  const [entregadorPix, setEntregadorPix] = React.useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("navelo_digital_account_config")
+        if (saved) return Boolean(JSON.parse(saved).entregadorPix)
+      } catch {
+        return false
+      }
+    }
+    return false
+  })
+  const [autoatendimentoPix, setAutoatendimentoPix] = React.useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("navelo_digital_account_config")
+        if (saved) return Boolean(JSON.parse(saved).autoatendimentoPix)
+      } catch {
+        return false
+      }
+    }
+    return false
+  })
+  const s = UI_STRINGS.digitalAccount
 
   const onCancelRef = React.useRef(onCancel)
   React.useEffect(() => {
@@ -43,15 +105,26 @@ export const ContaDigitalSection: React.FC<ContaDigitalSectionProps> = ({
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancelRef.current())
-    setCustomTitle?.("Conta Digital")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle])
+  }, [setCustomBack, setCustomTitle, s.title])
 
   const handleSave = () => {
-    // Simulação de salvamento
+    if (typeof window !== "undefined") {
+      const config = {
+        enabled,
+        caixaPix,
+        catalogoCartao,
+        catalogoPix,
+        entregadorPix,
+        autoatendimentoPix,
+      }
+      localStorage.setItem("navelo_digital_account_config", JSON.stringify(config))
+      window.dispatchEvent(new Event("digital-account-updated"))
+    }
     onCancel()
   }
 
@@ -69,8 +142,8 @@ export const ContaDigitalSection: React.FC<ContaDigitalSectionProps> = ({
         <Stack gap={5} w="full">
           <Stack direction="row" align="center" justify="between" w="full" gap={5}>
             <Stack gap={1}>
-              <Font variant="body-bold" text="Habilitar" />
-              <Font variant="description" text="Use a Conta Digital para receber pagamentos" />
+              <Font variant="body-bold" text={s.enableToggle} />
+              <Font variant="description" text={s.enableDesc} />
             </Stack>
             <Switch
               checked={enabled}
@@ -96,7 +169,7 @@ export const ContaDigitalSection: React.FC<ContaDigitalSectionProps> = ({
               }
             }}
           >
-            <Font variant="body" text="Acessar a plataforma Conta Digital" color={enabled ? "primary" : "muted"} />
+            <Font variant="body" text={s.accessPlatformButton} color={enabled ? "primary" : "muted"} />
             <Icon icon={ExternalLink} size={16} color={enabled ? "primary" : "muted"} />
           </Box>
         </Stack>
@@ -116,14 +189,14 @@ export const ContaDigitalSection: React.FC<ContaDigitalSectionProps> = ({
           <Stack direction="row" align="center" gap={2.5}>
             <Icon icon={ShoppingBag} size={20} color="muted" />
             <Stack gap={2.5}>
-              <Font variant="body-bold" text="Caixa" />
-              <Font variant="description" text="Defina as formas de pagamento que serão aplicadas no Caixa" />
+              <Font variant="body-bold" text={s.cashierCardTitle} />
+              <Font variant="description" text={s.cashierCardDesc} />
             </Stack>
           </Stack>
           <Box h="h-[1px]" w="full" bg="bg-border" />
           <Box paddingY={1}>
             <Checkbox
-              label="Pix"
+              label={s.pixLabel}
               checked={caixaPix}
               onChange={(e) => setCaixaPix(e.target.checked)}
               disabled={!enabled}
@@ -146,21 +219,21 @@ export const ContaDigitalSection: React.FC<ContaDigitalSectionProps> = ({
           <Stack direction="row" align="center" gap={2.5}>
             <Icon icon={Globe} size={20} color="muted" />
             <Stack gap={2.5}>
-              <Font variant="body-bold" text="Catálogo Online" />
-              <Font variant="description" text="Defina as formas de pagamento que serão aplicadas na página do seu Catálogo Online" />
+              <Font variant="body-bold" text={s.catalogCardTitle} />
+              <Font variant="description" text={s.catalogCardDesc} />
             </Stack>
           </Stack>
           <Box h="h-[1px]" w="full" bg="bg-border" />
           <Box paddingY={2.5}>
             <Stack gap={2.5}>
               <Checkbox
-                label="Cartão"
+                label={s.cardLabel}
                 checked={catalogoCartao}
                 onChange={(e) => setCatalogoCartao(e.target.checked)}
                 disabled={!enabled}
               />
               <Checkbox
-                label="Pix"
+                label={s.pixLabel}
                 checked={catalogoPix}
                 onChange={(e) => setCatalogoPix(e.target.checked)}
                 disabled={!enabled}
@@ -184,14 +257,14 @@ export const ContaDigitalSection: React.FC<ContaDigitalSectionProps> = ({
           <Stack direction="row" align="center" gap={2.5}>
             <Icon icon={Package} size={20} color="muted" />
             <Stack gap={1}>
-              <Font variant="body-bold" text="Conecta Entregador" />
-              <Font variant="description" text="Defina as formas de pagamento que serão aplicadas no aplicativo Conecta Entregador" />
+              <Font variant="body-bold" text={s.driverCardTitle} />
+              <Font variant="description" text={s.driverCardDesc} />
             </Stack>
           </Stack>
           <Box h="h-[1px]" w="full" bg="bg-border" />
           <Box paddingY={1}>
             <Checkbox
-              label="Pix"
+              label={s.pixLabel}
               checked={entregadorPix}
               onChange={(e) => setEntregadorPix(e.target.checked)}
               disabled={!enabled}
@@ -214,14 +287,14 @@ export const ContaDigitalSection: React.FC<ContaDigitalSectionProps> = ({
           <Stack direction="row" align="center" gap={2.5}>
             <Icon icon={Smartphone} size={20} color="muted" />
             <Stack gap={1}>
-              <Font variant="body-bold" text="Autoatendimento" />
-              <Font variant="description" text="Defina as formas de pagamento que serão aplicadas no Autoatendimento" />
+              <Font variant="body-bold" text={s.selfServiceCardTitle} />
+              <Font variant="description" text={s.selfServiceCardDesc} />
             </Stack>
           </Stack>
           <Box h="h-[1px]" w="full" bg="bg-border" />
           <Box paddingY={1}>
             <Checkbox
-              label="Pix"
+              label={s.pixLabel}
               checked={autoatendimentoPix}
               onChange={(e) => setAutoatendimentoPix(e.target.checked)}
               disabled={!enabled}
@@ -231,8 +304,8 @@ export const ContaDigitalSection: React.FC<ContaDigitalSectionProps> = ({
       </Box>
 
       {/* Botões de Ações na Base do Formulário */}
-            <FormActions
-        confirmLabel="Salvar alterações"
+      <FormActions
+        confirmLabel={UI_STRINGS.common.save}
         onConfirm={handleSave}
         onCancel={onCancel}
       />

@@ -16,6 +16,7 @@ import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogTo
 import { useCategories, dal } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface GroupItem {
   id: string
@@ -38,6 +39,7 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
 }) => {
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id
+  const s = UI_STRINGS.settings.gruposSubgrupos
 
   // Categorias vindas do banco local IndexedDB
   const dbCategories = useCategories(tenantId)
@@ -82,7 +84,7 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
       company_id: tenantId || "demo-tenant",
       tenant_id: tenantId || "demo-tenant",
       active: true,
-      subgroups: formSubgroups.filter(s => s.trim() !== "").map(s => s.toUpperCase())
+      subgroups: formSubgroups.filter(item => item.trim() !== "").map(item => item.toUpperCase())
     }
 
     if (editingGroup) {
@@ -102,14 +104,14 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
 
   React.useEffect(() => {
     setCustomBack?.(() => handleBack)
-    setCustomTitle?.(mode === "form" ? (editingGroup ? "Editar Grupo" : "Novo Grupo") : "Grupos e subgrupos")
+    setCustomTitle?.(mode === "form" ? (editingGroup ? s.editGroupTitle : s.newGroupTitle) : s.title)
 
     if (mode === "list") {
       setCustomActions?.(
         <MobileHeaderSearch
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
-          placeholder="Buscar por grupo ou subgrupo..."
+          placeholder={s.searchPlaceholder}
         />
       )
     } else {
@@ -119,7 +121,7 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
           variant="primary-pill-icon"
           icon={Check}
           onClick={() => handleSaveRef.current()}
-          title="Salvar grupo"
+          title={s.saveGroupTitle}
         />
       )
     }
@@ -129,7 +131,7 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
       setCustomTitle?.(null)
       setCustomActions?.(null)
     }
-  }, [mode, editingGroup, searchQuery, setCustomBack, setCustomTitle, setCustomActions, handleBack])
+  }, [mode, editingGroup, searchQuery, setCustomBack, setCustomTitle, setCustomActions, handleBack, s.editGroupTitle, s.newGroupTitle, s.title, s.searchPlaceholder, s.saveGroupTitle])
 
   const handleCreateNew = () => {
     setEditingGroup(null)
@@ -159,7 +161,7 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
 
   const handleSubgroupChange = (idx: number, val: string) => {
     setFormSubgroups((prev) =>
-      prev.map((s, i) => (i === idx ? val : s))
+      prev.map((item, i) => (i === idx ? val : item))
     )
   }
 
@@ -167,7 +169,7 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
     const query = searchQuery.toLowerCase()
     return (
       g.name.toLowerCase().includes(query) ||
-      g.subgroups.some((s) => s.toLowerCase().includes(query))
+      g.subgroups.some((item) => item.toLowerCase().includes(query))
     )
   })
 
@@ -186,8 +188,8 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
         >
           <Stack gap={5} w="full">
             <Input
-              label="* Nome do Grupo"
-              placeholder="Ex: BEBIDAS"
+              label={s.groupNameLabel}
+              placeholder={s.groupNamePlaceholder}
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
               icon={Folder}
@@ -197,10 +199,10 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
             <Stack gap={2.5} w="full">
               <Stack direction="row" align="center" justify="between" w="full">
                 <Stack gap={1} flex="1">
-                  <Font variant="body-bold" text="Subgrupos" />
+                  <Font variant="body-bold" text={s.subgroupsTitle} />
                   <Font
                     variant="description"
-                    text="Cadastre os subgrupos associados a este grupo principal."
+                    text={s.subgroupsDesc}
                     color="muted"
                   />
                 </Stack>
@@ -209,7 +211,7 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
                   variant="primary-icon-xs"
                   icon={Plus}
                   onClick={handleAddSubgroupField}
-                  title="Adicionar subgrupo"
+                  title={s.addSubgroupButton}
                 />
               </Stack>
 
@@ -218,7 +220,7 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
                   <Stack key={idx} direction="row" align="center" gap={2.5} w="full">
                     <Box flex="1">
                       <Input
-                        placeholder={`Subgrupo ${idx + 1}`}
+                        placeholder={s.subgroupPlaceholder}
                         value={subgroup}
                         onChange={(e) => handleSubgroupChange(idx, e.target.value)}
                         icon={Layers}
@@ -229,7 +231,7 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
                       variant="danger-icon-xs"
                       icon={X}
                       onClick={() => handleRemoveSubgroupField(idx)}
-                      title="Remover subgrupo"
+                      title={s.deleteGroupTitle}
                     />
                   </Stack>
                 ))}
@@ -268,7 +270,7 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
                                 text={
                                   group.subgroups.length > 0
                                     ? group.subgroups.join(", ")
-                                    : "Nenhum subgrupo cadastrado"
+                                    : UI_STRINGS.common.empty
                                 }
                               />
                             </Stack>
@@ -278,11 +280,11 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
                           <Button
                             type="button"
                             variant="danger-icon-xs-confirm"
-                            confirmTitle="Excluir Grupo"
-                            confirmSubtitle="Confirmar exclusão de grupo"
+                            confirmTitle={s.deleteGroupTitle}
+                            confirmSubtitle={s.deleteGroupTitle}
                             confirmParagraph="Tem certeza que deseja excluir este grupo?"
                             onConfirm={() => handleDelete(group.id)}
-                            title="Excluir grupo"
+                            title={s.deleteGroupTitle}
                           />
                         </Stack>
                       </Box>
@@ -295,12 +297,8 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
               ) : (
                 <EmptyState
                   icon={FolderOpen}
-                  title="Nenhum grupo encontrado"
-                  subtitle={
-                    searchQuery
-                      ? "Tente pesquisar com outro termo."
-                      : "Cadastre seu primeiro grupo de produtos."
-                  }
+                  title={s.emptyTitle}
+                  subtitle={s.emptySubtitle}
                 />
               )}
 
@@ -310,7 +308,7 @@ export const GruposSubgruposSection: React.FC<GruposSubgruposSectionProps> = ({
                   variant="secondary-pill-icon"
                   icon={Plus}
                   onClick={handleCreateNew}
-                  title="Novo grupo"
+                  title={s.newGroupButton}
                 />
               </Box>
             </Box>

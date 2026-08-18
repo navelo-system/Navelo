@@ -10,12 +10,25 @@ import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { Modal } from "@/components/store/base/Modal"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface SaleLinkModalProps {
   isOpen: boolean
   onClose: () => void
   pdfUrl: string
   saleName: string
+}
+
+function normalizePhoneForWhatsApp(rawPhone: string): string {
+  const digits = rawPhone.replace(/\D/g, "")
+  if (!digits) return ""
+  if (digits.startsWith("55") && (digits.length === 12 || digits.length === 13)) {
+    return digits
+  }
+  if (digits.length === 10 || digits.length === 11) {
+    return `55${digits}`
+  }
+  return digits
 }
 
 export const SaleLinkModal: React.FC<SaleLinkModalProps> = ({
@@ -27,6 +40,9 @@ export const SaleLinkModal: React.FC<SaleLinkModalProps> = ({
   const [copied, setCopied] = React.useState(false)
   const [phone, setPhone] = React.useState("")
   const [qrDataUrl, setQrDataUrl] = React.useState<string>("")
+
+  const phoneDigits = phone.replace(/\D/g, "")
+  const isPhoneValid = phoneDigits.length >= 10
 
   // Gera o QR Code em Data URL quando o modal abre ou a URL muda
   React.useEffect(() => {
@@ -80,21 +96,23 @@ export const SaleLinkModal: React.FC<SaleLinkModalProps> = ({
   }
 
   const handleSendWhatsApp = () => {
-    const rawPhone = phone.replace(/\D/g, "")
+    const normalizedPhone = normalizePhoneForWhatsApp(phone)
+    if (!normalizedPhone) return
+
     const message = encodeURIComponent(
       `Olá,\n\nSegue o link para download do documento *${saleName}*:\n\n🔗 Baixe o comprovante aqui: ${pdfUrl}`
     )
-    const url = rawPhone
-      ? `https://wa.me/${rawPhone}?text=${message}`
-      : `https://wa.me/?text=${message}`
+    const url = `https://wa.me/${normalizedPhone}?text=${message}`
     window.open(url, "_blank", "noopener,noreferrer")
   }
+
+  const s = UI_STRINGS.saleShare
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Enviar Link de Download"
+      title={s.sendLinkModalTitle}
       subtitle={saleName}
       icon={Link2}
       variant="default"
@@ -124,14 +142,14 @@ export const SaleLinkModal: React.FC<SaleLinkModalProps> = ({
           <Font
             variant="auxiliary"
             color="muted"
-            text="Escaneie para baixar o comprovante"
+            text={s.scanQrInstruction}
             align="center"
           />
         </Stack>
 
         {/* Link + Copiar */}
         <Stack direction="col" gap={2.5} w="full">
-          <Font variant="body-sm-medium" text="Link do comprovante" color="muted" />
+          <Font variant="body-sm-medium" text={s.receiptLinkLabel} color="muted" />
           <Stack direction="row" gap={2.5} w="full" align="center">
             <Box
               flex="1"
@@ -151,7 +169,7 @@ export const SaleLinkModal: React.FC<SaleLinkModalProps> = ({
               variant={copied ? "primary-icon" : "secondary-icon"}
               icon={copied ? Check : Copy}
               onClick={handleCopy}
-              title={copied ? "Copiado!" : "Copiar link"}
+              title={copied ? s.copiedTooltip : s.copyLinkTooltip}
             />
           </Stack>
         </Stack>
@@ -159,19 +177,20 @@ export const SaleLinkModal: React.FC<SaleLinkModalProps> = ({
         {/* Divisor */}
         <Stack direction="row" gap={2.5} w="full" align="center">
           <Box flex="1" h="fit-content" borderBottom />
-          <Font variant="auxiliary" color="muted" text="Enviar via WhatsApp" />
+          <Font variant="auxiliary" color="muted" text={s.sendViaWhatsApp} />
           <Box flex="1" h="fit-content" borderBottom />
         </Stack>
 
         {/* Campo de número + Botão Enviar WhatsApp */}
         <Stack direction="col" gap={2.5} w="full">
-          <Font variant="body-sm-medium" text="Número do destinatário" color="muted" />
+          <Font variant="body-sm-medium" text={s.recipientNumberLabel} color="muted" />
           <Stack direction="row" gap={2.5} w="full" align="center">
             <Box flex="1">
               <Input
+                mask="phone"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="+55 (11) 99999-9999"
+                placeholder={s.phonePlaceholder}
                 type="tel"
               />
             </Box>
@@ -179,13 +198,14 @@ export const SaleLinkModal: React.FC<SaleLinkModalProps> = ({
               variant="primary-icon"
               icon={MessageCircle}
               onClick={handleSendWhatsApp}
-              title="Enviar via WhatsApp"
+              disabled={!isPhoneValid}
+              title={s.sendViaWhatsApp}
             />
           </Stack>
           <Font
             variant="auxiliary"
             color="muted"
-            text="Deixe em branco para abrir o WhatsApp sem destinatário"
+            text={s.phoneHelpText}
           />
         </Stack>
       </Stack>

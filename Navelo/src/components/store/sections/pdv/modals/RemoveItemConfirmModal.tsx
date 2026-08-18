@@ -4,6 +4,7 @@ import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
 import { Font } from "@/components/store/base/Font"
 import { Trash2 } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface RemoveItemConfirmModalProps {
   isOpen: boolean
@@ -18,17 +19,20 @@ export const RemoveItemConfirmModal: React.FC<RemoveItemConfirmModalProps> = ({
   onConfirm,
   productName
 }) => {
+  const m = UI_STRINGS.pdv.modals
+  const c = UI_STRINGS.common
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Remover Item"
+      title={m.removeItemTitle}
       subtitle={`Deseja realmente remover o produto "${productName}" do carrinho?`}
       icon={Trash2}
-      successText="Remover"
+      successText={c.delete}
       onSuccess={onConfirm}
     >
-      <Font variant="description" text="Esta ação removerá o produto desta venda e recalculará o total da conta." />
+      <Font variant="description" text={m.removeItemDesc} />
     </Modal>
   )
 }

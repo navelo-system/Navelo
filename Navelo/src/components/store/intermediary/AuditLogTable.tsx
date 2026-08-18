@@ -2,6 +2,7 @@ import * as React from "react"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/store/base/Table"
 import { Badge } from "@/components/store/base/Badge"
 import { AuditLog, AuditSeverity } from "@/src/types/domain"
+import { UI_STRINGS } from "@/constants/strings"
 
 const RECENT_LOGS: AuditLog[] = [
   { id: "1", userId: "admin-001", action: "Tenant 'Lanchonete Bom Sabor' criado", entityId: "tenant-001", entityType: "Tenant", createdAt: "2026-07-05 10:45:12", ipAddress: "192.168.1.15", severity: AuditSeverity.INFO },
@@ -15,18 +16,20 @@ const severityVariant = (s?: AuditSeverity) =>
   s === AuditSeverity.ERROR ? "danger" : s === AuditSeverity.WARNING ? "secondary" : "success"
 
 const severityLabel = (s?: AuditSeverity) =>
-  s === AuditSeverity.ERROR ? "ERRO" : s === AuditSeverity.WARNING ? "ALERTA" : "INFO"
+  s === AuditSeverity.ERROR ? UI_STRINGS.admin.audit.errorSeverity : s === AuditSeverity.WARNING ? UI_STRINGS.admin.audit.warningSeverity : UI_STRINGS.admin.audit.infoSeverity
 
 export function AuditLogTable() {
+  const a = UI_STRINGS.admin.audit
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead text="Data/Hora" />
-          <TableHead text="Ação" />
-          <TableHead text="Entidade" />
-          <TableHead text="IP" />
-          <TableHead align="right" text="Severidade" />
+          <TableHead text={a.timestampColumn} />
+          <TableHead text={a.actionTextColumn} />
+          <TableHead text={a.entityColumn} />
+          <TableHead text={a.ipColumn} />
+          <TableHead align="right" text={a.severityColumn} />
         </TableRow>
       </TableHeader>
       <TableBody>

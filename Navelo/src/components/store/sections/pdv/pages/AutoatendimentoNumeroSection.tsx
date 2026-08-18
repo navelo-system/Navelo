@@ -11,6 +11,7 @@ import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 import { RotateCcw } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface AutoatendimentoNumeroSectionProps {
   onCancel: () => void
@@ -25,15 +26,16 @@ export const AutoatendimentoNumeroSection: React.FC<AutoatendimentoNumeroSection
 }) => {
   const [enabled, setEnabled] = React.useState(false)
   const [nextNumber, setNextNumber] = React.useState("")
+  const s = UI_STRINGS.selfService
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Número de atendimento")
+    setCustomTitle?.(s.orderNumberTitle)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.orderNumberTitle])
 
   const handleSave = () => {
     onCancel()
@@ -56,7 +58,7 @@ export const AutoatendimentoNumeroSection: React.FC<AutoatendimentoNumeroSection
         <Stack gap={5} w="full">
           {/* Habilitar */}
           <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-            <Font variant="body-bold" text="Habilitar" />
+            <Font variant="body-bold" text={s.enableToggle} />
             <Switch
               checked={enabled}
               onChange={(e) => setEnabled(e.target.checked)}
@@ -71,17 +73,17 @@ export const AutoatendimentoNumeroSection: React.FC<AutoatendimentoNumeroSection
               <Stack direction="row" align="end" gap={2.5} w="full">
                 <Box flex="1">
                   <Input
-                    label="* Próximo número"
+                    label={s.nextNumberLabel}
                     value={nextNumber}
                     onChange={(e) => setNextNumber(e.target.value)}
-                    placeholder="Digite o próximo número..."
+                    placeholder={s.nextNumberPlaceholder}
                     required
                   />
                 </Box>
                 <Button
                   type="button"
                   variant="outline"
-                  label="Reiniciar"
+                  label={s.resetNumberButton}
                   icon={RotateCcw}
                   onClick={handleReset}
                 />
@@ -102,14 +104,14 @@ export const AutoatendimentoNumeroSection: React.FC<AutoatendimentoNumeroSection
       >
         <Font
           variant="description"
-          text="ℹ️ A configuração de número de atendimento será aplicada no Caixa, Delivery, Mesas e comandas e Autoatendimento. Outros dispositivos não serão afetados."
+          text={s.orderNumberScopeNotice}
           color="muted"
         />
       </Box>
 
       {/* Botões de Ação */}
-            <FormActions
-        confirmLabel="Salvar alterações"
+      <FormActions
+        confirmLabel={UI_STRINGS.common.save}
         onConfirm={handleSave}
         onCancel={onCancel}
       />

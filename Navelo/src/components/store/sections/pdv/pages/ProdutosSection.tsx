@@ -28,6 +28,7 @@ interface ProdutosSectionProps {
 
 import { useProducts, dal } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
+import { UI_STRINGS } from "@/constants/strings"
 
 export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
   setCustomBack,
@@ -39,6 +40,7 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
 
   // Produtos do IndexedDB local
   const dbProducts = useProducts(tenantId)
+  const s = UI_STRINGS.productsCatalog
 
   // Lista agregada de produtos reativa do banco local
   const products: ProductItem[] = React.useMemo(() => {
@@ -131,7 +133,7 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
               type="button"
               variant="danger-pill-icon-confirm"
               icon={Trash2}
-              title="Excluir produto"
+              title={s.deleteProductTitle}
               confirmModal={{
                 title: "Excluir Produto",
                 subtitle: "Confirmar exclusão de produto",
@@ -147,22 +149,22 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
             form="product-form"
             variant="primary-pill-icon"
             icon={Check}
-            title="Salvar produto"
+            title={s.saveProductButton}
           />
         </Stack>
       )
     } else if (mode === "fiscal-config") {
       setCustomBack?.(() => () => setMode("form"))
-      setCustomTitle?.("Configuração Fiscal Padrão")
+      setCustomTitle?.(UI_STRINGS.products.fiscalConfigTitle)
       setCustomActions?.(null)
     } else {
       setCustomBack?.(null)
-      setCustomTitle?.("Produtos")
+      setCustomTitle?.(s.title)
       setCustomActions?.(
         <MobileHeaderSearch
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
-          placeholder="Buscar produto pelo nome..."
+          placeholder={s.searchByNamePlaceholder}
         />
       )
     }
@@ -171,7 +173,7 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
       setCustomTitle?.(null)
       setCustomActions?.(null)
     }
-  }, [mode, searchQuery, editingProduct, handleDelete, setCustomBack, setCustomTitle, setCustomActions])
+  }, [mode, searchQuery, editingProduct, handleDelete, setCustomBack, setCustomTitle, setCustomActions, s.saveProductButton, s.title, s.deleteProductTitle, s.searchByNamePlaceholder])
 
   const handleEdit = (prod: ProductItem) => {
     setEditingProduct(prod)
@@ -251,9 +253,9 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
         <Stack gap={5} w="full">
       {mode === "list" && (
         <ListSectionLayout<ProductItem>
-          title="Produtos"
+          title={s.title}
           items={products}
-          searchPlaceholder="Buscar produto por nome ou categoria..."
+          searchPlaceholder={s.searchPlaceholder}
           searchFilterFn={(prod, query) => {
             const q = query.toLowerCase()
             return (
@@ -262,8 +264,8 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
             )
           }}
           emptyIcon={PackageX}
-          emptyTitle="Nenhum produto encontrado"
-          emptySubtitle="Tente pesquisar com outro termo ou adicione um novo produto."
+          emptyTitle={s.emptyTitle}
+          emptySubtitle={s.emptySubtitle}
           onAdd={handleCreateNew}
           getItemKey={(prod) => prod.id}
           setCustomBack={setCustomBack}

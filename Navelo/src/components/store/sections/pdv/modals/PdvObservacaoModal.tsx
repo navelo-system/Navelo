@@ -4,13 +4,19 @@
 
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
-import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
-import { NotepadTextIcon } from "lucide-react"
+import { NotepadTextIcon, LucideIcon } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
-interface PdvObservacaoModalProps {
+export interface PdvObservacaoModalProps {
   isOpen: boolean
   onClose: () => void
+  title?: string
+  description?: string
+  placeholder?: string
+  icon?: LucideIcon
   initialObservation?: string
   onSaveObservation: (obs: string) => void
 }
@@ -18,6 +24,10 @@ interface PdvObservacaoModalProps {
 export const PdvObservacaoModal: React.FC<PdvObservacaoModalProps> = ({
   isOpen,
   onClose,
+  title,
+  description,
+  placeholder,
+  icon: IconComp = NotepadTextIcon,
   initialObservation = "",
   onSaveObservation,
 }) => {
@@ -34,24 +44,33 @@ export const PdvObservacaoModal: React.FC<PdvObservacaoModalProps> = ({
     onClose()
   }
 
+  const m = UI_STRINGS.pdv.modals
+  const displayTitle = title || m.observationTitle
+  const displayPlaceholder = placeholder || m.observationPlaceholder
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      icon={NotepadTextIcon}
-      title="Observação"
+      icon={IconComp}
+      title={displayTitle}
       variant="default"
       showCancelButton={true}
-      successText="Confirmar"
+      successText={UI_STRINGS.common.confirm}
       onSuccess={handleConfirm}
     >
-      <Box w="full" paddingY={2.5}>
+      <Stack gap={3.5} w="full" paddingY={2.5}>
+        {description && (
+          <Font variant="body" text={description} />
+        )}
         <Input
-          placeholder="Digite a observação da venda..."
+          variant="textarea"
+          rows={4}
+          placeholder={displayPlaceholder}
           value={observation}
           onChange={(e) => setObservation(e.target.value)}
         />
-      </Box>
+      </Stack>
     </Modal>
   )
 }

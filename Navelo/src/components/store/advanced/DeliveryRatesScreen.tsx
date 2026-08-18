@@ -14,6 +14,7 @@ import { Plus, Trash2, MapPin, DollarSign } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { useTenant } from "@/lib/context/TenantContext"
 import { useDeliveryRates, dal, DeliveryRate } from "@/lib/dal"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface DeliveryRatesScreenProps {
   onBack: () => void
@@ -32,6 +33,7 @@ export const DeliveryRatesScreen: React.FC<DeliveryRatesScreenProps> = ({
 }) => {
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id || "default"
+  const df = UI_STRINGS.deliveryFees
 
   const dbRates = useDeliveryRates(tenantId)
   const ratesList = React.useMemo(() => (Array.isArray(dbRates) ? dbRates : []), [dbRates])
@@ -81,11 +83,13 @@ export const DeliveryRatesScreen: React.FC<DeliveryRatesScreenProps> = ({
         <MobileHeaderSearch
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
-          placeholder="Buscar por região ou bairro..."
-        />
+          placeholder={df.searchPlaceholder}
+        >
+          <Box />
+        </MobileHeaderSearch>
       )
     }
-  }, [mode, searchQuery, editingRate])
+  }, [mode, searchQuery, editingRate, df])
 
   const handleCreateNew = () => {
     setEditingRate(null)
@@ -100,8 +104,6 @@ export const DeliveryRatesScreen: React.FC<DeliveryRatesScreenProps> = ({
     setFee(rate.fee !== undefined ? rate.fee.toString().replace(".", ",") : "")
     setMode("form")
   }
-
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -146,18 +148,18 @@ export const DeliveryRatesScreen: React.FC<DeliveryRatesScreenProps> = ({
           <Stack gap={5} w="full">
             <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border" w="full">
               <Stack gap={5} w="full">
-                <Font variant="body-bold" text="Dados da taxa de entrega" />
+                <Font variant="body-bold" text={df.rateDataTitle} />
                 <Stack gap={2.5} w="full">
                   <Input
-                    label="* Nome da Região / Bairro"
-                    placeholder="Ex: Região Metropolitana, Centro, Bairro Alto"
+                    label={df.regionNameLabel}
+                    placeholder={df.regionNamePlaceholder}
                     value={neighborhood}
                     onChange={(e) => setNeighborhood(e.target.value)}
                     required
                   />
                   <Input
-                    label="* Valor da Taxa (R$)"
-                    placeholder="0,00"
+                    label={df.rateValueLabel}
+                    placeholder={df.rateValuePlaceholder}
                     value={fee}
                     onChange={(e) => setFee(e.target.value)}
                     icon={DollarSign}
@@ -179,13 +181,13 @@ export const DeliveryRatesScreen: React.FC<DeliveryRatesScreenProps> = ({
                       setMode("list")
                       setEditingRate(null)
                     }}
-                    title="Excluir taxa"
+                    title={df.deleteRateTitle}
                   />
                 )}
                 <Box flex="1">
                   <Button
                     variant="primary"
-                    label="Salvar taxa de entrega"
+                    label={df.saveRateButton}
                     type="submit"
                     fullWidth={true}
                   />
@@ -204,8 +206,8 @@ export const DeliveryRatesScreen: React.FC<DeliveryRatesScreenProps> = ({
         {filteredRates.length === 0 ? (
           <EmptyState
             icon={MapPin}
-            title="Nenhuma taxa de entrega cadastrada"
-            subtitle="Clique no botão + abaixo para cadastrar uma nova taxa de entrega."
+            title={df.emptyTitle}
+            subtitle={df.emptySubtitleFab}
           />
         ) : (
           <Box display="flex" direction="col" w="full">
@@ -254,7 +256,7 @@ export const DeliveryRatesScreen: React.FC<DeliveryRatesScreenProps> = ({
         <Button
           variant="secondary-pill-icon"
           icon={Plus}
-          title="Nova Taxa"
+          title={df.newRateFabTitle}
           onClick={handleCreateNew}
         />
       </Box>

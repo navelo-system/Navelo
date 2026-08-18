@@ -48,7 +48,7 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   maxH?: "0" | "96" | "full" | "screen" | "fit-content" | string
   overflowY?: OverflowYToken
   shrink?: "0" | "1"
-  animation?: "slide-in-right" | "slide-out-right" | "slide-up" | "slide-down" | "search-expand-in" | "search-collapse-out"
+  animation?: "slide-in-right" | "slide-out-right" | "slide-up" | "slide-down" | "search-expand-in" | "search-collapse-out" | "zero-stock-pulse"
   order?: "1" | "2"
   mdOrder?: "1" | "2"
   interactive?: boolean
@@ -265,6 +265,12 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
           right: right !== undefined ? right : undefined,
           bottom: bottom !== undefined ? bottom : undefined,
           pointerEvents,
+          zIndex: zIndex !== undefined ? (isNaN(Number(zIndex)) ? zIndex : Number(zIndex)) : undefined,
+          backgroundColor: animation === "zero-stock-pulse"
+            ? "rgba(220, 38, 38, 0.88)"
+            : undefined,
+          backdropFilter: animation === "zero-stock-pulse" ? "blur(2px)" : undefined,
+          WebkitBackdropFilter: animation === "zero-stock-pulse" ? "blur(2px)" : undefined,
           background: bgGradient === "fade-up"
             ? "linear-gradient(to top, var(--background) 0%, var(--background) 45%, transparent 100%)"
             : undefined,
@@ -280,6 +286,8 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
             ? "search-expand-in 0.24s cubic-bezier(0.4, 0, 0.2, 1) forwards"
             : animation === "search-collapse-out"
             ? "search-collapse-out 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards"
+            : animation === "zero-stock-pulse"
+            ? "zero-stock-pulse 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards"
             : undefined,
           ...(props.style || {})
         }}

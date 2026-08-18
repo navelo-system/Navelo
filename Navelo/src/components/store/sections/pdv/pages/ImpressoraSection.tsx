@@ -14,6 +14,7 @@ import { FormActions } from "@/components/store/intermediary/FormActions"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Printer, Settings, RefreshCw } from "lucide-react"
 import { PrintTestModal } from "@/components/store/sections/pdv/modals/PrintTestModal"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface ImpressoraSectionProps {
   onCancel: () => void
@@ -37,15 +38,16 @@ export const ImpressoraSection: React.FC<ImpressoraSectionProps> = ({
   const [modeloImpressora, setModeloImpressora] = React.useState("custom")
   const [comandoGaveta, setComandoGaveta] = React.useState("")
   const [isModalOpen, setIsModalOpen] = React.useState(false)
+  const s = UI_STRINGS.printers
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Impressora")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   const handleSave = () => {
     onCancel()
@@ -69,7 +71,7 @@ export const ImpressoraSection: React.FC<ImpressoraSectionProps> = ({
         <Stack gap={5} w="full">
           {/* Habilitar Impressão */}
           <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-            <Font variant="body-bold" text="Habilitar impressão" />
+            <Font variant="body-bold" text={s.title} />
             <Switch
               checked={habilitarImpressao}
               onChange={(e) => setHabilitarImpressao(e.target.checked)}
@@ -82,13 +84,13 @@ export const ImpressoraSection: React.FC<ImpressoraSectionProps> = ({
 
               {/* Tipo de Conexão */}
               <Stack gap={1} w="full">
-                <Font variant="sub-tiny-bold" text="Tipo de conexão" />
+                <Font variant="sub-tiny-bold" text={s.typeLabel} />
                 <CustomSelect
                   value={tipoConexao}
                   onChange={(val) => setTipoConexao(val as "usb" | "rede")}
                 >
-                  <CustomSelectItem value="usb" text="Impressão via USB" icon={Settings} />
-                  <CustomSelectItem value="rede" text="Impressão via rede" icon={Settings} />
+                  <CustomSelectItem value="usb" text={s.usbOption} icon={Settings} />
+                  <CustomSelectItem value="rede" text={s.networkOption} icon={Settings} />
                 </CustomSelect>
               </Stack>
 
@@ -96,25 +98,25 @@ export const ImpressoraSection: React.FC<ImpressoraSectionProps> = ({
 
               {/* Tamanho da bobina */}
               <Stack gap={1} w="full">
-                <Font variant="sub-tiny-bold" text="Tamanho bobina" />
+                <Font variant="sub-tiny-bold" text={s.paperWidthLabel} />
                 <CustomSelect
                   value={tamanhoBobina}
                   onChange={(val) => setTamanhoBobina(val)}
                 >
-                  <CustomSelectItem value="58MM" text="58MM" icon={Printer} />
-                  <CustomSelectItem value="80MM" text="80MM" icon={Printer} />
+                  <CustomSelectItem value="58MM" text={s.width58mm} icon={Printer} />
+                  <CustomSelectItem value="80MM" text={s.width80mm} icon={Printer} />
                 </CustomSelect>
               </Stack>
 
               {/* Modo de compatibilidade */}
               <Stack gap={1} w="full">
-                <Font variant="sub-tiny-bold" text="Modo de compatibilidade" />
+                <Font variant="sub-tiny-bold" text={s.compatibilityModeLabel} />
                 <CustomSelect
                   value={modoCompatibilidade}
                   onChange={(val) => setModoCompatibilidade(val)}
                 >
-                  <CustomSelectItem value="default" text="Desabilitado (Padrão)" icon={Settings} />
-                  <CustomSelectItem value="escpos" text="ESC/POS Compatível" icon={Settings} />
+                  <CustomSelectItem value="default" text={s.disabledDefaultOption} icon={Settings} />
+                  <CustomSelectItem value="escpos" text={s.escposOption} icon={Settings} />
                 </CustomSelect>
               </Stack>
 
@@ -124,13 +126,13 @@ export const ImpressoraSection: React.FC<ImpressoraSectionProps> = ({
                   checked={aumentarFonte}
                   onChange={(e) => setAumentarFonte(e.target.checked)}
                 />
-                <Font variant="body" text="Aumentar fonte da impressão" />
+                <Font variant="body" text={s.increaseFontLabel} />
               </Stack>
 
               {/* Número de colunas */}
               <Stack gap={2.5} w="full">
                 <Stack direction="row" align="center" justify="between" w="full">
-                  <Font variant="body" text="Número de colunas" />
+                  <Font variant="body" text={s.columnsNumberLabel} />
                   <Font variant="body-bold" text={numeroColunas.toString()} />
                 </Stack>
                 <Input
@@ -158,7 +160,7 @@ export const ImpressoraSection: React.FC<ImpressoraSectionProps> = ({
         <Stack gap={5} w="full">
           {/* Habilitar gaveta */}
           <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-            <Font variant="body-bold" text="Habilitar gaveta de dinheiro" />
+            <Font variant="body-bold" text={s.enableDrawerToggle} />
             <Switch
               checked={habilitarGaveta}
               onChange={(e) => setHabilitarGaveta(e.target.checked)}
@@ -171,21 +173,21 @@ export const ImpressoraSection: React.FC<ImpressoraSectionProps> = ({
 
               {/* Modelo da impressora */}
               <Stack gap={1} w="full">
-                <Font variant="sub-tiny-bold" text="Modelo da impressora" />
+                <Font variant="sub-tiny-bold" text={s.printerModelLabel} />
                 <CustomSelect
                   value={modeloImpressora}
                   onChange={(val) => setModeloImpressora(val)}
                 >
-                  <CustomSelectItem value="custom" text="Personalizado" icon={Printer} />
-                  <CustomSelectItem value="bematech" text="Bematech" icon={Printer} />
-                  <CustomSelectItem value="elgin" text="Elgin" icon={Printer} />
+                  <CustomSelectItem value="custom" text={s.customOption} icon={Printer} />
+                  <CustomSelectItem value="bematech" text={s.bematechOption} icon={Printer} />
+                  <CustomSelectItem value="elgin" text={s.elginOption} icon={Printer} />
                 </CustomSelect>
               </Stack>
 
               {/* Comando de abertura da gaveta */}
               <Input
-                label="* Comando de abertura da gaveta"
-                placeholder="Ex: 27,112,0,50,250"
+                label={s.drawerCommandLabel}
+                placeholder={s.drawerCommandPlaceholder}
                 value={comandoGaveta}
                 onChange={(e) => setComandoGaveta(e.target.value)}
                 required
@@ -200,15 +202,15 @@ export const ImpressoraSection: React.FC<ImpressoraSectionProps> = ({
         <Button
           type="button"
           variant="outline"
-          label="Imprimir teste"
+          label={s.testPrintButton}
           icon={RefreshCw}
           onClick={handlePrintTest}
         />
       </Box>
 
       {/* Ações de Cancelar / Salvar */}
-            <FormActions
-        confirmLabel="Salvar alterações"
+      <FormActions
+        confirmLabel={UI_STRINGS.pdv.cart.saveChangesButton}
         onConfirm={handleSave}
         isSubmit={false}
         onCancel={onCancel}

@@ -29,6 +29,7 @@ import {
   Trash2,
   PlusCircle
 } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface ProductFormData {
   name: string
@@ -116,6 +117,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
   onSave,
   onAccessFiscalConfig,
 }) => {
+  const pf = UI_STRINGS.products.form
+
   // Tenant & DAL
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id
@@ -393,10 +396,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         <Tabs defaultValue="basico">
           <TabsList grid cols={2}>
             <TabsTrigger value="basico" fullWidth>
-              Dados Básicos
+              {pf.basicDataTab}
             </TabsTrigger>
             <TabsTrigger value="avancado" fullWidth>
-              Recursos Avançados
+              {pf.advancedResourcesTab}
             </TabsTrigger>
           </TabsList>
 
@@ -426,13 +429,13 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       overflow="hidden"
                       cursor="pointer"
                       onClick={() => fileInputRef.current?.click()}
-                      title="Clique para enviar ou alterar a imagem"
+                      title={pf.imageUploadTitle}
                     >
                       {image ? (
                         <Box
                           as="img"
                           src={image}
-                          alt="Foto do produto"
+                          alt={pf.photoAlt}
                           w="full"
                           h="full"
                           objectFit="cover"
@@ -445,7 +448,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     </Box>
                     <Button
                       variant="ghost"
-                      label={image ? "Alterar Imagem" : "Adicionar Imagem"}
+                      label={image ? pf.changeImage : pf.addImage}
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
                     />
@@ -453,54 +456,54 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
                   <Grid cols={2} gap={5}>
                     <Input
-                      label="Descrição (Nome do Produto) *"
-                      placeholder="Ex: COCA-COLA LATA 350ML"
+                      label={pf.nameLabel}
+                      placeholder={pf.namePlaceholder}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       required
                     />
 
                     <Stack gap={1}>
-                      <Font variant="body-sm-semibold" text="Unidade *" />
+                      <Font variant="body-sm-semibold" text={pf.unitLabel} />
                       <CustomSelect value={unit} onChange={(val) => setUnit(val)}>
                         {dbUnits && dbUnits.length > 0
                           ? dbUnits.map(u => (
                               <CustomSelectItem key={u.id} value={u.name} text={u.name} icon={Package} />
                             ))
                           : [
-                              <CustomSelectItem key="__empty__" value="" text="Nenhuma unidade cadastrada" icon={Package} />
+                              <CustomSelectItem key="__empty__" value="" text={pf.noUnitsRegistered} icon={Package} />
                             ]}
                       </CustomSelect>
                     </Stack>
 
                     <Stack gap={1}>
-                      <Font variant="body-sm-semibold" text="Grupo *" />
+                      <Font variant="body-sm-semibold" text={pf.groupLabel} />
                       <CustomSelect value={category} onChange={(val) => { setCategory(val); setSubgroup("") }}>
                         {dbCategories && dbCategories.length > 0
                           ? dbCategories.map(c => (
                               <CustomSelectItem key={c.id} value={c.name} text={c.name} icon={Layers} />
                             ))
                           : [
-                              <CustomSelectItem key="__empty__" value="" text="Nenhum grupo cadastrado" icon={Layers} />
+                              <CustomSelectItem key="__empty__" value="" text={pf.noGroupsRegistered} icon={Layers} />
                             ]}
                       </CustomSelect>
                     </Stack>
 
                     <Stack gap={1}>
-                      <Font variant="body-sm-semibold" text="Subgrupo *" />
+                      <Font variant="body-sm-semibold" text={pf.subgroupLabel} />
                       <CustomSelect value={subgroup} onChange={(val) => setSubgroup(val)}>
                         {subgroupItems.length > 0
                           ? subgroupItems.map(s => (
                               <CustomSelectItem key={s} value={s} text={s} icon={Layers} />
                             ))
-                          : [<CustomSelectItem key="__empty__" value="" text="Nenhum subgrupo cadastrado" icon={Layers} />]}
+                          : [<CustomSelectItem key="__empty__" value="" text={pf.noSubgroupsRegistered} icon={Layers} />]}
                       </CustomSelect>
                     </Stack>
                   </Grid>
 
                   <Input
-                    label="Descrição Detalhada para Catálogo"
-                    placeholder="Ex: Bebida refrescante gaseificada, lata 350ml..."
+                    label={pf.detailedDescriptionLabel}
+                    placeholder={pf.detailedDescriptionPlaceholder}
                     value={detailedDescription}
                     onChange={(e) => setDetailedDescription(e.target.value)}
                   />
@@ -510,48 +513,48 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               {/* Valores e Estoque */}
               <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
                 <Stack gap={2.5} w="full">
-                  <Font variant="body-semibold" text="Valores e Estoque" />
+                  <Font variant="body-semibold" text={pf.valuesAndStockTitle} />
                   <Grid cols={3} gap={5}>
                     <Input
-                      label="Estoque *"
+                      label={pf.stockLabel}
                       variant="outlined-label"
-                      placeholder="0"
+                      placeholder={pf.zeroPlaceholder}
                       value={stock}
                       onChange={(e) => setStock(maskNumberInput(e.target.value))}
                       required
                     />
                     <Input
-                      label="Estoque Mínimo"
+                      label={pf.minStockLabel}
                       variant="outlined-label"
-                      placeholder="0"
+                      placeholder={pf.zeroPlaceholder}
                       value={minStock}
                       onChange={(e) => setMinStock(maskNumberInput(e.target.value))}
                     />
                     <Input
-                      label="Preço de Custo (R$)"
+                      label={pf.costPriceLabel}
                       variant="outlined-label"
-                      placeholder="0,00"
+                      placeholder={pf.zeroDecimalPlaceholder}
                       value={costPrice}
                       onChange={(e) => handleCostPriceChange(e.target.value)}
                     />
                     <Input
-                      label="Outros Custos (%)"
+                      label={pf.otherCostsLabel}
                       variant="outlined-label"
-                      placeholder="0,00"
+                      placeholder={pf.zeroDecimalPlaceholder}
                       value={otherCosts}
                       onChange={(e) => handleOtherCostsChange(e.target.value)}
                     />
                     <Input
-                      label="Margem (%)"
+                      label={pf.marginLabel}
                       variant="outlined-label"
-                      placeholder="0,00"
+                      placeholder={pf.zeroDecimalPlaceholder}
                       value={margin}
                       onChange={(e) => handleMarginChange(e.target.value)}
                     />
                     <Input
-                      label="Preço de Venda (R$) *"
+                      label={pf.salePriceLabel}
                       variant="outlined-label"
-                      placeholder="0,00"
+                      placeholder={pf.zeroDecimalPlaceholder}
                       value={price}
                       onChange={(e) => handlePriceChange(e.target.value)}
                       required
@@ -580,7 +583,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   <Stack direction="row" align="center" justify="between" w="full">
                     <Stack direction="row" align="center" gap={2.5}>
                       <Icon icon={Layers} size={18} color="secondary" />
-                      <Font variant="body-semibold" text="Multissabor" />
+                      <Font variant="body-semibold" text={pf.multissaborTitle} />
                     </Stack>
                     <Icon icon={isMultissaborOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
                   </Stack>
@@ -596,8 +599,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     <Stack gap={5} w="full">
                       <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
                         <Stack gap={1} order="2" mdOrder="1">
-                          <Font variant="body-semibold" text="Habilitar Multissabor" align="left" />
-                          <Font variant="description" text="Permite que o produto seja fracionado em diferentes sabores" align="left" />
+                          <Font variant="body-semibold" text={pf.enableMultissaborTitle} align="left" />
+                          <Font variant="description" text={pf.enableMultissaborDesc} align="left" />
                         </Stack>
                         <Box order="1" mdOrder="2">
                           <Switch checked={multissaborEnabled} onChange={(e) => setMultissaborEnabled(e.target.checked)} />
@@ -606,16 +609,16 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       {multissaborEnabled && (
                         <Grid cols={2} gap={5}>
                           <Input
-                            label="Limite Máximo de Sabores"
+                            label={pf.multissaborLimitLabel}
                             placeholder="2"
                             value={multissaborLimit}
                             onChange={(e) => setMultissaborLimit(e.target.value)}
                           />
                           <Stack gap={1}>
-                            <Font variant="body-sm-semibold" text="Cobrança da Precificação" />
+                            <Font variant="body-sm-semibold" text={pf.pricingModeLabel} />
                             <CustomSelect value={multissaborPricingMode} onChange={(val) => setMultissaborPricingMode(val as "proporcional" | "maior")}>
-                              <CustomSelectItem value="proporcional" text="Proporcional (Média)" icon={Layers} />
-                              <CustomSelectItem value="maior" text="Pelo Maior Preço" icon={Layers} />
+                              <CustomSelectItem value="proporcional" text={pf.proportionalAverageOption} icon={Layers} />
+                              <CustomSelectItem value="maior" text={pf.highestPriceOption} icon={Layers} />
                             </CustomSelect>
                           </Stack>
                         </Grid>
@@ -640,7 +643,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   <Stack direction="row" align="center" justify="between" w="full">
                     <Stack direction="row" align="center" gap={2.5}>
                       <Icon icon={PlusCircle} size={18} color="secondary" />
-                      <Font variant="body-semibold" text="Complementos do subgrupo" />
+                      <Font variant="body-semibold" text={pf.subgroupComplementsTitle} />
                     </Stack>
                     <Icon icon={isComplementosOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
                   </Stack>
@@ -656,8 +659,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     <Stack gap={5} w="full">
                       <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
                         <Stack gap={1} order="2" mdOrder="1">
-                          <Font variant="body-semibold" text="Vincular Complementos" align="left" />
-                          <Font variant="description" text="Vincular opcionais e acompanhamentos cadastrados no subgrupo" align="left" />
+                          <Font variant="body-semibold" text={pf.linkComplementsTitle} align="left" />
+                          <Font variant="description" text={pf.linkComplementsDesc} align="left" />
                         </Stack>
                         <Box order="1" mdOrder="2">
                           <Switch checked={complementosEnabled} onChange={(e) => setComplementosEnabled(e.target.checked)} />
@@ -683,7 +686,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   <Stack direction="row" align="center" justify="between" w="full">
                     <Stack direction="row" align="center" gap={2.5}>
                       <Icon icon={Globe} size={18} color="secondary" />
-                      <Font variant="body-semibold" text="Plataformas de venda" />
+                      <Font variant="body-semibold" text={pf.salesPlatformsTitle} />
                     </Stack>
                     <Icon icon={isPlataformasOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
                   </Stack>
@@ -699,8 +702,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     <Stack gap={5} w="full">
                       <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
                         <Stack gap={1} order="2" mdOrder="1">
-                          <Font variant="body-semibold" text="Exibir no Catálogo Online" align="left" />
-                          <Font variant="description" text="Habilita a exibição do produto em vendas digitais" align="left" />
+                          <Font variant="body-semibold" text={pf.showInOnlineCatalogTitle} align="left" />
+                          <Font variant="description" text={pf.showInOnlineCatalogDesc} align="left" />
                         </Stack>
                         <Box order="1" mdOrder="2">
                           <Switch checked={plataformasEnabled} onChange={(e) => setPlataformasEnabled(e.target.checked)} />
@@ -709,8 +712,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       {plataformasEnabled && (
                         <Box w="full">
                           <Input
-                            label="Preço Diferente para Catálogo (R$)"
-                            placeholder="0,00"
+                            label={pf.catalogPriceLabel}
+                            placeholder={pf.zeroDecimalPlaceholder}
                             value={plataformasPriceDifferent}
                             onChange={(e) => setPlataformasPriceDifferent(e.target.value)}
                           />
@@ -736,7 +739,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   <Stack direction="row" align="center" justify="between" w="full">
                     <Stack direction="row" align="center" gap={2.5}>
                       <Icon icon={Barcode} size={18} color="secondary" />
-                      <Font variant="body-semibold" text="Códigos de barras" />
+                      <Font variant="body-semibold" text={pf.barcodesTitle} />
                     </Stack>
                     <Icon icon={isBarcodesOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
                   </Stack>
@@ -753,15 +756,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       <Stack direction="col" mobileDirection="row" gap={2.5} align="stretch" mobileAlign="end" w="full">
                         <Box flex="1" w="full">
                           <Input
-                            label="Adicionar Novo EAN / GTIN"
-                            placeholder="Ex: 7891234567890"
+                            label={pf.addBarcodeLabel}
+                            placeholder={pf.barcodePlaceholder}
                             value={newBarcode}
                             onChange={(e) => setNewBarcode(e.target.value)}
                           />
                         </Box>
                         <Button
                           variant="primary"
-                          label="Adicionar"
+                          label={UI_STRINGS.common.save}
                           icon={Plus}
                           onClick={handleAddBarcode}
                           type="button"
@@ -769,7 +772,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       </Stack>
                       {barcodes.length > 0 && (
                         <Stack gap={2.5} w="full">
-                          <Font variant="sub-tiny" text="Códigos Cadastrados" />
+                          <Font variant="sub-tiny" text={pf.registeredBarcodesTitle} />
                           <Grid cols={2} gap={2.5}>
                             {barcodes.map((code, idx) => (
                               <Box key={idx} padding={2.5} bg="bg-slate-100" radius="default" border={true} borderColor="border-border">
@@ -807,7 +810,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   <Stack direction="row" align="center" justify="between" w="full">
                     <Stack direction="row" align="center" gap={2.5}>
                       <Icon icon={Printer} size={18} color="secondary" />
-                      <Font variant="body-semibold" text="Ponto de impressão" />
+                      <Font variant="body-semibold" text={pf.printPointTitle} />
                     </Stack>
                     <Icon icon={isPrintPointOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
                   </Stack>
@@ -821,10 +824,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                 >
                   <Box padding={5} bg="bg-surface" border={true} borderColor="border-border" radius="default" w="full">
                     <Stack gap={1} w="full">
-                      <Font variant="body-sm-semibold" text="Destino de Impressão" />
+                      <Font variant="body-sm-semibold" text={pf.printDestinationLabel} />
                       <CustomSelect value={printPoint} onChange={setPrintPoint}>
                         {[
-                          <CustomSelectItem key="__none__" value="" text="Sem Impressão" icon={Printer} />,
+                          <CustomSelectItem key="__none__" value="" text={pf.noPrintOption} icon={Printer} />,
                           ...(dbPrintPoints ?? []).map(p => (
                             <CustomSelectItem key={p.id} value={p.name} text={p.name} icon={Printer} />
                           ))
@@ -850,7 +853,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   <Stack direction="row" align="center" justify="between" w="full">
                     <Stack direction="row" align="center" gap={2.5}>
                       <Icon icon={FileText} size={18} color="secondary" />
-                      <Font variant="body-semibold" text="Produção" />
+                      <Font variant="body-semibold" text={pf.productionTitle} />
                     </Stack>
                     <Icon icon={isProducaoOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
                   </Stack>
@@ -866,8 +869,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     <Stack gap={5} w="full">
                       <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
                         <Stack gap={1} order="2" mdOrder="1">
-                          <Font variant="body-semibold" text="Produção Própria" align="left" />
-                          <Font variant="description" text="Habilite se o item for de fabricação interna (KDS)" align="left" />
+                          <Font variant="body-semibold" text={pf.inHouseProductionTitle} align="left" />
+                          <Font variant="description" text={pf.inHouseProductionDesc} align="left" />
                         </Stack>
                         <Box order="1" mdOrder="2">
                           <Switch checked={producaoPropria} onChange={(e) => setProducaoPropria(e.target.checked)} />
@@ -876,14 +879,14 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       {producaoPropria && (
                         <Stack gap={5} w="full">
                           <Input
-                            label="Ingredientes (Ficha Técnica)"
-                            placeholder="Ex: Pão brioche, blend de carne 150g, queijo cheddar..."
+                            label={pf.ingredientsLabel}
+                            placeholder={pf.ingredientsPlaceholder}
                             value={ingredients}
                             onChange={(e) => setIngredients(e.target.value)}
                           />
                           <Input
-                            label="Modo de Preparo (KDS)"
-                            placeholder="Ex: Selar o pão na manteiga, fritar o blend por 3 min de cada lado..."
+                            label={pf.preparationModeLabel}
+                            placeholder={pf.preparationModePlaceholder}
                             value={preparationMode}
                             onChange={(e) => setPreparationMode(e.target.value)}
                           />
@@ -909,7 +912,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   <Stack direction="row" align="center" justify="between" w="full">
                     <Stack direction="row" align="center" gap={2.5}>
                       <Icon icon={FileSpreadsheet} size={18} color="secondary" />
-                      <Font variant="body-semibold" text="Fiscal" />
+                      <Font variant="body-semibold" text={pf.fiscalTitle} />
                     </Stack>
                     <Icon icon={isFiscalOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
                   </Stack>
@@ -925,28 +928,28 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     <Stack gap={5} w="full">
                       <Grid cols={2} gap={5}>
                         <Input
-                          label="NCM (Nomenclatura Comum do Mercosul)"
-                          placeholder="Ex: 2202.10.00"
+                          label={pf.ncmLabel}
+                          placeholder={pf.ncmPlaceholder}
                           value={ncm}
                           onChange={(e) => setNcm(e.target.value)}
                         />
                         <Input
-                          label="EX TIPI"
-                          placeholder="Exceção do IPI"
+                          label={pf.exTipiLabel}
+                          placeholder={pf.exTipiPlaceholder}
                           value={exTipi}
                           onChange={(e) => setExTipi(e.target.value)}
                         />
                         <Input
-                          label="CEST (Substituição Tributária)"
-                          placeholder="Ex: 17.111.00"
+                          label={pf.cestLabel}
+                          placeholder={pf.cestPlaceholder}
                           value={cest}
                           onChange={(e) => setCest(e.target.value)}
                         />
                         <Stack gap={1}>
-                          <Font variant="body-sm-semibold" text="Origem da Mercadoria *" />
+                          <Font variant="body-sm-semibold" text={pf.originLabel} />
                           <CustomSelect value={icmsOrigem} onChange={setIcmsOrigem}>
-                            <CustomSelectItem value="0 - Nacional" text="0 - Nacional" icon={Globe} />
-                            <CustomSelectItem value="1 - Estrangeira Importada" text="1 - Importada Direta" icon={Globe} />
+                            <CustomSelectItem value="0 - Nacional" text={pf.originNational} icon={Globe} />
+                            <CustomSelectItem value="1 - Estrangeira Importada" text={pf.originImported} icon={Globe} />
                           </CustomSelect>
                         </Stack>
                       </Grid>
@@ -957,8 +960,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       <Stack gap={5} w="full">
                         <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
                           <Stack gap={1} order="2" mdOrder="1">
-                            <Font variant="body-semibold" text="Utilizar ICMS Padrão" align="left" />
-                            <Font variant="description" text="Herda as definições fiscais padrão da filial" align="left" />
+                            <Font variant="body-semibold" text={pf.useDefaultIcmsTitle} align="left" />
+                            <Font variant="description" text={pf.useDefaultIcmsDesc} align="left" />
                           </Stack>
                           <Box order="1" mdOrder="2">
                             <Switch checked={icmsDefault} onChange={(e) => setIcmsDefault(e.target.checked)} />
@@ -968,21 +971,21 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                         {!icmsDefault && (
                           <Grid cols={3} gap={5}>
                             <Stack gap={1}>
-                              <Font variant="body-sm-semibold" text="CSOSN ICMS" />
+                              <Font variant="body-sm-semibold" text={pf.csosnIcmsLabel} />
                               <CustomSelect value={icmsCsosn} onChange={setIcmsCsosn}>
-                                <CustomSelectItem value="101" text="101 - Simples Nacional sem crédito" icon={FileSpreadsheet} />
-                                <CustomSelectItem value="500" text="500 - Substituição Tributária" icon={FileSpreadsheet} />
+                                <CustomSelectItem value="101" text={pf.csosn101Short} icon={FileSpreadsheet} />
+                                <CustomSelectItem value="500" text={pf.csosn500Short} icon={FileSpreadsheet} />
                               </CustomSelect>
                             </Stack>
                             <Input
-                              label="Redução Base Cálculo (%)"
-                              placeholder="0,00"
+                              label={pf.reductionBaseShortLabel}
+                              placeholder={pf.zeroDecimalPlaceholder}
                               value={icmsReduction}
                               onChange={(e) => setIcmsReduction(e.target.value)}
                             />
                             <Input
-                              label="Alíquota Efetiva (%)"
-                              placeholder="0,00"
+                              label={pf.aliquotEffectiveLabel}
+                              placeholder={pf.zeroDecimalPlaceholder}
                               value={icmsAliquot}
                               onChange={(e) => setIcmsAliquot(e.target.value)}
                             />
@@ -996,8 +999,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                       <Stack gap={5} w="full">
                         <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
                           <Stack gap={1} order="2" mdOrder="1">
-                            <Font variant="body-semibold" text="Utilizar PIS/COFINS Padrão" align="left" />
-                            <Font variant="description" text="Herda as definições de PIS/COFINS padrão da filial" align="left" />
+                            <Font variant="body-semibold" text={pf.useDefaultPisCofinsTitle} align="left" />
+                            <Font variant="description" text={pf.useDefaultPisCofinsDesc} align="left" />
                           </Stack>
                           <Box order="1" mdOrder="2">
                             <Switch checked={pisCofinsDefault} onChange={(e) => setPisCofinsDefault(e.target.checked)} />
@@ -1006,10 +1009,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
 
                         {!pisCofinsDefault && (
                           <Stack gap={1} w="full">
-                            <Font variant="body-sm-semibold" text="CST PIS/COFINS" />
+                            <Font variant="body-sm-semibold" text={pf.cstPisCofinsLabel} />
                             <CustomSelect value={pisCofinsCst} onChange={setPisCofinsCst}>
-                              <CustomSelectItem value="49" text="49 - Outras Op. de Saída" icon={Globe} />
-                              <CustomSelectItem value="99" text="99 - Outras Operações" icon={Globe} />
+                              <CustomSelectItem value="49" text={pf.pis49Short} icon={Globe} />
+                              <CustomSelectItem value="99" text={pf.pis99Short} icon={Globe} />
                             </CustomSelect>
                           </Stack>
                         )}
@@ -1020,7 +1023,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                         <Box w="full" display="flex" justify="end">
                           <Button
                             variant="ghost-secondary"
-                            label="Acessar configuração fiscal padrão"
+                            label={pf.accessFiscalConfigButton}
                             onClick={onAccessFiscalConfig}
                             type="button"
                           />

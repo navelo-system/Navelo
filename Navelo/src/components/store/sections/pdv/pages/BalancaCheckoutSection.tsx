@@ -14,6 +14,7 @@ import { Icon } from "@/components/store/base/Icon"
 import { Grid } from "@/components/store/base/Grid"
 import { Scale, Settings, RefreshCw, ChevronDown, ChevronUp } from "lucide-react"
 import { ScaleStatusModal } from "@/components/store/sections/pdv/modals/ScaleStatusModal"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface BalancaCheckoutSectionProps {
   onCancel: () => void
@@ -31,6 +32,7 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
   const [porta, setPorta] = React.useState("COM1")
   const [baudRate, setBaudRate] = React.useState("4800")
   const [showAdvanced, setShowAdvanced] = React.useState(false)
+  const s = UI_STRINGS.scales
 
   // Advanced form states (e.g. dataBits, stopBits, parity)
   const [dataBits, setDataBits] = React.useState("8")
@@ -41,12 +43,12 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Balança checkout")
+    setCustomTitle?.(s.checkoutScaleTitle)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.checkoutScaleTitle])
 
   const handleSave = () => {
     onCancel()
@@ -70,10 +72,10 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
           {/* Habilitar */}
           <Stack direction="row" align="start" justify="between" w="full" gap={5}>
             <Stack gap={1} flex="1">
-              <Font variant="body-bold" text="Habilitar" />
+              <Font variant="body-bold" text={UI_STRINGS.selfService.enableToggle} />
               <Font
                 variant="description"
-                text="Habilite a leitura do peso da balança de checkout conectada ao Caixa. A leitura será feita apenas para unidades com a opção 'Pesado no caixa'."
+                text={s.enableCheckoutScaleDesc}
                 color="muted"
               />
             </Stack>
@@ -86,15 +88,15 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
           {/* Seletor Modelo */}
           <Box opacity={enabled ? "100" : "50"} w="full">
             <Stack gap={1} w="full">
-              <Font variant="sub-tiny-bold" text="Modelo" />
+              <Font variant="sub-tiny-bold" text={s.scaleModelLabel} />
               <CustomSelect
                 value={modelo}
                 onChange={(val) => setModelo(val)}
                 disabled={!enabled}
               >
-                <CustomSelectItem value="filizola" text="Filizola" icon={Scale} />
-                <CustomSelectItem value="toledo" text="Toledo" icon={Scale} />
-                <CustomSelectItem value="urano" text="Urano" icon={Scale} />
+                <CustomSelectItem value="filizola" text={s.fizilolaModel} icon={Scale} />
+                <CustomSelectItem value="toledo" text={s.toledoModel} icon={Scale} />
+                <CustomSelectItem value="urano" text={s.uranoModel} icon={Scale} />
               </CustomSelect>
             </Stack>
           </Box>
@@ -102,16 +104,16 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
           {/* Seletor Porta */}
           <Box opacity={enabled ? "100" : "50"} w="full">
             <Stack gap={1} w="full">
-              <Font variant="sub-tiny-bold" text="Porta" />
+              <Font variant="sub-tiny-bold" text={s.portLabel} />
               <CustomSelect
                 value={porta}
                 onChange={(val) => setPorta(val)}
                 disabled={!enabled}
               >
-                <CustomSelectItem value="COM1" text="COM1" icon={Settings} />
-                <CustomSelectItem value="COM2" text="COM2" icon={Settings} />
-                <CustomSelectItem value="COM3" text="COM3" icon={Settings} />
-                <CustomSelectItem value="COM4" text="COM4" icon={Settings} />
+                <CustomSelectItem value="COM1" text={`COM1`} icon={Settings} />
+                <CustomSelectItem value="COM2" text={`COM2`} icon={Settings} />
+                <CustomSelectItem value="COM3" text={`COM3`} icon={Settings} />
+                <CustomSelectItem value="COM4" text={`COM4`} icon={Settings} />
               </CustomSelect>
             </Stack>
           </Box>
@@ -119,7 +121,7 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
           {/* Link: Não encontrei a porta de comunicação */}
           <Button
             variant="ghost-primary"
-            label="Não encontrei a porta de comunicação da minha balança"
+            label={s.portHelpButton}
             disabled={!enabled}
             onClick={() => {
               if (enabled) {
@@ -131,7 +133,7 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
           {/* Velocidade de comunicação */}
           <Box opacity={enabled ? "100" : "50"} w="full">
             <Stack gap={1} w="full">
-              <Font variant="sub-tiny-bold" text="Velocidade de comunicação (baud rates)" />
+              <Font variant="sub-tiny-bold" text={s.baudRateLabel} />
               <CustomSelect
                 value={baudRate}
                 onChange={(val) => setBaudRate(val)}
@@ -161,7 +163,7 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
                   gap={0}
                   w="full"
                 >
-                  <Font variant="body-bold" text="Configurações avançadas" color={enabled ? "foreground" : "muted"} />
+                  <Font variant="body-bold" text={s.advancedSettingsTitle} color={enabled ? "foreground" : "muted"} />
                   <Icon icon={showAdvanced ? ChevronUp : ChevronDown} size={16} color="muted" />
                 </Stack>
               </Box>
@@ -170,7 +172,7 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
                 <Stack gap={5} w="full">
                   <Grid cols={3} gap={5}>
                     <Stack gap={1} w="full">
-                      <Font variant="sub-tiny-bold" text="Data Bits" />
+                      <Font variant="sub-tiny-bold" text={s.dataBitsLabel} />
                       <CustomSelect value={dataBits} onChange={(val) => setDataBits(val)}>
                         <CustomSelectItem value="7" text="7" icon={Settings} />
                         <CustomSelectItem value="8" text="8" icon={Settings} />
@@ -178,7 +180,7 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
                     </Stack>
 
                     <Stack gap={1} w="full">
-                      <Font variant="sub-tiny-bold" text="Stop Bits" />
+                      <Font variant="sub-tiny-bold" text={s.stopBitsLabel} />
                       <CustomSelect value={stopBits} onChange={(val) => setStopBits(val)}>
                         <CustomSelectItem value="1" text="1" icon={Settings} />
                         <CustomSelectItem value="2" text="2" icon={Settings} />
@@ -186,11 +188,11 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
                     </Stack>
 
                     <Stack gap={1} w="full">
-                      <Font variant="sub-tiny-bold" text="Paridade" />
+                      <Font variant="sub-tiny-bold" text={s.parityLabel} />
                       <CustomSelect value={parity} onChange={(val) => setParity(val)}>
-                        <CustomSelectItem value="none" text="Nenhuma" icon={Settings} />
-                        <CustomSelectItem value="odd" text="Ímpar" icon={Settings} />
-                        <CustomSelectItem value="even" text="Par" icon={Settings} />
+                        <CustomSelectItem value="none" text={s.parityNone} icon={Settings} />
+                        <CustomSelectItem value="odd" text={s.parityOdd} icon={Settings} />
+                        <CustomSelectItem value="even" text={s.parityEven} icon={Settings} />
                       </CustomSelect>
                     </Stack>
                   </Grid>
@@ -204,7 +206,7 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
           {/* Nota */}
           <Font
             variant="description"
-            text="Para realizar o teste é necessário que algum peso esteja sobre a balança."
+            text={s.testWeightNote}
             color="muted"
             align="center"
           />
@@ -214,7 +216,7 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
             <Button
               type="button"
               variant="outline"
-              label="Testar comunicação"
+              label={s.testConnectionButton}
               icon={RefreshCw}
               disabled={!enabled}
               onClick={handleTestCommunication}
@@ -224,8 +226,8 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
       </Box>
 
       {/* Ações de Cancelar / Salvar */}
-            <FormActions
-        confirmLabel="Salvar alterações"
+      <FormActions
+        confirmLabel={UI_STRINGS.common.save}
         onConfirm={handleSave}
         onCancel={onCancel}
       />
@@ -233,8 +235,8 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
       <ScaleStatusModal
         isOpen={modalMsg !== null}
         onClose={() => setModalMsg(null)}
-        title="Informação"
-        subtitle="Status da comunicação"
+        title={s.infoModalTitle}
+        subtitle={s.infoModalSubtitle}
         message={modalMsg || ""}
       />
     </Stack>

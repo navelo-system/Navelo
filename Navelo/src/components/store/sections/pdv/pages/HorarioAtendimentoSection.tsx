@@ -9,6 +9,7 @@ import { Font } from "@/components/store/base/Font"
 import { Switch } from "@/components/store/base/Switch"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 import { Input } from "@/components/store/base/Input"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface DaySchedule {
   day: string
@@ -17,16 +18,6 @@ interface DaySchedule {
   start: string
   end: string
 }
-
-const INITIAL_SCHEDULE: DaySchedule[] = [
-  { day: "seg", label: "Segunda-feira", enabled: true, start: "08:00", end: "18:00" },
-  { day: "ter", label: "Terça-feira", enabled: true, start: "08:00", end: "18:00" },
-  { day: "qua", label: "Quarta-feira", enabled: true, start: "08:00", end: "18:00" },
-  { day: "qui", label: "Quinta-feira", enabled: true, start: "08:00", end: "18:00" },
-  { day: "sex", label: "Sexta-feira", enabled: true, start: "08:00", end: "18:00" },
-  { day: "sab", label: "Sábado", enabled: false, start: "09:00", end: "13:00" },
-  { day: "dom", label: "Domingo", enabled: false, start: "09:00", end: "13:00" }
-]
 
 export interface HorarioAtendimentoSectionProps {
   onCancel: () => void
@@ -39,16 +30,26 @@ export const HorarioAtendimentoSection: React.FC<HorarioAtendimentoSectionProps>
   setCustomBack,
   setCustomTitle
 }) => {
-  const [schedule, setSchedule] = React.useState<DaySchedule[]>(INITIAL_SCHEDULE)
+  const s = UI_STRINGS.schedule
+
+  const [schedule, setSchedule] = React.useState<DaySchedule[]>([
+    { day: "seg", label: s.dayMonday, enabled: true, start: "08:00", end: "18:00" },
+    { day: "ter", label: s.dayTuesday, enabled: true, start: "08:00", end: "18:00" },
+    { day: "qua", label: s.dayWednesday, enabled: true, start: "08:00", end: "18:00" },
+    { day: "qui", label: s.dayThursday, enabled: true, start: "08:00", end: "18:00" },
+    { day: "sex", label: s.dayFriday, enabled: true, start: "08:00", end: "18:00" },
+    { day: "sab", label: s.daySaturday, enabled: false, start: "09:00", end: "13:00" },
+    { day: "dom", label: s.daySunday, enabled: false, start: "09:00", end: "13:00" }
+  ])
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Horário de atendimento")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   const toggleDay = (idx: number) => {
     setSchedule((prev) =>
@@ -70,7 +71,7 @@ export const HorarioAtendimentoSection: React.FC<HorarioAtendimentoSectionProps>
     <Stack gap={5} w="full">
       <Font
         variant="description"
-        text="Defina os dias e horários em que seu estabelecimento estará aberto para receber pedidos."
+        text={s.scheduleDesc}
         color="muted"
       />
 
@@ -102,7 +103,7 @@ export const HorarioAtendimentoSection: React.FC<HorarioAtendimentoSectionProps>
                       value={item.start}
                       onChange={(e) => updateTime(idx, "start", e.target.value)}
                     />
-                    <Font variant="body" text="às" color="muted" align="center" />
+                    <Font variant="body" text={s.toTimeSeparator} color="muted" align="center" />
                     <Input
                       type="time"
                       value={item.end}
@@ -117,7 +118,7 @@ export const HorarioAtendimentoSection: React.FC<HorarioAtendimentoSectionProps>
       </Box>
 
       <FormActions
-        confirmLabel="Salvar alterações"
+        confirmLabel={UI_STRINGS.pdv.cart.saveChangesButton}
         onConfirm={handleSave}
         onCancel={onCancel}
       />

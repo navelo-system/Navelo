@@ -9,6 +9,7 @@ import { Modal } from "@/components/store/base/Modal"
 import { Input } from "@/components/store/base/Input"
 import { SectionHeader } from "@/components/store/intermediary/SectionHeader"
 import { Settings, Upload, Palette } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 const isValidHex = (color: string | null): color is string => {
   if (!color) return false
@@ -33,43 +34,47 @@ interface SettingsFormProps {
 
 const SettingsForm: React.FC<SettingsFormProps> = ({
   tempPrimary, setTempPrimary, tempSecondary, setTempSecondary, tempLogo, setTempLogo, handleLogoChange
-}) => (
-  <Stack gap={5}>
-    <Box padding={0}>
-      <Stack gap={5}>
-        <SectionHeader
-          icon={Palette}
-          title="Identidade Visual (Whitelabel)"
-          subtitle="Personalize as cores da sua marca e logotipo do seu terminal."
-          iconSize={20}
-        />
-        <Grid cols={2} gap={2.5}>
-          <Input type="color" label="Cor Primária" value={tempPrimary} onChange={(e) => setTempPrimary(e.target.value)} />
-          <Input type="color" label="Cor Secundária" value={tempSecondary} onChange={(e) => setTempSecondary(e.target.value)} />
-        </Grid>
-        <Stack gap={2.5}>
-          <Input
-            variant="image-upload"
-            label="Subir Novo Logotipo"
-            placeholder="Arraste ou clique para enviar imagem"
-            icon={Upload}
-            onChange={handleLogoChange}
+}) => {
+  const tc = UI_STRINGS.themeCustomizer
+  return (
+    <Stack gap={5}>
+      <Box padding={0}>
+        <Stack gap={5}>
+          <SectionHeader
+            icon={Palette}
+            title={tc.whitelabelTitle}
+            subtitle={tc.whitelabelSubtitle}
+            iconSize={20}
           />
-          {tempLogo && (
-            <Stack direction="row" align="center" gap={2.5}>
-              <Box w="w-8" h="h-8" radius="default" display="flex" justify="center" overflow="hidden">
-                <Box as="img" src={tempLogo} alt="Preview Logo" w="w-[28px]" h="h-[28px]" objectFit="contain" />
-              </Box>
-              <Button variant="secondary" label="Remover logo" onClick={() => setTempLogo("")} />
-            </Stack>
-          )}
+          <Grid cols={2} gap={2.5}>
+            <Input type="color" label={tc.primaryColorLabel} value={tempPrimary} onChange={(e) => setTempPrimary(e.target.value)} />
+            <Input type="color" label={tc.secondaryColorLabel} value={tempSecondary} onChange={(e) => setTempSecondary(e.target.value)} />
+          </Grid>
+          <Stack gap={2.5}>
+            <Input
+              variant="image-upload"
+              label={tc.uploadNewLogoLabel}
+              placeholder={tc.uploadLogoDragPlaceholder}
+              icon={Upload}
+              onChange={handleLogoChange}
+            />
+            {tempLogo && (
+              <Stack direction="row" align="center" gap={2.5}>
+                <Box w="w-8" h="h-8" radius="default" display="flex" justify="center" overflow="hidden">
+                  <Box as="img" src={tempLogo} alt={tc.previewLogoAlt} w="w-[28px]" h="h-[28px]" objectFit="contain" />
+                </Box>
+                <Button variant="secondary" label={tc.removeLogoButton} onClick={() => setTempLogo("")} />
+              </Stack>
+            )}
+          </Stack>
         </Stack>
-      </Stack>
-    </Box>
-  </Stack>
-)
+      </Box>
+    </Stack>
+  )
+}
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSave }) => {
+  const tc = UI_STRINGS.themeCustomizer
   const [tempLogo, setTempLogo] = React.useState<string>("")
   const [tempPrimary, setTempPrimary] = React.useState<string>("#3b82f6")
   const [tempSecondary, setTempSecondary] = React.useState<string>("#f97316")
@@ -120,10 +125,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
     <Modal
       isOpen={isOpen}
       onClose={handleCancel}
-      title="Configurações do Sistema"
-      subtitle="Gerencie suas preferências e recursos do terminal."
+      title={tc.systemSettingsTitle}
+      subtitle={tc.systemSettingsSubtitle}
       icon={Settings}
-      successText="Salvar preferências"
+      successText={tc.savePreferencesButton}
       onSuccess={handleSave}
     >
       <SettingsForm

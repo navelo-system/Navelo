@@ -73,6 +73,19 @@ const pageSpecificSyntax = [
   }
 ];
 
+const i18nSyntax = [
+  // 1. Proibir texto solto direto em JSX (filhos literais de elementos JSX)
+  {
+    selector: "JSXElement > JSXText:not([value=/^\\s*$/])",
+    message: "Proibido: String literal hardcoded solta em JSX. Use referências do dicionário 'src/constants/strings.ts' (UI_STRINGS) com o componente <Font text={...} />."
+  },
+  // 2. Proibir strings literais hardcoded em props textuais
+  {
+    selector: "JSXAttribute[name.name=/^(text|label|title|subtitle|textButton|placeholder|helperText)$/] > Literal[value!=/^(0|1|2|3|4|5|6|7|8|9|\\+|-|\\/|:|\\*|#|%|R\\$|UN|KG|L|G|M|SIM|NAO|Sim|Não|grade|lista)$/][value!=/^[\\d\\s\\.,\\-:/#%]+$/]",
+    message: "Proibido: String literal hardcoded detectada em prop de texto. Mova o texto para 'src/constants/strings.ts' (UI_STRINGS) e referencie a constante correspondente."
+  }
+];
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -83,7 +96,7 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
 
-  // BLOCO 1 — src components fora da pasta base (Todas as restrições + globals + domain)
+  // BLOCO 1 — src components fora da pasta base (Todas as restrições + globals + domain + i18n)
   {
     files: ["**/src/components/**/*.{ts,tsx}"],
     ignores: [
@@ -94,7 +107,8 @@ const eslintConfig = defineConfig([
         "error",
         ...designSystemSyntax,
         ...nativeGlobalsSyntax,
-        ...domainSyntax
+        ...domainSyntax,
+        ...i18nSyntax
       ]
     }
   },

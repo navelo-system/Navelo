@@ -6,6 +6,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
 import { User, MapPin } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface DeliveryFormProps {
   onSubmit: (data: { clientName: string; address: string; total: number }) => void
@@ -15,6 +16,7 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({ onSubmit }) => {
   const [clientName, setClientName] = React.useState("")
   const [address, setAddress] = React.useState("")
   const [total, setTotal] = React.useState("")
+  const d = UI_STRINGS.delivery
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,26 +35,26 @@ export const DeliveryForm: React.FC<DeliveryFormProps> = ({ onSubmit }) => {
     <Box as="form" onSubmit={handleSubmit}>
       <Stack gap={2.5}>
         <Input
-          placeholder="Nome do cliente"
+          placeholder={d.clientNamePlaceholder}
           value={clientName}
           onChange={(e) => setClientName(e.target.value)}
           icon={User}
           required
         />
         <Input
-          placeholder="Endereço de entrega"
+          placeholder={d.deliveryAddressPlaceholder}
           value={address}
           onChange={(e) => setAddress(e.target.value)}
           icon={MapPin}
           required
         />
         <Input
-          placeholder="Valor total (R$)"
+          placeholder={d.totalValuePlaceholder}
           value={total}
           onChange={(e) => setTotal(e.target.value)}
           required
         />
-        <Button variant="primary" label="Lançar Pedido" type="submit" fullWidth />
+        <Button variant="primary" label={d.submitOrderButton} type="submit" fullWidth />
       </Stack>
     </Box>
   )

@@ -15,6 +15,7 @@ import { Plus, Trash2, Bike, Check } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { useTenant } from "@/lib/context/TenantContext"
 import { useRiders, dal, Rider } from "@/lib/dal"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface DeliveryRidersScreenProps {
   onBack: () => void
@@ -33,6 +34,8 @@ export const DeliveryRidersScreen: React.FC<DeliveryRidersScreenProps> = ({
 }) => {
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id || "default"
+  const d = UI_STRINGS.delivery
+  const cust = UI_STRINGS.customers
 
   const dbRiders = useRiders(tenantId)
   const ridersList = React.useMemo(() => (Array.isArray(dbRiders) ? dbRiders : []), [dbRiders])
@@ -76,20 +79,22 @@ export const DeliveryRidersScreen: React.FC<DeliveryRidersScreenProps> = ({
   React.useEffect(() => {
     if (mode === "form") {
       setCustomBackRef.current?.(() => () => setMode("list"))
-      setCustomTitleRef.current?.(editingRider ? "Editar Entregador" : "Novo Entregador")
+      setCustomTitleRef.current?.(editingRider ? d.editRiderTitle : d.newRiderTitle)
       setCustomActionsRef.current?.(null)
     } else {
       setCustomBackRef.current?.(() => () => onBackRef.current?.())
-      setCustomTitleRef.current?.("Entregadores")
+      setCustomTitleRef.current?.(d.ridersTitle)
       setCustomActionsRef.current?.(
         <MobileHeaderSearch
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
-          placeholder="Buscar por entregador..."
-        />
+          placeholder={d.searchRiderPlaceholder}
+        >
+          <Box />
+        </MobileHeaderSearch>
       )
     }
-  }, [mode, searchQuery, editingRider])
+  }, [mode, searchQuery, editingRider, d])
 
   const handleCreateNew = () => {
     setEditingRider(null)
@@ -110,8 +115,6 @@ export const DeliveryRidersScreen: React.FC<DeliveryRidersScreenProps> = ({
     setConectaCode(rider.conecta_code || "")
     setMode("form")
   }
-
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -160,23 +163,23 @@ export const DeliveryRidersScreen: React.FC<DeliveryRidersScreenProps> = ({
             {/* CARD 1: Dados Pessoais (Print 3) */}
             <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border" w="full">
               <Stack gap={5} w="full">
-                <Font variant="body-bold" text="Dados pessoais" />
+                <Font variant="body-bold" text={cust.personalDataTitle} />
                 <Stack gap={2.5} w="full">
                   <Input
-                    placeholder="* Nome do Entregador"
+                    placeholder={d.riderNamePlaceholder}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
                   />
                   <Input
                     mask="cpf-cnpj"
-                    placeholder="CPF/CNPJ do Entregador"
+                    placeholder={d.riderDocumentPlaceholder}
                     value={document}
                     onChange={(e) => setDocument(e.target.value)}
                   />
                   <Input
                     mask="phone"
-                    placeholder="Telefone"
+                    placeholder={cust.phonePlaceholder}
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                   />
@@ -192,14 +195,14 @@ export const DeliveryRidersScreen: React.FC<DeliveryRidersScreenProps> = ({
                     checked={conectaEnabled}
                     onChange={(e) => setConectaEnabled(e.target.checked)}
                   />
-                  <Font variant="body-sm-medium" text="Habilitar entregador no Conecta Entregador" />
+                  <Font variant="body-sm-medium" text={d.enableConectaToggle} />
                 </Stack>
 
                 <Stack gap={2.5} w="full">
                   <Stack direction="row" align="center" gap={2.5} w="full">
                     <Box flex="1">
                       <Input
-                        placeholder="Código de vinculação"
+                        placeholder={d.conectaCodePlaceholder}
                         value={conectaCode}
                         onChange={(e) => setConectaCode(e.target.value)}
                       />
@@ -207,7 +210,7 @@ export const DeliveryRidersScreen: React.FC<DeliveryRidersScreenProps> = ({
                     <Button
                       variant="secondary-icon"
                       icon={Check}
-                      title="Vincular entregador"
+                      title={d.linkRiderTitle}
                       type="button"
                       onClick={() => {
                         if (conectaCode.trim()) {
@@ -219,7 +222,7 @@ export const DeliveryRidersScreen: React.FC<DeliveryRidersScreenProps> = ({
                   <Font
                     variant="auxiliary"
                     color="muted"
-                    text="Insira o código de vinculação do aplicativo Conecta Entregador."
+                    text={d.conectaCodeHelpText}
                   />
                 </Stack>
               </Stack>
@@ -237,13 +240,13 @@ export const DeliveryRidersScreen: React.FC<DeliveryRidersScreenProps> = ({
                       setMode("list")
                       setEditingRider(null)
                     }}
-                    title="Excluir entregador"
+                    title={d.deleteRiderTitle}
                   />
                 )}
                 <Box flex="1">
                   <Button
                     variant="primary"
-                    label="Salvar entregador"
+                    label={d.saveRiderButton}
                     type="submit"
                     fullWidth={true}
                   />
@@ -262,8 +265,8 @@ export const DeliveryRidersScreen: React.FC<DeliveryRidersScreenProps> = ({
         {filteredRiders.length === 0 ? (
           <EmptyState
             icon={Bike}
-            title="Nenhum entregador cadastrado"
-            subtitle="Clique no botão + abaixo para cadastrar um novo entregador."
+            title={d.emptyRidersTitle}
+            subtitle={d.emptyRidersSubtitle}
           />
         ) : (
           <Box display="flex" direction="col" w="full">
@@ -315,7 +318,7 @@ export const DeliveryRidersScreen: React.FC<DeliveryRidersScreenProps> = ({
         <Button
           variant="secondary-pill-icon"
           icon={Plus}
-          title="Novo Entregador"
+          title={d.newRiderTitle}
           onClick={handleCreateNew}
         />
       </Box>

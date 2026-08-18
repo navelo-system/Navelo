@@ -6,12 +6,16 @@ import { Stack } from "@/components/store/base/Stack"
 import { Box } from "@/components/store/base/Box"
 import { Font } from "@/components/store/base/Font"
 import { SupplierInvoice } from "@/src/types/domain"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface InvoicesTableProps {
   invoices: SupplierInvoice[]
 }
 
 export const InvoicesTable: React.FC<InvoicesTableProps> = ({ invoices }) => {
+  const invStrings = UI_STRINGS.inventory
+  const common = UI_STRINGS.common
+
   const formatPrice = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -24,11 +28,11 @@ export const InvoicesTable: React.FC<InvoicesTableProps> = ({ invoices }) => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead text="Número NF-e" />
-            <TableHead text="Fornecedor / Emitente" />
-            <TableHead text="Valor Total" />
-            <TableHead text="Chave de Acesso" />
-            <TableHead text="Status" align="center" />
+            <TableHead text={invStrings.invoiceNumberHeader} />
+            <TableHead text={invStrings.supplierIssuerHeader} />
+            <TableHead text={invStrings.totalValueHeader} />
+            <TableHead text={invStrings.accessKeyHeader} />
+            <TableHead text={common.status} align="center" />
           </TableRow>
         </TableHeader>
         <TableBody>

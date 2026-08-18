@@ -14,6 +14,7 @@ import { FilterBar } from "@/components/store/intermediary/FilterBar"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { User, UserRole } from "@/src/types/domain"
 import { Users, ArrowLeft, Plus, User as UserIcon, Shield, Mail } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 /** Dados de exibição enriquecidos — tenantName vem de um join com Tenant na API real */
 interface UserListRow extends User {
@@ -28,10 +29,11 @@ const roleVariant = (role: UserRole) => {
 }
 
 const roleLabel = (role: UserRole) => {
-  if (role === UserRole.ADMIN) return "Administrador"
-  if (role === UserRole.MANAGER) return "Gerente"
-  if (role === UserRole.CASHIER) return "Caixa"
-  return "Atendente"
+  const u = UI_STRINGS.admin.users
+  if (role === UserRole.ADMIN) return u.adminRole
+  if (role === UserRole.MANAGER) return u.managerRole
+  if (role === UserRole.CASHIER) return u.cashierRole
+  return u.attendantRole
 }
 
 const MOCK_USERS: UserListRow[] = [
@@ -51,6 +53,7 @@ export function UsuariosSection() {
   const [searchQuery, setSearchQuery] = React.useState("")
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [users, setUsers] = React.useState<UserListRow[]>(MOCK_USERS)
+  const uStrings = UI_STRINGS.admin.users
 
   const [newName, setNewName] = React.useState("")
   const [newEmail, setNewEmail] = React.useState("")
@@ -90,20 +93,20 @@ export function UsuariosSection() {
       <Stack direction="row" align="start" w="fit-content">
         <Button
           variant="ghost"
-          label="Voltar ao Painel"
+          label={uStrings.backButton}
           icon={ArrowLeft}
           onClick={() => window.location.href = "/admin"}
         />
       </Stack>
 
       <RegistrySection
-        title="Gestão de Usuários"
-        description="Lista de logins, convite de novos membros e concessão de cargos."
+        title={uStrings.userManagementTitle}
+        description={uStrings.userManagementDesc}
         icon={Shield}
         action={
           <Button
             variant="primary"
-            label="Novo Usuário"
+            label={uStrings.newUserButton}
             icon={Plus}
             onClick={() => setIsModalOpen(true)}
           />
@@ -111,24 +114,24 @@ export function UsuariosSection() {
       >
         <Stack gap={5}>
           <FilterBar
-            searchPlaceholder="Buscar por nome, email ou empresa..."
+            searchPlaceholder={uStrings.searchUsersPlaceholder}
             onSearch={setSearchQuery}
           />
 
           {filteredUsers.length === 0 ? (
             <EmptyState
               icon={Users}
-              title="Nenhum usuário encontrado"
-              subtitle="Nenhum usuário corresponde ao termo pesquisado."
+              title={uStrings.emptyUsersTitle}
+              subtitle={uStrings.emptyUsersSubtitle}
             />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead text="Nome" />
-                  <TableHead text="E-mail" />
-                  <TableHead text="Empresa" />
-                  <TableHead align="right" text="Cargo" />
+                  <TableHead text={uStrings.nameColumn} />
+                  <TableHead text={uStrings.emailColumn} />
+                  <TableHead text={uStrings.companyColumn} />
+                  <TableHead align="right" text={uStrings.roleHeader} />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -153,30 +156,30 @@ export function UsuariosSection() {
           <Modal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
-            title="Novo Usuário"
-            subtitle="Cadastre uma credencial e associe a uma empresa."
+            title={uStrings.newUserModalTitle}
+            subtitle={uStrings.newUserModalSubtitle}
             icon={Users}
-            successText="Salvar Usuário"
+            successText={uStrings.saveUserButton}
             isSubmit
           >
             <Stack gap={5}>
               <Input
-                label="Nome Completo"
-                placeholder="Nome do colaborador"
+                label={uStrings.fullNameLabel}
+                placeholder={uStrings.fullNamePlaceholder}
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
                 required
               />
               <Input
-                label="Endereço de E-mail"
-                placeholder="exemplo@empresa.com"
+                label={uStrings.emailAddressLabel}
+                placeholder={uStrings.emailAddressPlaceholder}
                 icon={Mail}
                 value={newEmail}
                 onChange={e => setNewEmail(e.target.value)}
                 required
               />
               <Stack gap={2.5}>
-                <Badge variant="ghost" label="Empresa Inquilina" />
+                <Badge variant="ghost" label={uStrings.tenantBadgeLabel} />
                 <CustomSelect value={newTenantId} onChange={setNewTenantId}>
                   {tenantsList.map(t => (
                     <CustomSelectItem key={t.id} value={t.id} text={t.name} icon={UserIcon} />
@@ -185,12 +188,12 @@ export function UsuariosSection() {
               </Stack>
 
               <Stack gap={2.5}>
-                <Badge variant="ghost" label="Cargo / Nível de Acesso" />
+                <Badge variant="ghost" label={uStrings.roleBadgeLabel} />
                 <CustomSelect value={newRole} onChange={(v) => setNewRole(v as UserRole)}>
-                  <CustomSelectItem value={UserRole.CASHIER} text="Caixa" icon={UserIcon} />
-                  <CustomSelectItem value={UserRole.ATTENDANT} text="Atendente" icon={UserIcon} />
-                  <CustomSelectItem value={UserRole.MANAGER} text="Gerente" icon={Shield} />
-                  <CustomSelectItem value={UserRole.ADMIN} text="Administrador" icon={Shield} />
+                  <CustomSelectItem value={UserRole.CASHIER} text={uStrings.cashierRole} icon={UserIcon} />
+                  <CustomSelectItem value={UserRole.ATTENDANT} text={uStrings.attendantRole} icon={UserIcon} />
+                  <CustomSelectItem value={UserRole.MANAGER} text={uStrings.managerRole} icon={Shield} />
+                  <CustomSelectItem value={UserRole.ADMIN} text={uStrings.adminRole} icon={Shield} />
                 </CustomSelect>
               </Stack>
             </Stack>

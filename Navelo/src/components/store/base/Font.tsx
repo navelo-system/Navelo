@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils"
 
 export interface FontProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, "children"> {
   text: React.ReactNode
-  variant?: "h1" | "h2" | "h3" | "h4" | "h5" | "body" | "body-medium" | "body-semibold" | "body-bold" | "body-sm-medium" | "body-sm-semibold" | "body-xs" | "body-xs-medium" | "body-xs-semibold" | "body-xs-bold" | "description" | "auxiliary" | "sub-tiny" | "sub-tiny-bold"
+  variant?: "display-huge" | "h1" | "h2" | "h3" | "h4" | "h5" | "body" | "body-medium" | "body-semibold" | "body-bold" | "body-sm-medium" | "body-sm-semibold" | "body-xs" | "body-xs-medium" | "body-xs-semibold" | "body-xs-bold" | "description" | "auxiliary" | "sub-tiny" | "sub-tiny-bold"
   color?: "foreground" | "secondary" | "muted" | "dim" | "primary" | "brand-secondary" | "white" | "danger" | "success" | "warning" | "inherit"
   align?: "left" | "center" | "right"
   mobileAlign?: "left" | "center" | "right"
@@ -14,6 +14,7 @@ export interface FontProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, "
 }
 
 const variantStyles = {
+  "display-huge": "text-4xl md:text-5xl font-black tracking-tight drop-shadow-md select-none",
   "h1": "text-3xl md:text-4xl font-bold tracking-tight text-foreground",
   "h2": "text-2xl md:text-3xl font-bold tracking-tight text-foreground",
   "h3": "text-xl md:text-2xl font-semibold tracking-tight text-foreground",
@@ -61,8 +62,18 @@ const mobileAlignStyles = {
 }
 
 export const Font = React.forwardRef<HTMLElement, FontProps>(
-  ({ className, text, variant = "body", color, align, mobileAlign, as = "span", truncate, mono, lineClamp, ...props }, ref) => {
+  ({ className, text, variant = "body", color, align, mobileAlign, as = "span", truncate, mono, lineClamp, style, ...props }, ref) => {
     const Comp = as as React.ElementType
+
+    const clampStyle: React.CSSProperties = lineClamp ? {
+      display: "-webkit-box",
+      WebkitLineClamp: lineClamp,
+      WebkitBoxOrient: "vertical",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      wordBreak: "break-word",
+    } : {}
+
     return (
       <Comp
         ref={ref}
@@ -79,6 +90,10 @@ export const Font = React.forwardRef<HTMLElement, FontProps>(
           lineClamp === 4 && "line-clamp-4 block w-full",
           className
         )}
+        style={{
+          ...clampStyle,
+          ...(style || {}),
+        }}
         {...props}
       >
         {text}

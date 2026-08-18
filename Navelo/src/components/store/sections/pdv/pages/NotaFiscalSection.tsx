@@ -14,6 +14,7 @@ import { Switch } from "@/components/store/base/Switch"
 import { Icon } from "@/components/store/base/Icon"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
+import { UI_STRINGS } from "@/constants/strings"
 import {
   Check,
   ChevronDown,
@@ -60,22 +61,24 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
   setCustomTitle,
   setCustomActions
 }) => {
+  const s = UI_STRINGS.fiscal
+
   // Main settings
   const [emitirNotas, setEmitirNotas] = React.useState(false)
   const [certificadoNome] = React.useState("")
-  const [qrCode, setQrCode] = React.useState("CSC Padrão")
+  const [qrCode, setQrCode] = React.useState<string>(s.defaultCscOption)
   
   const [serieNfce, setSerieNfce] = React.useState("0")
   const [ultimoNfce, setUltimoNfce] = React.useState("0")
   const [serieNfe, setSerieNfe] = React.useState("0")
   const [ultimoNfe, setUltimoNfe] = React.useState("0")
-  const [regimeTributario, setRegimeTributario] = React.useState("Simples Nacional")
+  const [regimeTributario, setRegimeTributario] = React.useState<string>(s.simplesNacionalOption)
   
   const [homologacao, setHomologacao] = React.useState(false)
   const [danfeComprovante, setDanfeComprovante] = React.useState(false)
   const [emitirAutomatico, setEmitirAutomatico] = React.useState(false)
   
-  const [motivoCancelamento, setMotivoCancelamento] = React.useState("Operação cancelada pelo cliente")
+  const [motivoCancelamento, setMotivoCancelamento] = React.useState<string>(s.defaultCancelReason)
   const [infosAdicionais, setInfosAdicionais] = React.useState("")
 
   // Accordion states
@@ -104,7 +107,7 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
   // Setup global header
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Nota fiscal")
+    setCustomTitle?.(s.title)
     setCustomActions?.(null)
 
     return () => {
@@ -112,7 +115,7 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
       setCustomTitle?.(null)
       setCustomActions?.(null)
     }
-  }, [setCustomBack, setCustomTitle, setCustomActions, onCancel])
+  }, [setCustomBack, setCustomTitle, setCustomActions, onCancel, s.title])
 
   const handleAddCpfCnpj = () => {
     if (newCpfCnpj.trim()) {
@@ -152,8 +155,8 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
         <Box border={true} borderColor="border-border" padding={5} radius="default" bg="bg-surface">
           <Stack direction="col-reverse" mobileDirection="row" align="start" mobileAlign="center" justify="between" w="full" gap={5}>
             <Stack gap={1}>
-              <Font variant="body-bold" text="Habilitar emissão de notas" align="left" />
-              <Font variant="description" text="Ative para realizar a emissão de cupons e notas fiscais de venda" align="left" />
+              <Font variant="body-bold" text={s.enableEmissionToggle} align="left" />
+              <Font variant="description" text={s.enableEmissionDesc} align="left" />
             </Stack>
             <Switch checked={emitirNotas} onChange={() => setEmitirNotas(!emitirNotas)} />
           </Stack>
@@ -163,33 +166,33 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
           <Stack gap={5} w="full">
             {/* Certificado digital */}
             <Input
-              label="Certificado digital (arquivo .pfx) *"
-              value={certificadoNome || "Nenhum certificado selecionado"}
+              label={s.digitalCertTitle}
+              value={certificadoNome || UI_STRINGS.common.notSelected}
               disabled
               iconRight={Calendar}
             />
 
             {/* QR Code */}
             <Stack gap={1} w="full">
-              <Font variant="body-sm-semibold" text="QR Code *" />
+              <Font variant="body-sm-semibold" text={s.cscTokenLabel} />
               <CustomSelect value={qrCode} onChange={setQrCode}>
-                <CustomSelectItem value="CSC Padrão" text="CSC Padrão" icon={FileSpreadsheet} />
-                <CustomSelectItem value="Outros" text="Outros" icon={FileSpreadsheet} />
+                <CustomSelectItem value="CSC Padrão" text={s.defaultCscOption} icon={FileSpreadsheet} />
+                <CustomSelectItem value="Outros" text={UI_STRINGS.common.all} icon={FileSpreadsheet} />
               </CustomSelect>
             </Stack>
 
             {/* Série/Número NFC-e */}
             <Stack gap={2.5} w="full">
-              <Font variant="body-bold" text="Série/Número NFC-e (Utilize uma configuração única para cada dispositivo)" />
+              <Font variant="body-bold" text={s.nfceTitle} />
               <Grid cols={2} gap={5}>
                 <Input
-                  label="Série NFC-e *"
+                  label={s.serieLabel}
                   value={serieNfce}
                   onChange={(e) => setSerieNfce(e.target.value)}
                   type="number"
                 />
                 <Input
-                  label="Último número NFC-e *"
+                  label={s.nextNumberLabel}
                   value={ultimoNfce}
                   onChange={(e) => setUltimoNfce(e.target.value)}
                   type="number"
@@ -199,16 +202,16 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
 
             {/* Série/Número NF-e */}
             <Stack gap={2.5} w="full">
-              <Font variant="body-bold" text="Série/Número NF-e (Utilize uma configuração única para cada dispositivo)" />
+              <Font variant="body-bold" text={s.nfeTitle} />
               <Grid cols={2} gap={5}>
                 <Input
-                  label="Série NF-e *"
+                  label={s.nfeSerieLabel}
                   value={serieNfe}
                   onChange={(e) => setSerieNfe(e.target.value)}
                   type="number"
                 />
                 <Input
-                  label="Último número NF-e *"
+                  label={s.nfeNextNumberLabel}
                   value={ultimoNfe}
                   onChange={(e) => setUltimoNfe(e.target.value)}
                   type="number"
@@ -218,11 +221,11 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
 
             {/* Regime Tributário */}
             <Stack gap={1} w="full">
-              <Font variant="body-sm-semibold" text="Regime Tributário *" />
+              <Font variant="body-sm-semibold" text={s.taxRegimeLabel} />
               <CustomSelect value={regimeTributario} onChange={setRegimeTributario}>
-                <CustomSelectItem value="Simples Nacional" text="Simples Nacional" icon={FileSpreadsheet} />
-                <CustomSelectItem value="Lucro Presumido" text="Lucro Presumido" icon={FileSpreadsheet} />
-                <CustomSelectItem value="Lucro Real" text="Lucro Real" icon={FileSpreadsheet} />
+                <CustomSelectItem value="Simples Nacional" text={s.simplesNacionalOption} icon={FileSpreadsheet} />
+                <CustomSelectItem value="Lucro Presumido" text={s.lucroPresumidoOption} icon={FileSpreadsheet} />
+                <CustomSelectItem value="Lucro Real" text={s.lucroRealOption} icon={FileSpreadsheet} />
               </CustomSelect>
             </Stack>
 
@@ -230,7 +233,7 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
             <CustomCheckbox
               checked={homologacao}
               onChange={() => setHomologacao(!homologacao)}
-              label="Ambiente de homologação"
+              label={s.homologationOption}
             />
           </Stack>
         )}
@@ -239,18 +242,18 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
         <CustomCheckbox
           checked={danfeComprovante}
           onChange={() => setDanfeComprovante(!danfeComprovante)}
-          label="Imprimir comprovante não fiscal após a DANFE"
+          label={s.printNonFiscalAfterDanfe}
         />
 
         <CustomCheckbox
           checked={emitirAutomatico}
           onChange={() => setEmitirAutomatico(!emitirAutomatico)}
-          label="Emitir NF-e automaticamente para pessoa jurídica (CNPJ)"
+          label={s.autoIssueToggle}
         />
 
         <Box w="full">
           <Input
-            label="Motivo de cancelamento *"
+            label={s.cancelReasonLabel}
             value={motivoCancelamento}
             onChange={(e) => setMotivoCancelamento(e.target.value)}
           />
@@ -258,9 +261,9 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
 
         <Box w="full">
           <Input
-            label="Informações adicionais"
+            label={s.additionalInfoLabel}
             value={infosAdicionais}
-            placeholder="Informações adicionais"
+            placeholder={s.additionalInfoLabel}
             onChange={(e) => setInfosAdicionais(e.target.value)}
           />
         </Box>
@@ -277,7 +280,7 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
             <Stack direction="col" mobileDirection="row" align="center" justify="between" w="full" gap={2.5}>
               <Stack direction="col" mobileDirection="row" align="center" gap={2.5}>
                 <Icon icon={User} size={18} color="muted" />
-                <Font variant="body-bold" text="CPF/CNPJ autorizada a obter o XML" align="center" />
+                <Font variant="body-bold" text={s.cpfCnpjAuthorizedTitle} align="center" />
               </Stack>
               <Icon icon={xmlAccordionOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
             </Stack>
@@ -289,8 +292,8 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
                 {authorizedCpfCnpj.length === 0 ? (
                   <EmptyState
                     icon={User}
-                    title="Nenhum documento autorizado"
-                    subtitle="Adicione um CPF ou CNPJ para permitir download do XML"
+                    title={s.noAuthorizedDocTitle}
+                    subtitle={s.noAuthorizedDocSubtitle}
                   />
                 ) : (
                   <Stack gap={1} w="full">
@@ -299,7 +302,7 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
                         <Font variant="body" text={item} />
                         <Button
                           variant="outline"
-                          label="Remover"
+                          label={UI_STRINGS.common.delete}
                           icon={Trash2}
                           onClick={() => handleRemoveCpfCnpj(idx)}
                         />
@@ -312,19 +315,19 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
                   <Stack direction="col" mobileDirection="row" gap={2.5} align="stretch" mobileAlign="center" w="full">
                     <Box flex="1">
                       <Input
-                        placeholder="CPF ou CNPJ"
+                        placeholder={s.documentLabel}
                         value={newCpfCnpj}
                         onChange={(e) => setNewCpfCnpj(e.target.value)}
                       />
                     </Box>
-                    <Button variant="primary" label="Adicionar" onClick={handleAddCpfCnpj} />
-                    <Button variant="ghost" label="Cancelar" onClick={() => setShowAddCpfCnpjInput(false)} />
+                    <Button variant="primary" label={UI_STRINGS.common.confirm} onClick={handleAddCpfCnpj} />
+                    <Button variant="ghost" label={UI_STRINGS.common.cancel} onClick={() => setShowAddCpfCnpjInput(false)} />
                   </Stack>
                 ) : (
                   <Box display="flex">
                     <Button
                       variant="outline"
-                      label="CPF/CNPJ autorizado"
+                      label={s.addCpfCnpjAuthorizedButton}
                       icon={Plus}
                       onClick={() => setShowAddCpfCnpjInput(true)}
                     />
@@ -347,7 +350,7 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
             <Stack direction="col" mobileDirection="row" align="center" justify="between" w="full" gap={2.5}>
               <Stack direction="col" mobileDirection="row" align="center" gap={2.5}>
                 <Icon icon={CreditCard} size={18} color="muted" />
-                <Font variant="body-bold" text="Informações POS" align="center" />
+                <Font variant="body-bold" text={s.posInfoTitle} align="center" />
               </Stack>
               <Icon icon={posAccordionOpen ? ChevronUp : ChevronDown} size={18} color="muted" />
             </Stack>
@@ -358,37 +361,37 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
               <Stack gap={5} w="full">
                 <Font
                   variant="description"
-                  text="Este recurso solicitará o preenchimento das informações de POS ao finalizar a venda."
+                  text={s.posInfoDesc}
                 />
                 
                 <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-                  <Font variant="body" text="Habilitar" />
+                  <Font variant="body" text={s.enablePosToggle} />
                   <Switch checked={posEnabled} onChange={() => setPosEnabled(!posEnabled)} />
                 </Stack>
 
                 {posEnabled && (
                   <Stack gap={5} w="full">
                     <Stack gap={2.5} w="full">
-                      <Font variant="body-bold" text="Campos obrigatórios:" />
+                      <Font variant="body-bold" text={s.requiredFieldsTitle} />
                       <CustomCheckbox
                         checked={posInstituicao}
                         onChange={() => setPosInstituicao(!posInstituicao)}
-                        label="Instituição financeira"
+                        label={s.posInstitutionLabel}
                       />
                       <CustomCheckbox
                         checked={posBandeira}
                         onChange={() => setPosBandeira(!posBandeira)}
-                        label="Bandeira do cartão"
+                        label={s.posCardBrandLabel}
                       />
                       <CustomCheckbox
                         checked={posAutorizacao}
                         onChange={() => setPosAutorizacao(!posAutorizacao)}
-                        label="Número de autorização"
+                        label={s.posAuthNumberLabel}
                       />
                     </Stack>
 
                     <Stack gap={2.5} w="full">
-                      <Font variant="body-bold" text="Instituições financeiras:" />
+                      <Font variant="body-bold" text={s.financialInstitutionsTitle} />
                       {posInstituicoes.length > 0 && (
                         <Stack gap={1} w="full">
                           {posInstituicoes.map((inst, idx) => (
@@ -396,7 +399,7 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
                               <Font variant="body" text={inst} />
                               <Button
                                 variant="outline"
-                                label="Remover"
+                                label={UI_STRINGS.common.delete}
                                 icon={Trash2}
                                 onClick={() => handleRemoveInstituicao(idx)}
                               />
@@ -409,19 +412,19 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
                         <Stack direction="col" mobileDirection="row" gap={2.5} align="stretch" mobileAlign="center" w="full">
                           <Box flex="1">
                             <Input
-                              placeholder="Nome da instituição"
+                              placeholder={s.institutionPlaceholder}
                               value={newInstituicao}
                               onChange={(e) => setNewInstituicao(e.target.value)}
                             />
                           </Box>
-                          <Button variant="primary" label="Adicionar" onClick={handleAddInstituicao} />
-                          <Button variant="ghost" label="Cancelar" onClick={() => setShowAddInstituicaoInput(false)} />
+                          <Button variant="primary" label={UI_STRINGS.common.confirm} onClick={handleAddInstituicao} />
+                          <Button variant="ghost" label={UI_STRINGS.common.cancel} onClick={() => setShowAddInstituicaoInput(false)} />
                         </Stack>
                       ) : (
                         <Box display="flex">
                           <Button
                             variant="outline"
-                            label="Adicionar instituição financeira"
+                            label={s.addInstitutionButton}
                             icon={Plus}
                             onClick={() => setShowAddInstituicaoInput(true)}
                           />
@@ -436,11 +439,11 @@ export const NotaFiscalSection: React.FC<NotaFiscalSectionProps> = ({
         </Box>
 
         {/* Botões de Ações na Base do Formulário */}
-              <FormActions
-        confirmLabel="Salvar alterações"
-        onConfirm={handleSave}
-        onCancel={onCancel}
-      />
+        <FormActions
+          confirmLabel={UI_STRINGS.pdv.cart.saveChangesButton}
+          onConfirm={handleSave}
+          onCancel={onCancel}
+        />
       </Stack>
     </Box>
   )

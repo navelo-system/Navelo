@@ -17,6 +17,7 @@ import {
   Hash,
   ChevronRight
 } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface AutoatendimentoSectionProps {
   onCancel: () => void
@@ -33,19 +34,20 @@ export const AutoatendimentoSection: React.FC<AutoatendimentoSectionProps> = ({
 }) => {
   const [enabled, setEnabled] = React.useState(false)
   const [habilitarOpcoesEntrega, setHabilitarOpcoesEntrega] = React.useState(false)
+  const s = UI_STRINGS.selfService
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Autoatendimento")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   return (
     <Stack gap={5} w="full">
-      {/* Card 1: Habilitar */}
+      {/* Card 1: Habilitar Autoatendimento */}
       <Box
         bg="bg-white"
         border={true}
@@ -55,7 +57,7 @@ export const AutoatendimentoSection: React.FC<AutoatendimentoSectionProps> = ({
         w="full"
       >
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-          <Font variant="body-bold" text="Habilitar" />
+          <Font variant="body-bold" text={s.enableToggle} />
           <Switch
             checked={enabled}
             onChange={(e) => setEnabled(e.target.checked)}
@@ -75,7 +77,7 @@ export const AutoatendimentoSection: React.FC<AutoatendimentoSectionProps> = ({
             w="full"
           >
             <Box padding={2.5} paddingX={5} bg="bg-surface" w="full">
-              <Font variant="description" text="Produtos" color="muted" />
+              <Font variant="description" text={s.productsSectionTitle} color="muted" />
             </Box>
             <Box
               padding={5}
@@ -88,8 +90,8 @@ export const AutoatendimentoSection: React.FC<AutoatendimentoSectionProps> = ({
                 <Stack direction="row" align="center" gap={2.5}>
                   <Icon icon={LayoutGrid} size={20} color="primary" />
                   <Stack gap={1}>
-                    <Font variant="body-bold" text="Produtos" />
-                    <Font variant="description" text="61 produtos selecionados." color="muted" />
+                    <Font variant="body-bold" text={s.productsSectionTitle} />
+                    <Font variant="description" text={s.productsSelectedDesc} color="muted" />
                   </Stack>
                 </Stack>
                 <Icon icon={ChevronRight} size={16} color="muted" />
@@ -108,10 +110,10 @@ export const AutoatendimentoSection: React.FC<AutoatendimentoSectionProps> = ({
           >
             <Box padding={5} bg="bg-surface" w="full">
               <Stack gap={1} w="full">
-                <Font variant="body-bold" text="Formas de pagamento" />
+                <Font variant="body-bold" text={s.paymentMethodsTitle} />
                 <Font
                   variant="description"
-                  text="Para utilizar o Autoatendimento é necessário configurar pelo menos uma forma de pagamento antecipada com confirmação automática."
+                  text={s.paymentMethodsDesc}
                   color="muted"
                 />
               </Stack>
@@ -131,10 +133,10 @@ export const AutoatendimentoSection: React.FC<AutoatendimentoSectionProps> = ({
                 <Stack direction="row" align="center" gap={2.5}>
                   <Icon icon={CreditCard} size={20} color="primary" />
                   <Stack gap={1}>
-                    <Font variant="body-bold" text="Cartão" />
+                    <Font variant="body-bold" text={s.cardTitle} />
                     <Font
                       variant="description"
-                      text="Selecione o POS que realizará a cobrança no Pagamento Integrado."
+                      text={s.cardDesc}
                       color="muted"
                     />
                   </Stack>
@@ -157,8 +159,8 @@ export const AutoatendimentoSection: React.FC<AutoatendimentoSectionProps> = ({
                 <Stack direction="row" align="center" gap={2.5}>
                   <Icon icon={QrCode} size={20} color="primary" />
                   <Stack gap={1}>
-                    <Font variant="body-bold" text="Pix" />
-                    <Font variant="description" text="Habilitar o Pix na Conta Digital." color="muted" />
+                    <Font variant="body-bold" text={s.pixTitle} />
+                    <Font variant="description" text={s.pixDesc} color="muted" />
                   </Stack>
                 </Stack>
                 <Icon icon={ChevronRight} size={16} color="muted" />
@@ -176,7 +178,7 @@ export const AutoatendimentoSection: React.FC<AutoatendimentoSectionProps> = ({
             w="full"
           >
             <Box padding={2.5} paddingX={5} bg="bg-surface" w="full">
-              <Font variant="description" text="Opções" color="muted" />
+              <Font variant="description" text={s.optionsSectionTitle} color="muted" />
             </Box>
 
             {/* Customização PDV */}
@@ -190,7 +192,7 @@ export const AutoatendimentoSection: React.FC<AutoatendimentoSectionProps> = ({
               <Stack direction="row" align="center" justify="between" w="full" gap={5}>
                 <Stack direction="row" align="center" gap={2.5}>
                   <Icon icon={Smartphone} size={20} color="primary" />
-                  <Font variant="body-bold" text="Customização PDV" />
+                  <Font variant="body-bold" text={s.customizationPdvTitle} />
                 </Stack>
                 <Icon icon={ChevronRight} size={16} color="muted" />
               </Stack>
@@ -209,7 +211,7 @@ export const AutoatendimentoSection: React.FC<AutoatendimentoSectionProps> = ({
               <Stack direction="row" align="center" justify="between" w="full" gap={5}>
                 <Stack direction="row" align="center" gap={2.5}>
                   <Icon icon={Hash} size={20} color="primary" />
-                  <Font variant="body-bold" text="Número de atendimento" />
+                  <Font variant="body-bold" text={s.orderNumberTitle} />
                 </Stack>
                 <Icon icon={ChevronRight} size={16} color="muted" />
               </Stack>
@@ -225,10 +227,10 @@ export const AutoatendimentoSection: React.FC<AutoatendimentoSectionProps> = ({
                   onChange={(e) => setHabilitarOpcoesEntrega(e.target.checked)}
                 />
                 <Stack gap={1} flex="1">
-                  <Font variant="body-bold" text="Habilitar opções de entrega" />
+                  <Font variant="body-bold" text={s.enableDeliveryOptionsTitle} />
                   <Font
                     variant="description"
-                    text="Permita que o cliente escolha entre Retirar ou Consumir no local antes de finalizar o atendimento."
+                    text={s.enableDeliveryOptionsDesc}
                     color="muted"
                   />
                 </Stack>

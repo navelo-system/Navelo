@@ -11,6 +11,7 @@ import { Switch } from "@/components/store/base/Switch"
 import { Badge } from "@/components/store/base/Badge"
 import { Icon } from "@/components/store/base/Icon"
 import { Moon } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface IdentificacaoSectionProps {
   onCancel: () => void
@@ -31,14 +32,16 @@ export const IdentificacaoSection: React.FC<IdentificacaoSectionProps> = ({
   const [facebook, setFacebook] = React.useState("")
   const [instagram, setInstagram] = React.useState("https://www.instagram.com/navelo_pdv/")
 
+  const s = UI_STRINGS.settings.identificacao
+
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Identificação")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   return (
     <Stack gap={5} w="full">
@@ -55,7 +58,7 @@ export const IdentificacaoSection: React.FC<IdentificacaoSectionProps> = ({
         <Box w="full" position="relative">
           <Input
             variant="image-upload"
-            placeholder="Clique para adicionar a foto de capa"
+            placeholder={s.coverPhotoPlaceholder}
           />
           {/* Logo sobreposto */}
           <Box
@@ -83,10 +86,10 @@ export const IdentificacaoSection: React.FC<IdentificacaoSectionProps> = ({
 
         <Box padding={5}>
           <Stack gap={1} align="center">
-            <Font variant="body-bold" text="Identidade visual" align="center" />
+            <Font variant="body-bold" text={s.visualIdentityTitle} align="center" />
             <Font
               variant="description"
-              text="Clique nas áreas indicadas para adicionar a foto de capa e o logo da sua empresa"
+              text={s.visualIdentityDesc}
               align="center"
               color="muted"
             />
@@ -107,8 +110,8 @@ export const IdentificacaoSection: React.FC<IdentificacaoSectionProps> = ({
           {/* Subdomínio */}
           <Stack gap={2.5} w="full">
             <Input
-              label="* Subdomínio"
-              placeholder="basenavelo"
+              label={s.subdomainLabel}
+              placeholder={s.subdomainPlaceholder}
               value={subdomain}
               onChange={(e) => setSubdomain(e.target.value)}
             />
@@ -119,20 +122,20 @@ export const IdentificacaoSection: React.FC<IdentificacaoSectionProps> = ({
                 color="muted"
                 align="left"
               />
-              <Badge variant="success" label="Disponível" />
+              <Badge variant="success" label={s.availableBadge} />
             </Stack>
           </Stack>
 
           {/* Áreas atendidas */}
           <Stack gap={2.5} w="full">
             <Input
-              placeholder="Áreas atendidas"
+              placeholder={s.areasPlaceholder}
               value={areas}
               onChange={(e) => setAreas(e.target.value)}
             />
             <Font
               variant="description"
-              text="Descreva as áreas atendidas pela sua empresa"
+              text={s.areasDesc}
               color="muted"
             />
           </Stack>
@@ -149,11 +152,11 @@ export const IdentificacaoSection: React.FC<IdentificacaoSectionProps> = ({
         w="full"
       >
         <Stack gap={5} w="full">
-          <Font variant="body-bold" text="Cores" />
+          <Font variant="body-bold" text={s.colorsTitle} />
 
           {/* Cor principal tema claro */}
           <Stack gap={2.5} w="full">
-            <Font variant="description" text="Cor principal (tema claro)" />
+            <Font variant="description" text={s.primaryLightColorDesc} />
             <Input
               type="color"
               value={lightColor}
@@ -166,7 +169,7 @@ export const IdentificacaoSection: React.FC<IdentificacaoSectionProps> = ({
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
               <Stack direction="row" align="center" gap={2.5}>
                 <Icon icon={Moon} size={16} color="muted" />
-                <Font variant="body-bold" text="Disponibilizar tema escuro" />
+                <Font variant="body-bold" text={s.darkThemeToggle} />
               </Stack>
               <Switch
                 checked={darkThemeEnabled}
@@ -175,7 +178,7 @@ export const IdentificacaoSection: React.FC<IdentificacaoSectionProps> = ({
             </Stack>
             <Font
               variant="description"
-              text="Habilite essa opção para que os clientes possam escolher entre o tema claro e o tema escuro."
+              text={s.darkThemeDesc}
               color="muted"
             />
           </Stack>
@@ -183,7 +186,7 @@ export const IdentificacaoSection: React.FC<IdentificacaoSectionProps> = ({
           {/* Cor principal tema escuro */}
           {darkThemeEnabled && (
             <Stack gap={2.5} w="full">
-              <Font variant="description" text="Cor principal (tema escuro)" />
+              <Font variant="description" text={s.primaryDarkColorDesc} />
               <Input
                 type="color"
                 value={darkColor}
@@ -204,30 +207,30 @@ export const IdentificacaoSection: React.FC<IdentificacaoSectionProps> = ({
         w="full"
       >
         <Stack gap={5} w="full">
-          <Font variant="body-bold" text="Redes Sociais" />
+          <Font variant="body-bold" text={s.socialNetworksTitle} />
 
           <Stack gap={2.5} w="full">
             <Input
-              placeholder="Facebook"
+              placeholder={s.facebookPlaceholder}
               value={facebook}
               onChange={(e) => setFacebook(e.target.value)}
             />
             <Font
               variant="description"
-              text="https://www.facebook.com/sua_empresa"
+              text={s.facebookDesc}
               color="muted"
             />
           </Stack>
 
           <Stack gap={2.5} w="full">
             <Input
-              placeholder="Instagram"
+              placeholder={s.instagramPlaceholder}
               value={instagram}
               onChange={(e) => setInstagram(e.target.value)}
             />
             <Font
               variant="description"
-              text="https://www.instagram.com/sua_empresa"
+              text={s.instagramDesc}
               color="muted"
             />
           </Stack>
@@ -245,7 +248,7 @@ export const IdentificacaoSection: React.FC<IdentificacaoSectionProps> = ({
       >
         <Font
           variant="description"
-          text="ℹ️ Estas configurações serão aplicadas tanto para o Menu Digital, quanto para o Catálogo Online."
+          text={s.infoNote}
           color="muted"
         />
       </Box>

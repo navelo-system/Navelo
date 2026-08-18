@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/store/base/Checkbox"
 import { Icon } from "@/components/store/base/Icon"
 import { IFoodActivationModal } from "@/components/store/sections/pdv/modals/IFoodActivationModal"
 import { Ban, BookOpen, RefreshCw, Trash2, ChevronRight } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface IFoodSectionProps {
   onCancel: () => void
@@ -29,18 +30,19 @@ export const IFoodSection: React.FC<IFoodSectionProps> = ({
   const [notification, setNotification] = React.useState(false)
   const [soundAlert, setSoundAlert] = React.useState(false)
   const [continuousSound, setContinuousSound] = React.useState(false)
+  const s = UI_STRINGS.ifood
 
   // Activation modal state
   const [isActivationModalOpen, setIsActivationModalOpen] = React.useState(false)
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("iFood")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   const handleSave = () => {
     onCancel()
@@ -65,7 +67,7 @@ export const IFoodSection: React.FC<IFoodSectionProps> = ({
           {/* Habilitar Integração */}
           <Stack direction="row" align="center" justify="between" w="full" gap={5}>
             <Stack gap={1}>
-              <Font variant="body-bold" text="Habilitar integração com o iFood" />
+              <Font variant="body-bold" text={s.title} />
             </Stack>
             <Switch
               checked={enabled}
@@ -90,7 +92,7 @@ export const IFoodSection: React.FC<IFoodSectionProps> = ({
               <Icon icon={Ban} size={16} color="muted" />
               <Font
                 variant="description"
-                text="Habilite a integração com o iFood para buscar as informações do restaurante."
+                text={s.disabledNotice}
               />
             </Stack>
           )}
@@ -99,10 +101,10 @@ export const IFoodSection: React.FC<IFoodSectionProps> = ({
           <Box opacity={enabled ? "100" : "50"}>
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
               <Stack gap={1}>
-                <Font variant="body-bold" text="Aceitar pedidos automaticamente" />
+                <Font variant="body-bold" text={s.autoAcceptToggle} />
                 <Font
                   variant="description"
-                  text="Quando ativo, todos os pedidos não agendados serão confirmados automaticamente."
+                  text={s.autoAcceptDesc}
                 />
               </Stack>
               <Switch
@@ -118,7 +120,7 @@ export const IFoodSection: React.FC<IFoodSectionProps> = ({
           {/* Seção Opções */}
           <Box w="full" opacity={enabled ? "100" : "50"}>
             <Stack gap={2.5} w="full">
-              <Font variant="body-bold" text="Opções" />
+              <Font variant="body-bold" text={s.optionsTitle} />
 
               {/* Item Cardápio */}
               <Box
@@ -134,7 +136,7 @@ export const IFoodSection: React.FC<IFoodSectionProps> = ({
                 <Stack direction="row" align="center" justify="between" w="full" gap={2.5}>
                   <Stack direction="row" align="center" gap={2.5}>
                     <Icon icon={BookOpen} size={16} color="muted" />
-                    <Font variant="body" text="Cardápio" />
+                    <Font variant="body" text={s.menuItemTitle} />
                   </Stack>
                   <Icon icon={ChevronRight} size={16} color="muted" />
                 </Stack>
@@ -154,7 +156,7 @@ export const IFoodSection: React.FC<IFoodSectionProps> = ({
                 <Stack direction="row" align="center" justify="between" w="full" gap={2.5}>
                   <Stack direction="row" align="center" gap={2.5}>
                     <Icon icon={RefreshCw} size={16} color="muted" />
-                    <Font variant="body" text="Sincronizar cardápio" />
+                    <Font variant="body" text={s.syncMenuTitle} />
                   </Stack>
                   <Icon icon={ChevronRight} size={16} color="muted" />
                 </Stack>
@@ -174,7 +176,7 @@ export const IFoodSection: React.FC<IFoodSectionProps> = ({
                 <Stack direction="row" align="center" justify="between" w="full" gap={2.5}>
                   <Stack direction="row" align="center" gap={2.5}>
                     <Icon icon={Trash2} size={16} color="muted" />
-                    <Font variant="body" text="Limpar cardápio no iFood" />
+                    <Font variant="body" text={s.cleanMenuTitle} />
                   </Stack>
                   <Icon icon={ChevronRight} size={16} color="muted" />
                 </Stack>
@@ -188,7 +190,7 @@ export const IFoodSection: React.FC<IFoodSectionProps> = ({
           <Box w="full" opacity={enabled ? "100" : "50"}>
             <Stack gap={5} w="full">
               <Checkbox
-                label="Notificação"
+                label={s.notificationCheckboxLabel}
                 checked={notification}
                 onChange={(e) => setNotification(e.target.checked)}
                 disabled={!enabled}
@@ -196,12 +198,12 @@ export const IFoodSection: React.FC<IFoodSectionProps> = ({
               <Box paddingX={5}>
                 <Font
                   variant="description"
-                  text="Receberá uma notificação quando um novo pedido for recebido do iFood."
+                  text={s.notificationDesc}
                 />
               </Box>
 
               <Checkbox
-                label="Habilitar aviso sonoro"
+                label={s.soundAlertCheckboxLabel}
                 checked={soundAlert}
                 onChange={(e) => setSoundAlert(e.target.checked)}
                 disabled={!enabled}
@@ -209,7 +211,7 @@ export const IFoodSection: React.FC<IFoodSectionProps> = ({
               <Box paddingX={5}>
                 <Font
                   variant="description"
-                  text="Será emitido um aviso sonoro quando um novo pedido for recebido do iFood."
+                  text={s.soundAlertDesc}
                 />
               </Box>
 
@@ -221,7 +223,7 @@ export const IFoodSection: React.FC<IFoodSectionProps> = ({
 
                   <Stack gap={1} flex="1">
                     <Checkbox
-                      label="Aviso sonoro contínuo"
+                      label={s.continuousSoundCheckboxLabel}
                       checked={continuousSound}
                       onChange={(e) => setContinuousSound(e.target.checked)}
                       disabled={!enabled || !soundAlert}
@@ -229,7 +231,7 @@ export const IFoodSection: React.FC<IFoodSectionProps> = ({
                     <Box paddingX={5}>
                       <Font
                         variant="description"
-                        text='O aviso sonoro será contínuo até que o pedido seja alterado para "Aberto" ou excluído.'
+                        text={s.continuousSoundDesc}
                       />
                     </Box>
                   </Stack>
@@ -241,7 +243,7 @@ export const IFoodSection: React.FC<IFoodSectionProps> = ({
       </Box>
 
       <FormActions
-        confirmLabel="Salvar alterações"
+        confirmLabel={UI_STRINGS.pdv.cart.saveChangesButton}
         onConfirm={handleSave}
         onCancel={onCancel}
       />

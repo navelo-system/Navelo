@@ -10,6 +10,7 @@ import { Switch } from "@/components/store/base/Switch"
 import { Icon } from "@/components/store/base/Icon"
 import { Warning } from "@/components/store/base/Warning"
 import { Laptop, Server, ChevronRight, CheckCircle } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface CompanySyncFormProps {
   onCancel?: () => void
@@ -17,6 +18,7 @@ export interface CompanySyncFormProps {
 
 export const CompanySyncForm: React.FC<CompanySyncFormProps> = () => {
   const [isEnabled, setIsEnabled] = React.useState(true)
+  const cs = UI_STRINGS.companySync
 
   return (
     <Stack gap={5} w="full">
@@ -35,8 +37,8 @@ export const CompanySyncForm: React.FC<CompanySyncFormProps> = () => {
           <Box padding={5}>
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
               <Stack gap={1}>
-                <Font variant="body-bold" text="Habilitar" />
-                <Font variant="description" text="Sincronize os dados entre dispositivos." />
+                <Font variant="body-bold" text={cs.enableTitle} />
+                <Font variant="description" text={cs.enableDesc} />
               </Stack>
               <Switch checked={isEnabled} onChange={(e) => setIsEnabled(e.target.checked)} />
             </Stack>
@@ -55,8 +57,8 @@ export const CompanySyncForm: React.FC<CompanySyncFormProps> = () => {
               <Stack direction="row" align="center" gap={5}>
                 <Icon icon={Laptop} size={20} color="muted" />
                 <Stack gap={1}>
-                  <Font variant="body-bold" text="Identificação" />
-                  <Font variant="description" text="Dispositivo 16" />
+                  <Font variant="body-bold" text={cs.identificationTitle} />
+                  <Font variant="description" text={cs.defaultDeviceName} />
                 </Stack>
               </Stack>
               <Icon icon={ChevronRight} size={20} color="muted" />
@@ -76,8 +78,8 @@ export const CompanySyncForm: React.FC<CompanySyncFormProps> = () => {
               <Stack direction="row" align="center" gap={5}>
                 <Icon icon={Server} size={20} color="muted" />
                 <Stack gap={1}>
-                  <Font variant="body-bold" text="Ambiente do servidor" />
-                  <Font variant="description" text="Nuvem" />
+                  <Font variant="body-bold" text={cs.serverEnvironmentTitle} />
+                  <Font variant="description" text={cs.cloudEnvironment} />
                 </Stack>
               </Stack>
               <Icon icon={ChevronRight} size={20} color="muted" />
@@ -89,11 +91,11 @@ export const CompanySyncForm: React.FC<CompanySyncFormProps> = () => {
       <Warning
         variant="success"
         icon={CheckCircle}
-        title="Sincronizado"
+        title={cs.syncedStatusTitle}
         text={
           <Stack gap={1} w="full">
-            <Font variant="description" color="success" text="Última verificação: 08/07/2026 22:50" align="left" />
-            <Font variant="description" color="success" text="Última atualização de dados: 05/07/2026 07:28" align="left" />
+            <Font variant="description" color="success" text={cs.lastCheckText} align="left" />
+            <Font variant="description" color="success" text={cs.lastDataUpdateText} align="left" />
           </Stack>
         }
       />
@@ -102,7 +104,7 @@ export const CompanySyncForm: React.FC<CompanySyncFormProps> = () => {
       <Font
         variant="description"
         color="muted"
-        text="O sistema verifica periodicamente se há novidades. Caso não haja alterações, a data de atualização permanece a mesma."
+        text={cs.syncDisclaimer}
       />
     </Stack>
   )

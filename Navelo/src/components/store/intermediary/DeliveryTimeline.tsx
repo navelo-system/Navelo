@@ -10,6 +10,7 @@ import { Badge } from "@/components/store/base/Badge"
 import { Button } from "@/components/store/base/Button"
 import { Modal } from "@/components/store/base/Modal"
 import { Trash2, Edit2, Bike } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export type DeliveryStatus = "confirmed" | "preparing" | "ready" | "dispatched" | "delivered"
 
@@ -23,7 +24,7 @@ export interface DeliveryTimelineItem {
 
 export interface DeliveryTimelineProps {
   orderId?: string
-  status: DeliveryStatus
+  status?: DeliveryStatus
   clientName?: string
   clientDocument?: string
   clientPhone?: string
@@ -86,6 +87,8 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
   onSelectMotoboy,
   onUpdateStatus,
 }) => {
+  const d = UI_STRINGS.delivery
+  const common = UI_STRINGS.common
   const [isMotoboyWarningOpen, setIsMotoboyWarningOpen] = React.useState(false)
 
   const statusInfo = statusBadgeMap[status] || { variant: "primary" as const, label: "Aberto" }
@@ -143,10 +146,8 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
 
   return (
     <Box display="flex" direction="col" flex="1" h="full" minH="0" w="full" bg="bg-surface" radius="default" border={true} borderColor="border-border" padding={0}>
-      {/* Área de conteúdo rolável internamente */}
       <Box flex="1" minH="0" overflow="auto" w="full" padding={5}>
         <Stack gap={5} w="full">
-          {/* Cabeçalho do Detalhe: Venda - #016.3 + Badge de Status */}
           <Stack direction="row" align="center" justify="between" w="full">
             <Stack gap={0} align="start">
               <Font variant="h2" text={`Venda - ${orderId}`} />
@@ -158,7 +159,6 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
             />
           </Stack>
 
-          {/* Informações do Cliente */}
           <Stack gap={1} align="start" w="full">
             <Font variant="auxiliary" color="muted" text={createdAt} />
             <Font variant="body-bold" text={clientName} />
@@ -173,27 +173,24 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
 
           <Box h="h-[2px]" bg="bg-border" w="full" />
 
-          {/* Seção Entrega/Cobrança */}
           <Stack gap={1} align="start" w="full">
-            <Font variant="body-bold" text="Entrega/Cobrança" />
+            <Font variant="body-bold" text={d.deliveryAndPayment} />
             <Font variant="auxiliary" color="muted" text={deliveryType} />
             <Font variant="auxiliary" color="muted" text={paymentMethod} />
           </Stack>
 
-          {/* Seção Entregador com link SELECIONAR */}
           <Stack gap={1} align="start" w="full">
             <Stack direction="row" align="center" gap={2.5}>
-              <Font variant="body-bold" text="Entregador" />
+              <Font variant="body-bold" text={d.riderSection} />
               <Box cursor="pointer" onClick={onSelectMotoboy}>
-                <Font variant="sub-tiny-bold" color="primary" text="SELECIONAR" />
+                <Font variant="sub-tiny-bold" color="primary" text={d.selectRiderAction} />
               </Box>
             </Stack>
             <Font variant="auxiliary" color="muted" text={motoboyName} />
           </Stack>
 
-          {/* Seção Itens */}
           <Stack gap={2.5} align="start" w="full">
-            <Font variant="body-bold" text="Itens" />
+            <Font variant="body-bold" text={d.itemsSection} />
             <Stack gap={2.5} w="full">
               {items.map((item) => (
                 <Stack key={item.id} direction="row" align="center" justify="between" w="full">
@@ -211,30 +208,29 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
             </Stack>
           </Stack>
 
-          {/* Seção Totais */}
           <Stack gap={2.5} align="start" w="full">
-            <Font variant="body-bold" text="Totais" />
+            <Font variant="body-bold" text={d.totalsSection} />
             <Stack gap={1} w="full">
               <Stack direction="row" align="center" justify="between" w="full">
-                <Font variant="body-sm-medium" color="secondary" text="Valor itens" />
+                <Font variant="body-sm-medium" color="secondary" text={d.itemsTotal} />
                 <Font variant="body-sm-semibold" text={formatCurrency(computedSubtotal)} />
               </Stack>
               <Stack direction="row" align="center" justify="between" w="full">
-                <Font variant="body-sm-medium" color="secondary" text="Taxa de entrega" />
+                <Font variant="body-sm-medium" color="secondary" text={d.deliveryFee} />
                 <Font variant="body-sm-semibold" text={formatCurrency(computedDeliveryFee)} />
               </Stack>
               {computedDiscount > 0 && (
                 <Stack direction="row" align="center" justify="between" w="full">
-                  <Font variant="body-sm-medium" color="secondary" text="Desconto" />
+                  <Font variant="body-sm-medium" color="secondary" text={d.discount} />
                   <Font variant="body-sm-semibold" color="primary" text={`- ${formatCurrency(computedDiscount)}`} />
                 </Stack>
               )}
               <Stack direction="row" align="center" justify="between" w="full">
-                <Font variant="body-bold" text="Total a pagar" />
+                <Font variant="body-bold" text={d.totalToPay} />
                 <Font variant="body-bold" text={formatCurrency(totalToPay)} />
               </Stack>
               <Stack direction="row" align="center" justify="between" w="full">
-                <Font variant="body-sm-medium" color="secondary" text="Total pago" />
+                <Font variant="body-sm-medium" color="secondary" text={d.totalPaid} />
                 <Font variant="body-sm-semibold" text={formatCurrency(totalPaid)} />
               </Stack>
               <Font variant="auxiliary" color="muted" text={paymentMethod || "Dinheiro"} />
@@ -250,7 +246,6 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
         </Stack>
       </Box>
 
-      {/* Rodapé de Ações Fixo na base da tela (Tamanho Normal) */}
       <Box padding={5} w="full" borderTop={true} borderColor="border-border" bg="bg-surface">
         <Stack
           direction="col"
@@ -267,7 +262,7 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
               <Box w="w-1/2 md:w-auto" minW="0">
                 <Button
                   variant="danger-confirm"
-                  label="Excluir"
+                  label={common.delete}
                   icon={Trash2}
                   onClick={() => onDeleteOrder(orderId)}
                 />
@@ -277,7 +272,7 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
               <Box w="w-1/2 md:w-auto" minW="0">
                 <Button
                   variant="secondary"
-                  label="Editar"
+                  label={common.edit}
                   icon={Edit2}
                   disabled={!isEditEnabled}
                   onClick={onEditOrder}
@@ -298,14 +293,13 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
         </Stack>
       </Box>
 
-      {/* Modal de Aviso: Entregador não selecionado */}
       <Modal
         isOpen={isMotoboyWarningOpen}
         onClose={() => setIsMotoboyWarningOpen(false)}
-        title="Entregador não selecionado"
-        subtitle="Selecione um entregador parceiro para iniciar a entrega deste pedido."
+        title={d.motoboyWarningTitle}
+        subtitle={d.motoboyWarningSubtitle}
         icon={Bike}
-        successText="Selecionar entregador"
+        successText={d.motoboyWarningSuccess}
         onSuccess={() => {
           setIsMotoboyWarningOpen(false)
           if (onSelectMotoboy) {
@@ -317,7 +311,7 @@ export const DeliveryTimeline: React.FC<DeliveryTimelineProps> = ({
         <Font
           variant="body-sm-medium"
           color="secondary"
-          text="Não é possível alterar o status do pedido para 'Saiu para entrega' sem que haja um entregador atribuído ao pedido."
+          text={d.motoboyWarningBody}
         />
       </Modal>
     </Box>

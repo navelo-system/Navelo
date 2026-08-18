@@ -3,12 +3,15 @@
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
+import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Cloud, Eye, EyeOff, LogOut, AlertTriangle } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface PdvHeaderSectionProps {
   currentView: string
   onNavigate: (view: string) => void
+  companyName?: string
   operatorName?: string
   isSynced?: boolean
   statusText?: string
@@ -37,40 +40,29 @@ const useHeaderState = () => {
 
 export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
   onNavigate,
-  operatorName,
+  companyName = "NAVELO PDV",
+  operatorName = "Caixa 01",
   isSynced = true,
   statusText,
   onSyncClick,
-  onLogout
+  onLogout,
 }) => {
   const { hideValues, setHideValues } = useHeaderState()
+  const pdvHeader = UI_STRINGS.pdv.header
 
   return (
     <Stack gap={0} w="full">
-      <Box
-        paddingY={5}
-        paddingX={5}
-        bg="bg-brand-primary"
-        w="full"
-        display="flex"
-      >
-        <Stack
-          direction="row"
-          align="center"
-          justify="between"
-          w="full"
-          gap={2.5}
-        >
+      <Box paddingX={5} paddingY={2.5} bg="bg-brand-primary" w="full">
+        <Stack direction="row" align="center" justify="between" w="full" gap={2.5}>
+          {/* Lado Esquerdo: Identificação da Empresa e Operador */}
           <Box shrink="0">
             <Stack gap={1} align="start">
+              <Box cursor="pointer" onClick={() => onNavigate("dashboard")} shrink="0" display="flex">
+                <Font variant="h3" as="h1" color="brand-secondary" text={companyName} />
+              </Box>
               <Button
                 variant="ghost-secondary"
-                label="Navelo - PDV"
-                onClick={() => onNavigate("dashboard")}
-              />
-              <Button
-                variant="ghost-secondary"
-                label={operatorName || "Administrador"}
+                label={operatorName}
                 icon={LogOut}
                 onClick={onLogout}
               />
@@ -83,7 +75,7 @@ export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
               <Button
                 variant={isSynced ? "secondary-pill-icon" : "outline-pill-icon"}
                 icon={isSynced ? Cloud : AlertTriangle}
-                title={statusText || (isSynced ? "Sincronizado com o servidor" : "Modo local (alterações pendentes)")}
+                title={statusText || (isSynced ? pdvHeader.syncedStatus : pdvHeader.localModeStatus)}
                 onClick={onSyncClick}
               />
               <Button
@@ -97,7 +89,7 @@ export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
                     window.dispatchEvent(new Event("visibility-toggled"))
                   }
                 }}
-                title="Ocultar/Mostrar Valores"
+                title={pdvHeader.toggleVisibility}
               />
             </Stack>
           </Box>

@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/store/base/Checkbox"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Icon } from "@/components/store/base/Icon"
 import { Bike, ChevronRight, Info, Tablet } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface ConectaEntregadorSectionProps {
   onCancel: () => void
@@ -29,15 +30,16 @@ export const ConectaEntregadorSection: React.FC<ConectaEntregadorSectionProps> =
   const [mapsKey, setMapsKey] = React.useState("AIzaSyBaZ7fqoqJp_JUuh6Plz5eGeXpwZSKe9Fk")
   const [allowTracking, setAllowTracking] = React.useState(true)
   const [selectedDevice, setSelectedDevice] = React.useState("Dispositivo 10")
+  const s = UI_STRINGS.driverConnect
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Conecta Entregador")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   const handleSave = () => {
     // Simulação de salvamento
@@ -58,7 +60,7 @@ export const ConectaEntregadorSection: React.FC<ConectaEntregadorSectionProps> =
         <Stack gap={5} w="full">
           <Stack direction="row" align="center" justify="between" w="full" gap={5}>
             <Stack gap={1}>
-              <Font variant="body-bold" text="Habilitar" />
+              <Font variant="body-bold" text={s.enableToggle} />
             </Stack>
             <Switch
               checked={enabled}
@@ -84,8 +86,8 @@ export const ConectaEntregadorSection: React.FC<ConectaEntregadorSectionProps> =
               <Stack direction="row" align="center" gap={2.5}>
                 <Icon icon={Bike} size={20} color="muted" />
                 <Stack gap={1}>
-                  <Font variant="body-bold" text="Entregadores" />
-                  <Font variant="description" text="1 entregador vinculado" />
+                  <Font variant="body-bold" text={s.driversShortcutTitle} />
+                  <Font variant="description" text={s.driversLinkedCount} />
                 </Stack>
               </Stack>
               <Icon icon={ChevronRight} size={20} color="muted" />
@@ -105,25 +107,25 @@ export const ConectaEntregadorSection: React.FC<ConectaEntregadorSectionProps> =
         opacity={enabled ? "100" : "50"}
       >
         <Stack gap={5} w="full">
-          <Font variant="body-bold" text="Localização do entregador em tempo real" />
+          <Font variant="body-bold" text={s.realtimeLocationTitle} />
 
           <Stack gap={2.5} w="full">
             <Input
-              label="Insira sua chave de API do Google Maps"
+              label={s.googleMapsKeyLabel}
               value={mapsKey}
               onChange={(e) => setMapsKey(e.target.value)}
               disabled={!enabled}
-              placeholder="Digite a chave da API do Google Maps"
+              placeholder={s.googleMapsKeyPlaceholder}
             />
             <Box>
-              <Font variant="description" text="Não sabe como obter a chave? " />
+              <Font variant="description" text={s.howToGetKeyText} />
               <Box
                 as="span"
                 cursor={enabled ? "pointer" : undefined}
                 onClick={() => enabled && window.open("https://developers.google.com/maps", "_blank")}
                 display="inline-flex"
               >
-                <Font variant="description" color="primary" text="Clique aqui." />
+                <Font variant="description" color="primary" text={s.clickHereText} />
               </Box>
             </Box>
           </Stack>
@@ -131,7 +133,7 @@ export const ConectaEntregadorSection: React.FC<ConectaEntregadorSectionProps> =
           <Stack direction="row" align="center" justify="between" w="full" gap={5}>
             <Box flex="1">
               <Checkbox
-                label="Permitir que o consumidor acompanhe a localização do entregador em tempo real diretamente no Catálogo Online e/ou WhatsApp"
+                label={s.allowTrackingLabel}
                 checked={allowTracking}
                 onChange={(e) => setAllowTracking(e.target.checked)}
                 disabled={!enabled}
@@ -156,30 +158,30 @@ export const ConectaEntregadorSection: React.FC<ConectaEntregadorSectionProps> =
       >
         <Stack gap={5} w="full">
           <Stack gap={1}>
-            <Font variant="body-bold" text="Sincronização" />
+            <Font variant="body-bold" text={s.syncTitle} />
             <Font
               variant="description"
-              text="Sempre que o entregador concluir um pedido no Conecta Entregador, o status e as formas de pagamento serão atualizados automaticamente no Delivery, marcando o pedido como entregue."
+              text={s.syncDesc}
             />
           </Stack>
 
           <Stack gap={2.5} w="full">
-            <Font variant="body-bold" text="Dispositivo que receberá a atualização do aplicativo Conecta Entregador" />
+            <Font variant="body-bold" text={s.syncDeviceTitle} />
             <CustomSelect
               value={selectedDevice}
               onChange={setSelectedDevice}
               disabled={!enabled}
             >
-              <CustomSelectItem value="Dispositivo 10" text="Dispositivo 10" icon={Tablet} />
-              <CustomSelectItem value="Dispositivo 18" text="Dispositivo 18" icon={Tablet} />
+              <CustomSelectItem value="Dispositivo 10" text={`Dispositivo 10`} icon={Tablet} />
+              <CustomSelectItem value="Dispositivo 18" text={`Dispositivo 18`} icon={Tablet} />
             </CustomSelect>
           </Stack>
         </Stack>
       </Box>
 
       {/* Botões de Ações na Base do Formulário */}
-            <FormActions
-        confirmLabel="Salvar alterações"
+      <FormActions
+        confirmLabel={UI_STRINGS.common.save}
         onConfirm={handleSave}
         onCancel={onCancel}
       />

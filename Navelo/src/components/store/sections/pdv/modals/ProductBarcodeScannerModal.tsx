@@ -10,6 +10,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { Scan } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface ProductBarcodeScannerModalProps {
   isOpen: boolean
@@ -101,19 +102,21 @@ export const ProductBarcodeScannerModal: React.FC<ProductBarcodeScannerModalProp
     }
   }, [isOpen, onClose, onScan])
 
+  const s = UI_STRINGS.scanner
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Escanear produto" variant="bottom">
+    <Modal isOpen={isOpen} onClose={onClose} title={s.scanProductTitle} variant="bottom">
       <Stack gap={5} w="full">
         {!isSupported ? (
           <EmptyState
             icon={Scan}
-            title="Leitor indisponível"
-            subtitle="Seu navegador não suporta leitura de código de barras pela câmera."
+            title={s.scannerUnavailableTitle}
+            subtitle={s.scannerUnavailableSubtitle}
           />
         ) : errorMessage ? (
           <EmptyState
             icon={Scan}
-            title="Câmera indisponível"
+            title={s.cameraUnavailableTitle}
             subtitle={errorMessage}
           />
         ) : (
@@ -140,7 +143,7 @@ export const ProductBarcodeScannerModal: React.FC<ProductBarcodeScannerModalProp
         <Font
           variant="description"
           color="muted"
-          text="Aponte a câmera para o código de barras do produto."
+          text={s.pointCameraInstruction}
           align="center"
         />
       </Stack>

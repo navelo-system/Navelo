@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Plus, Edit2, Coins, Percent } from "lucide-react"
 import { FormActions } from "@/components/store/intermediary/FormActions"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface ServiceFeeItem {
   id: string
@@ -40,6 +41,7 @@ export const TaxaServicoSection: React.FC<TaxaServicoSectionProps> = ({
 
   const [mode, setMode] = React.useState<"list" | "form">("list")
   const [editingFee, setEditingFee] = React.useState<ServiceFeeItem | null>(null)
+  const s = UI_STRINGS.fees
   
   // Form states
   const [formName, setFormName] = React.useState("")
@@ -57,13 +59,13 @@ export const TaxaServicoSection: React.FC<TaxaServicoSectionProps> = ({
 
   React.useEffect(() => {
     setCustomBack?.(() => handleBack)
-    setCustomTitle?.(mode === "form" ? (editingFee ? "Editar taxa de serviço" : "Nova taxa de serviço") : "Taxas de serviço")
+    setCustomTitle?.(mode === "form" ? (editingFee ? "Editar taxa de serviço" : "Nova taxa de serviço") : s.serviceFeeTitle)
 
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, handleBack, mode, editingFee])
+  }, [setCustomBack, setCustomTitle, handleBack, mode, editingFee, s.serviceFeeTitle])
 
   const handleAddClick = () => {
     setEditingFee(null)
@@ -123,27 +125,27 @@ export const TaxaServicoSection: React.FC<TaxaServicoSectionProps> = ({
           <Form onSubmit={handleSave}>
             <Stack gap={5} w="full">
               <Input
-                label="* Nome"
-                placeholder="Ex: Taxa de Serviço 10%"
+                label={UI_STRINGS.serviceCharges.nameLabel}
+                placeholder={UI_STRINGS.serviceCharges.namePlaceholder}
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 required
               />
 
               <Stack gap={2.5} w="full">
-                <Font variant="description" text="Tipo de taxa" color="muted" />
+                <Font variant="description" text={UI_STRINGS.serviceCharges.chargeTypeLabel} color="muted" />
                 <CustomSelect
                   value={formType}
                   onChange={(val) => setFormType(val as "fixed" | "percentage")}
                 >
-                  <CustomSelectItem value="percentage" text="Percentual (%)" icon={Percent} />
-                  <CustomSelectItem value="fixed" text="Valor Fixo (R$)" icon={Coins} />
+                  <CustomSelectItem value="percentage" text={UI_STRINGS.serviceCharges.percentualOption} icon={Percent} />
+                  <CustomSelectItem value="fixed" text={UI_STRINGS.serviceCharges.fixedOption} icon={Coins} />
                 </CustomSelect>
               </Stack>
 
               <Input
-                label={formType === "percentage" ? "* Percentual (%)" : "* Valor Fixo (R$)"}
-                placeholder={formType === "percentage" ? "10,00" : "R$ 0,00"}
+                label={formType === "percentage" ? UI_STRINGS.serviceCharges.percentualLabel : UI_STRINGS.serviceCharges.fixedLabel}
+                placeholder={formType === "percentage" ? UI_STRINGS.serviceCharges.percentualPlaceholder : UI_STRINGS.serviceCharges.fixedPlaceholder}
                 value={formValue}
                 onChange={(e) => setFormValue(e.target.value)}
                 required
@@ -151,7 +153,7 @@ export const TaxaServicoSection: React.FC<TaxaServicoSectionProps> = ({
 
               {/* Botões de Ações no Rodapé do Formulário */}
               <FormActions
-                confirmLabel={editingFee ? "Salvar alterações" : "Adicionar taxa"}
+                confirmLabel={editingFee ? UI_STRINGS.pdv.cart.saveChangesButton : UI_STRINGS.serviceCharges.addFeeFormButton}
                 onConfirm={() => {}}
                 onCancel={() => {
                   setMode("list")
@@ -179,13 +181,13 @@ export const TaxaServicoSection: React.FC<TaxaServicoSectionProps> = ({
         >
           <Stack gap={5} align="center" justify="center" w="full">
             <EmptyState
-              title="Nenhuma taxa de serviço cadastrada"
-              subtitle="Cadastre taxas de serviço (fixas ou percentuais) para aplicar aos atendimentos."
+              title={UI_STRINGS.serviceCharges.emptyTitle}
+              subtitle={UI_STRINGS.serviceCharges.emptySubtitle}
               icon={Coins}
             />
             <Button
               variant="primary"
-              label="Adicionar taxa de serviço"
+              label={UI_STRINGS.serviceCharges.addFeeButton}
               icon={Plus}
               onClick={handleAddClick}
             />
@@ -195,10 +197,10 @@ export const TaxaServicoSection: React.FC<TaxaServicoSectionProps> = ({
         <Stack gap={5} w="full">
           {/* Cabeçalho de Controle */}
           <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
-            <Font variant="body-bold" text="Taxas de serviço" />
+            <Font variant="body-bold" text={s.serviceFeeTitle} />
             <Button
               variant="primary"
-              label="Adicionar taxa"
+              label={UI_STRINGS.deliveryFees.addFeeFormButton}
               icon={Plus}
               onClick={handleAddClick}
             />
@@ -216,10 +218,10 @@ export const TaxaServicoSection: React.FC<TaxaServicoSectionProps> = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead text="Nome" />
-                  <TableHead text="Tipo" />
-                  <TableHead text="Valor" />
-                  <TableHead text="Ações" align="right" w="w-[100px]" />
+                  <TableHead text={UI_STRINGS.deliveryFees.nameColumnHeader} />
+                  <TableHead text={UI_STRINGS.serviceCharges.typeColumnHeader} />
+                  <TableHead text={UI_STRINGS.deliveryFees.valueColumnHeader} />
+                  <TableHead text={UI_STRINGS.tabsConfig.actionsCol} align="right" w="w-[100px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>

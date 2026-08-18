@@ -12,6 +12,7 @@ import { Warning } from "@/components/store/base/Warning"
 import { Grid } from "@/components/store/base/Grid"
 import { QrCodeSvg } from "@/components/store/base/QrCodeSvg"
 import { Check } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface WhatsAppSectionProps {
   onCancel: () => void
@@ -25,15 +26,16 @@ export const WhatsAppSection: React.FC<WhatsAppSectionProps> = ({
   setCustomTitle
 }) => {
   const [enabled, setEnabled] = React.useState(true)
+  const s = UI_STRINGS.whatsapp
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("WhatsApp")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   const handleSave = () => {
     onCancel()
@@ -53,10 +55,10 @@ export const WhatsAppSection: React.FC<WhatsAppSectionProps> = ({
           {/* Habilitar */}
           <Stack direction="row" align="center" justify="between" w="full" gap={5}>
             <Stack gap={1}>
-              <Font variant="body-bold" text="Habilitar" />
+              <Font variant="body-bold" text={s.title} />
               <Font
                 variant="description"
-                text="Ative esta opção para enviar notificações automáticas para os clientes."
+                text={s.scanQrCodeDesc}
                 color="muted"
               />
             </Stack>
@@ -71,8 +73,8 @@ export const WhatsAppSection: React.FC<WhatsAppSectionProps> = ({
               <Warning
                 variant="success"
                 icon={Check}
-                title="WhatsApp habilitado"
-                text="Siga as instruções abaixo para conectar seu WhatsApp e habilitar o envio automático de mensagens."
+                title={s.connectedStatus}
+                text={s.scanQrCodeDesc}
               />
 
               {/* Instruções de Conexão + QR Code */}
@@ -86,7 +88,7 @@ export const WhatsAppSection: React.FC<WhatsAppSectionProps> = ({
                 <Grid cols={2} gap={5} w="full">
                   {/* Lado esquerdo: Passos */}
                   <Stack gap={5}>
-                    <Font variant="body-bold" text="Conecte seu WhatsApp" />
+                    <Font variant="body-bold" text={s.connectionTitle} />
                     <Stack gap={2.5}>
                       <Stack direction="row" gap={2.5} align="start">
                         <Box
@@ -100,7 +102,7 @@ export const WhatsAppSection: React.FC<WhatsAppSectionProps> = ({
                             <Font variant="sub-tiny-bold" text="1" color="primary" />
                           </Stack>
                         </Box>
-                        <Font variant="body" text="Abra o WhatsApp no seu celular" />
+                        <Font variant="body" text={UI_STRINGS.whatsapp.step1} />
                       </Stack>
 
                       <Stack direction="row" gap={2.5} align="start">
@@ -115,7 +117,7 @@ export const WhatsAppSection: React.FC<WhatsAppSectionProps> = ({
                             <Font variant="sub-tiny-bold" text="2" color="primary" />
                           </Stack>
                         </Box>
-                        <Font variant="body" text="Toque em Menu (três pontos) ou Configurações" />
+                        <Font variant="body" text={UI_STRINGS.whatsapp.step2} />
                       </Stack>
 
                       <Stack direction="row" gap={2.5} align="start">
@@ -130,7 +132,7 @@ export const WhatsAppSection: React.FC<WhatsAppSectionProps> = ({
                             <Font variant="sub-tiny-bold" text="3" color="primary" />
                           </Stack>
                         </Box>
-                        <Font variant="body" text='Selecione "Dispositivos conectados"' />
+                        <Font variant="body" text={UI_STRINGS.whatsapp.step3} />
                       </Stack>
 
                       <Stack direction="row" gap={2.5} align="start">
@@ -145,7 +147,7 @@ export const WhatsAppSection: React.FC<WhatsAppSectionProps> = ({
                             <Font variant="sub-tiny-bold" text="4" color="primary" />
                           </Stack>
                         </Box>
-                        <Font variant="body" text='Toque em "Conectar um dispositivo"' />
+                        <Font variant="body" text={UI_STRINGS.whatsapp.step4} />
                       </Stack>
 
                       <Stack direction="row" gap={2.5} align="start">
@@ -160,7 +162,7 @@ export const WhatsAppSection: React.FC<WhatsAppSectionProps> = ({
                             <Font variant="sub-tiny-bold" text="5" color="primary" />
                           </Stack>
                         </Box>
-                        <Font variant="body" text="Aponte a câmera para o QR Code exibido na tela" />
+                        <Font variant="body" text={UI_STRINGS.whatsapp.step5} />
                       </Stack>
                     </Stack>
                   </Stack>
@@ -188,7 +190,7 @@ export const WhatsAppSection: React.FC<WhatsAppSectionProps> = ({
       </Box>
 
       <FormActions
-        confirmLabel="Salvar alterações"
+        confirmLabel={UI_STRINGS.pdv.cart.saveChangesButton}
         onConfirm={handleSave}
         onCancel={onCancel}
       />

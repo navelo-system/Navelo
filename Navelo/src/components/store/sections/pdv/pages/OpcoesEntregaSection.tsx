@@ -8,6 +8,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Checkbox } from "@/components/store/base/Checkbox"
 import { FormActions } from "@/components/store/intermediary/FormActions"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface OpcoesEntregaSectionProps {
   onCancel: () => void
@@ -24,15 +25,16 @@ export const OpcoesEntregaSection: React.FC<OpcoesEntregaSectionProps> = ({
   const [entrega, setEntrega] = React.useState(true)
   const [consumirLocal, setConsumirLocal] = React.useState(false)
   const [taxasEntrega, setTaxasEntrega] = React.useState(false)
+  const s = UI_STRINGS.deliveryOptions
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Opções de Entrega")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   const handleSave = () => {
     onCancel()
@@ -57,10 +59,10 @@ export const OpcoesEntregaSection: React.FC<OpcoesEntregaSectionProps> = ({
               onChange={(e) => setRetirada(e.target.checked)}
             />
             <Stack gap={1} flex="1">
-              <Font variant="body-bold" text="Retirada no local" />
+              <Font variant="body-bold" text={s.pickupOptionLabel} />
               <Font
                 variant="description"
-                text="O cliente terá a opção de retirada no estabelecimento."
+                text={s.pickupOptionDesc}
                 color="muted"
               />
             </Stack>
@@ -75,10 +77,10 @@ export const OpcoesEntregaSection: React.FC<OpcoesEntregaSectionProps> = ({
               onChange={(e) => setEntrega(e.target.checked)}
             />
             <Stack gap={1} flex="1">
-              <Font variant="body-bold" text="Entrega" />
+              <Font variant="body-bold" text={s.deliveryOptionLabel} />
               <Font
                 variant="description"
-                text="O cliente terá a opção de receber o pedido no endereço informado."
+                text={s.deliveryOptionDesc}
                 color="muted"
               />
             </Stack>
@@ -93,10 +95,10 @@ export const OpcoesEntregaSection: React.FC<OpcoesEntregaSectionProps> = ({
               onChange={(e) => setConsumirLocal(e.target.checked)}
             />
             <Stack gap={1} flex="1">
-              <Font variant="body-bold" text="Consumir no local" />
+              <Font variant="body-bold" text={s.dineInOptionLabel} />
               <Font
                 variant="description"
-                text="O cliente terá a opção de consumir o pedido no local."
+                text={s.dineInOptionDesc}
                 color="muted"
               />
             </Stack>
@@ -119,10 +121,10 @@ export const OpcoesEntregaSection: React.FC<OpcoesEntregaSectionProps> = ({
             onChange={(e) => setTaxasEntrega(e.target.checked)}
           />
           <Stack gap={1} flex="1">
-            <Font variant="body-bold" text="Taxas de entrega" />
+            <Font variant="body-bold" text={UI_STRINGS.fees.deliveryFeeTitle} />
             <Font
               variant="description"
-              text="As taxas serão exibidas como região de entrega no Catálogo Online."
+              text={s.deliveryFeeNotice}
               color="muted"
             />
           </Stack>
@@ -130,8 +132,8 @@ export const OpcoesEntregaSection: React.FC<OpcoesEntregaSectionProps> = ({
       </Box>
 
       {/* Botões de Ação */}
-            <FormActions
-        confirmLabel="Salvar alterações"
+      <FormActions
+        confirmLabel={UI_STRINGS.pdv.cart.saveChangesButton}
         onConfirm={handleSave}
         onCancel={onCancel}
       />

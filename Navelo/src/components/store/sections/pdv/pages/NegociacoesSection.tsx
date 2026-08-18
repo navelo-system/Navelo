@@ -13,13 +13,18 @@ import { Icon } from "@/components/store/base/Icon"
 import { Avatar } from "@/components/store/base/Avatar"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { FilterPanel } from "@/components/store/intermediary/FilterPanel"
-import { FileText, Filter, Calendar, User, DollarSign, Share2, Trash2, ChevronDown, ChevronUp, Package } from "lucide-react"
+import { FileText, Filter, Calendar, User, DollarSign, Share2, Trash2, ChevronDown, ChevronUp, Package, FileSpreadsheet } from "lucide-react"
 import { useSales, useProducts, Sale, dal } from "@/lib/dal"
+import { db } from "@/lib/dal/db"
+import { useLiveQuery } from "dexie-react-hooks"
 import { useTenant } from "@/lib/context/TenantContext"
 import { CartItemType } from "@/components/store/sections/pdv/pages/PdvSection"
 import { SaleShareModal } from "@/components/store/sections/pdv/modals/SaleShareModal"
 import { SaleLinkModal } from "@/components/store/sections/pdv/modals/SaleLinkModal"
+import { SaleExportModal } from "@/components/store/sections/pdv/modals/SaleExportModal"
 import { generateSaleReceiptPdf, sanitizeSaleFileName } from "@/lib/pdf/generateSaleReceipt"
+import { generateSalesReportPdf } from "@/lib/pdf/generateSalesReportPdf"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface NegociacoesSectionProps {
   title?: string
@@ -44,6 +49,59 @@ function parseSaleItems(items: any): any[] {
   return []
 }
 
+function formatDateTimeBr(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0")
+  const day = pad(d.getDate())
+  const month = pad(d.getMonth() + 1)
+  const year = d.getFullYear()
+  const hours = pad(d.getHours())
+  const mins = pad(d.getMinutes())
+  return `${day}/${month}/${year} ${hours}:${mins}`
+}
+
+function parseBrDateTime(str: string, isEnd = false): Date | null {
+  if (!str || !str.trim()) return null
+  const clean = str.trim()
+  const brMatch = clean.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{1,2}))?$/)
+  if (brMatch) {
+    const day = parseInt(brMatch[1], 10)
+    const month = parseInt(brMatch[2], 10) - 1
+    const year = parseInt(brMatch[3], 10)
+    const hour = brMatch[4] !== undefined ? parseInt(brMatch[4], 10) : (isEnd ? 23 : 0)
+    const min = brMatch[5] !== undefined ? parseInt(brMatch[5], 10) : (isEnd ? 59 : 0)
+    const sec = isEnd ? 59 : 0
+    return new Date(year, month, day, hour, min, sec)
+  }
+  const isoDate = new Date(clean)
+  if (!isNaN(isoDate.getTime())) {
+    return isoDate
+  }
+  return null
+}
+
+function getPeriodDates(period: string): { start: string; end: string } {
+  const now = new Date()
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+  let start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
+
+  if (period === "7D") {
+    start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    start.setHours(0, 0, 0, 0)
+  } else if (period === "1M") {
+    start = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate(), 0, 0, 0)
+  } else if (period === "3M") {
+    start = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate(), 0, 0, 0)
+  } else if (period === "6M") {
+    start = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate(), 0, 0, 0)
+  } else if (period === "1A") {
+    start = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate(), 0, 0, 0)
+  }
+  return {
+    start: formatDateTimeBr(start),
+    end: formatDateTimeBr(end),
+  }
+}
+
 export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
   title,
   setCustomBack,
@@ -57,6 +115,11 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
   const tenantId = tenantCtx?.currentTenant?.id
   const dbSales = useSales(tenantId)
   const dbProducts = useProducts(tenantId)
+  const dbCompany = useLiveQuery(async () => {
+    if (!tenantId) return null
+    return await db.companies.get(tenantId)
+  }, [tenantId])
+  const s = UI_STRINGS.negotiations
 
   // Mapa de produtos para resolução automática de imagens reais e dados de produtos
   const productMap = React.useMemo(() => {
@@ -70,9 +133,10 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
     return map
   }, [dbProducts])
 
+  const initialPeriodDates = React.useMemo(() => getPeriodDates("Hoje"), [])
   const [period, setPeriod] = React.useState("Hoje")
-  const [startDate, setStartDate] = React.useState("12/08/2026 00:00")
-  const [endDate, setEndDate] = React.useState("12/08/2026 23:59")
+  const [startDate, setStartDate] = React.useState(initialPeriodDates.start)
+  const [endDate, setEndDate] = React.useState(initialPeriodDates.end)
   const [cliente, setCliente] = React.useState(initialClientFilter || "")
   const [usuario, setUsuario] = React.useState("")
   const [dispositivo, setDispositivo] = React.useState("")
@@ -84,6 +148,14 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
   const [isShareModalOpen, setIsShareModalOpen] = React.useState(false)
   const [isLinkModalOpen, setIsLinkModalOpen] = React.useState(false)
   const [linkModalUrl, setLinkModalUrl] = React.useState("")
+  const [isExportModalOpen, setIsExportModalOpen] = React.useState(false)
+
+  const handlePeriodChange = (newPeriod: string) => {
+    setPeriod(newPeriod)
+    const { start, end } = getPeriodDates(newPeriod)
+    setStartDate(start)
+    setEndDate(end)
+  }
 
   const onBackRef = React.useRef(onBack)
   React.useEffect(() => {
@@ -91,7 +163,7 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
   }, [onBack])
 
   React.useEffect(() => {
-    setCustomTitle?.(title || "Negociações")
+    setCustomTitle?.(title || s.title)
     setCustomBack?.(() => () => onBackRef.current())
 
     setCustomActions?.(
@@ -109,7 +181,7 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
       setCustomBack?.(null)
       setCustomActions?.(null)
     }
-  }, [setCustomBack, setCustomTitle, setCustomActions, title])
+  }, [setCustomBack, setCustomTitle, setCustomActions, title, s.title])
 
   React.useEffect(() => {
     if (initialClientFilter !== undefined) {
@@ -121,23 +193,45 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
     if (!dbSales || dbSales.length === 0) return []
     const clientTerm = cliente.trim().toLowerCase()
     const userTerm = usuario.trim().toLowerCase()
+    const deviceTerm = dispositivo.trim().toLowerCase()
+    const mesaTerm = mesa.trim().toLowerCase()
+    const startDateObj = parseBrDateTime(startDate, false)
+    const endDateObj = parseBrDateTime(endDate, true)
 
     return dbSales
       .filter((sale) => {
+        // Filtro por Data Inicial e Final
+        if (sale.created_at) {
+          const saleTime = new Date(sale.created_at).getTime()
+          if (startDateObj && saleTime < startDateObj.getTime()) return false
+          if (endDateObj && saleTime > endDateObj.getTime()) return false
+        }
+        // Filtro por Cliente
         if (clientTerm) {
           if (!sale.customer_name) return false
           const lowerCust = sale.customer_name.toLowerCase().trim()
           if (lowerCust === "nao selecionado" || lowerCust === "venda avulsa") return false
           if (!lowerCust.includes(clientTerm)) return false
         }
+        // Filtro por Usuário/Operador
         if (userTerm) {
-          const saleUser = (sale as any).user_name || sale.operator_id || ""
-          if (!saleUser || !saleUser.toLowerCase().includes(userTerm)) return false
+          const uName = ((sale as any).user_name || (sale as any).operator || (sale as any).operator_id || "").toLowerCase()
+          if (!uName.includes(userTerm)) return false
+        }
+        // Filtro por Dispositivo/Terminal
+        if (deviceTerm) {
+          const dName = ((sale as any).device || (sale as any).device_name || (sale as any).terminal || "").toLowerCase()
+          if (!dName.includes(deviceTerm)) return false
+        }
+        // Filtro por Mesa/Comanda
+        if (mesaTerm) {
+          const tableStr = String((sale as any).table_number || (sale as any).comanda_label || (sale as any).mesa || "").toLowerCase()
+          if (!tableStr.includes(mesaTerm)) return false
         }
         return true
       })
       .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
-  }, [dbSales, cliente, usuario])
+  }, [dbSales, cliente, usuario, dispositivo, mesa, startDate, endDate])
 
   const totalFilteredSales = React.useMemo(() => {
     return filteredSales.reduce((acc, sale) => acc + (sale.total || 0), 0)
@@ -169,19 +263,19 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
     await handleDeleteSale()
   }
 
-  const handleGeneratePdfForSale = async (saleToUse?: Sale | null): Promise<string | null> => {
-    const sale = saleToUse || selectedSale
-    if (!sale) return null
-    if (sale.pdf_url) return sale.pdf_url
+  const getSaleCode = (sale: Sale) => {
+    if ((sale as any).code) return String((sale as any).code).padStart(3, "0")
+    if (sale.id) {
+      const parts = sale.id.split("-")
+      const last = parts[parts.length - 1]
+      return last.slice(0, 4).toUpperCase()
+    }
+    return "001"
+  }
 
+  // Gera o PDF sob demanda para uma venda específica
+  const handleGeneratePdfForSale = async (sale: Sale): Promise<string | null> => {
     try {
-      const companyInfo = {
-        name: tenantCtx?.currentTenant?.tradingName || tenantCtx?.currentTenant?.corporateName || tenantCtx?.platformSettings?.platformName || "Navelo PDV",
-        document: tenantCtx?.currentTenant?.cnpj,
-        phone: (tenantCtx?.currentTenant as any)?.phone,
-        logo_url: tenantCtx?.currentTenant?.logoUrl || tenantCtx?.platformSettings?.logoUrl,
-      }
-
       const saleCode = getSaleCode(sale)
       const parsedItems = parseSaleItems(sale.items)
       const saleReceiptData = {
@@ -201,7 +295,8 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
         })),
       }
 
-      const { base64, blob } = await generateSaleReceiptPdf(saleReceiptData, companyInfo)
+      const companyData = dbCompany || (tenantCtx?.currentTenant as any) || undefined
+      const { base64, blob } = await generateSaleReceiptPdf(saleReceiptData, companyData)
       const cleanCode = sanitizeSaleFileName(saleCode)
       const cleanId = sanitizeSaleFileName(sale.id)
       const fileName = `Negociacao_${cleanCode}_${cleanId}.pdf`
@@ -224,13 +319,14 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
             return publicUrl
           }
         }
-      } catch {
-        // Se o upload falhar, retorna o blob local
+      } catch (uploadErr) {
+        console.warn("[Negociacoes] Falha no upload do PDF:", uploadErr)
       }
 
-      return URL.createObjectURL(blob)
+      const localUrl = URL.createObjectURL(blob)
+      return localUrl
     } catch (err) {
-      console.error("Erro ao gerar PDF:", err)
+      console.error("[Negociacoes] Erro ao gerar PDF da venda:", err)
       return null
     }
   }
@@ -245,6 +341,58 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
     if (url) {
       window.open(url, "_blank", "noopener,noreferrer")
     }
+  }
+
+  const handleExportPdf = async () => {
+    const reportTitle = title || s.title
+    const salesData = {
+      title: reportTitle,
+      periodText: `${startDate} até ${endDate}`,
+      statusText: "Ativa",
+      typeText: "Qualquer",
+      items: filteredSales.map((sale) => {
+        const code = getSaleCode(sale)
+        const date = formatDate(sale.created_at)
+        const client = sale.customer_name && sale.customer_name !== "Nao selecionado" ? sale.customer_name : ""
+        return {
+          code,
+          date,
+          client,
+          total: sale.total || 0,
+        }
+      }),
+      totalAmount: totalFilteredSales,
+    }
+
+    const companyData = dbCompany || (tenantCtx?.currentTenant as any) || undefined
+    const { blob } = await generateSalesReportPdf(salesData, companyData)
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `Relatorio_${reportTitle.replace(/\s+/g, "_")}_${Date.now()}.pdf`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  const handleExportCsv = () => {
+    const headers = ["Venda", "Data", "Cliente", "Forma de Pagamento", "Total (R$)"]
+    const rows = filteredSales.map((sale) => {
+      const code = getSaleCode(sale)
+      const date = formatDate(sale.created_at)
+      const client = sale.customer_name && sale.customer_name !== "Nao selecionado" ? sale.customer_name : "-"
+      const payment = sale.payment_method || "Dinheiro"
+      const total = (sale.total || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      return [code, date, `"${client.replace(/"/g, '""')}"`, payment, total].join(";")
+    })
+    const csvContent = "\uFEFF" + [headers.join(";"), ...rows].join("\n")
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+    const link = document.createElement("a")
+    link.href = URL.createObjectURL(blob)
+    link.download = `Vendas_${Date.now()}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   const handleDuplicate = () => {
@@ -280,40 +428,34 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
   const renderFilterInputs = () => (
     <>
       <Input
-        label="Cliente"
-        placeholder="Cliente"
+        label={UI_STRINGS.reports.clientLabel}
+        placeholder={UI_STRINGS.reports.clientLabel}
         value={cliente}
         onChange={(e) => setCliente(e.target.value)}
       />
 
       <Input
-        label="Usuário"
-        placeholder="Usuário"
+        label={UI_STRINGS.reports.userLabel}
+        placeholder={UI_STRINGS.reports.userLabel}
         value={usuario}
         onChange={(e) => setUsuario(e.target.value)}
       />
 
       <Input
-        label="Dispositivo"
-        placeholder="Dispositivo"
+        label={UI_STRINGS.reports.deviceLabel}
+        placeholder={UI_STRINGS.reports.deviceLabel}
         value={dispositivo}
         onChange={(e) => setDispositivo(e.target.value)}
       />
 
       <Input
-        label="Comanda"
-        placeholder="Comanda / Mesa"
+        label={s.tabFilterLabel}
+        placeholder={s.tabFilterPlaceholder}
         value={mesa}
         onChange={(e) => setMesa(e.target.value)}
       />
     </>
   )
-
-  const getSaleCode = (sale: Sale) => {
-    const saleIdx = filteredSales.findIndex((s) => s.id === sale.id)
-    const saleNum = (saleIdx >= 0 ? filteredSales.length - saleIdx : 1).toString().padStart(3, "0")
-    return `Nº ${saleNum}.${saleIdx >= 0 ? filteredSales.length - saleIdx : 1}`
-  }
 
   return (
     <>
@@ -327,8 +469,8 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
               <Box w="full" h="full" direction="col" align="center" justify="center">
                 <EmptyState
                   icon={FileText}
-                  title="Nenhuma negociação encontrada."
-                  subtitle="As vendas concluídas no Caixa aparecerão nesta lista."
+                  title={s.emptyTitle}
+                  subtitle={s.emptySubtitle}
                 />
               </Box>
             ) : (
@@ -388,11 +530,25 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
             )}
           </Box>
 
-          {/* Card Fixo no Canto Inferior Esquerdo: Total das negociações filtradas */}
+          {/* Card Fixo no Canto Inferior Esquerdo: Quantidade e Total das negociações filtradas com Botão Exportar integrado */}
           <Box w="full" bg="bg-surface" padding={5} radius="default">
-            <Stack gap={1}>
-              <Font variant="auxiliary" color="muted" text="Total das negociações filtradas" />
-              <Font variant="h2" color="primary" text={formatPrice(totalFilteredSales)} />
+            <Stack direction="row" justify="between" align="center" w="full">
+              <Stack gap={1}>
+                <Font variant="auxiliary" color="muted" text={s.salesQuantityLabel} />
+                <Font variant="h3" text={String(filteredSales.length)} />
+              </Stack>
+              <Stack direction="row" align="center" gap={5}>
+                <Stack align="end" gap={1}>
+                  <Font variant="auxiliary" color="muted" text={s.totalAmountLabel} />
+                  <Font variant="h3" color="primary" text={formatPrice(totalFilteredSales)} />
+                </Stack>
+                <Button
+                  variant="primary-pill-icon"
+                  icon={FileSpreadsheet}
+                  title={s.exportSalesModalTitle}
+                  onClick={() => setIsExportModalOpen(true)}
+                />
+              </Stack>
             </Stack>
           </Box>
         </Stack>
@@ -400,9 +556,9 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
         {/* Painel Direito Desktop: FilterPanel Inline */}
         <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
           <FilterPanel
-            title="Filtros"
+            title={UI_STRINGS.common.filter}
             selectedPeriod={period}
-            onPeriodChange={setPeriod}
+            onPeriodChange={handlePeriodChange}
             startDate={startDate}
             onStartDateChange={setStartDate}
             endDate={endDate}
@@ -417,14 +573,14 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
         <Modal
           isOpen={isFilterDrawerOpen}
           onClose={() => setIsFilterDrawerOpen(false)}
-          title="Filtros"
+          title={UI_STRINGS.common.filter}
           variant="sidebar"
         >
           <FilterPanel
             hideTitle
             borderless
             selectedPeriod={period}
-            onPeriodChange={setPeriod}
+            onPeriodChange={handlePeriodChange}
             startDate={startDate}
             onStartDateChange={setStartDate}
             endDate={endDate}
@@ -440,7 +596,7 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
           isOpen={!!selectedSale}
           onClose={() => setSelectedSale(null)}
           title={selectedSale ? `Negociação ${getSaleCode(selectedSale)}` : "Detalhes da Negociação"}
-          subtitle="Detalhamento completo dos produtos e pagamentos da negociação"
+          subtitle={s.detailSubtitle}
           icon={FileText}
           variant="default"
           showCancelButton
@@ -459,7 +615,7 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
                         <Avatar fallback={selectedSale.customer_name.substring(0, 2).toUpperCase()} />
                         <Stack gap={1} align="start" flex="1" minW="0">
                           <Font variant="body" text={selectedSale.customer_name} />
-                          <Font variant="auxiliary" color="muted" text="Cliente cadastrado" />
+                          <Font variant="auxiliary" color="muted" text={s.registeredCustomerLabel} />
                         </Stack>
                       </Stack>
                     </Stack>
@@ -478,7 +634,7 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
                 <Stack gap={2.5} w="full">
                   <Stack direction="row" justify="between" align="center" w="full">
                     <Stack gap={0}>
-                      <Font variant="auxiliary" color="muted" text="Total" />
+                      <Font variant="auxiliary" color="muted" text={UI_STRINGS.pdv.cart.total} />
                       <Font
                         variant="auxiliary"
                         color="muted"
@@ -505,17 +661,17 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
                         <Box border borderColor="border/30" w="full" />
 
                         <Stack direction="row" justify="between" align="center" w="full">
-                          <Font variant="body-sm-medium" color="muted" text="Venda:" />
+                          <Font variant="body-sm-medium" color="muted" text={s.saleLabel} />
                           <Font variant="body-sm-medium" text={formatPrice(selectedSale.total)} />
                         </Stack>
 
                         <Stack direction="row" justify="between" align="center" w="full">
-                          <Font variant="body-sm-medium" color="muted" text={`${selectedSale.payment_method || "Dinheiro"}:`} />
+                          <Font variant="body-sm-medium" color="muted" text={`${selectedSale.payment_method || UI_STRINGS.common.confirm}:`} />
                           <Font variant="body-sm-medium" text={formatPrice(selectedSale.total)} />
                         </Stack>
 
                         <Stack direction="row" justify="between" align="center" w="full">
-                          <Font variant="body-sm-medium" color="muted" text="Total pago:" />
+                          <Font variant="body-sm-medium" color="muted" text={s.totalPaidLabel} />
                           <Font variant="body-sm-medium" text={formatPrice(selectedSale.total)} />
                         </Stack>
                       </Stack>
@@ -526,7 +682,7 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
 
               {/* Lista de Produtos do Pedido (reutilizando a estrutura idêntica da tela de produtos) */}
               <Stack gap={2.5} w="full">
-                <Font variant="body-bold" color="primary" text="Produtos no pedido" />
+                <Font variant="body-bold" color="primary" text={s.productsInOrderTitle} />
 
                 <Box maxH="240px" overflow="auto" w="full">
                   <Stack gap={2.5} w="full">
@@ -536,8 +692,8 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
                         return (
                           <EmptyState
                             icon={Package}
-                            title="Nenhum item detalhado"
-                            subtitle="Esta venda não possui itens registrados."
+                            title={s.noItemsDetailedTitle}
+                            subtitle={s.noItemsDetailedSubtitle}
                           />
                         )
                       }
@@ -626,18 +782,18 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
                   variant="danger-pill-icon"
                   icon={Trash2}
                   onClick={() => setIsDeleteConfirmOpen(true)}
-                  title="Excluir negociação"
+                  title={s.deleteNegotiationTitle}
                 />
                 <Button
                   variant="secondary-pill-icon"
                   icon={Share2}
                   onClick={() => setIsShareModalOpen(true)}
-                  title="Compartilhar negociação"
+                  title={s.shareNegotiationTitle}
                 />
                 <Button
                   variant="primary-pill-icon-print"
                   onClick={handlePrintSale}
-                  title="Imprimir comprovante"
+                  title={s.printReceiptTitle}
                 />
               </Stack>
             </Stack>
@@ -650,14 +806,14 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
     <Modal
       isOpen={isDeleteConfirmOpen}
       onClose={() => setIsDeleteConfirmOpen(false)}
-      title="Excluir Negociação"
-      subtitle="Confirmar exclusão de negociação"
+      title={s.deleteNegotiationTitle}
+      subtitle={s.confirmDeleteNegotiationSubtitle}
       icon={Trash2}
-      successText="Confirmar Exclusão"
+      successText={s.confirmDeleteButton}
       onSuccess={handleDeleteAndClose}
       showCancelButton
     >
-      <Font variant="body-sm-medium" text="Tem certeza de que deseja excluir esta negociação do sistema? Esta ação não poderá ser desfeita." />
+      <Font variant="body-sm-medium" text={s.deleteNegotiationParagraph} />
     </Modal>
 
     {/* Modal de Opções de Compartilhamento (Bottom Sheet) */}
@@ -684,6 +840,14 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
         saleName={`Negociação ${getSaleCode(selectedSale)}`}
       />
     )}
+
+    {/* Modal de Exportação de Vendas (PDF A4 e CSV) */}
+    <SaleExportModal
+      isOpen={isExportModalOpen}
+      onClose={() => setIsExportModalOpen(false)}
+      onExportPdf={handleExportPdf}
+      onExportCsv={handleExportCsv}
+    />
     </>
   )
 }

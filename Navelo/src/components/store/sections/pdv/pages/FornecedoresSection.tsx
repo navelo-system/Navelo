@@ -13,6 +13,7 @@ import { Edit2, Trash2, Building, ShieldCheck, CreditCard, Phone, MapPin } from 
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 import { ListSectionLayout } from "@/components/store/intermediary/ListSectionLayout"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface SupplierItem {
   id: string
@@ -44,6 +45,8 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
   setCustomTitle,
   setCustomActions
 }) => {
+  const s = UI_STRINGS.settings.fornecedores
+
   const [suppliers, setSuppliers] = React.useState<SupplierItem[]>([
     {
       id: "1",
@@ -91,14 +94,14 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
 
   React.useEffect(() => {
     setCustomBack?.(() => handleBack)
-    setCustomTitle?.(mode === "form" ? (editingSupplier ? "Editar Fornecedor" : "Novo Fornecedor") : "Fornecedores")
+    setCustomTitle?.(mode === "form" ? (editingSupplier ? s.editSupplierTitle : s.newSupplierTitle) : s.title)
 
     if (mode === "list") {
       setCustomActions?.(
         <MobileHeaderSearch
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
-          placeholder="Buscar por fornecedor..."
+          placeholder={s.searchPlaceholder}
         />
       )
     } else {
@@ -110,7 +113,7 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
       setCustomTitle?.(null)
       setCustomActions?.(null)
     }
-  }, [mode, editingSupplier, searchQuery, setCustomBack, setCustomTitle, setCustomActions, handleBack])
+  }, [mode, editingSupplier, searchQuery, setCustomBack, setCustomTitle, setCustomActions, handleBack, s.editSupplierTitle, s.newSupplierTitle, s.title, s.searchPlaceholder])
 
   const handleCreateNew = () => {
     setEditingSupplier(null)
@@ -174,7 +177,7 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
 
     if (editingSupplier) {
       setSuppliers((prev) =>
-        prev.map((s) => (s.id === editingSupplier.id ? { ...s, ...supplierData } : s))
+        prev.map((item) => (item.id === editingSupplier.id ? { ...item, ...supplierData } : item))
       )
     } else {
       setSuppliers((prev) => [
@@ -187,27 +190,26 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
     setEditingSupplier(null)
   }
 
-
   return (
     <Box position="relative" w="full">
       {mode === "list" ? (
         <ListSectionLayout<SupplierItem>
-          title="Fornecedores"
+          title={s.title}
           items={suppliers}
-          searchPlaceholder="Buscar por fornecedor ou CNPJ..."
-          searchFilterFn={(s, query) => {
+          searchPlaceholder={s.searchPlaceholder}
+          searchFilterFn={(item, query) => {
             const q = query.toLowerCase()
             return (
-              s.tradeName.toLowerCase().includes(q) ||
-              s.companyName.toLowerCase().includes(q) ||
-              s.document.includes(q)
+              item.tradeName.toLowerCase().includes(q) ||
+              item.companyName.toLowerCase().includes(q) ||
+              item.document.includes(q)
             )
           }}
           emptyIcon={Building}
-          emptyTitle="Nenhum fornecedor cadastrado"
-          emptySubtitle="Adicione seu primeiro fornecedor para gerenciar o estoque."
+          emptyTitle={s.emptyTitle}
+          emptySubtitle={s.emptySubtitle}
           onAdd={handleCreateNew}
-          getItemKey={(s) => s.id}
+          getItemKey={(item) => item.id}
           setCustomBack={setCustomBack}
           setCustomTitle={setCustomTitle}
           setCustomActions={setCustomActions}
@@ -239,8 +241,8 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
                   />
                   <Button
                     variant="danger-icon-xs-confirm"
-                    confirmTitle="Excluir Fornecedor"
-                    confirmSubtitle="Confirmar exclusão de fornecedor"
+                    confirmTitle={s.deleteSupplierTitle}
+                    confirmSubtitle={s.deleteSupplierTitle}
                     confirmParagraph="Tem certeza que deseja excluir este fornecedor?"
                     onConfirm={() => handleDelete(supplier.id)}
                   />
@@ -264,8 +266,8 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
           <Stack gap={5} w="full">
             <Grid cols={2} gap={5}>
               <Input
-                label="* Nome fantasia"
-                placeholder="Ex: Autopeças do Vale"
+                label={s.tradeNameLabel}
+                placeholder={s.tradeNamePlaceholder}
                 value={formTradeName}
                 onChange={(e) => setFormTradeName(e.target.value)}
                 icon={Building}
@@ -273,8 +275,8 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
               />
 
               <Input
-                label="* Razão social"
-                placeholder="Ex: Autopeças do Vale Ltda"
+                label={s.companyNameLabel}
+                placeholder={s.companyNamePlaceholder}
                 value={formCompanyName}
                 onChange={(e) => setFormCompanyName(e.target.value)}
                 icon={ShieldCheck}
@@ -282,8 +284,8 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
               />
 
               <Input
-                label="* CPF/CNPJ"
-                placeholder="Ex: 00.000.000/0000-00"
+                label={s.documentLabel}
+                placeholder={s.documentPlaceholder}
                 value={formDocument}
                 onChange={(e) => setFormDocument(e.target.value)}
                 icon={CreditCard}
@@ -291,16 +293,16 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
               />
 
               <Input
-                label="IE (Inscrição Estadual)"
-                placeholder="Isento ou número..."
+                label={s.stateRegLabel}
+                placeholder={s.stateRegPlaceholder}
                 value={formStateRegistration}
                 onChange={(e) => setFormStateRegistration(e.target.value)}
                 icon={ShieldCheck}
               />
 
               <Input
-                label="Telefone"
-                placeholder="Ex: (11) 99999-9999"
+                label={s.phoneLabel}
+                placeholder={s.phonePlaceholder}
                 value={formPhone}
                 onChange={(e) => setFormPhone(e.target.value)}
                 icon={Phone}
@@ -310,51 +312,51 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
             {/* Seção de Endereço */}
             <Stack gap={2.5} w="full">
               <Box paddingY={2.5}>
-                <Font variant="body-bold" text="Endereço" />
+                <Font variant="body-bold" text={s.addressTitle} />
               </Box>
 
               <Grid cols={2} gap={5}>
                 <Input
-                  label="CEP"
-                  placeholder="Ex: 01001-000"
+                  label={s.cepLabel}
+                  placeholder={s.cepPlaceholder}
                   value={formCep}
                   onChange={(e) => setFormCep(e.target.value)}
                   icon={MapPin}
                 />
 
                 <Input
-                  label="Logradouro"
-                  placeholder="Ex: Rua das Flores"
+                  label={s.streetLabel}
+                  placeholder={s.streetPlaceholder}
                   value={formStreet}
                   onChange={(e) => setFormStreet(e.target.value)}
                   icon={MapPin}
                 />
 
                 <Input
-                  label="Número"
-                  placeholder="Ex: 123"
+                  label={s.numberLabel}
+                  placeholder={s.numberPlaceholder}
                   value={formNumber}
                   onChange={(e) => setFormNumber(e.target.value)}
                 />
 
                 <Input
-                  label="Complemento"
-                  placeholder="Ex: Sala 4"
+                  label={s.complementLabel}
+                  placeholder={s.complementPlaceholder}
                   value={formComplement}
                   onChange={(e) => setFormComplement(e.target.value)}
                 />
 
                 <Input
-                  label="Bairro"
-                  placeholder="Ex: Centro"
+                  label={s.neighborhoodLabel}
+                  placeholder={s.neighborhoodPlaceholder}
                   value={formNeighborhood}
                   onChange={(e) => setFormNeighborhood(e.target.value)}
                   icon={MapPin}
                 />
 
                 <Input
-                  label="Cidade"
-                  placeholder="Ex: São Paulo"
+                  label={s.cityLabel}
+                  placeholder={s.cityPlaceholder}
                   value={formCity}
                   onChange={(e) => setFormCity(e.target.value)}
                   icon={MapPin}
@@ -363,7 +365,7 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
             </Stack>
 
             <FormActions
-              confirmLabel={editingSupplier ? "Salvar alterações" : "Salvar fornecedor"}
+              confirmLabel={editingSupplier ? UI_STRINGS.pdv.cart.saveChangesButton : s.saveSupplierTitle}
               onConfirm={() => {}}
               isSubmit={true}
               onCancel={() => setMode("list")}
@@ -371,7 +373,7 @@ export const FornecedoresSection: React.FC<FornecedoresSectionProps> = ({
                 <Button
                   type="button"
                   variant="outline"
-                  label="Excluir Fornecedor"
+                  label={s.deleteSupplierTitle}
                   icon={Trash2}
                   onClick={() => handleDelete(editingSupplier.id)}
                 />

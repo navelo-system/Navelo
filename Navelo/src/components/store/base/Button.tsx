@@ -285,13 +285,14 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 
     const classes = cn(
       !isGhost && "btn-shimmer",
-      "inline-flex flex-nowrap whitespace-nowrap items-center gap-2.5 cursor-pointer transition-transform duration-150 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary disabled:pointer-events-none disabled:opacity-50",
+      "inline-flex flex-nowrap whitespace-nowrap items-center gap-2.5 cursor-pointer transition-transform duration-150 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary",
       justifyStyles[justify],
       variantStyles[baseColor] || variantStyles.primary,
       sizeStyles[logicalSize],
       roundedStyles[isPill ? "full" : isGhost ? "full" : "default"],
       !isPill && !logicalSize.includes("icon") && logicalSize !== "ghost" && !fullWidth && "w-full md:w-auto",
       fullWidth && "w-full",
+      props.disabled && "!bg-surface-sunken !text-text-muted !opacity-40 !cursor-not-allowed pointer-events-none shadow-none grayscale",
       className
     )
 
@@ -393,6 +394,19 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           className={classes}
           data-modal-target={modalTarget}
           onClick={handleClick}
+          style={{
+            ...(props.disabled
+              ? {
+                backgroundColor: "#cbd5e1",
+                color: "#64748b",
+                opacity: 0.45,
+                pointerEvents: "none",
+                cursor: "not-allowed",
+                filter: "grayscale(1)",
+              }
+              : {}),
+            ...(props.style || {}),
+          }}
           {...props}
         >
           {content}

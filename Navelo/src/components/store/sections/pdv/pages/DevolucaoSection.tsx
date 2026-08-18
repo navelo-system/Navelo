@@ -10,6 +10,7 @@ import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { Package, Plus, Minus } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface DevolucaoSectionProps {
   setCustomBack?: (cb: (() => void) | null) => void
@@ -28,6 +29,7 @@ export const DevolucaoSection: React.FC<DevolucaoSectionProps> = ({
   const [price, setPrice] = React.useState("0,00")
   const [quantity, setQuantity] = React.useState(0)
   const [items, setItems] = React.useState<{ id: string; name: string; price: string; quantity: number }[]>([])
+  const s = UI_STRINGS.returns
 
   const onBackRef = React.useRef(onBack)
   React.useEffect(() => {
@@ -35,7 +37,7 @@ export const DevolucaoSection: React.FC<DevolucaoSectionProps> = ({
   }, [onBack])
 
   React.useEffect(() => {
-    setCustomTitle?.("Devolução")
+    setCustomTitle?.(s.title)
     setCustomBack?.(() => () => onBackRef.current())
     setCustomActions?.(null)
 
@@ -44,7 +46,7 @@ export const DevolucaoSection: React.FC<DevolucaoSectionProps> = ({
       setCustomBack?.(null)
       setCustomActions?.(null)
     }
-  }, [setCustomBack, setCustomTitle, setCustomActions])
+  }, [setCustomBack, setCustomTitle, setCustomActions, s.title])
 
   const handleAddProduct = () => {
     if (!productQuery || quantity <= 0) return
@@ -65,8 +67,8 @@ export const DevolucaoSection: React.FC<DevolucaoSectionProps> = ({
             {items.length === 0 ? (
               <EmptyState
                 icon={Package}
-                title="Nenhum produto adicionado."
-                subtitle=""
+                title={s.emptyTitle}
+                subtitle={s.emptySubtitle}
               />
             ) : (
               <Stack gap={2.5} w="full" overflow="x-hidden y-auto" minH="0">
@@ -85,7 +87,7 @@ export const DevolucaoSection: React.FC<DevolucaoSectionProps> = ({
           <Box w="full" shrink="0" paddingY={1}>
             <Button
               variant="primary"
-              label="Concluir"
+              label={UI_STRINGS.common.finish}
               fullWidth
               onClick={onBack}
             />
@@ -96,24 +98,24 @@ export const DevolucaoSection: React.FC<DevolucaoSectionProps> = ({
         <Box w="w-full md:w-[380px]" bg="bg-surface" padding={5} radius="default" shrink="0" overflow="auto">
           <Stack gap={5} w="full">
             <Stack gap={1} w="full">
-              <Font variant="body-bold" text="Deseja adicionar um produto?" />
-              <Font variant="description" text="Adiciona o produto na devolução com a quantidade informada" color="muted" />
+              <Font variant="body-bold" text={s.addProductTitle} />
+              <Font variant="description" text={s.addProductDesc} color="muted" />
             </Stack>
 
             <Stack gap={1} w="full">
               <Input
-                label="Produto"
-                placeholder="Busque pela descrição ou código de barras..."
+                label={s.productLabel}
+                placeholder={s.searchPlaceholder}
                 value={productQuery}
                 onChange={(e) => setProductQuery(e.target.value)}
               />
-              <Font variant="auxiliary" text="* Busque pela descrição ou código de barras do produto." color="muted" />
+              <Font variant="auxiliary" text={s.productHelp} color="muted" />
             </Stack>
 
             <Stack direction="row" gap={2.5} w="full" align="end">
               <Box flex="1">
                 <Input
-                  label="* Preço"
+                  label={s.priceLabel}
                   value={`R$ ${price}`}
                   onChange={(e) => setPrice(e.target.value.replace("R$ ", ""))}
                 />
@@ -121,7 +123,7 @@ export const DevolucaoSection: React.FC<DevolucaoSectionProps> = ({
 
               <Box flex="1">
                 <Stack gap={1} w="full">
-                  <Font variant="auxiliary" text="* Quantidade" color="muted" />
+                  <Font variant="auxiliary" text={s.quantityLabel} color="muted" />
                   <Stack direction="row" align="center" justify="between" w="full" h="h-10">
                     <Button
                       variant="primary-icon-xs"
@@ -143,7 +145,7 @@ export const DevolucaoSection: React.FC<DevolucaoSectionProps> = ({
 
             <Button
               variant="primary"
-              label="Adicionar produto"
+              label={s.addProductButton}
               fullWidth
               onClick={handleAddProduct}
             />

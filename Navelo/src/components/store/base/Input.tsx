@@ -7,7 +7,7 @@ import { maskCPF, maskCNPJ, maskPhone, maskDate, maskCEP, maskCpfCnpj } from "@/
 import { DatePickerModal } from "./DatePickerModal"
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  variant?: "default" | "cpf" | "cnpj" | "cpf-cnpj" | "phone" | "date" | "cep" | "email" | "image-upload" | "outlined-label" | "bordered"
+  variant?: "default" | "cpf" | "cnpj" | "cpf-cnpj" | "phone" | "date" | "cep" | "email" | "image-upload" | "outlined-label" | "bordered" | "textarea"
   mask?: "cpf" | "cnpj" | "cpf-cnpj" | "phone" | "date" | "cep"
   hasError?: boolean
   label?: string
@@ -15,10 +15,11 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   error?: string
   icon?: LucideIcon
   iconRight?: LucideIcon
+  rows?: number
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, variant = "default", mask, hasError, label, description, error, icon: IconComponent, iconRight: IconRightComponent, onChange, onClick, ...props }, ref) => {
+  ({ className, type, variant = "default", mask, hasError, label, description, error, icon: IconComponent, iconRight: IconRightComponent, rows, onChange, onClick, ...props }, ref) => {
     
     const [showPassword, setShowPassword] = React.useState(false)
     const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false)
@@ -41,6 +42,40 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       ? (showPassword ? "text" : "password") 
       : (variant === "date" ? "text" : variant === "email" ? "email" : type)
     const placeholder = variant === "date" && !props.placeholder ? "DD/MM/AAAA" : props.placeholder
+
+    if (variant === "textarea") {
+      const textareaElement = (
+        <textarea
+          placeholder={placeholder}
+          rows={rows || 4}
+          onChange={onChange as any}
+          className={cn(
+            "flex w-full rounded-[5px] border border-border bg-white p-3.5 text-sm text-foreground placeholder:text-text-muted focus:outline-none focus:border-brand-primary disabled:cursor-not-allowed disabled:opacity-50 transition-colors resize-none",
+            (hasError || error) && "border-brand-danger focus:border-brand-danger",
+            className
+          )}
+          ref={ref as any}
+          {...(props as any)}
+        />
+      )
+
+      if (!label && !description && !error) {
+        return textareaElement
+      }
+
+      return (
+        <Stack gap={2.5} className="w-full">
+          {(label || description) && (
+            <Stack gap={1}>
+              {label && <Font variant="sub-tiny-bold" text={label} />}
+              {description && <Font variant="description" text={description} />}
+            </Stack>
+          )}
+          {textareaElement}
+          {error && <Font variant="auxiliary" color="danger" text={error} />}
+        </Stack>
+      )
+    }
 
     if (variant === "image-upload") {
       const dropzoneElement = (

@@ -11,6 +11,7 @@ import { Switch } from "@/components/store/base/Switch"
 import { Plan } from "@/src/types/domain"
 import { APP_FEATURES } from "@/src/constants/features"
 import { CreditCard } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export type { Plan }
 export { APP_FEATURES }
@@ -27,6 +28,7 @@ export const PlanFormModal: React.FC<PlanFormModalProps> = ({ isOpen, onClose, p
   const [name, setName] = React.useState(plan ? plan.name : "")
   const [price, setPrice] = React.useState(plan ? plan.price.toString() : "")
   const [selectedFeatures, setSelectedFeatures] = React.useState<string[]>(plan ? plan.features : [])
+  const p = UI_STRINGS.admin.plans
 
   const handleToggleFeature = (featureId: string) => {
     setSelectedFeatures(prev => 
@@ -48,31 +50,31 @@ export const PlanFormModal: React.FC<PlanFormModalProps> = ({ isOpen, onClose, p
       <Modal
         isOpen={isOpen}
         onClose={onClose}
-        title={plan ? "Editar Plano" : "Criar Novo Plano"}
-        subtitle="Preencha os dados e escolha os recursos liberados para esta assinatura."
+        title={plan ? p.editPlanTitle : p.createPlanTitle}
+        subtitle={p.planModalSubtitle}
         icon={CreditCard}
-        successText={plan ? "Salvar Alterações" : "Salvar Plano"}
+        successText={plan ? p.saveChangesButton : p.savePlanButton}
         isSubmit={true}
       >
         <Stack gap={5}>
           <Input 
-            label="Nome do Plano" 
-            placeholder="Ex: Plano Intermediário" 
+            label={p.planNameLabel} 
+            placeholder={p.planNamePlaceholder} 
             value={name} 
             onChange={(e) => setName(e.target.value)} 
             required 
           />
           <Input 
             type="number" 
-            label="Preço Mensal (R$)" 
-            placeholder="Ex: 99.90" 
+            label={p.monthlyPriceLabel} 
+            placeholder={p.monthlyPricePlaceholder} 
             value={price} 
             onChange={(e) => setPrice(e.target.value)} 
             required 
           />
 
           <Stack gap={2.5}>
-            <Font variant="body-sm-semibold" text="Módulos Inclusos" />
+            <Font variant="body-sm-semibold" text={p.includedModulesLabel} />
             <Box padding={2.5} bg="bg-background" radius="default">
               <Stack gap={2.5}>
                 {APP_FEATURES.map(feat => {

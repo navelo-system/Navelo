@@ -5,6 +5,7 @@ import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Button } from "@/components/store/base/Button"
 import { ThermalReceiptPreview } from "@/components/store/advanced/ThermalReceiptPreview"
+import { UI_STRINGS } from "@/constants/strings"
 
 // Types
 import { CartItemType } from "@/components/store/sections/pdv/pages/PdvSection"
@@ -37,7 +38,7 @@ export const PdvCheckoutReceipt: React.FC<PdvCheckoutReceiptProps> = ({
           paymentMethod={payments.map((p) => p.method).join(", ") || "Dinheiro"}
         />
       </Box>
-      <Button variant="primary-lg" label="Concluir e Voltar" onClick={onCloseReceipt} />
+      <Button variant="primary-lg" label={UI_STRINGS.common.finishAndBack} onClick={onCloseReceipt} />
     </Stack>
   )
 }

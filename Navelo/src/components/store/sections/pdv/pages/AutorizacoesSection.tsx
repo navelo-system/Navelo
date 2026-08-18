@@ -13,6 +13,7 @@ import { Search, Filter } from "lucide-react"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { FilterPanel } from "@/components/store/intermediary/FilterPanel"
 import { Modal } from "@/components/store/base/Modal"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface AutorizacoesSectionProps {
   onCancel: () => void
@@ -38,18 +39,19 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
   setCustomTitle,
   setCustomActions,
 }) => {
-  const [period, setPeriod] = React.useState("Hoje")
-  const [dateStart, setDateStart] = React.useState("08/07/2026 00:00")
-  const [dateEnd, setDateEnd] = React.useState("08/07/2026 23:59")
+  const s = UI_STRINGS.authorizations
   const [operator, setOperator] = React.useState("")
   const [authorizer, setAuthorizer] = React.useState("")
   const [device, setDevice] = React.useState("")
   const [showDenied, setShowDenied] = React.useState(false)
+  const [period, setPeriod] = React.useState("Hoje")
+  const [dateStart, setDateStart] = React.useState("01/01/2026 00:00")
+  const [dateEnd, setDateEnd] = React.useState("01/01/2026 23:59")
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Registro de autorizações")
+    setCustomTitle?.(s.title)
     setCustomActions?.(
       <Box display="block md:hidden">
         <Button
@@ -65,32 +67,32 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
       setCustomTitle?.(null)
       setCustomActions?.(null)
     }
-  }, [setCustomBack, setCustomTitle, setCustomActions, onCancel])
+  }, [setCustomBack, setCustomTitle, setCustomActions, onCancel, s.title])
 
   const renderFilterInputs = () => (
     <>
       <Input
-        label="Operador"
-        placeholder="Operador"
+        label={s.operatorLabel}
+        placeholder={s.operatorLabel}
         value={operator}
         onChange={(e) => setOperator(e.target.value)}
       />
       <Input
-        label="Autorizador"
-        placeholder="Autorizador"
+        label={s.authorizerLabel}
+        placeholder={s.authorizerLabel}
         value={authorizer}
         onChange={(e) => setAuthorizer(e.target.value)}
       />
       <Input
-        label="Dispositivo"
-        placeholder="Dispositivo"
+        label={s.deviceLabel}
+        placeholder={s.deviceLabel}
         value={device}
         onChange={(e) => setDevice(e.target.value)}
       />
       <CustomCheckbox
         checked={showDenied}
         onChange={() => setShowDenied(!showDenied)}
-        label="Mostrar tentativas de autorização negadas"
+        label={s.showDeniedLabel}
       />
     </>
   )
@@ -112,15 +114,15 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
         >
           <EmptyState
             icon={Search}
-            title="Nenhum registro encontrado."
-            subtitle="Tente ajustar os filtros ao lado."
+            title={s.emptyTitle}
+            subtitle={s.emptySubtitle}
           />
         </Box>
 
         {/* Painel de Filtros Desktop (Direita) */}
         <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
           <FilterPanel
-            title="Filtros"
+            title={UI_STRINGS.common.filter}
             selectedPeriod={period}
             onPeriodChange={setPeriod}
             startDate={dateStart}
@@ -137,7 +139,7 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
         <Modal
           isOpen={isFilterDrawerOpen}
           onClose={() => setIsFilterDrawerOpen(false)}
-          title="Filtros"
+          title={UI_STRINGS.common.filter}
           variant="sidebar"
         >
           <FilterPanel

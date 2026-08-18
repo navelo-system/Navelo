@@ -23,6 +23,7 @@ import {
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { useProducts, dal } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface EstoqueSectionProps {
   onBackToDashboard: () => void
@@ -44,6 +45,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
   const [estoqueView, setEstoqueView] = React.useState<"menu" | "balanco" | "notas" | "entrada_manual">("menu")
   const [balancoSubMode, setBalancoSubMode] = React.useState<"history" | "resumo">("history")
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
+  const s = UI_STRINGS.inventory
 
   const scrollPositions = React.useRef<Record<string, number>>({})
 
@@ -100,11 +102,11 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
     }
 
     if (estoqueView === "balanco") {
-      setCustomTitle?.(balancoSubMode === "resumo" ? "Resumo do balanço" : "Balanços de estoque")
+      setCustomTitle?.(balancoSubMode === "resumo" ? s.balancoSummaryTitle : s.title)
     } else if (estoqueView === "notas") {
-      setCustomTitle?.("Notas Fiscais")
+      setCustomTitle?.(UI_STRINGS.fiscal.title)
     } else if (estoqueView === "entrada_manual") {
-      setCustomTitle?.("Entrada / Saída Manual")
+      setCustomTitle?.(s.adjustStockButton)
     } else {
       setCustomTitle?.(null)
     }
@@ -114,7 +116,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
         <MobileHeaderSearch
           searchQuery={invoiceSearchQuery}
           onSearchQueryChange={setInvoiceSearchQuery}
-          placeholder="Buscar por número ou fornecedor..."
+          placeholder={s.searchInvoicesPlaceholder}
         >
           <Button
             variant="primary-pill-icon"
@@ -140,7 +142,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
       setCustomTitle?.(null)
       setCustomActions?.(null)
     }
-  }, [estoqueView, balancoSubMode, invoiceSearchQuery, setCustomBack, setCustomTitle, setCustomActions])
+  }, [estoqueView, balancoSubMode, invoiceSearchQuery, setCustomBack, setCustomTitle, setCustomActions, s.title, s.adjustStockButton, s.balancoSummaryTitle, s.searchInvoicesPlaceholder])
   
   const handleSaveBalanco = async (updatedProducts: typeof balancoProducts) => {
     for (const p of updatedProducts) {
@@ -215,8 +217,8 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
               <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" gap={5} flex="1">
                 <Icon icon={ClipboardList} variant="circular-secondary" />
                 <Stack gap={1} align="start" w="full">
-                  <Font variant="body-bold" text="Balanço de Estoque" align="left" />
-                  <Font variant="auxiliary" color="muted" text="Realizar auditoria e contagem física dos produtos na prateleira" align="left" />
+                  <Font variant="body-bold" text={s.balancoCardTitle} align="left" />
+                  <Font variant="auxiliary" color="muted" text={s.balancoCardDesc} align="left" />
                 </Stack>
               </Stack>
               <Icon icon={ChevronRight} size={20} color="muted" />
@@ -239,8 +241,8 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
               <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" gap={5} flex="1">
                 <Icon icon={FileText} variant="circular-secondary" />
                 <Stack gap={1} align="start" w="full">
-                  <Font variant="body-bold" text="Notas Fiscais (XML)" align="left" />
-                  <Font variant="auxiliary" color="muted" text="Importar notas de compra para dar entrada no estoque e cadastrar fornecedores" align="left" />
+                  <Font variant="body-bold" text={s.invoicesCardTitle} align="left" />
+                  <Font variant="auxiliary" color="muted" text={s.invoicesCardDesc} align="left" />
                 </Stack>
               </Stack>
               <Icon icon={ChevronRight} size={20} color="muted" />
@@ -263,8 +265,8 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
               <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" gap={5} flex="1">
                 <Icon icon={PlusCircle} variant="circular-secondary" />
                 <Stack gap={1} align="start" w="full">
-                  <Font variant="body-bold" text="Entrada / Saída Manual" align="left" />
-                  <Font variant="auxiliary" color="muted" text="Lançar perdas, quebras, consumo interno ou ajustes de inventário avulsos" align="left" />
+                  <Font variant="body-bold" text={s.manualMovementCardTitle} align="left" />
+                  <Font variant="auxiliary" color="muted" text={s.manualMovementCardDesc} align="left" />
                 </Stack>
               </Stack>
               <Icon icon={ChevronRight} size={20} color="muted" />

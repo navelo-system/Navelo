@@ -2,8 +2,7 @@ import React from 'react';
 import { Box } from '@/components/store/base/Box';
 import { Stack } from '@/components/store/base/Stack';
 import { Font } from '@/components/store/base/Font';
-import { Button } from '@/components/store/base/Button';
-import { Minus, Plus, Trash2 } from 'lucide-react';
+import { QuantityControl } from '@/components/store/intermediary/QuantityControl';
 import { OrderItem } from '@/src/types/domain';
 
 export interface CartItemRowProps {
@@ -27,19 +26,13 @@ export function CartItemRow({ item, onIncrease, onDecrease, onRemove }: CartItem
 
         <Box shrink="0">
           <Stack direction="col" align="end" gap={1}>
-            <Stack direction="row" align="center" gap={1}>
-              {item.quantity > 1 ? (
-                <Button variant="primary-icon-xs" icon={Minus} onClick={() => onDecrease?.(item)} />
-              ) : (
-                <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onRemove?.(item)} />
-              )}
-
-              <Box w="fit-content" paddingX={1}>
-                <Font variant="body-bold" text={item.quantity.toString()} />
-              </Box>
-
-              <Button variant="primary-icon-xs" icon={Plus} onClick={() => onIncrease?.(item)} />
-            </Stack>
+            <QuantityControl
+              quantity={item.quantity}
+              onIncrease={() => onIncrease?.(item)}
+              onDecrease={() => onDecrease?.(item)}
+              onRemove={() => onRemove?.(item)}
+              stopPropagation={false}
+            />
 
             <Font
               variant="body-bold"

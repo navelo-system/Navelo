@@ -254,3 +254,29 @@ textarea:focus {
   right: max(1.5rem, calc(1.5rem + env(safe-area-inset-right, 0px)));
   z-index: 50;
 }
+
+/* ─── Zero Stock Overlay & Pulse ─────────────────────────────────────── */
+.zero-stock-overlay {
+  background-color: rgba(220, 38, 38, 0.88) !important;
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+
+@keyframes zero-stock-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  30% {
+    opacity: 0.95;
+    transform: scale(1.05);
+  }
+  65% {
+    opacity: 0.95;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+}

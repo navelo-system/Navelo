@@ -20,6 +20,7 @@ import { PrintStatusModal } from "@/components/store/sections/pdv/modals/PrintSt
 import { FormActions } from "@/components/store/intermediary/FormActions"
 import { usePrintPoints, dal } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface PrintPointItem {
   id: string
@@ -51,6 +52,7 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
 }) => {
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id
+  const s = UI_STRINGS.printPoints
 
   const dbPoints = usePrintPoints(tenantId)
 
@@ -99,14 +101,14 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
 
   React.useEffect(() => {
     setCustomBack?.(() => handleBack)
-    setCustomTitle?.(mode === "form" ? (editingPoint ? "Editar ponto de impressão" : "Novo ponto de impressão") : "Pontos de impressão")
+    setCustomTitle?.(mode === "form" ? (editingPoint ? s.editPointTitle : s.newPointTitle) : s.title)
 
     if (mode === "list") {
       setCustomActions?.(
         <MobileHeaderSearch
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
-          placeholder="Buscar ponto de impressão..."
+          placeholder={s.searchPlaceholder}
         />
       )
     } else {
@@ -118,7 +120,7 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
       setCustomTitle?.(null)
       setCustomActions?.(null)
     }
-  }, [mode, editingPoint, searchQuery, setCustomBack, setCustomTitle, setCustomActions, handleBack])
+  }, [mode, editingPoint, searchQuery, setCustomBack, setCustomTitle, setCustomActions, handleBack, s.editPointTitle, s.newPointTitle, s.title, s.searchPlaceholder])
 
   const handleCreateNew = () => {
     setEditingPoint(null)
@@ -195,7 +197,7 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
           <Stack direction="row" align="center" justify="end" w="full">
             <Button
               variant="primary"
-              label="Adicionar ponto"
+              label={s.newPointTitle}
               icon={Plus}
               onClick={handleCreateNew}
             />
@@ -241,7 +243,7 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
                           {point.enabled && (
                             <Box display="block md:hidden" w="full">
                               <Stack direction="row" justify="start" gap={0} w="full">
-                                <Badge variant="success" label="habilitado" icon={Check} />
+                                <Badge variant="success" label={UI_STRINGS.settings.formasPagamento.enabledBadge} icon={Check} />
                               </Stack>
                             </Box>
                           )}
@@ -251,7 +253,7 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
                       <Stack direction="row" align="center" gap={5} justify="between" mobileJustify="end" w="w-full md:w-auto">
                         {point.enabled && (
                           <Box display="hidden md:block">
-                            <Badge variant="success" label="habilitado" icon={Check} />
+                            <Badge variant="success" label={UI_STRINGS.settings.formasPagamento.enabledBadge} icon={Check} />
                           </Box>
                         )}
 
@@ -264,8 +266,8 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
                           />
                           <Button
                             variant="danger-icon-xs-confirm"
-                            confirmTitle="Excluir Ponto"
-                            confirmSubtitle="Confirmar exclusão de ponto de impressão"
+                            confirmTitle={s.deletePointTitle}
+                            confirmSubtitle={s.deletePointTitle}
                             confirmParagraph="Tem certeza que deseja excluir este ponto de impressão?"
                             onConfirm={() => handleDelete(point.id)}
                           />
@@ -296,11 +298,11 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
               w="full"
             >
               <Stack gap={5} w="full">
-                <Font variant="body-bold" text="Identificação" />
+                <Font variant="body-bold" text={s.nameLabel} />
 
                 <Input
-                  label="* Nome"
-                  placeholder="Ex: Ponto 1"
+                  label={s.nameLabel}
+                  placeholder={s.namePlaceholder}
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   required
@@ -318,8 +320,8 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
                     <Stack direction="row" align="center" gap={2.5}>
                       <Icon icon={LayoutGrid} size={20} color="primary" />
                       <Stack gap={1}>
-                        <Font variant="body-bold" text="Produtos" />
-                        <Font variant="description" text="1 produto selecionado." color="muted" />
+                        <Font variant="body-bold" text={s.categoriesLabel} />
+                        <Font variant="description" text={UI_STRINGS.printPoints.selectedProductsDesc} color="muted" />
                       </Stack>
                     </Stack>
                     <Icon icon={ChevronRight} size={16} color="muted" />
@@ -339,7 +341,7 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
             >
               <Stack gap={5} w="full">
                 <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-                  <Font variant="body-bold" text="Habilitar impressão" />
+                  <Font variant="body-bold" text={s.autoPrintToggle} />
                   <Switch
                     checked={formEnabled}
                     onChange={(e) => setFormEnabled(e.target.checked)}
@@ -352,32 +354,32 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
 
                     <Grid cols={2} gap={5}>
                       <Input
-                        label="* Servidor"
-                        placeholder="Ex: 192.168.1.101"
+                        label={UI_STRINGS.printers.ipAddressLabel}
+                        placeholder={UI_STRINGS.printers.ipAddressPlaceholder}
                         value={formServerIp}
                         onChange={(e) => setFormServerIp(e.target.value)}
                         required
                       />
 
                       <Input
-                        label="* Porta"
-                        placeholder="Ex: 3030"
+                        label={UI_STRINGS.printers.portLabel}
+                        placeholder={UI_STRINGS.printers.portPlaceholder}
                         value={formPort}
                         onChange={(e) => setFormPort(e.target.value)}
                         required
                       />
                     </Grid>
 
-                    <Font variant="description" text="Endereço IP da impressora." color="muted" />
+                    <Font variant="description" text={UI_STRINGS.printPoints.ipPrinterDesc} color="muted" />
 
                     <Stack gap={1} w="full">
-                      <Font variant="sub-tiny-bold" text="Tamanho bobina" />
+                      <Font variant="sub-tiny-bold" text={UI_STRINGS.printers.paperWidthLabel} />
                       <CustomSelect
                         value={formBobbinSize}
                         onChange={(val) => setFormBobbinSize(val)}
                       >
-                        <CustomSelectItem value="80MM" text="80MM" icon={Printer} />
-                        <CustomSelectItem value="58MM" text="58MM" icon={Printer} />
+                        <CustomSelectItem value="80MM" text={UI_STRINGS.printers.width80mm} icon={Printer} />
+                        <CustomSelectItem value="58MM" text={UI_STRINGS.printers.width58mm} icon={Printer} />
                       </CustomSelect>
                     </Stack>
 
@@ -386,13 +388,13 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
                         checked={formIncreaseFont}
                         onChange={(e) => setFormIncreaseFont(e.target.checked)}
                       />
-                      <Font variant="body" text="Aumentar fonte da impressão" />
+                      <Font variant="body" text={UI_STRINGS.printers.increaseFontLabel} />
                     </Stack>
 
                     {/* Número de colunas */}
                     <Stack gap={2.5} w="full">
                       <Stack direction="row" align="center" justify="between" w="full">
-                        <Font variant="body" text="Número de colunas" />
+                        <Font variant="body" text={UI_STRINGS.printers.columnsNumberLabel} />
                         <Font variant="body-bold" text={formColumns.toString()} />
                       </Stack>
                       <Input
@@ -407,7 +409,7 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
                     <Button
                       type="button"
                       variant="primary"
-                      label="Imprimir teste"
+                      label={UI_STRINGS.printers.testPrintButton}
                       onClick={() => setModalMsg("Imprimindo teste...")}
                       fullWidth
                     />
@@ -427,7 +429,7 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
             >
               <Stack gap={5} w="full">
                 <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-                  <Font variant="body-bold" text="Habilitar Monitor de Cozinha" />
+                  <Font variant="body-bold" text={UI_STRINGS.printPoints.kitchenMonitorTitle} />
                   <Switch
                     checked={formKitchenEnabled}
                     onChange={(e) => setFormKitchenEnabled(e.target.checked)}
@@ -441,8 +443,8 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
                     <Stack direction="row" align="end" gap={2.5} w="full">
                       <Box flex="1">
                         <Input
-                          label="Código de vinculação"
-                          placeholder="Digite o código..."
+                          label={UI_STRINGS.printPoints.linkingCodeLabel}
+                          placeholder={UI_STRINGS.printPoints.linkingCodePlaceholder}
                           value={formLinkingCode}
                           onChange={(e) => setFormLinkingCode(e.target.value)}
                         />
@@ -450,13 +452,13 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
                       <Button
                         type="button"
                         variant="primary"
-                        label="VINCULAR"
+                        label={UI_STRINGS.printPoints.linkButton}
                         onClick={() => setModalMsg("Código de vinculação enviado!")}
                       />
                     </Stack>
                     <Font
                       variant="description"
-                      text="Gere o código de vinculação no aplicativo 'Monitor de Cozinha'."
+                      text={UI_STRINGS.printPoints.kitchenAppDesc}
                       color="muted"
                     />
                   </>
@@ -466,22 +468,22 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
 
             {/* Ações de Formulário */}
             <FormActions
-                confirmLabel={editingPoint ? "Salvar alterações" : "Salvar ponto"}
-                onConfirm={() => {}}
-                onCancel={() => setMode("list")}
-                isSubmit={true}
-                leftAction={
-                  editingPoint ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      label="Excluir Ponto"
-                      icon={Trash2}
-                      onClick={() => handleDelete(editingPoint.id)}
-                    />
-                  ) : undefined
-                }
-              />
+              confirmLabel={editingPoint ? UI_STRINGS.pdv.cart.saveChangesButton : s.savePointTitle}
+              onConfirm={() => {}}
+              onCancel={() => setMode("list")}
+              isSubmit={true}
+              leftAction={
+                editingPoint ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    label={s.deletePointTitle}
+                    icon={Trash2}
+                    onClick={() => handleDelete(editingPoint.id)}
+                  />
+                ) : undefined
+              }
+            />
           </Stack>
         </Box>
       )}

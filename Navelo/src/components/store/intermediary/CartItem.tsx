@@ -1,10 +1,9 @@
 import * as React from "react"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
-import { Button } from "@/components/store/base/Button"
 import { Avatar } from "@/components/store/base/Avatar"
 import { Box } from "@/components/store/base/Box"
-import { Minus, Plus, Trash2 } from "lucide-react"
+import { QuantityControl } from "@/components/store/intermediary/QuantityControl"
 
 export interface CartItemProps {
   id: string
@@ -12,6 +11,7 @@ export interface CartItemProps {
   quantity: number
   unitPrice: number
   image?: string
+  stock?: number
   isLast?: boolean
   onIncrease: (id: string) => void
   onDecrease: (id: string) => void
@@ -24,6 +24,7 @@ export const CartItem: React.FC<CartItemProps> = ({
   quantity,
   unitPrice,
   image,
+  stock,
   isLast,
   onIncrease,
   onDecrease,
@@ -53,17 +54,14 @@ export const CartItem: React.FC<CartItemProps> = ({
           <Box shrink="0">
             <Stack direction="col" align="end" gap={1}>
               {/* Controls */}
-              <Stack direction="row" align="center" gap={2.5}>
-                {quantity === 1 ? (
-                  <Button variant="danger-icon-xs" icon={Trash2} onClick={() => onRemove(id)} />
-                ) : (
-                  <Button variant="primary-icon-xs" icon={Minus} onClick={() => onDecrease(id)} />
-                )}
-                <Box paddingX={1} w="auto">
-                  <Font variant="body-bold" text={String(quantity)} />
-                </Box>
-                <Button variant="primary-icon-xs" icon={Plus} onClick={() => onIncrease(id)} />
-              </Stack>
+              <QuantityControl
+                quantity={quantity}
+                stock={stock}
+                onIncrease={() => onIncrease(id)}
+                onDecrease={() => onDecrease(id)}
+                onRemove={() => onRemove(id)}
+                stopPropagation={false}
+              />
 
               {/* Line Total */}
               <Box padding={0} w="auto">

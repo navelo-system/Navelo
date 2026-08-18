@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { Form } from "@/components/store/advanced/Form"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Users, ArrowLeft, Plus, MoreHorizontal, CreditCard } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface ClientTenant {
   id: string
@@ -28,6 +29,8 @@ interface ClientTenant {
 export function ClientesSection() {
   const [searchQuery, setSearchQuery] = React.useState("")
   const [isModalOpen, setIsModalOpen] = React.useState(false)
+  const c = UI_STRINGS.admin.clients
+
   const [tenants, setTenants] = React.useState<ClientTenant[]>([
     { id: "1", name: "Lanchonete Bom Sabor", document: "12.345.678/0001-99", plan: "Pro", status: "active", monthlyFee: 149.90 },
     { id: "2", name: "Restaurante Gourmet", document: "98.765.432/0001-00", plan: "Enterprise", status: "active", monthlyFee: 499.90 },
@@ -81,20 +84,20 @@ export function ClientesSection() {
       <Stack direction="row" align="start">
         <Button
           variant="ghost"
-          label="Voltar ao Painel"
+          label={c.backButton}
           icon={ArrowLeft}
           onClick={() => window.location.href = "/admin"}
         />
       </Stack>
 
       <RegistrySection
-        title="Lista de Locatários"
-        description="Gerencie as contas de inquilinos e status das licenças."
+        title={c.title}
+        description={c.description}
         icon={Users}
         action={
           <Button
             variant="primary"
-            label="Novo Inquilino"
+            label={c.newTenantButton}
             icon={Plus}
             onClick={() => setIsModalOpen(true)}
           />
@@ -102,26 +105,26 @@ export function ClientesSection() {
       >
         <Stack gap={5}>
           <FilterBar
-            searchPlaceholder="Buscar por nome da empresa ou documento..."
+            searchPlaceholder={c.searchPlaceholder}
             onSearch={setSearchQuery}
           />
 
           {filteredTenants.length === 0 ? (
             <EmptyState
               icon={Users}
-              title="Nenhum inquilino encontrado"
-              subtitle="Nenhuma empresa corresponde ao termo pesquisado."
+              title={c.emptyTitle}
+              subtitle={c.emptySubtitle}
             />
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead text="Empresa" />
-                  <TableHead text="Documento" />
-                  <TableHead text="Plano" />
-                  <TableHead text="Status" />
-                  <TableHead align="right" text="Mensalidade" />
-                  <TableHead w="w-[50px]" text="" />
+                  <TableHead text={c.companyColumn} />
+                  <TableHead text={c.documentColumn} />
+                  <TableHead text={c.planColumn} />
+                  <TableHead text={c.statusColumn} />
+                  <TableHead align="right" text={c.monthlyFeeColumn} />
+                  <TableHead w="w-[50px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -138,11 +141,11 @@ export function ClientesSection() {
                     <TableCell>
                       <Badge
                         variant={tenant.status === "active" ? "success" : "danger"}
-                        label={tenant.status === "active" ? "Ativo" : "Inativo"}
+                        label={tenant.status === "active" ? c.activeStatus : c.inactiveStatus}
                       />
                     </TableCell>
                     <TableCell align="right">
-                      {tenant.monthlyFee === 0 ? "Grátis" : `R$ ${tenant.monthlyFee.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+                      {tenant.monthlyFee === 0 ? c.freeFee : `R$ ${tenant.monthlyFee.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
                     </TableCell>
                     <TableCell align="right">
                       <Button variant="primary-icon-xs" icon={MoreHorizontal} />
@@ -161,30 +164,30 @@ export function ClientesSection() {
           <Modal
             isOpen={isModalOpen}
             onClose={() => setIsModalOpen(false)}
-            title="Novo Cliente Locatário"
-            subtitle="Cadastre manualmente uma empresa cliente do SaaS."
+            title={c.newClientModalTitle}
+            subtitle={c.newClientModalSubtitle}
             icon={Users}
-            successText="Salvar Inquilino"
+            successText={c.saveTenantButton}
             isSubmit
           >
             <Stack gap={5}>
               <Input
-                label="Nome da Empresa"
-                placeholder="Nome fantasia ou Razão Social"
+                label={c.companyNameLabel}
+                placeholder={c.companyNamePlaceholder}
                 value={name}
                 onChange={e => setName(e.target.value)}
                 required
               />
               <Input
-                label="CNPJ / Documento"
-                placeholder="Ex: 00.000.000/0000-00"
+                label={c.cnpjDocumentLabel}
+                placeholder={c.cnpjDocumentPlaceholder}
                 value={document}
                 onChange={e => setDocument(e.target.value)}
                 required
               />
               
               <Stack gap={2.5}>
-                <Badge variant="ghost" label="Plano de Cobrança" />
+                <Badge variant="ghost" label={c.billingPlanBadge} />
                 <CustomSelect
                   value={selectedPlan}
                   onChange={setSelectedPlan}
@@ -193,7 +196,7 @@ export function ClientesSection() {
                     <CustomSelectItem
                       key={p.name}
                       value={p.name}
-                      text={`${p.name} (${p.fee === 0 ? "Grátis" : `R$ ${p.fee.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês`})`}
+                      text={`${p.name} (${p.fee === 0 ? c.freeFee : `R$ ${p.fee.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês`})`}
                       icon={CreditCard}
                     />
                   ))}
@@ -201,7 +204,7 @@ export function ClientesSection() {
               </Stack>
 
               <Stack direction="row" align="center" justify="between">
-                <Badge variant="ghost" label="Status Inicial Ativo" />
+                <Badge variant="ghost" label={c.initialActiveStatusBadge} />
                 <Switch
                   checked={status === "active"}
                   onChange={(e) => setStatus(e.target.checked ? "active" : "inactive")}

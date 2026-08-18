@@ -8,6 +8,7 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Switch } from "@/components/store/base/Switch"
 import { FormActions } from "@/components/store/intermediary/FormActions"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface ComprovantesSectionProps {
   onCancel: () => void
@@ -36,15 +37,16 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
   const [venda, setVenda] = React.useState(true)
 
   const [logomarca, setLogomarca] = React.useState(false)
+  const s = UI_STRINGS.receipts
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Comprovantes")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   const handleSave = () => {
     onCancel()
@@ -63,10 +65,10 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
       >
         <Box padding={5} bg="bg-surface" w="full">
           <Stack gap={1} w="full">
-            <Font variant="body-bold" text="Comprovantes" />
+            <Font variant="body-bold" text={s.title} />
             <Font
               variant="description"
-              text="Os comprovantes habilitados serão impressos automaticamente."
+              text={s.headerDesc}
               color="muted"
             />
           </Stack>
@@ -79,10 +81,10 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
           <Box padding={5} w="full">
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
               <Stack gap={1} flex="1">
-                <Font variant="body-bold" text="Cancelamento" />
+                <Font variant="body-bold" text={s.cancellationTitle} />
                 <Font
                   variant="description"
-                  text="Impresso ao excluir uma negociação, sangria ou suprimento"
+                  text={s.cancellationDesc}
                   color="muted"
                 />
               </Stack>
@@ -95,7 +97,7 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
           {/* Carnê de pagamento */}
           <Box padding={5} w="full">
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-              <Font variant="body-bold" text="Carnê de pagamento" />
+              <Font variant="body-bold" text={s.carneTitle} />
               <Switch checked={carne} onChange={(e) => setCarne(e.target.checked)} />
             </Stack>
           </Box>
@@ -105,7 +107,7 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
           {/* Fechamento de caixa */}
           <Box padding={5} w="full">
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-              <Font variant="body-bold" text="Fechamento de caixa" />
+              <Font variant="body-bold" text={s.cashClosingTitle} />
               <Switch checked={fechamento} onChange={(e) => setFechamento(e.target.checked)} />
             </Stack>
           </Box>
@@ -116,10 +118,10 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
           <Box padding={5} w="full" bg="bg-surface/50">
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
               <Stack gap={1} flex="1">
-                <Font variant="body-bold" text="DANFE Simplificado NF-e" />
+                <Font variant="body-bold" text={s.danfeSimplifiedTitle} />
                 <Font
                   variant="description"
-                  text="Impresso ao finalizar a venda quando a nota for NF-e para cliente com CNPJ e a emissão automática de NF-e estiver habilitada."
+                  text={s.danfeSimplifiedDesc}
                   color="muted"
                 />
               </Stack>
@@ -132,7 +134,7 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
           {/* NFC-e */}
           <Box padding={5} w="full">
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-              <Font variant="body-bold" text="NFC-e" />
+              <Font variant="body-bold" text={s.nfceTitle} />
               <Switch checked={nfce} onChange={(e) => setNfce(e.target.checked)} />
             </Stack>
           </Box>
@@ -143,10 +145,10 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
           <Box padding={5} w="full">
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
               <Stack gap={1} flex="1">
-                <Font variant="body-bold" text="Número de atendimento" />
+                <Font variant="body-bold" text={s.orderNumberTitle} />
                 <Font
                   variant="description"
-                  text="Configure o próximo número no menu do Caixa ou na configuração do Autoatendimento."
+                  text={s.orderNumberDesc}
                   color="muted"
                 />
               </Stack>
@@ -160,10 +162,10 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
           <Box padding={5} w="full">
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
               <Stack gap={1} flex="1">
-                <Font variant="body-bold" text="Pedido de atendimento" />
+                <Font variant="body-bold" text={s.orderServiceTitle} />
                 <Font
                   variant="description"
-                  text="Imprime os itens do pedidos ao realizar um Delivery, Mesas/Comandas ou Autoatendimento."
+                  text={s.orderServiceDesc}
                   color="muted"
                 />
               </Stack>
@@ -176,7 +178,7 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
           {/* Pix */}
           <Box padding={5} w="full">
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-              <Font variant="body-bold" text="Pix" />
+              <Font variant="body-bold" text={s.pixTitle} />
               <Switch checked={pix} onChange={(e) => setPix(e.target.checked)} />
             </Stack>
           </Box>
@@ -186,7 +188,7 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
           {/* Recebimento de crediário */}
           <Box padding={5} w="full">
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-              <Font variant="body-bold" text="Recebimento de crediário" />
+              <Font variant="body-bold" text={s.crediarioTitle} />
               <Switch checked={crediario} onChange={(e) => setCrediario(e.target.checked)} />
             </Stack>
           </Box>
@@ -196,7 +198,7 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
           {/* Sangria */}
           <Box padding={5} w="full">
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-              <Font variant="body-bold" text="Sangria" />
+              <Font variant="body-bold" text={s.sangriaTitle} />
               <Switch checked={sangria} onChange={(e) => setSangria(e.target.checked)} />
             </Stack>
           </Box>
@@ -206,7 +208,7 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
           {/* Suprimento */}
           <Box padding={5} w="full">
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-              <Font variant="body-bold" text="Suprimento" />
+              <Font variant="body-bold" text={s.suprimentoTitle} />
               <Switch checked={suprimento} onChange={(e) => setSuprimento(e.target.checked)} />
             </Stack>
           </Box>
@@ -217,10 +219,10 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
           <Box padding={5} w="full">
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
               <Stack gap={1} flex="1">
-                <Font variant="body-bold" text="Ticket" />
+                <Font variant="body-bold" text={s.ticketTitle} />
                 <Font
                   variant="description"
-                  text="Imprime um ticket para cada produto após a venda"
+                  text={s.ticketDesc}
                   color="muted"
                 />
               </Stack>
@@ -234,10 +236,10 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
           <Box padding={5} w="full">
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
               <Stack gap={1} flex="1">
-                <Font variant="body-bold" text="Transação POS" />
+                <Font variant="body-bold" text={s.posTransactionTitle} />
                 <Font
                   variant="description"
-                  text="Impresso ao efetuar pagamentos no POS"
+                  text={s.posTransactionDesc}
                   color="muted"
                 />
               </Stack>
@@ -250,7 +252,7 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
           {/* Venda */}
           <Box padding={5} w="full">
             <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-              <Font variant="body-bold" text="Venda" />
+              <Font variant="body-bold" text={s.saleTitle} />
               <Switch checked={venda} onChange={(e) => setVenda(e.target.checked)} />
             </Stack>
           </Box>
@@ -267,7 +269,7 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
         w="full"
       >
         <Box padding={5} bg="bg-surface" w="full">
-          <Font variant="body-bold" text="Configurações" />
+          <Font variant="body-bold" text={s.settingsCardTitle} />
         </Box>
 
         <Box h="h-[1px]" w="full" bg="bg-border" />
@@ -276,10 +278,10 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
         <Box padding={5} w="full">
           <Stack direction="row" align="center" justify="between" w="full" gap={5}>
             <Stack gap={1} flex="1">
-              <Font variant="body-bold" text="Logomarca" />
+              <Font variant="body-bold" text={s.logoTitle} />
               <Font
                 variant="description"
-                text="Imprime a logomarca configurada nos dados da empresa nos comprovantes"
+                text={s.logoDesc}
                 color="muted"
               />
             </Stack>
@@ -289,8 +291,8 @@ export const ComprovantesSection: React.FC<ComprovantesSectionProps> = ({
       </Box>
 
       {/* Ações de Cancelar / Salvar */}
-            <FormActions
-        confirmLabel="Salvar alterações"
+      <FormActions
+        confirmLabel={UI_STRINGS.common.save}
         onConfirm={handleSave}
         onCancel={onCancel}
       />

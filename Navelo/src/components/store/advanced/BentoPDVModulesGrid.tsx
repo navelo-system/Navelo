@@ -17,20 +17,22 @@ import {
   Settings
 } from "lucide-react"
 
+import { UI_STRINGS } from "@/constants/strings"
+
 export interface BentoPDVModulesGridProps {
   onNavigate: (view: string) => void
   userRole?: string
 }
 
 const ALL_MODULES = [
-  { id: "caixa", title: "Caixa", icon: ShoppingBag },
-  { id: "comandas", title: "Comandas", icon: Receipt },
-  { id: "delivery", title: "Delivery", icon: Bike },
-  { id: "estoque", title: "Estoque", icon: Package },
-  { id: "produtos", title: "Produtos", icon: Layers },
-  { id: "clientes", title: "Clientes", icon: Users },
-  { id: "relatorios", title: "Relatórios", icon: BarChart3 },
-  { id: "configuracoes", title: "Config", icon: Settings },
+  { id: "caixa", title: UI_STRINGS.modules.caixa, icon: ShoppingBag },
+  { id: "comandas", title: UI_STRINGS.modules.comandas, icon: Receipt },
+  { id: "delivery", title: UI_STRINGS.modules.delivery, icon: Bike },
+  { id: "estoque", title: UI_STRINGS.modules.estoque, icon: Package },
+  { id: "produtos", title: UI_STRINGS.modules.produtos, icon: Layers },
+  { id: "clientes", title: UI_STRINGS.modules.clientes, icon: Users },
+  { id: "relatorios", title: UI_STRINGS.modules.relatorios, icon: BarChart3 },
+  { id: "configuracoes", title: UI_STRINGS.modules.config, icon: Settings },
 ]
 
 export const BentoPDVModulesGrid: React.FC<BentoPDVModulesGridProps> = ({ onNavigate, userRole }) => {

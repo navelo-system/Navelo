@@ -9,6 +9,7 @@ import { Icon } from '@/components/store/base/Icon';
 import { EmptyState } from '@/components/store/intermediary/EmptyState';
 import { Edit2, MapPin } from 'lucide-react';
 import { CustomerAddress } from '@/src/types/domain';
+import { UI_STRINGS } from '@/constants/strings';
 
 export interface AddressListProps {
   addresses: CustomerAddress[];
@@ -17,12 +18,14 @@ export interface AddressListProps {
 }
 
 export function AddressList({ addresses, onEdit, onDelete }: AddressListProps) {
+  const cust = UI_STRINGS.customers
+
   if (!addresses || addresses.length === 0) {
     return (
       <EmptyState
         icon={MapPin}
-        title="Nenhum endereço cadastrado"
-        subtitle="Adicione um endereço para o cliente."
+        title={cust.emptyAddressTitle}
+        subtitle={cust.emptyAddressSubtitle}
       />
     );
   }
@@ -66,17 +69,17 @@ export function AddressList({ addresses, onEdit, onDelete }: AddressListProps) {
                       e.stopPropagation()
                       onEdit?.(addr)
                     }}
-                    title="Editar endereço"
+                    title={cust.editAddressTitle}
                   />
                   {onDelete && (
                     <Button
                       type="button"
                       variant="danger-icon-xs-confirm"
-                      confirmTitle="Excluir Endereço"
-                      confirmSubtitle="Confirmar exclusão de endereço"
-                      confirmParagraph="Tem certeza que deseja remover este endereço do cliente? Esta ação não poderá ser desfeita."
+                      confirmTitle={cust.deleteAddressConfirmTitle}
+                      confirmSubtitle={cust.deleteAddressConfirmSubtitle}
+                      confirmParagraph={cust.deleteAddressConfirmParagraph}
                       onConfirm={() => onDelete?.(addr)}
-                      title="Excluir endereço"
+                      title={cust.deleteAddressTitle}
                     />
                   )}
                 </Stack>
@@ -86,7 +89,7 @@ export function AddressList({ addresses, onEdit, onDelete }: AddressListProps) {
               <Stack gap={1} w="full" align="start">
                 <Stack direction="row" align="center" gap={2.5} wrap={true}>
                   <Font variant="body-bold" text={streetText} />
-                  {addresses.length > 1 && addr.isDefault && <Badge variant="primary" label="Padrão" />}
+                  {addresses.length > 1 && addr.isDefault && <Badge variant="primary" label={cust.defaultAddressBadge} />}
                 </Stack>
                 {hasDetails && (
                   <Font

@@ -9,6 +9,7 @@ import { Button } from "@/components/store/base/Button"
 import { CartList } from "@/components/store/advanced/CartList"
 import { SaveAll } from "lucide-react"
 import { CartItemType } from "@/components/store/sections/pdv/pages/PdvSection"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface PdvCartDrawerProps {
   isOpen: boolean
@@ -48,25 +49,27 @@ export const PdvCartDrawer: React.FC<PdvCartDrawerProps> = ({
   }
 
   const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0)
+  const cartStrings = UI_STRINGS.pdv.cart
+  const tabStrings = UI_STRINGS.tables
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Carrinho"
+      title={cartStrings.title}
       variant="sidebar"
       footer={
         <Stack gap={2.5} w="full">
           <Stack direction="row" justify="between" align="center">
-            <Font variant="description" color="muted" text="Subtotal" />
+            <Font variant="description" color="muted" text={cartStrings.subtotal} />
             <Font variant="description" text={formatPrice(subtotal)} />
           </Stack>
           <Stack direction="row" justify="between" align="center">
-            <Font variant="description" color="muted" text="Desconto na venda" />
+            <Font variant="description" color="muted" text={cartStrings.discount} />
             <Font variant="description" color="danger" text={`- ${formatPrice(discount)}`} />
           </Stack>
           <Stack direction="row" justify="between" align="center">
-            <Font variant="body-bold" text="Total" />
+            <Font variant="body-bold" text={cartStrings.total} />
             <Font variant="body-bold" color="success" text={formatPrice(total)} />
           </Stack>
 
@@ -75,7 +78,7 @@ export const PdvCartDrawer: React.FC<PdvCartDrawerProps> = ({
           <Button
             variant="primary-lg"
             fullWidth
-            label="F9 - Pagamento"
+            label={cartStrings.payButton}
             disabled={cartItems.length === 0}
             onClick={handlePayment}
           />
@@ -84,7 +87,7 @@ export const PdvCartDrawer: React.FC<PdvCartDrawerProps> = ({
               variant="secondary-lg"
               fullWidth
               icon={SaveAll}
-              label="Salvar Comanda"
+              label={tabStrings.saveTabButton}
               onClick={handleSave}
             />
           )}

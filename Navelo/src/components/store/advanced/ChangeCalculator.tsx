@@ -8,6 +8,7 @@ import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { SectionHeader } from "@/components/store/intermediary/SectionHeader"
 import { DollarSign } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface ChangeCalculatorProps {
   totalAmount?: number
@@ -22,6 +23,7 @@ export const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({
   hideHeaderAndFooter = false,
   onChange,
 }) => {
+  const calc = UI_STRINGS.pdv.changeCalculator
   const [receivedText, setReceivedText] = React.useState(
     totalAmount && totalAmount > 0 ? totalAmount.toFixed(2).replace(".", ",") : ""
   )
@@ -60,8 +62,8 @@ export const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({
           {/* Header */}
           <SectionHeader
             icon={DollarSign}
-            title="Calculadora de Troco"
-            subtitle="Calcule o troco a ser entregue ao cliente."
+            title={calc.title}
+            subtitle={calc.subtitle}
           />
 
           <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
@@ -72,16 +74,16 @@ export const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({
       <Grid cols={2} gap={5}>
         <Box padding={0}>
           <Stack gap={1} align="center">
-            <Font variant="auxiliary" text="Total a Pagar" />
+            <Font variant="auxiliary" text={calc.totalToPay} />
             <Font variant="h2" text={formatPrice(totalAmount)} color="primary" />
           </Stack>
         </Box>
         <Box padding={0}>
           <Stack gap={1} align="center">
-            <Font variant="auxiliary" text="Troco do Cliente" />
+            <Font variant="auxiliary" text={calc.clientChange} />
             <Font 
               variant="h2" 
-              text={isInsufficient ? "Pagar restante" : formatPrice(change)} 
+              text={isInsufficient ? calc.payRemaining : formatPrice(change)} 
               color={isInsufficient ? "danger" : change > 0 ? "success" : "secondary"}
             />
           </Stack>
@@ -90,18 +92,18 @@ export const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({
 
       {/* Shortcuts */}
       <Stack gap={2.5}>
-        <Font variant="body-bold" text="Cédulas Rápidas" />
+        <Font variant="body-bold" text={calc.quickBills} />
         <Grid cols={4} gap={2.5}>
-          <Button variant="outline" label="R$ 10" onClick={() => handleShortcutClick(10)} />
-          <Button variant="outline" label="R$ 20" onClick={() => handleShortcutClick(20)} />
-          <Button variant="outline" label="R$ 50" onClick={() => handleShortcutClick(50)} />
-          <Button variant="outline" label="R$ 100" onClick={() => handleShortcutClick(100)} />
+          <Button variant="outline" label={calc.bill10} onClick={() => handleShortcutClick(10)} />
+          <Button variant="outline" label={calc.bill20} onClick={() => handleShortcutClick(20)} />
+          <Button variant="outline" label={calc.bill50} onClick={() => handleShortcutClick(50)} />
+          <Button variant="outline" label={calc.bill100} onClick={() => handleShortcutClick(100)} />
         </Grid>
       </Stack>
 
       {/* Input received */}
       <Input 
-        label="Valor Recebido (R$)"
+        label={calc.receivedValueLabel}
         placeholder="0,00"
         value={receivedText}
         onChange={(e) => setReceivedText(e.target.value)}
@@ -113,7 +115,7 @@ export const ChangeCalculator: React.FC<ChangeCalculatorProps> = ({
         <Button 
           variant="primary" 
           fullWidth 
-          label="Confirmar pagamento" 
+          label={calc.confirmPaymentButton} 
           disabled={receivedAmount <= 0 || totalAmount === 0}
           onClick={() => onConfirm && onConfirm(receivedAmount, change)}
         />

@@ -11,6 +11,7 @@ import { Badge } from "@/components/store/base/Badge"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 import { Icon } from "@/components/store/base/Icon"
 import { Wallet, QrCode, Check } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface FormasPagamentoSectionProps {
   onCancel: () => void
@@ -28,15 +29,16 @@ export const FormasPagamentoSection: React.FC<FormasPagamentoSectionProps> = ({
   const [entregaPix, setEntregaPix] = React.useState(true)
   const [contaDigitalEnabled, setContaDigitalEnabled] = React.useState(false)
   const [pixEnabled, setPixEnabled] = React.useState(true)
+  const s = UI_STRINGS.settings.formasPagamento
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Formas de pagamento")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   const handleSave = () => {
     onCancel()
@@ -55,10 +57,10 @@ export const FormasPagamentoSection: React.FC<FormasPagamentoSectionProps> = ({
       >
         <Stack gap={5} w="full">
           <Stack gap={1}>
-            <Font variant="body-bold" text="Pagamento antecipado" />
+            <Font variant="body-bold" text={s.advancePaymentTitle} />
             <Font
               variant="description"
-              text="Habilite os meios de pagamento disponíveis na finalização do pedido."
+              text={s.advancePaymentDesc}
               color="muted"
             />
           </Stack>
@@ -75,10 +77,10 @@ export const FormasPagamentoSection: React.FC<FormasPagamentoSectionProps> = ({
               <Stack direction="row" align="center" justify="between" w="full" gap={5}>
                 <Stack direction="row" align="center" gap={2.5}>
                   <Icon icon={Wallet} size={20} color="primary" />
-                  <Font variant="body-bold" text="Conta Digital" />
+                  <Font variant="body-bold" text={s.digitalAccountTitle} />
                 </Stack>
                 {contaDigitalEnabled && (
-                  <Badge variant="success" label="habilitado" icon={Check} />
+                  <Badge variant="success" label={s.enabledBadge} icon={Check} />
                 )}
               </Stack>
             </Box>
@@ -97,10 +99,10 @@ export const FormasPagamentoSection: React.FC<FormasPagamentoSectionProps> = ({
                 <Stack direction="row" align="center" gap={2.5} flex="1">
                   <Icon icon={QrCode} size={20} color="primary" />
                   <Stack gap={1} flex="1">
-                    <Font variant="body-bold" text="Pix" align="left" />
+                    <Font variant="body-bold" text={s.pixTitle} align="left" />
                     <Font
                       variant="description"
-                      text="Necessária conferência na instituição bancária"
+                      text={s.pixDesc}
                       color="muted"
                       align="left"
                     />
@@ -108,7 +110,7 @@ export const FormasPagamentoSection: React.FC<FormasPagamentoSectionProps> = ({
                 </Stack>
                 {pixEnabled && (
                   <Box display="flex" justify="end" w="full">
-                    <Badge variant="success" label="habilitado" icon={Check} />
+                    <Badge variant="success" label={s.enabledBadge} icon={Check} />
                   </Box>
                 )}
               </Stack>
@@ -128,10 +130,10 @@ export const FormasPagamentoSection: React.FC<FormasPagamentoSectionProps> = ({
       >
         <Stack gap={5} w="full">
           <Stack gap={1}>
-            <Font variant="body-bold" text="Pagamento na entrega/retirada" />
+            <Font variant="body-bold" text={s.deliveryPaymentTitle} />
             <Font
               variant="description"
-              text="Informe os meios de pagamento aceitos no momento da entrega ou retirada."
+              text={s.deliveryPaymentDesc}
               color="muted"
             />
           </Stack>
@@ -140,7 +142,7 @@ export const FormasPagamentoSection: React.FC<FormasPagamentoSectionProps> = ({
             {/* Dinheiro */}
             <Box padding={5} w="full">
               <Checkbox
-                label="Dinheiro"
+                label={s.moneyTitle}
                 checked={dinheiro}
                 onChange={(e) => setDinheiro(e.target.checked)}
               />
@@ -151,7 +153,7 @@ export const FormasPagamentoSection: React.FC<FormasPagamentoSectionProps> = ({
             {/* Cartão */}
             <Box padding={5} w="full">
               <Checkbox
-                label="Cartão"
+                label={s.cardTitle}
                 checked={cartao}
                 onChange={(e) => setCartao(e.target.checked)}
               />
@@ -162,7 +164,7 @@ export const FormasPagamentoSection: React.FC<FormasPagamentoSectionProps> = ({
             {/* Pix */}
             <Box padding={5} w="full">
               <Checkbox
-                label="Pix"
+                label={s.pixDeliveryTitle}
                 checked={entregaPix}
                 onChange={(e) => setEntregaPix(e.target.checked)}
               />
@@ -172,8 +174,8 @@ export const FormasPagamentoSection: React.FC<FormasPagamentoSectionProps> = ({
       </Box>
 
       {/* Botões de Ação */}
-            <FormActions
-        confirmLabel="Salvar alterações"
+      <FormActions
+        confirmLabel={UI_STRINGS.pdv.cart.saveChangesButton}
         onConfirm={handleSave}
         onCancel={onCancel}
       />

@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/store/base/Checkbox"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Monitor } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface OpcoesPedidoMenuDigitalSectionProps {
   onCancel: () => void
@@ -24,15 +25,16 @@ export const OpcoesPedidoMenuDigitalSection: React.FC<OpcoesPedidoMenuDigitalSec
 }) => {
   const [aceitarPedidos, setAceitarPedidos] = React.useState(false)
   const [dispositivo, setDispositivo] = React.useState("dev-06")
+  const s = UI_STRINGS.orderOptions
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Opções de Pedido")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   const handleSave = () => {
     onCancel()
@@ -56,10 +58,10 @@ export const OpcoesPedidoMenuDigitalSection: React.FC<OpcoesPedidoMenuDigitalSec
               onChange={(e) => setAceitarPedidos(e.target.checked)}
             />
             <Stack gap={1} flex="1">
-              <Font variant="body-bold" text="Aceitar pedidos" />
+              <Font variant="body-bold" text={UI_STRINGS.digitalMenu.allowOnlineOrdersToggle} />
               <Font
                 variant="description"
-                text="O cliente fará pedidos para a mesa ou comanda através do Menu Digital."
+                text={UI_STRINGS.orderOptions.allowOnlineOrdersDesc}
                 color="muted"
               />
             </Stack>
@@ -69,15 +71,15 @@ export const OpcoesPedidoMenuDigitalSection: React.FC<OpcoesPedidoMenuDigitalSec
 
           {/* Selecionar dispositivo */}
           <Stack gap={2.5} w="full">
-            <Font variant="description" text="Dispositivo que receberá os pedidos" color="muted" />
+            <Font variant="description" text={UI_STRINGS.orderOptions.deviceReceivingOrdersLabel} color="muted" />
             <CustomSelect
               value={dispositivo}
               onChange={(val) => setDispositivo(val)}
-              placeholder="Selecione um dispositivo"
+              placeholder={UI_STRINGS.orderOptions.selectDevicePlaceholder}
             >
-              <CustomSelectItem value="dev-06" text="Dispositivo 06" icon={Monitor} />
-              <CustomSelectItem value="dev-01" text="Dispositivo 01" icon={Monitor} />
-              <CustomSelectItem value="dev-caixa" text="Caixa Principal" icon={Monitor} />
+              <CustomSelectItem value="dev-06" text={UI_STRINGS.orderOptions.device06} icon={Monitor} />
+              <CustomSelectItem value="dev-01" text={UI_STRINGS.orderOptions.device01} icon={Monitor} />
+              <CustomSelectItem value="dev-caixa" text={UI_STRINGS.orderOptions.mainCashierDevice} icon={Monitor} />
             </CustomSelect>
           </Stack>
         </Stack>
@@ -94,14 +96,14 @@ export const OpcoesPedidoMenuDigitalSection: React.FC<OpcoesPedidoMenuDigitalSec
       >
         <Font
           variant="description"
-          text="ℹ️ O dispositivo selecionado receberá tanto os pedidos do Menu Digital, quanto do Catálogo Online."
+          text={UI_STRINGS.orderOptions.deviceReceivingNotice}
           color="muted"
         />
       </Box>
 
       {/* Botões de Ação */}
-            <FormActions
-        confirmLabel="Salvar alterações"
+      <FormActions
+        confirmLabel={UI_STRINGS.pdv.cart.saveChangesButton}
         onConfirm={handleSave}
         onCancel={onCancel}
       />

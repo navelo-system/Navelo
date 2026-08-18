@@ -10,6 +10,7 @@ import { Input } from "@/components/store/base/Input"
 import { ViewModeToggle } from "@/components/store/intermediary/ViewModeToggle"
 import { Search, Camera, ShoppingCart, X } from "lucide-react"
 import { ProductBarcodeScannerModal } from "@/components/store/sections/pdv/modals/ProductBarcodeScannerModal"
+import { UI_STRINGS } from "@/constants/strings"
 
 const SEARCH_ANIMATION_MS = 200
 
@@ -226,7 +227,7 @@ export const PdvCatalogToolbar: React.FC<PdvCatalogToolbarProps> = ({
               <Box flex="1" padding={0} minW="min-w-0">
                 <Input
                   ref={searchInputRef}
-                  placeholder="Pesquisar produto pelo nome..."
+                  placeholder={UI_STRINGS.pdv.catalog.searchProductsPlaceholder}
                   value={searchQuery}
                   onChange={(e) => onSearchQueryChange(e.target.value)}
                   icon={Search}

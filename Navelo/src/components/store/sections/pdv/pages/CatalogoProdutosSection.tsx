@@ -14,6 +14,7 @@ import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogTo
 
 import { useProducts } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
+import { UI_STRINGS, formatString } from "@/constants/strings"
 
 interface CatalogProduct {
   id: string
@@ -40,6 +41,7 @@ export const CatalogoProdutosSection: React.FC<CatalogoProdutosSectionProps> = (
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id
   const dbProducts = useProducts(tenantId)
+  const s = UI_STRINGS.onlineCatalog
 
   const products: CatalogProduct[] = React.useMemo(() => {
     if (dbProducts && dbProducts.length > 0) {
@@ -60,12 +62,12 @@ export const CatalogoProdutosSection: React.FC<CatalogoProdutosSectionProps> = (
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Produtos")
+    setCustomTitle?.(s.productsTitle)
     setCustomActions?.(
       <MobileHeaderSearch
         searchQuery={search}
         onSearchQueryChange={setSearch}
-        placeholder="Buscar produto ou categoria..."
+        placeholder={s.searchProductOrCategoryPlaceholder}
       />
     )
     return () => {
@@ -73,7 +75,7 @@ export const CatalogoProdutosSection: React.FC<CatalogoProdutosSectionProps> = (
       setCustomTitle?.(null)
       setCustomActions?.(null)
     }
-  }, [setCustomBack, setCustomTitle, setCustomActions, search, onCancel])
+  }, [setCustomBack, setCustomTitle, setCustomActions, search, onCancel, s.productsTitle, s.searchProductOrCategoryPlaceholder])
 
   const filtered = products.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -122,7 +124,7 @@ export const CatalogoProdutosSection: React.FC<CatalogoProdutosSectionProps> = (
       <Stack gap={2.5} w="full">
         <Font
           variant="description"
-          text="Selecione os produtos para vender no Catálogo Online."
+          text={s.productsSelectDesc}
           color="muted"
         />
       </Stack>
@@ -139,7 +141,7 @@ export const CatalogoProdutosSection: React.FC<CatalogoProdutosSectionProps> = (
         {/* Linha: Selecionar todos */}
         <Box padding={5} w="full">
           <Checkbox
-            label="Selecionar todos"
+            label={s.selectAllLabel}
             checked={allSelected}
             ref={(el) => {
               if (el) el.indeterminate = !allSelected && someSelected
@@ -195,8 +197,8 @@ export const CatalogoProdutosSection: React.FC<CatalogoProdutosSectionProps> = (
           {filtered.length === 0 && (
             <EmptyState
               icon={Search}
-              title="Nenhum produto encontrado"
-              subtitle="Tente buscar por outro termo ou categoria."
+              title={s.noProductsFoundTitle}
+              subtitle={s.noProductsFoundSubtitle}
             />
           )}
         </Stack>
@@ -205,7 +207,7 @@ export const CatalogoProdutosSection: React.FC<CatalogoProdutosSectionProps> = (
       {/* Rodapé com contagem */}
       <Font
         variant="description"
-        text={`${selectedIds.size} produto${selectedIds.size !== 1 ? "s" : ""} selecionado${selectedIds.size !== 1 ? "s" : ""}`}
+        text={formatString(s.selectedProductsCountTemplate, { count: selectedIds.size })}
         color="muted"
         align="center"
       />

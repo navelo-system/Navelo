@@ -13,6 +13,7 @@ import { useTenant } from "@/lib/context/TenantContext"
 import { DeliveryClientFormScreen } from "@/components/store/advanced/DeliveryClientFormScreen"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
 import { ListSectionLayout } from "@/components/store/intermediary/ListSectionLayout"
+import { UI_STRINGS, formatString } from "@/constants/strings"
 
 interface ClientesSectionProps {
   onBackToDashboard?: () => void
@@ -33,6 +34,7 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
 }) => {
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id
+  const s = UI_STRINGS.customers
 
   // Clientes do banco de dados local IndexedDB
   const dbCustomers = useCustomers(tenantId)
@@ -68,9 +70,9 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
         <Stack gap={5} w="full" h="full">
           {mode === "list" && (
             <ListSectionLayout<Customer>
-              title="Clientes"
+              title={s.title}
               items={clients}
-              searchPlaceholder="Buscar por nome ou CPF/CNPJ..."
+              searchPlaceholder={s.searchPlaceholder}
               searchFilterFn={(client, query) => {
                 const q = query.toLowerCase()
                 return (
@@ -80,8 +82,8 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
                 )
               }}
               emptyIcon={UserX}
-              emptyTitle="Nenhum cliente encontrado"
-              emptySubtitle="Cadastre seu primeiro cliente para gerenciar no PDV."
+              emptyTitle={s.emptyTitle}
+              emptySubtitle={s.emptySubtitle}
               onAdd={handleCreateNew}
               getItemKey={(client) => client.id}
               setCustomBack={setCustomBack}
@@ -113,7 +115,7 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
                           <Font
                             variant="auxiliary"
                             color="muted"
-                            text={client.document ? `CPF/CNPJ: ${client.document}` : "Sem documento"}
+                            text={client.document ? formatString(s.cpfCnpjTemplate, { document: client.document }) : s.noDocumentText}
                           />
                           {client.phone && (
                             <Font variant="auxiliary" color="muted" text={`• ${client.phone}`} />

@@ -12,6 +12,7 @@ import { Grid } from "@/components/store/base/Grid"
 import { Delete, Banknote, Wallet } from "lucide-react"
 import { db } from "@/lib/dal/db"
 import { useTenant } from "@/lib/context/TenantContext"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface PdvSangriaModalProps {
   isOpen: boolean
@@ -59,29 +60,10 @@ export const PdvSangriaModal: React.FC<PdvSangriaModalProps> = ({
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id
 
-  const handleConfirm = async () => {
+  const handleConfirm = () => {
     if (numericValue > 0) {
       if (onConfirmSangria) {
         onConfirmSangria(numericValue, mode)
-      }
-      try {
-        // Registra evento de sangria/suprimento no banco local
-        await db.sync_queue.add({
-          id: crypto.randomUUID(),
-          table: "cash_register_movements",
-          action: "INSERT",
-          tenant_id: tenantId || "demo-tenant",
-          payload: {
-            id: crypto.randomUUID(),
-            tenant_id: tenantId || "demo-tenant",
-            type: mode.toUpperCase(),
-            amount: numericValue,
-            created_at: new Date().toISOString()
-          },
-          created_at: new Date().toISOString()
-        })
-      } catch (err) {
-        console.error("Erro ao registrar movimentação de caixa no IndexedDB:", err)
       }
     }
     onClose()
@@ -114,7 +96,7 @@ export const PdvSangriaModal: React.FC<PdvSangriaModalProps> = ({
         {/* Card Saldo Disponível */}
         <Box w="full" bg="bg-surface-sunken" padding={2.5} radius="default" border borderColor="border-border">
           <Stack direction="row" align="center" justify="between" w="full">
-            <Font variant="body-sm-medium" color="muted" text="Disponível em caixa" />
+            <Font variant="body-sm-medium" color="muted" text={UI_STRINGS.cashManagement.availableInCash} />
             <Font variant="body-bold" text={`R$ ${formattedAvailable}`} />
           </Stack>
         </Box>

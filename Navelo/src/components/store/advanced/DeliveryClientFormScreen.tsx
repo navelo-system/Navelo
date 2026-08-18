@@ -18,6 +18,7 @@ import { Plus, Check, UserX, ArrowRight } from "lucide-react"
 import { useCustomers, dal, Customer, CustomerAddress } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
 import { DeliveryClientInfo } from "./DeliveryCheckoutConfirmation"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface DeliveryClientFormScreenProps {
   onBack: () => void
@@ -129,6 +130,8 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
   // Referência do formulário para validação HTML5 nativa
   const formRef = React.useRef<HTMLFormElement>(null)
 
+  const initialKey = initialCustomer?.id || initialClient?.customerId || initialClient?.name || initialClient?.phone || ""
+
   React.useEffect(() => {
     if (initialCustomer) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -215,7 +218,7 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
       setClientAddresses([])
       setSelectedCustomerId(undefined)
     }
-  }, [initialCustomer, initialClient])
+  }, [initialKey, initialClient, initialCustomer])
 
   const filteredCustomers = React.useMemo(() => {
     if (!searchQuery.trim()) return []
@@ -430,12 +433,30 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
     onBack()
   }, [selectedCustomerId, tenantId, onBack])
 
+  const handleSubmitRef = React.useRef(handleSubmit)
+  const handleDeleteCustomerRef = React.useRef(handleDeleteCustomer)
+  const onBackRef = React.useRef(onBack)
+  const setCustomActionsRef = React.useRef(setCustomActions)
+  const setCustomTitleRef = React.useRef(setCustomTitle)
+  const setCustomBackRef = React.useRef(setCustomBack)
+  const cust = UI_STRINGS.customers
+  const common = UI_STRINGS.common
+
   // Botão de deletar deve ser exibido EXCLUSIVAMENTE na tela de EDITAR cliente existente
   const showDeleteButton = Boolean(initialCustomer) && !title.toLowerCase().includes("identificar") && !title.toLowerCase().includes("novo")
 
   React.useEffect(() => {
-    setCustomTitle?.(title)
-    setCustomBack?.(() => () => onBack())
+    handleSubmitRef.current = handleSubmit
+    handleDeleteCustomerRef.current = handleDeleteCustomer
+    onBackRef.current = onBack
+    setCustomActionsRef.current = setCustomActions
+    setCustomTitleRef.current = setCustomTitle
+    setCustomBackRef.current = setCustomBack
+  })
+
+  React.useEffect(() => {
+    setCustomTitleRef.current?.(title)
+    setCustomBackRef.current?.(() => () => onBackRef.current())
 
     const actionsContent = (
       <Stack direction="row" align="center" gap={2.5}>
@@ -443,29 +464,29 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
           <Button
             type="button"
             variant="danger-pill-icon-confirm"
-            confirmTitle="Excluir Cliente"
-            confirmSubtitle="Confirmar exclusão de cadastro"
-            confirmParagraph="Tem certeza de que deseja excluir este cliente do sistema? Esta ação não poderá ser desfeita."
-            onConfirm={handleDeleteCustomer}
-            title="Excluir cliente"
+            confirmTitle={cust.deleteCustomerConfirmTitle}
+            confirmSubtitle={cust.deleteCustomerConfirmSubtitle}
+            confirmParagraph={cust.deleteCustomerConfirmParagraph}
+            onConfirm={() => handleDeleteCustomerRef.current()}
+            title={cust.deleteCustomerButtonTitle}
           />
         )}
         <Button
           type="button"
           variant="primary-pill-icon"
           icon={Check}
-          onClick={() => handleSubmit()}
-          title="Confirmar"
+          onClick={() => handleSubmitRef.current()}
+          title={common.confirm}
         />
       </Stack>
     )
 
-    setCustomActions?.(
+    setCustomActionsRef.current?.(
       showSearchInHeader ? (
         <MobileHeaderSearch
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
-          placeholder="Buscar cliente cadastrado..."
+          placeholder={cust.searchRegisteredCustomerPlaceholder}
         >
           {actionsContent}
         </MobileHeaderSearch>
@@ -475,9 +496,9 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
     )
 
     return () => {
-      setCustomActions?.(null)
+      setCustomActionsRef.current?.(null)
     }
-  }, [setCustomActions, setCustomTitle, setCustomBack, searchQuery, title, showSearchInHeader, showDeleteButton, handleDeleteCustomer, handleSubmit, onBack])
+  }, [searchQuery, title, showSearchInHeader, showDeleteButton, cust, common])
 
   return (
     <Box display="flex" direction="col" flex="1" minH="0" overflow="auto" w="full">
@@ -495,7 +516,7 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
                 <Box cursor="pointer" onClick={() => setSaveClient((prev) => !prev)}>
                   <Font
                     variant="body-sm-semibold"
-                    text="Salvar cliente na lista"
+                    text={cust.saveClientInList}
                   />
                 </Box>
               </Stack>
@@ -508,7 +529,7 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
                 <Button
                   type="button"
                   variant="outline-sm"
-                  label="Pular"
+                  label={common.skip}
                   iconRight={ArrowRight}
                   onClick={handleSkip}
                 />
@@ -564,8 +585,8 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
             ) : (
               <EmptyState
                 icon={UserX}
-                title="Nenhum cliente encontrado"
-                subtitle="Tente pesquisar com outro termo ou limpe a busca para cadastrar um novo cliente."
+                title={cust.noCustomerFoundTitle}
+                subtitle={cust.noCustomerFoundSubtitle}
               />
             )}
           </Box>
@@ -574,19 +595,19 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
           <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border" w="full">
             <Box as="form" ref={formRef} onSubmit={handleSubmit} w="full">
               <Stack gap={5} w="full">
-                <Font variant="body-bold" text="Dados pessoais" />
+                <Font variant="body-bold" text={cust.personalDataTitle} />
 
                 {/* Lista vertical de campos bordered */}
                 <Stack gap={2.5} w="full">
                   <Input
-                    placeholder="* Nome"
+                    placeholder={cust.nameRequiredPlaceholder}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
                   />
 
                   <Input
-                    placeholder="E-mail"
+                    placeholder={cust.emailPlaceholder}
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -594,14 +615,14 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
 
                   <Input
                     mask="cpf"
-                    placeholder="CPF"
+                    placeholder={cust.cpfPlaceholder}
                     value={document}
                     onChange={(e) => setDocument(e.target.value)}
                   />
 
                   <Input
                     mask="phone"
-                    placeholder="Telefone"
+                    placeholder={cust.phonePlaceholder}
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                   />
@@ -610,7 +631,7 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
                 {/* Seção de Endereço com botão Pill + (visível apenas se não houver endereço cadastrado) */}
                 <Stack gap={2.5} w="full">
                   <Stack direction="row" align="center" gap={2.5}>
-                    <Font variant="body-bold" text="Endereço" />
+                    <Font variant="body-bold" text={cust.addressTitle} />
                     {clientAddresses.length === 0 && (
                       <Button
                         type="button"
@@ -620,7 +641,7 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
                           setEditingAddress(null)
                           setIsAddressModalOpen(true)
                         }}
-                        title="Adicionar endereço"
+                        title={cust.addAddressTitle}
                       />
                     )}
                   </Stack>

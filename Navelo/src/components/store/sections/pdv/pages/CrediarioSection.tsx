@@ -11,6 +11,7 @@ import { Button } from "@/components/store/base/Button"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Percent, Minus, Plus } from "lucide-react"
 import { FormActions } from "@/components/store/intermediary/FormActions"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface CrediarioSectionProps {
   onCancel: () => void
@@ -27,15 +28,16 @@ export const CrediarioSection: React.FC<CrediarioSectionProps> = ({
   const [interestRate, setInterestRate] = React.useState("0,00")
   const [fineRate, setFineRate] = React.useState("0,00")
   const [graceDays, setGraceDays] = React.useState(0)
+  const s = UI_STRINGS.crediario
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Crediário")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   const handleSave = () => {
     // Simulação de salvamento
@@ -56,19 +58,19 @@ export const CrediarioSection: React.FC<CrediarioSectionProps> = ({
         <Stack gap={5} w="full">
           {/* Tipo de Juros */}
           <Stack gap={2.5} w="full">
-            <Font variant="body-bold" text="Tipo de juros" />
+            <Font variant="body-bold" text={UI_STRINGS.credit.interestTypeTitle} />
             <CustomSelect
               value={interestType}
               onChange={setInterestType}
             >
-              <CustomSelectItem value="Simples" text="Simples" icon={Percent} />
-              <CustomSelectItem value="Compostos" text="Compostos" icon={Percent} />
+              <CustomSelectItem value={UI_STRINGS.credit.simpleOption} text={UI_STRINGS.credit.simpleOption} icon={Percent} />
+              <CustomSelectItem value={UI_STRINGS.credit.compoundOption} text={UI_STRINGS.credit.compoundOption} icon={Percent} />
             </CustomSelect>
           </Stack>
 
           {/* Juros */}
           <Input
-            label="Juros"
+            label={UI_STRINGS.credit.interestRateLabel}
             value={interestRate}
             onChange={(e) => setInterestRate(e.target.value)}
             placeholder="% 0,00"
@@ -76,7 +78,7 @@ export const CrediarioSection: React.FC<CrediarioSectionProps> = ({
 
           {/* Multa */}
           <Input
-            label="Multa"
+            label={UI_STRINGS.credit.fineRateLabel}
             value={fineRate}
             onChange={(e) => setFineRate(e.target.value)}
             placeholder="% 0,00"
@@ -84,7 +86,7 @@ export const CrediarioSection: React.FC<CrediarioSectionProps> = ({
 
           {/* Dias de Carência com Seletor Incremental */}
           <Stack gap={2.5} w="full">
-            <Font variant="body-bold" text="* Dias de carência" />
+            <Font variant="body-bold" text={UI_STRINGS.credit.graceDaysTitle} />
             <Box
               border={true}
               borderColor="border-border"
@@ -114,7 +116,7 @@ export const CrediarioSection: React.FC<CrediarioSectionProps> = ({
       </Box>
 
       <FormActions
-        confirmLabel="Salvar alterações"
+        confirmLabel={UI_STRINGS.pdv.cart.saveChangesButton}
         onConfirm={handleSave}
         onCancel={onCancel}
       />

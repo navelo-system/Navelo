@@ -8,45 +8,52 @@ import { Switch } from "../../../base/Switch"
 import { Stack } from "../../../base/Stack"
 import { Font } from "../../../base/Font"
 import { Percent } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
-interface DiscountModalProps {
+export interface DiscountModalProps {
   isOpen: boolean
   onClose: () => void
-  discount: number
-  onChangeDiscount: (value: number) => void
   subtotal: number
+  discount: number
+  onChangeDiscount: (newDiscountInReais: number) => void
+}
+
+const formatNum = (val: number) => {
+  return Number(val.toFixed(2)).toString()
 }
 
 export const DiscountModal: React.FC<DiscountModalProps> = ({
   isOpen,
   onClose,
-  discount,
-  onChangeDiscount,
   subtotal,
+  discount,
+  onChangeDiscount
 }) => {
   const [isPercentage, setIsPercentage] = React.useState(false)
   const [inputValue, setInputValue] = React.useState("")
+  const m = UI_STRINGS.pdv.modals
 
+  // Ao abrir o modal, preenche o valor do desconto existente
   React.useEffect(() => {
     if (isOpen) {
-      setInputValue(discount > 0 ? discount.toString() : "")
-      setIsPercentage(false)
+      if (discount > 0) {
+        setIsPercentage(false)
+        setInputValue(formatNum(discount))
+      } else {
+        setInputValue("")
+      }
     }
   }, [isOpen, discount])
 
-  const formatNum = (val: number) => {
-    return Number(val.toFixed(2)).toString()
-  }
-
   const handleTogglePercentage = (checked: boolean) => {
-    const currentVal = parseFloat(inputValue) || 0
+    const val = parseFloat(inputValue) || 0
     if (checked) {
-      // De Reais para Porcentagem
-      const pct = subtotal > 0 ? (currentVal / subtotal) * 100 : 0
+      // De reais para porcentagem
+      const pct = subtotal > 0 ? (val / subtotal) * 100 : 0
       setInputValue(pct > 0 ? formatNum(pct) : "")
     } else {
-      // De Porcentagem para Reais
-      const reais = (currentVal / 100) * subtotal
+      // De porcentagem para reais
+      const reais = (val / 100) * subtotal
       setInputValue(reais > 0 ? formatNum(reais) : "")
     }
     setIsPercentage(checked)
@@ -68,15 +75,15 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Desconto na Venda"
-      subtitle="Informe o valor do desconto a ser aplicado à venda atual."
+      title={m.discountModalTitle}
+      subtitle={m.discountModalSubtitle}
       icon={Percent}
-      successText="Confirmar Desconto"
+      successText={m.confirmDiscountButton}
       onSuccess={handleConfirm}
     >
       <Stack gap={5}>
         <Stack direction="row" align="center" justify="between" w="full">
-          <Font variant="body-semibold" text={isPercentage ? "Desconto em Porcentagem (%)" : "Desconto em Valor (R$)"} />
+          <Font variant="body-semibold" text={isPercentage ? m.discountPercentageLabel : m.discountValueLabel} />
           <Stack direction="row" align="center" gap={2.5}>
             <Font variant="body-xs" text="R$" color={!isPercentage ? "primary" : "muted"} />
             <Switch checked={isPercentage} onChange={(e) => handleTogglePercentage(e.target.checked)} />
@@ -85,8 +92,8 @@ export const DiscountModal: React.FC<DiscountModalProps> = ({
         </Stack>
 
         <Input
-          label={isPercentage ? "Valor do Desconto (%)" : "Valor do Desconto (R$)"}
-          placeholder="0,00"
+          label={isPercentage ? m.discountPercentageInputLabel : m.discountValueInputLabel}
+          placeholder={m.discountValuePlaceholder}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
         />

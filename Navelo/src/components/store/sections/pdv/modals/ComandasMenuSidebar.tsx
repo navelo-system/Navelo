@@ -7,6 +7,7 @@ import { Font } from "@/components/store/base/Font"
 import { Icon } from "@/components/store/base/Icon"
 import { Modal } from "@/components/store/base/Modal"
 import { Cloud } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface ComandasMenuSidebarProps {
   isOpen: boolean
@@ -23,23 +24,26 @@ export const ComandasMenuSidebar: React.FC<ComandasMenuSidebarProps> = ({
   onStartAvulsoService,
   onFinishAll,
 }) => {
+  const c = UI_STRINGS.common
+  const t = UI_STRINGS.tables
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Menu" variant="sidebar">
+    <Modal isOpen={isOpen} onClose={onClose} title={c.menu} variant="sidebar">
       <Stack gap={5}>
         {/* Sincronizacao */}
         <Box w="full" bg="bg-surface-sunken" padding={2.5} radius="default">
           <Stack direction="row" align="center" justify="between" w="full">
             <Stack direction="row" align="center" gap={2.5}>
               <Icon icon={Cloud} size={16} color="primary" />
-              <Font variant="body-sm-semibold" text="Sincronizacao" />
+              <Font variant="body-sm-semibold" text={c.syncTitle} />
             </Stack>
-            <Font variant="body-sm-medium" color="muted" text="Sincronizado" />
+            <Font variant="body-sm-medium" color="muted" text={c.synced} />
           </Stack>
         </Box>
 
         {/* Atendimento */}
         <Stack gap={2.5}>
-          <Font variant="body-xs-bold" color="muted" text="ATENDIMENTO" />
+          <Font variant="body-xs-bold" color="muted" text={t.serviceHeader} />
           <Box display="flex" direction="col" bg="bg-surface" border={true} borderColor="border-border" radius="default" overflow="hidden">
             <Box
               padding={2.5}
@@ -55,7 +59,7 @@ export const ComandasMenuSidebar: React.FC<ComandasMenuSidebarProps> = ({
                 }
               }}
             >
-              <Font variant="body-sm-semibold" text="Novo atendimento avulso" align="left" />
+              <Font variant="body-sm-semibold" text={t.newAvulsoService} align="left" />
             </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
             <Box
@@ -65,7 +69,7 @@ export const ComandasMenuSidebar: React.FC<ComandasMenuSidebarProps> = ({
               hoverBg="surface-sunken"
               onClick={() => { onClose(); onFinishAll() }}
             >
-              <Font variant="body-sm-semibold" text="Finalizar atendimentos" align="left" />
+              <Font variant="body-sm-semibold" text={t.finishServices} align="left" />
             </Box>
           </Box>
         </Stack>

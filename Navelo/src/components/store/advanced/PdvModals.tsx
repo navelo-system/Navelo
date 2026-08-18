@@ -30,6 +30,8 @@ interface PdvModalsProps {
   customerName?: string
   showOutOfStockProducts?: boolean
   onToggleShowOutOfStock?: (val: boolean) => void
+  hasCartItems?: boolean
+  onCancelOperation?: () => void
 }
 
 export const PdvModals: React.FC<PdvModalsProps> = ({
@@ -55,6 +57,8 @@ export const PdvModals: React.FC<PdvModalsProps> = ({
   customerName,
   showOutOfStockProducts,
   onToggleShowOutOfStock,
+  hasCartItems,
+  onCancelOperation,
 }) => {
   return (
     <>
@@ -91,6 +95,8 @@ export const PdvModals: React.FC<PdvModalsProps> = ({
         customerName={customerName}
         showOutOfStockProducts={showOutOfStockProducts}
         onToggleShowOutOfStock={onToggleShowOutOfStock}
+        hasCartItems={hasCartItems}
+        onCancelOperation={onCancelOperation}
         onOpenDiscountModal={() => {
           onCloseSidebar()
           onCloseDiscountModal()

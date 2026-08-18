@@ -14,6 +14,7 @@ import { useTenant } from "@/lib/context/TenantContext"
 import { db } from "@/lib/dal/db"
 import { supabase } from "@/lib/supabase/client"
 import { Tenant } from "@/src/types/domain"
+import { UI_STRINGS } from "@/constants/strings"
 
 interface AcessoEmpresaSectionProps {
   onUnlockSuccess: () => void
@@ -21,6 +22,7 @@ interface AcessoEmpresaSectionProps {
 
 export const AcessoEmpresaSection: React.FC<AcessoEmpresaSectionProps> = ({ onUnlockSuccess }) => {
   const tenantCtx = useTenant()
+  const s = UI_STRINGS.companyAccess
 
   // Campos do formulário de Login por CNPJ
   const [cnpj, setCnpj] = React.useState("")
@@ -125,7 +127,6 @@ export const AcessoEmpresaSection: React.FC<AcessoEmpresaSectionProps> = ({ onUn
         }
       }
 
-      // Desbloqueia e ativa a conta efetiva no TenantContext
       const activeTenant: Tenant = {
         id: localCompany.id,
         corporateName: localCompany.name,
@@ -133,11 +134,10 @@ export const AcessoEmpresaSection: React.FC<AcessoEmpresaSectionProps> = ({ onUn
         cnpj: localCompany.document,
         primaryColor: localCompany.primary_color || "#16315e",
         secondaryColor: localCompany.secondary_color || "#f97316",
-        logoUrl: localCompany.logo_url,
         isActive: true
       }
 
-      if (tenantCtx) {
+      if (tenantCtx && activeTenant) {
         tenantCtx.setCurrentTenant(activeTenant)
         tenantCtx.switchThemeMode("tenant")
         if (typeof window !== "undefined") {
@@ -161,20 +161,20 @@ export const AcessoEmpresaSection: React.FC<AcessoEmpresaSectionProps> = ({ onUn
           <Stack gap={5} w="full" align="stretch">
             <RegistrySection
               variant="card"
-              title="Acesso ao Sistema"
-              description="Informe o CNPJ e a senha para acessar sua conta."
+              title={s.systemAccessTitle}
+              description={s.systemAccessDesc}
               icon={Building}
             >
               <Box as="form" onSubmit={handleLoginSubmit}>
                 <Stack gap={5}>
                   {/* CNPJ */}
                   <Stack gap={1}>
-                    <Font variant="body-sm-semibold" text="* CNPJ da Empresa" />
+                    <Font variant="body-sm-semibold" text={s.cnpjLabel} />
                     <Input
                       type="text"
                       value={cnpj}
                       onChange={handleCnpjChange}
-                      placeholder="00.000.000/0000-00"
+                      placeholder={s.cnpjPlaceholder}
                       icon={Building}
                       required
                     />
@@ -182,7 +182,7 @@ export const AcessoEmpresaSection: React.FC<AcessoEmpresaSectionProps> = ({ onUn
 
                   {/* Senha da Empresa */}
                   <Stack gap={1}>
-                    <Font variant="body-sm-semibold" text="* Senha da Empresa" />
+                    <Font variant="body-sm-semibold" text={s.passwordLabel} />
                     <Input
                       type="password"
                       value={password}
@@ -190,7 +190,7 @@ export const AcessoEmpresaSection: React.FC<AcessoEmpresaSectionProps> = ({ onUn
                         setPassword(e.target.value)
                         setErrorMsg("")
                       }}
-                      placeholder="••••••••"
+                      placeholder={s.passwordPlaceholder}
                       icon={Lock}
                       required
                     />
@@ -204,11 +204,10 @@ export const AcessoEmpresaSection: React.FC<AcessoEmpresaSectionProps> = ({ onUn
                   {/* Botão de Desbloqueio */}
                   <Button
                     variant="primary"
-                    label={isLoading ? "Autenticando..." : "Desbloquear Sistema"}
+                    label={isLoading ? s.authenticatingButton : s.unlockButton}
                     icon={ArrowRight}
                     type="submit"
                     fullWidth
-                    disabled={isLoading}
                   />
                 </Stack>
               </Box>

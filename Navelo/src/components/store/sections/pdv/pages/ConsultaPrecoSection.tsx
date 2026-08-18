@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { Icon } from "@/components/store/base/Icon"
 import { LinkDeviceModal } from "@/components/store/advanced/LinkDeviceModal"
 import { Barcode, Monitor, Plus, Trash2 } from "lucide-react"
+import { UI_STRINGS, formatString } from "@/constants/strings"
 
 interface LinkedDevice {
   id: string
@@ -34,15 +35,16 @@ export const ConsultaPrecoSection: React.FC<ConsultaPrecoSectionProps> = ({
   const [password, setPassword] = React.useState("")
   const [devices, setDevices] = React.useState<LinkedDevice[]>([])
   const [isModalOpen, setIsModalOpen] = React.useState(false)
+  const s = UI_STRINGS.priceCheck
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Consulta Preço")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   const handleSave = () => { onCancel() }
 
@@ -66,19 +68,19 @@ export const ConsultaPrecoSection: React.FC<ConsultaPrecoSectionProps> = ({
         w="full"
       >
         <Stack gap={5} w="full">
-          <Font variant="body-bold" text="Autenticação" />
+          <Font variant="body-bold" text={s.authTitle} />
 
           <Stack gap={2.5} w="full">
             <Input
-              label="* Senha"
+              label={s.passwordLabel}
               type="password"
-              placeholder="Senha"
+              placeholder={s.passwordPlaceholder}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
             <Font
               variant="description"
-              text="Cadastre a senha que será utilizada para acessar as configurações do aplicativo Consulta Preço."
+              text={s.authDesc}
             />
           </Stack>
         </Stack>
@@ -96,10 +98,10 @@ export const ConsultaPrecoSection: React.FC<ConsultaPrecoSectionProps> = ({
         <Stack gap={5} w="full">
           {/* Header do card */}
           <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="start" mobileJustify="between" w="full" gap={2.5}>
-            <Font variant="body-bold" text="Dispositivos vinculados" />
+            <Font variant="body-bold" text={s.linkedDevicesTitle} />
             <Button
               variant="primary"
-              label="Vincular dispositivo"
+              label={s.linkDeviceButton}
               icon={Plus}
               onClick={() => setIsModalOpen(true)}
             />
@@ -109,8 +111,8 @@ export const ConsultaPrecoSection: React.FC<ConsultaPrecoSectionProps> = ({
           {devices.length === 0 ? (
             <EmptyState
               icon={Monitor}
-              title="Nenhum dispositivo vinculado"
-              subtitle="Vincule um dispositivo para disponibilizar o Consulta Preço."
+              title={s.emptyTitle}
+              subtitle={s.emptySubtitle}
             />
           ) : (
             <Stack gap={0} w="full">
@@ -123,7 +125,7 @@ export const ConsultaPrecoSection: React.FC<ConsultaPrecoSectionProps> = ({
                         <Icon icon={Monitor} size={16} color="muted" />
                         <Stack gap={1}>
                           <Font variant="body-bold" text={device.name} />
-                          <Font variant="description" text={`Código: ${device.code}`} />
+                          <Font variant="description" text={formatString(s.deviceCodeTemplate, { code: device.code })} />
                         </Stack>
                       </Stack>
                       <Box
@@ -142,8 +144,8 @@ export const ConsultaPrecoSection: React.FC<ConsultaPrecoSectionProps> = ({
       </Box>
 
       {/* Botões de Ações */}
-            <FormActions
-        confirmLabel="Salvar alterações"
+      <FormActions
+        confirmLabel={UI_STRINGS.common.save}
         onConfirm={handleSave}
         onCancel={onCancel}
       />

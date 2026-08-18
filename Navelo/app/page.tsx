@@ -26,7 +26,8 @@ import { TenantProvider, useTenant } from "@/lib/context/TenantContext"
 import { canAccessView } from "@/lib/permissions"
 import { useTabs, useSyncStatus, dal } from "@/lib/dal"
 import { initialSync, processSyncQueue, subscribeToRealtimeSync } from "@/lib/dal/sync"
-import { TabEntity } from "@/lib/dal/db"
+import { db, TabEntity } from "@/lib/dal/db"
+import { useLiveQuery } from "dexie-react-hooks"
 import {
   ShoppingBag,
   Receipt,
@@ -186,6 +187,19 @@ function HomeContent() {
   const dbTabs = useTabs(tenantId)
   const syncStatus = useSyncStatus()
 
+  const dbCompany = useLiveQuery(async () => {
+    if (!tenantId) return null
+    return await db.companies.get(tenantId)
+  }, [tenantId])
+
+  const companyDisplayName =
+    dbCompany?.trade_name ||
+    dbCompany?.name ||
+    tenantCtx?.currentTenant?.tradingName ||
+    tenantCtx?.currentTenant?.corporateName ||
+    tenantCtx?.platformSettings?.platformName ||
+    "Navelo - PDV"
+
   // Sincronização contínua e em tempo real da Fonte Primária (Supabase)
   React.useEffect(() => {
     if (!tenantId) return
@@ -311,6 +325,7 @@ function HomeContent() {
         <Box w="full" shrink="0">
           <PdvHeaderSection
             currentView={currentView}
+            companyName={companyDisplayName}
             onNavigate={(view) => {
               if (view === "dashboard") {
                 setActiveComandaId(null)

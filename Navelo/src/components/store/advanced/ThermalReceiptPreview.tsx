@@ -5,6 +5,7 @@ import { Font } from "@/components/store/base/Font"
 import { Grid } from "@/components/store/base/Grid"
 import { Icon } from "@/components/store/base/Icon"
 import { Printer } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface ThermalReceiptItem {
   name: string
@@ -39,53 +40,59 @@ const ReceiptItemRow: React.FC<{ item: ThermalReceiptItem }> = ({ item }) => (
 
 const ReceiptTotals: React.FC<{ subtotal: number; taxValue: number; paymentMethod: string }> = ({
   subtotal, taxValue, paymentMethod
-}) => (
-  <>
-    <Stack gap={1}>
-      <Stack direction="row" justify="between">
-        <Font variant="body-xs" text="Subtotal" mono />
-        <Font variant="body-xs" text={formatPrice(subtotal)} mono />
-      </Stack>
-      <Stack direction="row" justify="between">
-        <Font variant="body-xs" text="Tributos Aprox. (12%)" mono />
-        <Font variant="body-xs" text={formatPrice(taxValue)} mono />
-      </Stack>
-      <Box borderTop borderStyle="dashed" borderColor="border-border" paddingY={2.5}>
+}) => {
+  const tr = UI_STRINGS.thermalReceipt
+  return (
+    <>
+      <Stack gap={1}>
         <Stack direction="row" justify="between">
-          <Font variant="body-xs-bold" text="VALOR TOTAL" mono />
-          <Font variant="body-xs-bold" text={formatPrice(subtotal)} mono />
+          <Font variant="body-xs" text={tr.subtotal} mono />
+          <Font variant="body-xs" text={formatPrice(subtotal)} mono />
+        </Stack>
+        <Stack direction="row" justify="between">
+          <Font variant="body-xs" text={tr.approxTaxes} mono />
+          <Font variant="body-xs" text={formatPrice(taxValue)} mono />
+        </Stack>
+        <Box borderTop borderStyle="dashed" borderColor="border-border" paddingY={2.5}>
+          <Stack direction="row" justify="between">
+            <Font variant="body-xs-bold" text={tr.totalValue} mono />
+            <Font variant="body-xs-bold" text={formatPrice(subtotal)} mono />
+          </Stack>
+        </Box>
+      </Stack>
+      <Box borderTop borderStyle="dashed" borderColor="border-border" w="full" />
+      <Box display="flex" direction="row" justify="between" paddingY={2.5}>
+        <Font variant="body-xs" text={tr.paymentMethod} mono />
+        <Font variant="body-xs-bold" text={paymentMethod} mono />
+      </Box>
+      <Box borderTop borderStyle="dashed" borderColor="border-border" w="full" />
+    </>
+  )
+}
+
+const ReceiptFooter: React.FC = () => {
+  const tr = UI_STRINGS.thermalReceipt
+  return (
+    <Stack gap={2.5} align="center">
+      <Font variant="auxiliary" text={tr.sampleNfce} mono align="center" />
+      <Font variant="auxiliary" text={tr.sampleEmission} mono align="center" />
+      <Font variant="auxiliary" text={tr.consumerCopy} mono align="center" />
+      
+      <Box w="w-24" h="h-24" border borderStyle="dashed" borderColor="border-border" bg="bg-surface-sunken" display="flex" justify="center" padding={2.5}>
+        <Stack align="center" justify="center" w="full" h="full">
+          <Grid cols={4} gap={1} responsive={false} w="w-full" h="h-full">
+            {Array.from({ length: 16 }).map((_, i) => (
+              <Box key={i} w="full" h="full" bg={i % 3 === 0 || i % 7 === 0 ? "bg-black" : "bg-transparent"} />
+            ))}
+          </Grid>
         </Stack>
       </Box>
+      
+      <Font variant="auxiliary" text={tr.accessKeyPrompt} mono align="center" />
+      <Font variant="auxiliary" text={tr.sampleAccessKey} mono align="center" />
     </Stack>
-    <Box borderTop borderStyle="dashed" borderColor="border-border" w="full" />
-    <Box display="flex" direction="row" justify="between" paddingY={2.5}>
-      <Font variant="body-xs" text="FORMA PAGTO." mono />
-      <Font variant="body-xs-bold" text={paymentMethod} mono />
-    </Box>
-    <Box borderTop borderStyle="dashed" borderColor="border-border" w="full" />
-  </>
-)
-
-const ReceiptFooter: React.FC = () => (
-  <Stack gap={2.5} align="center">
-    <Font variant="auxiliary" text="NFC-e Nº 000184 Série 001" mono align="center" />
-    <Font variant="auxiliary" text="Emissão: 26/06/2026 01:52" mono align="center" />
-    <Font variant="auxiliary" text="Via Consumidor" mono align="center" />
-    
-    <Box w="w-24" h="h-24" border borderStyle="dashed" borderColor="border-border" bg="bg-surface-sunken" display="flex" justify="center" padding={2.5}>
-      <Stack align="center" justify="center" w="full" h="full">
-        <Grid cols={4} gap={1} responsive={false} w="w-full" h="h-full">
-          {Array.from({ length: 16 }).map((_, i) => (
-            <Box key={i} w="full" h="full" bg={i % 3 === 0 || i % 7 === 0 ? "bg-black" : "bg-transparent"} />
-          ))}
-        </Grid>
-      </Stack>
-    </Box>
-    
-    <Font variant="auxiliary" text="Consulte pelo QR Code ou Chave de Acesso:" mono align="center" />
-    <Font variant="auxiliary" text="3526 0612 3456 7800 0199 6500 1000 0001 8410 0234 5678" mono align="center" />
-  </Stack>
-)
+  )
+}
 
 export const ThermalReceiptPreview: React.FC<ThermalReceiptPreviewProps> = ({
   companyName = "NAVELO TECNOLOGIA LTDA",
@@ -97,6 +104,7 @@ export const ThermalReceiptPreview: React.FC<ThermalReceiptPreviewProps> = ({
   ],
   paymentMethod = "PIX",
 }) => {
+  const tr = UI_STRINGS.thermalReceipt
   const subtotal = items.reduce((acc, item) => acc + item.qty * item.unitPrice, 0)
   const taxValue = subtotal * 0.12
 
@@ -106,9 +114,9 @@ export const ThermalReceiptPreview: React.FC<ThermalReceiptPreviewProps> = ({
         <Stack direction="row" align="center" justify="between" gap={5}>
           <Stack direction="row" align="center" gap={2.5}>
             <Icon icon={Printer} size={18} color="primary" />
-            <Font variant="body-bold" text="Pré-visualização do Cupom" />
+            <Font variant="body-bold" text={tr.receiptPreviewTitle} />
           </Stack>
-          <Font variant="auxiliary" text="Bobina 80mm" />
+          <Font variant="auxiliary" text={tr.paperWidth} />
         </Stack>
 
         <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
@@ -119,9 +127,9 @@ export const ThermalReceiptPreview: React.FC<ThermalReceiptPreviewProps> = ({
             <Stack gap={2.5} align="center">
               <Font variant="body-bold" text={companyName} align="center" mono />
               <Font variant="auxiliary" text={`CNPJ: ${cnpj}`} mono />
-              <Font variant="auxiliary" text="RUA DAS FLORES, 123 - CENTRO - SP" mono />
+              <Font variant="auxiliary" text={tr.sampleAddress} mono />
               <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" borderStyle="dashed" />
-              <Font variant="body-bold" text="CUPOM FISCAL ELETRÔNICO (NFC-e)" align="center" mono />
+              <Font variant="body-bold" text={tr.nfeTitle} align="center" mono />
               <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" borderStyle="dashed" />
             </Stack>
 
@@ -129,13 +137,13 @@ export const ThermalReceiptPreview: React.FC<ThermalReceiptPreviewProps> = ({
 
             <Box display="flex" direction="row" justify="between" paddingY={2.5}>
               <Box w="1/2">
-                <Font variant="body-xs-bold" text="ITEM" mono />
+                <Font variant="body-xs-bold" text={tr.itemHeader} mono />
               </Box>
               <Box w="1/4" display="flex" justify="center">
-                <Font variant="body-xs-bold" text="QTD" mono />
+                <Font variant="body-xs-bold" text={tr.qtyHeader} mono />
               </Box>
               <Box w="1/4" display="flex" justify="end">
-                <Font variant="body-xs-bold" text="VALOR" mono />
+                <Font variant="body-xs-bold" text={tr.valueHeader} mono />
               </Box>
             </Box>
 

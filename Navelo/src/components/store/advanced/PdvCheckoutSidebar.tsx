@@ -10,6 +10,8 @@ import { CartList } from "@/components/store/advanced/CartList"
 // Types
 import { CartItemType } from "@/components/store/sections/pdv/pages/PdvSection"
 
+import { UI_STRINGS } from "@/constants/strings"
+
 interface PdvCheckoutSidebarProps {
   cartItems: CartItemType[]
   discount: number
@@ -42,6 +44,7 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
   compactList = false,
 }) => {
   const subtotal = cartItems.reduce((acc, item) => acc + item.quantity * item.unitPrice, 0)
+  const c = UI_STRINGS.pdv.cart
 
   return (
     <Stack gap={5} flex="1" minH="0">
@@ -58,15 +61,15 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
       <Box padding={5} bg="bg-surface" radius="default" shrink="0">
         <Stack gap={2.5}>
           <Stack direction="row" justify="between" align="center">
-            <Font variant="description" color="muted" text="Subtotal" />
+            <Font variant="description" color="muted" text={c.subtotal} />
             <Font variant="description" text={formatPrice(subtotal)} />
           </Stack>
           <Stack direction="row" justify="between" align="center">
-            <Font variant="description" color="muted" text="Desconto na venda" />
+            <Font variant="description" color="muted" text={c.discount} />
             <Font variant="description" color="danger" text={`- ${formatPrice(discount)}`} />
           </Stack>
           <Stack direction="row" justify="between" align="center">
-            <Font variant="body-bold" text="Total" />
+            <Font variant="body-bold" text={c.total} />
             <Font variant="body-bold" color="success" text={formatPrice(total)} />
           </Stack>
 
@@ -78,7 +81,7 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
                 <Button
                   variant="primary-lg"
                   fullWidth
-                  label={submitLabel || "Salvar alterações"}
+                  label={submitLabel || c.saveChangesButton}
                   disabled={cartItems.length === 0}
                   onClick={onSaveDeliveryOrder}
                 />
@@ -86,7 +89,7 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
                 <Button
                   variant="primary-lg"
                   fullWidth
-                  label={submitLabel || "F9 - Pagamento"}
+                  label={submitLabel || c.payButton}
                   disabled={cartItems.length === 0}
                   onClick={onGoToPayment}
                 />
@@ -95,7 +98,7 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
                 <Button
                   variant="secondary-lg"
                   fullWidth
-                  label="Salvar"
+                  label={c.saveButton}
                   onClick={onSaveComanda}
                 />
               )}

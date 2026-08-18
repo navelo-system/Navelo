@@ -10,6 +10,7 @@ import { Button } from "@/components/store/base/Button"
 import { Icon } from "@/components/store/base/Icon"
 import { Truck, Store, UserCheck, CreditCard, RefreshCw, Check } from "lucide-react"
 import { Rider, DeliveryRate } from "@/lib/dal"
+import { UI_STRINGS } from "@/constants/strings"
 
 export type DeliveryType = "delivery" | "pickup"
 export type PaymentMoment = "on_delivery" | "advance"
@@ -47,7 +48,7 @@ export interface DeliveryCheckoutConfirmationProps {
 }
 
 export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmationProps> = ({
-  statusText = "Status do pedido: Aberto",
+  statusText,
   client,
   rider,
   rate,
@@ -61,7 +62,8 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
   onConfirmOrder,
   onCancel,
 }) => {
-  const [currentStatus, setCurrentStatus] = React.useState(statusText)
+  const d = UI_STRINGS.delivery
+  const [currentStatus, setCurrentStatus] = React.useState(statusText || d.defaultStatusOpen)
   const [deliveryType, setDeliveryType] = React.useState<DeliveryType>("delivery")
   const [paymentMoment, setPaymentMoment] = React.useState<PaymentMoment>("on_delivery")
   const [isStatusSelectorOpen, setIsStatusSelectorOpen] = React.useState(false)
@@ -126,12 +128,12 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
           {/* 1. SEÇÃO STATUS */}
           <Stack gap={2.5} w="full">
             <Stack direction="row" justify="between" align="center" w="full">
-              <Font variant="body-bold" text="* Status" />
+              <Font variant="body-bold" text={d.statusLabelRequired} />
               <Button
                 variant="secondary-icon-xs"
                 icon={RefreshCw}
                 spinOnClick={true}
-                title="Alterar status"
+                title={d.changeStatusTitle}
                 type="button"
                 onClick={() => {
                   if (onAlterStatus) {
@@ -178,7 +180,7 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
 
           {/* 2. SEÇÃO TIPO DE ENTREGA (Design dos Cards identico ao Momento da cobranca com Sanfona Animada) */}
           <Stack gap={2.5} w="full">
-            <Font variant="body-bold" text="* Tipo de entrega" />
+            <Font variant="body-bold" text={d.deliveryTypeRequired} />
             <Stack gap={2.5} w="full">
               {deliveryTypeOptions.map((opt) => {
                 const isSelected = deliveryType === opt.id
@@ -214,16 +216,16 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
                           {/* CLIENTE */}
                           <Stack gap={2.5} w="full">
                             <Stack direction="row" justify="between" align="center" w="full">
-                              <Font variant="body-bold" text="* Cliente" />
+                              <Font variant="body-bold" text={d.clientRequired} />
                               <Stack direction="row" gap={2.5} align="center">
                                 {onAlterClient && (
                                   <Box cursor="pointer" onClick={onAlterClient}>
-                                    <Font variant="sub-tiny-bold" color="primary" text="ALTERAR" />
+                                    <Font variant="sub-tiny-bold" color="primary" text={d.alterAction} />
                                   </Box>
                                 )}
                                 {onClearClient && (
                                   <Box cursor="pointer" onClick={onClearClient}>
-                                    <Font variant="sub-tiny-bold" color="muted" text="LIMPAR" />
+                                    <Font variant="sub-tiny-bold" color="muted" text={d.clearAction} />
                                   </Box>
                                 )}
                               </Stack>
@@ -231,14 +233,14 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
 
                             <Box padding={0} w="full">
                               <Stack gap={1} w="full">
-                                <Font variant="body-sm-medium" text={client.name || "Cliente não informado"} />
+                                <Font variant="body-sm-medium" text={client.name || d.clientNotInformed} />
                                 {client.phone && (
                                   <Font variant="body-sm-medium" color="muted" text={client.phone} />
                                 )}
                                 {client.address ? (
                                   <Font variant="body-sm-medium" color="muted" text={client.address} />
                                 ) : (
-                                  <Font variant="body-sm-medium" color="muted" text="Endereço não informado" />
+                                  <Font variant="body-sm-medium" color="muted" text={d.addressNotInformed} />
                                 )}
                               </Stack>
                             </Box>
@@ -247,16 +249,16 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
                           {/* ENTREGADOR */}
                           <Stack gap={2.5} w="full">
                             <Stack direction="row" justify="between" align="center" w="full">
-                              <Font variant="body-bold" text="Entregador" />
+                              <Font variant="body-bold" text={d.riderSection} />
                               <Stack direction="row" gap={2.5} align="center">
                                 {onSelectRider && (
                                   <Box cursor="pointer" onClick={onSelectRider}>
-                                    <Font variant="sub-tiny-bold" color="primary" text={rider ? "ALTERAR" : "SELECIONAR"} />
+                                    <Font variant="sub-tiny-bold" color="primary" text={rider ? d.alterAction : d.selectRiderAction} />
                                   </Box>
                                 )}
                                 {rider && onClearRider && (
                                   <Box cursor="pointer" onClick={onClearRider}>
-                                    <Font variant="sub-tiny-bold" color="muted" text="LIMPAR" />
+                                    <Font variant="sub-tiny-bold" color="muted" text={d.clearAction} />
                                   </Box>
                                 )}
                               </Stack>
@@ -266,7 +268,7 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
                               <Font
                                 variant="body-sm-medium"
                                 color={rider ? "foreground" : "muted"}
-                                text={rider ? rider.name : "Selecione um entregador"}
+                                text={rider ? rider.name : d.selectRiderPlaceholder}
                               />
                             </Box>
                           </Stack>
@@ -274,16 +276,16 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
                           {/* TAXA DE ENTREGA */}
                           <Stack gap={2.5} w="full">
                             <Stack direction="row" justify="between" align="center" w="full">
-                              <Font variant="body-bold" text="Taxa de entrega" />
+                              <Font variant="body-bold" text={d.deliveryFee} />
                               <Stack direction="row" gap={2.5} align="center">
                                 {onSelectRate && (
                                   <Box cursor="pointer" onClick={onSelectRate}>
-                                    <Font variant="sub-tiny-bold" color="primary" text={rate ? "ALTERAR" : "SELECIONAR"} />
+                                    <Font variant="sub-tiny-bold" color="primary" text={rate ? d.alterAction : d.selectRiderAction} />
                                   </Box>
                                 )}
                                 {rate && onClearRate && (
                                   <Box cursor="pointer" onClick={onClearRate}>
-                                    <Font variant="sub-tiny-bold" color="muted" text="LIMPAR" />
+                                    <Font variant="sub-tiny-bold" color="muted" text={d.clearAction} />
                                   </Box>
                                 )}
                               </Stack>
@@ -296,7 +298,7 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
                                     text={
                                       rate
                                         ? `${rate.neighborhood} (R$ ${(rate.fee || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })})`
-                                        : "Nenhuma taxa de entrega informada"
+                                        : d.noDeliveryFeeInformed
                                     }
                                   />
                                 </Box>
@@ -312,7 +314,7 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
 
           {/* 3. SEÇÃO MOMENTO DA COBRANÇA */}
           <Stack gap={2.5} w="full">
-            <Font variant="body-bold" text="* Momento da cobrança" />
+            <Font variant="body-bold" text={d.paymentMomentRequired} />
             <Stack gap={2.5} w="full">
               {paymentMomentOptions.map((opt) => {
                 const isSelected = paymentMoment === opt.id
@@ -349,7 +351,7 @@ export const DeliveryCheckoutConfirmation: React.FC<DeliveryCheckoutConfirmation
           <Box w="full" paddingY={2.5}>
             <Button
               variant="primary"
-              label="F9 – Confirmar pedido"
+              label={d.confirmOrderF9}
               fullWidth={true}
               onClick={handleConfirm}
             />

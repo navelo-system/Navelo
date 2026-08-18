@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/store/base/Table"
 import { Plus, Edit2, Truck } from "lucide-react"
 import { FormActions } from "@/components/store/intermediary/FormActions"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface DeliveryFeeItem {
   id: string
@@ -39,6 +40,7 @@ export const TaxaEntregaSection: React.FC<TaxaEntregaSectionProps> = ({
 
   const [mode, setMode] = React.useState<"list" | "form">("list")
   const [editingFee, setEditingFee] = React.useState<DeliveryFeeItem | null>(null)
+  const s = UI_STRINGS.fees
 
   // Form states
   const [formName, setFormName] = React.useState("")
@@ -55,13 +57,13 @@ export const TaxaEntregaSection: React.FC<TaxaEntregaSectionProps> = ({
 
   React.useEffect(() => {
     setCustomBack?.(() => handleBack)
-    setCustomTitle?.(mode === "form" ? (editingFee ? "Editar taxa de entrega" : "Nova taxa de entrega") : "Taxa de entrega")
+    setCustomTitle?.(mode === "form" ? (editingFee ? "Editar taxa de entrega" : "Nova taxa de entrega") : s.deliveryFeeTitle)
 
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, handleBack, mode, editingFee])
+  }, [setCustomBack, setCustomTitle, handleBack, mode, editingFee, s.deliveryFeeTitle])
 
   const handleAddClick = () => {
     setEditingFee(null)
@@ -118,16 +120,16 @@ export const TaxaEntregaSection: React.FC<TaxaEntregaSectionProps> = ({
           <Form onSubmit={handleSave}>
             <Stack gap={5} w="full">
               <Input
-                label="* Nome"
-                placeholder="Ex: Taxa Centro"
+                label={UI_STRINGS.deliveryFees.nameLabel}
+                placeholder={UI_STRINGS.deliveryFees.namePlaceholder}
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
                 required
               />
 
               <Input
-                label="* Valor"
-                placeholder="R$ 0,00"
+                label={UI_STRINGS.deliveryFees.valueLabel}
+                placeholder={UI_STRINGS.deliveryFees.valuePlaceholder}
                 value={formValue}
                 onChange={(e) => setFormValue(e.target.value)}
                 required
@@ -135,7 +137,7 @@ export const TaxaEntregaSection: React.FC<TaxaEntregaSectionProps> = ({
 
               {/* Botões de Ações no Rodapé do Formulário */}
               <FormActions
-                confirmLabel={editingFee ? "Salvar alterações" : "Adicionar taxa"}
+                confirmLabel={editingFee ? UI_STRINGS.pdv.cart.saveChangesButton : UI_STRINGS.deliveryFees.addFeeFormButton}
                 onConfirm={() => {}}
                 onCancel={() => {
                   setMode("list")
@@ -163,13 +165,13 @@ export const TaxaEntregaSection: React.FC<TaxaEntregaSectionProps> = ({
         >
           <Stack gap={5} align="center" justify="center" w="full">
             <EmptyState
-              title="Nenhuma taxa de entrega cadastrada"
-              subtitle="Cadastre taxas de entrega para gerenciar os custos de envio dos seus pedidos."
+              title={UI_STRINGS.deliveryFees.emptyTitle}
+              subtitle={UI_STRINGS.deliveryFees.emptySubtitle}
               icon={Truck}
             />
             <Button
               variant="primary"
-              label="Adicionar taxa de entrega"
+              label={UI_STRINGS.deliveryFees.addFeeButton}
               icon={Plus}
               onClick={handleAddClick}
             />
@@ -179,10 +181,10 @@ export const TaxaEntregaSection: React.FC<TaxaEntregaSectionProps> = ({
         <Stack gap={5} w="full">
           {/* Cabeçalho de Controle */}
           <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
-            <Font variant="body-bold" text="Taxas de entrega" />
+            <Font variant="body-bold" text={s.deliveryFeeTitle} />
             <Button
               variant="primary"
-              label="Adicionar taxa"
+              label={UI_STRINGS.deliveryFees.addFeeFormButton}
               icon={Plus}
               onClick={handleAddClick}
             />
@@ -200,9 +202,9 @@ export const TaxaEntregaSection: React.FC<TaxaEntregaSectionProps> = ({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead text="Nome" />
-                  <TableHead text="Valor" />
-                  <TableHead text="Ações" align="right" w="w-[100px]" />
+                  <TableHead text={UI_STRINGS.deliveryFees.nameColumnHeader} />
+                  <TableHead text={UI_STRINGS.deliveryFees.valueColumnHeader} />
+                  <TableHead text={UI_STRINGS.tabsConfig.actionsCol} align="right" w="w-[100px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>

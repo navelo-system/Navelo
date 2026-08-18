@@ -10,6 +10,7 @@ import { Switch } from "@/components/store/base/Switch"
 import { FormActions } from "@/components/store/intermediary/FormActions"
 import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSelect"
 import { Package, ClipboardList } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface AutoatendimentoCustomizacaoSectionProps {
   onCancel: () => void
@@ -25,15 +26,16 @@ export const AutoatendimentoCustomizacaoSection: React.FC<AutoatendimentoCustomi
   const [exibirApenasEstoque, setExibirApenasEstoque] = React.useState(false)
   const [exibirQuantidadeEstoque, setExibirQuantidadeEstoque] = React.useState(false)
   const [paginaPrincipal, setPaginaPrincipal] = React.useState<"produtos" | "resumo">("produtos")
+  const s = UI_STRINGS.selfService
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Customização PDV")
+    setCustomTitle?.(s.customizationPdvTitle)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.customizationPdvTitle])
 
   const handleSave = () => {
     onCancel()
@@ -51,11 +53,11 @@ export const AutoatendimentoCustomizacaoSection: React.FC<AutoatendimentoCustomi
         w="full"
       >
         <Stack gap={5} w="full">
-          <Font variant="body-bold" text="Estoque" />
+          <Font variant="body-bold" text={s.stockSectionTitle} />
 
           {/* Exibir apenas produtos com estoque */}
           <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-            <Font variant="body" text="Exibir apenas produtos com estoque" />
+            <Font variant="body" text={s.showOnlyInStock} />
             <Switch
               checked={exibirApenasEstoque}
               onChange={(e) => setExibirApenasEstoque(e.target.checked)}
@@ -66,7 +68,7 @@ export const AutoatendimentoCustomizacaoSection: React.FC<AutoatendimentoCustomi
 
           {/* Exibir a quantidade de estoque de cada produto */}
           <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-            <Font variant="body" text="Exibir a quantidade de estoque de cada produto" />
+            <Font variant="body" text={s.showStockQuantity} />
             <Switch
               checked={exibirQuantidadeEstoque}
               onChange={(e) => setExibirQuantidadeEstoque(e.target.checked)}
@@ -86,10 +88,10 @@ export const AutoatendimentoCustomizacaoSection: React.FC<AutoatendimentoCustomi
       >
         <Stack gap={5} w="full">
           <Stack gap={1}>
-            <Font variant="body-bold" text="Página principal" />
+            <Font variant="body-bold" text={s.mainPageSectionTitle} />
             <Font
               variant="description"
-              text="Defina qual página será exibida primeiro no PDV em telas verticais: Produtos ou Resumo. Eles aparecem uma por vez e o usuário pode alternar entre eles. Em telas horizontais eles aparecem juntos."
+              text={s.mainPageSectionDesc}
               color="muted"
             />
           </Stack>
@@ -98,8 +100,8 @@ export const AutoatendimentoCustomizacaoSection: React.FC<AutoatendimentoCustomi
             value={paginaPrincipal}
             onChange={(val) => setPaginaPrincipal(val as "produtos" | "resumo")}
           >
-            <CustomSelectItem value="produtos" text="Página de produtos (ideal para escolha do produto em tela)" icon={Package} />
-            <CustomSelectItem value="resumo" text="Página de resumo (ideal para adição de produto por código de barras)" icon={ClipboardList} />
+            <CustomSelectItem value="produtos" text={s.productsPageOption} icon={Package} />
+            <CustomSelectItem value="resumo" text={s.summaryPageOption} icon={ClipboardList} />
           </CustomSelect>
         </Stack>
       </Box>
@@ -115,14 +117,14 @@ export const AutoatendimentoCustomizacaoSection: React.FC<AutoatendimentoCustomi
       >
         <Font
           variant="description"
-          text="ℹ️ A customização de PDV será aplicada no Caixa, Delivery, Mesas e comandas e Autoatendimento. Outros dispositivos não serão afetados."
+          text={s.customizationScopeNotice}
           color="muted"
         />
       </Box>
 
       {/* Botões de Ação */}
-            <FormActions
-        confirmLabel="Salvar alterações"
+      <FormActions
+        confirmLabel={UI_STRINGS.common.save}
         onConfirm={handleSave}
         onCancel={onCancel}
       />

@@ -18,6 +18,7 @@ import { Truck, Plus } from "lucide-react"
 import { useTenant } from "@/lib/context/TenantContext"
 import { useDeliveryOrders, dal, Rider, DeliveryRate } from "@/lib/dal"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface DeliverySectionProps {
   setCustomActions?: (actions: React.ReactNode) => void
@@ -58,6 +59,7 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
   const tenantId = tenantCtx?.currentTenant?.id || "default"
   const isDesktop = useIsDesktop()
   const isDesktopRef = React.useRef(isDesktop)
+  const s = UI_STRINGS.delivery
 
   React.useEffect(() => {
     isDesktopRef.current = isDesktop
@@ -159,7 +161,7 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
   // Header no modo listagem com botão de impressora em tamanho normal primário
   React.useEffect(() => {
     if (viewMode === "list") {
-      setCustomTitleRef.current?.("Delivery")
+      setCustomTitleRef.current?.(s.title)
       if (viewHistory.length > 1) {
         setCustomBackRef.current?.(() => popView)
       } else if (onBackRef.current) {
@@ -172,10 +174,10 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
         <MobileHeaderSearch
           searchQuery={searchQuery}
           onSearchQueryChange={setSearchQuery}
-          placeholder="Buscar por cliente ou ID..."
+          placeholder={s.searchPlaceholder}
         >
           {isDesktop && selectedOrderIdRef.current ? (
-            <Button variant="primary-icon-print" title="Imprimir" />
+            <Button variant="primary-icon-print" title={s.printOrderTitle} />
           ) : null}
         </MobileHeaderSearch>
       )
@@ -184,7 +186,7 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
       setCustomBackRef.current?.(() => popView)
       setCustomActionsRef.current?.(
         selectedOrder ? (
-          <Button variant="primary-icon-print" title="Imprimir" />
+          <Button variant="primary-icon-print" title={s.printOrderTitle} />
         ) : null
       )
     }
@@ -194,7 +196,7 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
         setCustomActionsRef.current?.(null)
       }
     }
-  }, [viewMode, searchQuery, selectedOrderId, selectedOrder, isDesktop, viewHistory.length, popView])
+  }, [viewMode, searchQuery, selectedOrderId, selectedOrder, isDesktop, viewHistory.length, popView, s.title, s.printOrderTitle, s.searchPlaceholder])
 
   const handleOpenNewOrder = () => {
     setEditingOrderId(null)
@@ -453,8 +455,8 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
           <Box w="full" h="full" position="relative">
             <EmptyState
               icon={Truck}
-              title="Nenhum pedido de delivery"
-              subtitle="Clique no botão + abaixo para iniciar um novo pedido pelo caixa."
+              title={s.emptyTitle}
+              subtitle={s.emptySubtitle}
             />
 
             <Box position="fixed" bottom="24px" right="24px" zIndex="30">
@@ -485,8 +487,8 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
                 ) : (
                   <EmptyState
                     icon={Truck}
-                    title="Sem pedido selecionado"
-                    subtitle="Selecione um pedido de delivery para visualizar os detalhes."
+                    title={s.noOrderSelectedTitle}
+                    subtitle={s.noOrderSelectedSubtitle}
                   />
                 )}
               </Box>

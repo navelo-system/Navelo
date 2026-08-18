@@ -5,6 +5,7 @@ import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { Modal } from "@/components/store/base/Modal"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface LinkPosModalProps {
   isOpen: boolean
@@ -20,6 +21,8 @@ export const LinkPosModal: React.FC<LinkPosModalProps> = ({
   title
 }) => {
   const [linkingCode, setLinkingCode] = React.useState("")
+  const p = UI_STRINGS.posLink
+  const c = UI_STRINGS.common
 
   React.useEffect(() => {
     if (isOpen) {
@@ -40,14 +43,14 @@ export const LinkPosModal: React.FC<LinkPosModalProps> = ({
         <Stack gap={5} w="full">
           <Font variant="h3" text={title} />
           <Input
-            label="Código de vinculação"
+            label={p.linkingCodeLabel}
             value={linkingCode}
             onChange={(e) => setLinkingCode(e.target.value)}
-            placeholder="Digite o código de vinculação"
+            placeholder={p.linkingCodePlaceholder}
           />
           <Stack direction="row" justify="end" gap={5} w="full">
-            <Button variant="ghost-primary" label="CANCELAR" onClick={onClose} />
-            <Button variant="ghost-primary" label="VINCULAR" onClick={handleLinkClick} />
+            <Button variant="ghost-primary" label={c.cancel} onClick={onClose} />
+            <Button variant="ghost-primary" label={p.linkButton} onClick={handleLinkClick} />
           </Stack>
         </Stack>
       </Box>

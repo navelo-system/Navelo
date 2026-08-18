@@ -8,6 +8,7 @@ import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { CircularIcon } from "@/components/store/intermediary/CircularIcon"
 import { ShieldCheck, LogOut, Cloud, CloudOff, Eye, EyeOff } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 const useHeaderScroll = () => {
   const [isBottomVisible, setIsBottomVisible] = React.useState(true)
@@ -78,6 +79,8 @@ export const AdminHeaderSection: React.FC = () => {
     }
   }, [])
 
+  const h = UI_STRINGS.admin.header
+
   return (
     <>
       <Box paddingY={5} paddingX={5} bg="bg-brand-primary" w="full" display="flex" direction="col">
@@ -90,8 +93,8 @@ export const AdminHeaderSection: React.FC = () => {
               <Stack direction="row" align="center" gap={2.5} h="h-8">
                 <CircularIcon icon={ShieldCheck} size={20} variant="secondary" />
                 <Stack gap={0}>
-                  <Font variant="body-bold" color="brand-secondary" text="Navelo Admin" />
-                  <Font variant="sub-tiny" color="brand-secondary" text="Painel de Controle do SaaS" />
+                  <Font variant="body-bold" color="brand-secondary" text={h.title} />
+                  <Font variant="sub-tiny" color="brand-secondary" text={h.subtitle} />
                 </Stack>
               </Stack>
             )}
@@ -110,7 +113,7 @@ export const AdminHeaderSection: React.FC = () => {
                 <Button
                   variant={isSynced ? "primary-pill-icon" : "danger-pill-icon"}
                   icon={isSynced ? Cloud : CloudOff}
-                  title={isSynced ? "Sincronizado" : "Fora de sincronização"}
+                  title={isSynced ? h.syncedTitle : h.outOfSyncTitle}
                 />
               </Box>
               <Stack direction="row" align="center" gap={2.5}>
@@ -118,13 +121,13 @@ export const AdminHeaderSection: React.FC = () => {
                   variant="secondary-pill-icon"
                   icon={hideValues ? EyeOff : Eye}
                   onClick={() => setHideValues(!hideValues)}
-                  title="Ocultar/Mostrar Valores"
+                  title={h.toggleValuesTitle}
                 />
                 <Button
                   variant="secondary-pill-icon"
                   icon={LogOut}
                   onClick={handleLogout}
-                  title="Sair"
+                  title={h.logoutTitle}
                 />
               </Stack>
             </Stack>

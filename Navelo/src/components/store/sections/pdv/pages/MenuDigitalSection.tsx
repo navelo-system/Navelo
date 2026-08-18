@@ -17,6 +17,7 @@ import {
   LayoutGrid,
   Settings
 } from "lucide-react"
+import { UI_STRINGS, formatString } from "@/constants/strings"
 
 export interface MenuDigitalSectionProps {
   onCancel: () => void
@@ -35,15 +36,16 @@ export const MenuDigitalSection: React.FC<MenuDigitalSectionProps> = ({
 }) => {
   const [enabled, setEnabled] = React.useState(false)
   const [copied, setCopied] = React.useState(false)
+  const s = UI_STRINGS.digitalMenu
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
-    setCustomTitle?.("Menu Digital")
+    setCustomTitle?.(s.title)
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel])
+  }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
   const handleCopy = () => {
     navigator.clipboard.writeText(MENU_URL).then(() => {
@@ -69,10 +71,10 @@ export const MenuDigitalSection: React.FC<MenuDigitalSectionProps> = ({
       <Box padding={5} w="full">
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack gap={1}>
-            <Font variant="body-bold" text="Habilitar" />
+            <Font variant="body-bold" text={s.title} />
             <Font
               variant="description"
-              text="Você terá uma página na internet com os seus produtos e com a cara da sua loja."
+              text={s.headerDesc}
               color="muted"
             />
           </Stack>
@@ -101,13 +103,13 @@ export const MenuDigitalSection: React.FC<MenuDigitalSectionProps> = ({
               variant="ghost"
               icon={ExternalLink}
               onClick={handleOpenUrl}
-              title="Abrir no navegador"
+              title={s.openInBrowserTooltip}
             />
             <Button
               variant="ghost"
               icon={Copy}
               onClick={handleCopy}
-              title={copied ? "Copiado!" : "Copiar URL"}
+              title={copied ? s.copiedTooltip : s.copyUrlButton}
             />
           </Stack>
         </Stack>
@@ -127,8 +129,8 @@ export const MenuDigitalSection: React.FC<MenuDigitalSectionProps> = ({
           <Stack direction="row" align="center" gap={5}>
             <Icon icon={LayoutGrid} size={20} color="primary" />
             <Stack gap={1}>
-              <Font variant="body-bold" text="Identificação" />
-              <Font variant="description" text="basenavelo" color="muted" />
+              <Font variant="body-bold" text={UI_STRINGS.settings.identificacao.title} />
+              <Font variant="description" text={UI_STRINGS.settings.identificacao.subdomainPlaceholder} color="muted" />
             </Stack>
           </Stack>
           <Icon icon={ChevronRight} size={16} color="muted" />
@@ -149,8 +151,8 @@ export const MenuDigitalSection: React.FC<MenuDigitalSectionProps> = ({
           <Stack direction="row" align="center" gap={5}>
             <Icon icon={LayoutGrid} size={20} color="primary" />
             <Stack gap={1}>
-              <Font variant="body-bold" text="Produtos" />
-              <Font variant="description" text="52 produtos selecionados" color="muted" />
+              <Font variant="body-bold" text={UI_STRINGS.printPoints.categoriesLabel} />
+              <Font variant="description" text={formatString(s.selectedProductsTemplate, { count: 52 })} color="muted" />
             </Stack>
           </Stack>
           <Icon icon={ChevronRight} size={16} color="muted" />
@@ -170,7 +172,7 @@ export const MenuDigitalSection: React.FC<MenuDigitalSectionProps> = ({
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={5}>
             <Icon icon={Settings} size={20} color="primary" />
-            <Font variant="body-bold" text="Opções de pedido" />
+            <Font variant="body-bold" text={UI_STRINGS.orderOptions.title} />
           </Stack>
           <Icon icon={ChevronRight} size={16} color="muted" />
         </Stack>

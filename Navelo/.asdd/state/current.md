@@ -1,15 +1,95 @@
 # Current State
 
 ## Última atualização
-Ciclo #325 — Feature: Sistema de Comprovante PDF de Negociações (Compartilhar & Imprimir via Supabase Storage, QR Code e WhatsApp) — 2026-08-14
+Ciclo #338 — Feature: Fluxo em 2 Etapas de Sangria/Suprimento com Modal de Anotação, Variante Textarea e Persistência de Observações — 2026-08-18
 
 ## Status do ciclo ativo
-IDLE — Nenhum ciclo em andamento. Último ciclo concluído: Ciclo #327 (Eliminação de 100% dos Warnings do ESLint).
+IDLE — Nenhum ciclo em andamento. Último ciclo concluído: Ciclo #338 (Fluxo de sangria em 2 etapas com textarea e persistência de observações).
 
 ## Estado do artefato
 ATIVO — truth/ preenchido com contexto real do projeto Navelo
 
 ## Implementado
+- Variante `textarea` no Componente Base (`Input.tsx`):
+  - Suporte completo a `variant="textarea"` e `rows?: number` com bordas arredondadas `rounded-[5px]`, padding ergonômico e foco nos tokens de design.
+- Modal de Observação Reutilizável (`PdvObservacaoModal.tsx`):
+  - Suporte a título customizado, mensagem descritiva (ex: `Você está fazendo uma sangria de R$ 5,00.`), placeholder e campo `textarea`.
+- Fluxo em 2 Etapas para Sangria e Suprimento (`PdvSangriaModal.tsx` & `PdvSection.tsx`):
+  - Etapa 1: Digitação do valor no teclado numérico.
+  - Etapa 2: Abertura automática do modal de anotação com o valor formatado e campo de texto para justificativa.
+  - Gravação automática em `db.cash_movements` e `db.sync_queue` com o valor e a observação informada.
+- Gestão de Observações do Atendimento:
+  - **Caixa Avulso:** Observação mantida em memória durante a sessão; descartada ao sair sem finalizar; anexada à venda finalizada (`sale.observation`).
+  - **Comandas e Mesas:** Observação sincronizada e persistida na tabela `db.tabs`, sobrevivendo a saídas e pausas até o fechamento da conta.
+- Dashboard de KPIs Dinâmico (`DashboardSection.tsx`):
+  - O 4º card (**Conta Digital**) agora é renderizado **apenas se a conta digital estiver configurada/habilitada** no aplicativo.
+  - Caso haja 3 cards, a grade mantém estritamente o layout de 2 colunas (`cols={2} mobileCols={2}`), com o 3º card (**Total a receber**) alinhado à esquerda ocupando 50% da largura.
+- Persistência e Sincronização de Conta Digital (`ContaDigitalSection.tsx`):
+  - Configurações persistidas e sincronizadas reativamente via eventos customizados de atualização.
+- Tela de Contas a Receber 100% Funcional (`ContasAReceberSection.tsx`):
+  - Integração com dados reais do Dexie (`useSales`) sem mocks ou hardcodes.
+  - Listagem com Cliente/Pessoa, Documento (`Doc: XXX.X-X/X`), Emissão, Vencimento, Valor, Multa, Juros e Valor a liquidar (linhas puramente de exibição, sem clique ou hover desnecessário).
+  - Card de resumo financeiro inferior com **A receber**, **Liquidado** e botão de exportação integrado internamente, idêntico ao padrão das telas do sistema.
+  - Filtros completos: atalhos de período (`Hoje`, `7D`, `1M`, `3M`, `6M`, `1A`), intervalo de datas inicial/final, tipo de período (`Emissão`, `Vencimento`, `Liquidação`), cliente e dispositivo.
+  - Exportação oficial em PDF A4 (`generateReceivablesReportPdf.ts`) e CSV bruto via `SaleExportModal` respeitando todos os filtros ativos.
+- Gerador de Relatório de Contas a Receber em PDF A4 (`generateReceivablesReportPdf.ts`).
+- Totalizador Inferior Esquerdo Atualizado (`NegociacoesSection.tsx`):
+  - Card unificado com `Qtd. de vendas` à esquerda e `Valor total` + botão de exportação à direita em layout limpo e integrado.
+  - Acionamento do `SaleExportModal` com exportação para PDF A4 e CSV bruto respeitando 100% dos filtros.
+- Modal de Exportação de Vendas (`SaleExportModal.tsx`):
+  - Integrado ao padrão de design do `SaleShareModal` com ícones circulares (`CircularIcon`).
+  - Opção 1: **Exportar para PDF** (gera e baixa o relatório em formato A4 formatado).
+  - Opção 2: **Exportar para CSV** (gera e baixa a planilha de dados brutos `.csv` com codificação UTF-8 BOM para Excel).
+- Gerador de PDF de Relatório de Vendas (`generateSalesReportPdf.ts`):
+  - Formato A4 idêntico à referência oficial (cabeçalho da empresa, título `Vendas`, data de impressão, período e situação da venda, tabela com colunas `Venda`, `Data`, `Cliente` e `Total R$`, e rodapé com total de vendas e soma financeira).
+- Totalizador Inferior Esquerdo Atualizado (`NegociacoesSection.tsx`):
+  - Exibe lado a lado `Qtd. de vendas` e `Valor total` em card integrado.
+  - Botão ao lado direito aciona o `SaleExportModal`, exportando rigorosamente os dados filtrados (`filteredSales`).
+- Saneamento Integral de Hardcodes em Totais em Caixa (`TotaisEmCaixaSection.tsx`):
+  - Data de abertura dinâmica obtida da sessão do caixa (`openRegister.opened_at` / vendas do dia via Dexie) via `openingTimeText`.
+  - Eliminação de valores estáticos (`39.00`, `6.00`, `45.00` e array mock de operações).
+  - Categorias, subtotais e lista de operações detalhadas computados 100% em tempo real das tabelas `sales` e `cash_movements`.
+  - Remoção do container inferior com os botões "Anterior", "Próximo" e "Fechar Caixa", alinhando rigorosamente com o design de referência.
+- Sub-tela de Detalhamento de Conferência de Caixa (`TotaisEmCaixaSection.tsx`):
+  - Exposição contínua dos sub-itens sem sanfona retrátil.
+  - Seta `ChevronRight` em todas as formas de pagamento acionando a sub-tela de histórico detalhado da respectiva categoria.
+  - Sincronização dinâmica de título, botão voltar e ações de cabeçalho (`Share2` e `Printer`).
+  - Lista de operações detalhadas com data/hora, identificação da operação e valor total formatado.
+  - Integração com `SaleShareModal` e `SaleLinkModal` para geração, upload e compartilhamento do comprovante via WhatsApp e QR Code.
+- Gerador de PDF de Conferência de Caixa (`src/lib/pdf/generateCashConferencePdf.ts`):
+  - Layout A4 / Retrato fiel à referência visual oficial (cabeçalho da empresa, título `Conferência de Caixa`, data de impressão, período, forma de pagamento, tabela de operações com quantidade total e soma R$ no rodapé).
+- Reutilização Integral da Tela de Negociações em Vendas (`VendasSection.tsx`):
+  - Conexão direta com `NegociacoesSection` com o título oficial `"Vendas"` (`UI_STRINGS.dashboard.salesKpi`).
+- Filtros 100% Dinâmicos e Funcionais (`NegociacoesSection.tsx`).
+- Reutilização Integral da Tela de Negociações em Vendas (`VendasSection.tsx`):
+  - Conexão direta com `NegociacoesSection` com o título oficial `"Vendas"` (`UI_STRINGS.dashboard.salesKpi`).
+  - Total integração com o histórico de vendas do Dexie (`useSales`), detalhamento de itens, duplicar pedido, impressão e geração de PDF.
+- Filtros 100% Dinâmicos e Funcionais (`NegociacoesSection.tsx`):
+  - Eliminação de qualquer data estática ou placeholder fixo.
+  - Cálculo dinâmico de intervalo de período a partir de `new Date()` (`Hoje`, `7D`, `1M`, `3M`, `6M`, `1A`).
+  - Filtragem precisa de vendas por `created_at` (entre data/hora inicial e data/hora final).
+  - Filtragem reativa por nome de cliente, usuário/operador, dispositivo/terminal e mesa/comanda.
+  - Atualização automática dos campos de data inicial e final ao alternar botões de período.
+  - Zero erros e zero warnings no ESLint (`npm run lint`).
+  - Compilação TypeScript `npx tsc --noEmit` limpa (exit code 0).
+  - Build de produção Next.js `npm run build` bem-sucedido.
+- Restauração do Cabeçalho Superior Esquerdo (`PdvHeaderSection.tsx`):
+  - Retorno da logo da empresa para texto simples (`<Font variant="h3" as="h1" color="brand-secondary" text={companyName} />`) clicável para o dashboard.
+  - Retorno do botão de operador posicionado logo abaixo para formato ghost (`<Button variant="ghost-secondary" label={operatorName} icon={LogOut} onClick={onLogout} />`) com ícone e texto transparentes sem container pílula sólido.
+  - Zero erros e zero warnings no ESLint (`npm run lint`).
+  - Compilação TypeScript `npx tsc --noEmit` limpa (exit code 0).
+- Saneamento Ortográfico e Correção de Encoding UTF-8 / Mojibake (`src/constants/strings.ts`):
+  - 158 ocorrências de caracteres duplamente codificados (ex: `Ã§`, `Ã£`, `Ã¡`, `Ã©`, `Ã­`, `Ã³`, `Ãº`, etc.) corrigidas e normalizadas.
+  - Correção de acentuações e capitalização em menus do PDV e rótulos (`NEGOCIAÇÃO`, `OUTRAS OPERAÇÕES`, `OPÇÕES`, `Devolução`, `Observação`, `Últimas negociações`, etc.).
+  - Zero erros e zero warnings no ESLint (`npm run lint` limpo com 0 problems).
+  - Compilação TypeScript `npx tsc --noEmit` com 0 erros.
+  - Build de produção Next.js `npm run build` bem-sucedido.
+- Centralização Universal de Strings no Dicionário `UI_STRINGS` (`src/constants/strings.ts`):
+  - 100% de strings hardcoded de componentes da interface extraídas e mapeadas para namespaces organizados (`thermalReceipt`, `pdv.checkout`, `products.form`, `deliveryFees`, `customers`, `common`, etc.).
+  - Zero violações da regra de ESLint `no-restricted-syntax` para strings em JSX.
+  - Zero erros no `npm run lint` (exit code 0).
+  - Zero erros no compilador TypeScript `npx tsc --noEmit` (exit code 0).
+  - Build de produção Next.js `npm run build` passando com sucesso (16/16 páginas estáticas otimizadas).
 - Sistema de Comprovante PDF de Negociações:
   - Geração de PDF no client-side com `jsPDF` e `jspdf-autotable` seguindo o layout oficial da negociação (`generateSaleReceiptPdf`).
   - Route Handler `/api/upload-receipt` que recebe base64 e realiza upload com `SUPABASE_SERVICE_ROLE_KEY` de forma segura no Supabase Storage (`sale-receipts/{tenantId}/{fileName}`).

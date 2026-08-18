@@ -18,6 +18,7 @@ import { DeliveryClientInfo } from "./DeliveryCheckoutConfirmation"
 import { ClientAddressFormModal, AddressFormData } from "./ClientAddressFormModal"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { parseAddressString } from "./DeliveryClientFormScreen"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface DeliveryClientSelectModalProps {
   isOpen: boolean
@@ -36,6 +37,8 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
   const tenantId = tenantCtx?.currentTenant?.id || "default"
   const rawCustomers = useCustomers(tenantId)
   const customers = React.useMemo(() => Array.isArray(rawCustomers) ? rawCustomers : [], [rawCustomers])
+  const d = UI_STRINGS.delivery
+  const cust = UI_STRINGS.customers
 
   const [tab, setTab] = React.useState<"search" | "form">("form")
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -244,10 +247,10 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
       <Modal
         isOpen={isOpen}
         onClose={onClose}
-        title="Identificar Cliente do Delivery"
-        subtitle="Selecione um cliente cadastrado ou preencha os dados da entrega"
+        title={d.clientSelectModalTitle}
+        subtitle={d.clientSelectModalSubtitle}
         icon={User}
-        successText="Avançar para o Pedido"
+        successText={d.advanceToOrderButton}
         onSuccess={handleSubmit}
         showCancelButton={true}
       >
@@ -256,13 +259,13 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
           <Stack direction="row" gap={2.5} w="full">
             <Button
               variant={tab === "search" ? "primary" : "secondary"}
-              label="Buscar Cadastrado"
+              label={d.searchRegisteredTab}
               icon={Search}
               onClick={() => setTab("search")}
             />
             <Button
               variant={tab === "form" ? "primary" : "secondary"}
-              label="Dados do Cliente"
+              label={d.clientDataTab}
               icon={Plus}
               onClick={() => setTab("form")}
             />
@@ -271,7 +274,7 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
           {tab === "search" ? (
             <Stack gap={2.5} w="full">
               <Input
-                placeholder="Buscar por nome, telefone ou CPF/CNPJ..."
+                placeholder={d.searchClientPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 icon={Search}
@@ -282,16 +285,16 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
                   {filteredCustomers.length === 0 ? (
                     <EmptyState
                       icon={UserX}
-                      title="Nenhum cliente cadastrado"
-                      subtitle="Tente buscar por outro termo ou cadastre um novo cliente."
+                      title={d.noRegisteredClientTitle}
+                      subtitle={d.noRegisteredClientSubtitle}
                     />
                   ) : (
-                    filteredCustomers.map((cust: Customer) => {
-                      const isSelected = cust.id === selectedCustomerId
-                      const addr = cust.addresses?.find((a) => a.isDefault) || cust.addresses?.[0]
+                    filteredCustomers.map((customerObj: Customer) => {
+                      const isSelected = customerObj.id === selectedCustomerId
+                      const addr = customerObj.addresses?.find((a) => a.isDefault) || customerObj.addresses?.[0]
                       return (
                         <Box
-                          key={cust.id}
+                          key={customerObj.id}
                           padding={2.5}
                           radius="default"
                           border={true}
@@ -299,12 +302,12 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
                           bg={isSelected ? "bg-brand-primary/5" : "bg-surface"}
                           hoverBg="surface-sunken"
                           cursor="pointer"
-                          onClick={() => handleSelectCustomer(cust)}
+                          onClick={() => handleSelectCustomer(customerObj)}
                         >
                           <Stack direction="row" justify="between" align="center" w="full">
                             <Stack gap={0} align="start">
-                              <Font variant="body-bold" text={cust.name} />
-                              <Font variant="sub-tiny" color="muted" text={cust.phone || "Sem telefone"} />
+                              <Font variant="body-bold" text={customerObj.name} />
+                              <Font variant="sub-tiny" color="muted" text={customerObj.phone || "Sem telefone"} />
                               {addr && (
                                 <Font
                                   variant="sub-tiny"
@@ -326,11 +329,11 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
             /* ================= CARD DADOS PESSOAIS (FIEL AO PRINT) ================= */
             <Box as="form" onSubmit={handleSubmit} w="full">
               <Stack gap={2.5} w="full">
-                <Font variant="body-bold" text="Dados pessoais" />
+                <Font variant="body-bold" text={cust.personalDataTitle} />
 
                 {/* 1. Nome */}
                 <Input
-                  placeholder="* Nome"
+                  placeholder={cust.nameRequiredPlaceholder}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -338,7 +341,7 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
 
                 {/* 2. E-mail */}
                 <Input
-                  placeholder="E-mail"
+                  placeholder={cust.emailPlaceholder}
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -347,7 +350,7 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
                 {/* 3. CPF */}
                 <Input
                   mask="cpf"
-                  placeholder="CPF"
+                  placeholder={cust.cpfPlaceholder}
                   value={document}
                   onChange={(e) => setDocument(e.target.value)}
                 />
@@ -355,7 +358,7 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
                 {/* 4. Telefone */}
                 <Input
                   mask="phone"
-                  placeholder="Telefone"
+                  placeholder={cust.phonePlaceholder}
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                 />
@@ -363,7 +366,7 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
                 {/* 7. Seção Endereço com Botão Pill de Adicionar (visível apenas se não houver endereço) */}
                 <Stack gap={2.5} w="full">
                   <Stack direction="row" align="center" gap={2.5}>
-                    <Font variant="body-bold" text="Endereço" />
+                    <Font variant="body-bold" text={cust.addressTitle} />
                     {addresses.length === 0 && (
                       <Button
                         variant="primary-pill-icon"
