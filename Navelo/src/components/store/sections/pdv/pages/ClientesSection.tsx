@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -24,6 +22,36 @@ interface ClientesSectionProps {
   onSelectClient?: (client: Customer) => void
 }
 
+function ClientListItem({
+  client,
+  onClick,
+}: {
+  client: Customer
+  onClick: () => void
+}) {
+  const s = UI_STRINGS.customers
+  const docText = client.document
+    ? formatString(s.cpfCnpjTemplate, { document: client.document })
+    : s.noDocumentText
+
+  return (
+    <Box w="full" padding={2.5} radius="none" hoverBg="primary/10" cursor="pointer" onClick={onClick}>
+      <Stack direction="row" align="center" justify="between" w="full">
+        <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
+          <Avatar fallback={client.name.substring(0, 2).toUpperCase()} />
+          <Stack gap={1} align="start" flex="1" minW="0">
+            <Font variant="body" text={client.name} />
+            <Stack direction="row" align="center" gap={2.5}>
+              <Font variant="auxiliary" color="muted" text={docText} />
+              {client.phone && <Font variant="auxiliary" color="muted" text={`• ${client.phone}`} />}
+            </Stack>
+          </Stack>
+        </Stack>
+      </Stack>
+    </Box>
+  )
+}
+
 export const ClientesSection: React.FC<ClientesSectionProps> = ({
   onBackToDashboard,
   setCustomBack,
@@ -35,34 +63,21 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id
   const s = UI_STRINGS.customers
-
-  // Clientes do banco de dados local IndexedDB
   const dbCustomers = useCustomers(tenantId)
   const clients = React.useMemo(() => (Array.isArray(dbCustomers) ? dbCustomers : []), [dbCustomers])
 
   const [modeHistory, setModeHistory] = React.useState<("list" | "form")[]>(["list"])
   const mode = modeHistory[modeHistory.length - 1] || "list"
+  const [editingClient, setEditingClient] = React.useState<Customer | null>(null)
 
   const pushMode = React.useCallback((newMode: "list" | "form") => {
     setModeHistory((prev) => [...prev, newMode])
   }, [])
 
-  const [editingClient, setEditingClient] = React.useState<Customer | null>(null)
-
   const popMode = React.useCallback(() => {
     setEditingClient(null)
     setModeHistory((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev))
   }, [])
-
-  const handleEdit = (client: Customer) => {
-    setEditingClient(client)
-    pushMode("form")
-  }
-
-  const handleCreateNew = () => {
-    setEditingClient(null)
-    pushMode("form")
-  }
 
   return (
     <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
@@ -73,58 +88,27 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
               title={s.title}
               items={clients}
               searchPlaceholder={s.searchPlaceholder}
-              searchFilterFn={(client, query) => {
+              searchFilterFn={(c, query) => {
                 const q = query.toLowerCase()
-                return (
-                  client.name.toLowerCase().includes(q) ||
-                  (!!client.document && client.document.includes(q)) ||
-                  (!!client.phone && client.phone.includes(q))
-                )
+                return c.name.toLowerCase().includes(q) || (!!c.document && c.document.includes(q)) || (!!c.phone && c.phone.includes(q))
               }}
               emptyIcon={UserX}
               emptyTitle={s.emptyTitle}
               emptySubtitle={s.emptySubtitle}
-              onAdd={handleCreateNew}
-              getItemKey={(client) => client.id}
+              onAdd={() => { setEditingClient(null); pushMode("form") }}
+              getItemKey={(c) => c.id}
               setCustomBack={setCustomBack}
               setCustomTitle={setCustomTitle}
               setCustomActions={setCustomActions}
               onBackToDashboard={onBack || onBackToDashboard}
               renderItem={(client) => (
-                <Box
-                  w="full"
-                  padding={2.5}
-                  radius="none"
-                  hoverBg="primary/10"
-                  cursor="pointer"
+                <ClientListItem
+                  client={client}
                   onClick={() => {
-                    if (onSelectClient) {
-                      onSelectClient(client)
-                    } else {
-                      handleEdit(client)
-                    }
+                    if (onSelectClient) onSelectClient(client)
+                    else { setEditingClient(client); pushMode("form") }
                   }}
-                >
-                  <Stack direction="row" align="center" justify="between" w="full">
-                    <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
-                      <Avatar fallback={client.name.substring(0, 2).toUpperCase()} />
-
-                      <Stack gap={1} align="start" flex="1" minW="0">
-                        <Font variant="body" text={client.name} />
-                        <Stack direction="row" align="center" gap={2.5}>
-                          <Font
-                            variant="auxiliary"
-                            color="muted"
-                            text={client.document ? formatString(s.cpfCnpjTemplate, { document: client.document }) : s.noDocumentText}
-                          />
-                          {client.phone && (
-                            <Font variant="auxiliary" color="muted" text={`• ${client.phone}`} />
-                          )}
-                        </Stack>
-                      </Stack>
-                    </Stack>
-                  </Stack>
-                </Box>
+                />
               )}
             />
           )}
@@ -142,4 +126,3 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
     </Box>
   )
 }
-

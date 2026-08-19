@@ -1,12 +1,8 @@
 "use client"
 
-/* eslint-disable react-hooks/set-state-in-effect */
-
 import React from "react"
 import { Box } from "@/components/store/base/Box"
 import { QuantityControl } from "@/components/store/intermediary/QuantityControl"
-
-const FOOTER_ANIMATION_MS = 240
 
 interface ProductCardQuantityFooterProps {
   quantity: number
@@ -26,47 +22,9 @@ export function ProductCardQuantityFooter({
   onDecrease,
   onRemove,
 }: ProductCardQuantityFooterProps) {
-  const [footerMounted, setFooterMounted] = React.useState(quantity > 0)
-  const [footerAnimation, setFooterAnimation] = React.useState<"slide-up" | "slide-down" | undefined>(
-    quantity > 0 ? "slide-up" : undefined
-  )
-  const [displayQuantity, setDisplayQuantity] = React.useState(quantity)
-  const exitTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  if (quantity <= 0) return null
 
-  React.useEffect(() => {
-    if (quantity > 0) {
-      setDisplayQuantity(quantity)
-
-      if (exitTimerRef.current) {
-        clearTimeout(exitTimerRef.current)
-        exitTimerRef.current = null
-      }
-
-      setFooterMounted(true)
-      setFooterAnimation("slide-up")
-      return
-    }
-
-    if (!footerMounted) return
-
-    setFooterAnimation("slide-down")
-    exitTimerRef.current = setTimeout(() => {
-      setFooterMounted(false)
-      setFooterAnimation(undefined)
-      exitTimerRef.current = null
-    }, FOOTER_ANIMATION_MS)
-
-    return () => {
-      if (exitTimerRef.current) {
-        clearTimeout(exitTimerRef.current)
-        exitTimerRef.current = null
-      }
-    }
-  }, [quantity, footerMounted])
-
-  if (!footerMounted || !footerAnimation) return null
-
-  const effectiveMax = maxQuantity ?? stock
+  const effectiveMax = maxQuantity !== undefined ? maxQuantity : stock
 
   return (
     <Box
@@ -77,10 +35,10 @@ export function ProductCardQuantityFooter({
       w="full"
       bg="bg-white"
       padding={1}
-      animation={footerAnimation}
+      animation="slide-up"
     >
       <QuantityControl
-        quantity={displayQuantity}
+        quantity={quantity}
         stock={effectiveMax}
         maxQuantity={effectiveMax}
         onIncrease={onIncrease}

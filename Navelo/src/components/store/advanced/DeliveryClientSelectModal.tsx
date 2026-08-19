@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, complexity */
-
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
 import { Box } from "@/components/store/base/Box"
@@ -27,33 +25,241 @@ export interface DeliveryClientSelectModalProps {
   onSelectClient: (client: DeliveryClientInfo) => void
 }
 
-export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps> = ({
+function resolveInitialModalClient(initialClient?: DeliveryClientInfo | null) {
+  if (!initialClient || !initialClient.name) {
+    return { name: "", phone: "", addresses: [] as AddressFormData[], selectedCustomerId: undefined as string | undefined }
+  }
+  const addrs: AddressFormData[] = []
+  if (initialClient.address && initialClient.address !== "Endereço não informado") {
+    const parsed = parseAddressString(initialClient.address)
+    addrs.push({
+      name: parsed.name,
+      street: parsed.street,
+      number: parsed.number,
+      complement: parsed.complement,
+      neighborhood: parsed.neighborhood,
+      city: parsed.city,
+      zip: parsed.zip,
+    })
+  }
+  return {
+    name: initialClient.name,
+    phone: initialClient.phone || "",
+    addresses: addrs,
+    selectedCustomerId: initialClient.customerId,
+  }
+}
+
+interface DeliveryClientSearchTabProps {
+  searchQuery: string
+  setSearchQuery: (q: string) => void
+  filteredCustomers: Customer[]
+  selectedCustomerId?: string
+  onSelectCustomer: (c: Customer) => void
+}
+
+function DeliveryClientSearchTab({
+  searchQuery,
+  setSearchQuery,
+  filteredCustomers,
+  selectedCustomerId,
+  onSelectCustomer,
+}: DeliveryClientSearchTabProps) {
+  const d = UI_STRINGS.delivery
+  return (
+    <Stack gap={2.5} w="full">
+      <Input
+        placeholder={d.searchClientPlaceholder}
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        icon={Search}
+      />
+      <Box maxH="96" overflow="auto" w="full">
+        <Stack gap={1} w="full">
+          {filteredCustomers.length === 0 ? (
+            <EmptyState icon={UserX} title={d.noRegisteredClientTitle} subtitle={d.noRegisteredClientSubtitle} />
+          ) : (
+            filteredCustomers.map((customerObj: Customer) => {
+              const isSelected = customerObj.id === selectedCustomerId
+              const addr = customerObj.addresses?.find((a) => a.isDefault) || customerObj.addresses?.[0]
+              return (
+                <Box
+                  key={customerObj.id}
+                  padding={2.5}
+                  radius="default"
+                  border={true}
+                  borderColor={isSelected ? "border-brand-primary" : "border-border"}
+                  bg={isSelected ? "bg-brand-primary/5" : "bg-surface"}
+                  hoverBg="surface-sunken"
+                  cursor="pointer"
+                  onClick={() => onSelectCustomer(customerObj)}
+                >
+                  <Stack direction="row" justify="between" align="center" w="full">
+                    <Stack gap={0} align="start">
+                      <Font variant="body-bold" text={customerObj.name} />
+                      <Font variant="sub-tiny" color="muted" text={customerObj.phone || "Sem telefone"} />
+                      {addr && (
+                        <Font variant="sub-tiny" color="muted" text={`${addr.street}, ${addr.number} - ${addr.neighborhood}`} />
+                      )}
+                    </Stack>
+                    {isSelected && <Icon icon={Check} size={16} color="primary" />}
+                  </Stack>
+                </Box>
+              )
+            })
+          )}
+        </Stack>
+      </Box>
+    </Stack>
+  )
+}
+
+interface DeliveryClientFormTabProps {
+  name: string
+  setName: (v: string) => void
+  email: string
+  setEmail: (v: string) => void
+  document: string
+  setDocument: (v: string) => void
+  phone: string
+  setPhone: (v: string) => void
+  addresses: AddressFormData[]
+  onOpenNewAddress: () => void
+  onEditAddress: (idx: number) => void
+  onDeleteAddress: (idx: number) => void
+}
+
+function DeliveryClientFormTab({
+  name, setName,
+  email, setEmail,
+  document, setDocument,
+  phone, setPhone,
+  addresses, onOpenNewAddress, onEditAddress, onDeleteAddress,
+}: DeliveryClientFormTabProps) {
+  const cust = UI_STRINGS.customers
+  return (
+    <Stack gap={2.5} w="full">
+      <Font variant="body-bold" text={cust.personalDataTitle} />
+      <Input placeholder={cust.nameRequiredPlaceholder} value={name} onChange={(e) => setName(e.target.value)} required />
+      <Input placeholder={cust.emailPlaceholder} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <Input mask="cpf" placeholder={cust.cpfPlaceholder} value={document} onChange={(e) => setDocument(e.target.value)} />
+      <Input mask="phone" placeholder={cust.phonePlaceholder} value={phone} onChange={(e) => setPhone(e.target.value)} />
+
+      <Stack gap={2.5} w="full">
+        <Stack direction="row" align="center" gap={2.5}>
+          <Font variant="body-bold" text={cust.addressTitle} />
+          {addresses.length === 0 && <Button variant="primary-pill-icon" icon={Plus} onClick={onOpenNewAddress} />}
+        </Stack>
+
+        {addresses.length > 0 && (
+          <Stack gap={1} w="full">
+            {addresses.map((addr, idx) => (
+              <Box key={idx} padding={2.5} bg="surface-sunken" radius="default" border={true} borderColor="border-border" w="full">
+                <Stack direction="row" justify="between" align="center" w="full">
+                  <Stack direction="row" gap={2.5} align="center">
+                    <Box shrink="0">
+                      <Icon icon={MapPin} size={16} color="primary" />
+                    </Box>
+                    <Stack gap={0} align="start">
+                      <Font variant="body-sm-semibold" text={addr.name || `Endereço ${idx + 1}`} />
+                      <Font
+                        variant="description"
+                        color="muted"
+                        text={`${addr.street}${addr.number ? `, ${addr.number}` : ""}${addr.neighborhood ? ` - ${addr.neighborhood}` : ""}${addr.city ? `, ${addr.city}` : ""}`}
+                      />
+                    </Stack>
+                  </Stack>
+                  <Stack direction="row" gap={1}>
+                    <Button variant="ghost" icon={Edit2} onClick={() => onEditAddress(idx)} />
+                    <Button variant="ghost" icon={Trash2} onClick={() => onDeleteAddress(idx)} />
+                  </Stack>
+                </Stack>
+              </Box>
+            ))}
+          </Stack>
+        )}
+      </Stack>
+    </Stack>
+  )
+}
+
+function formatClientSelectAddress(addresses: AddressFormData[]) {
+  if (addresses.length === 0) return "Endereço não informado"
+  const p = addresses[0]
+  const numPart = p.number ? `, ${p.number}` : ""
+  const compPart = p.complement ? ` - ${p.complement}` : ""
+  const neighPart = p.neighborhood ? `, ${p.neighborhood}` : ""
+  const cityPart = p.city ? ` - ${p.city}` : ""
+  const zipPart = p.zip ? ` (CEP: ${p.zip})` : ""
+  return `${p.street}${numPart}${compPart}${neighPart}${cityPart}${zipPart}`
+}
+
+interface PersistCustomerParams {
+  tenantId: string
+  selectedCustomerId?: string
+  name: string
+  phone: string
+  email: string
+  document: string
+  addresses: AddressFormData[]
+}
+
+async function persistSelectedModalCustomer(params: PersistCustomerParams) {
+  if (params.selectedCustomerId || !params.tenantId) return params.selectedCustomerId
+  const newCustId = `cli-${Date.now()}`
+  try {
+    await dal.customers.create({
+      id: newCustId,
+      tenant_id: params.tenantId,
+      company_id: params.tenantId,
+      name: params.name.trim(),
+      phone: params.phone.trim(),
+      email: params.email.trim() || undefined,
+      document: params.document.trim() || "",
+      type: params.document.length > 14 ? "PJ" : "PF",
+      addresses: params.addresses.map((a, i) => ({
+        id: a.id || `addr-${Date.now()}-${i}`,
+        customerId: newCustId,
+        name: a.name,
+        street: a.street,
+        number: a.number,
+        complement: a.complement,
+        neighborhood: a.neighborhood,
+        city: a.city,
+        state: "",
+        zipCode: a.zip,
+        reference_point: a.reference_point,
+        isDefault: i === 0,
+      })),
+    })
+    return newCustId
+  } catch (err) {
+    console.error("Erro ao salvar cliente no Dexie:", err)
+    return undefined
+  }
+}
+
+export function DeliveryClientSelectModal({
   isOpen,
   onClose,
   initialClient,
   onSelectClient,
-}) => {
+}: DeliveryClientSelectModalProps) {
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id || "default"
   const rawCustomers = useCustomers(tenantId)
-  const customers = React.useMemo(() => Array.isArray(rawCustomers) ? rawCustomers : [], [rawCustomers])
+  const customers = React.useMemo(() => (Array.isArray(rawCustomers) ? rawCustomers : []), [rawCustomers])
   const d = UI_STRINGS.delivery
-  const cust = UI_STRINGS.customers
 
+  const init = resolveInitialModalClient(initialClient)
   const [tab, setTab] = React.useState<"search" | "form">("form")
   const [searchQuery, setSearchQuery] = React.useState("")
-
-  // Form states (Dados pessoais)
-  const [name, setName] = React.useState("")
+  const [name, setName] = React.useState(init.name)
   const [email, setEmail] = React.useState("")
   const [document, setDocument] = React.useState("")
-  const [ie, setIe] = React.useState("")
-  const [rg, setRg] = React.useState("")
-  const [phone, setPhone] = React.useState("")
-  const [addresses, setAddresses] = React.useState<AddressFormData[]>([])
-  const [selectedCustomerId, setSelectedCustomerId] = React.useState<string | undefined>()
-
-  // Modal de endereço
+  const [phone, setPhone] = React.useState(init.phone)
+  const [addresses, setAddresses] = React.useState<AddressFormData[]>(init.addresses)
+  const [selectedCustomerId, setSelectedCustomerId] = React.useState<string | undefined>(init.selectedCustomerId)
   const [isAddressModalOpen, setIsAddressModalOpen] = React.useState(false)
   const [editingAddressIndex, setEditingAddressIndex] = React.useState<number | null>(null)
 
@@ -64,41 +270,13 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
     setPrevIsOpen(isOpen)
     setPrevInitialClient(initialClient)
     if (isOpen) {
-      if (initialClient && initialClient.name) {
-        setName(initialClient.name)
-        setPhone(initialClient.phone || "")
-        setEmail("")
-        setDocument("")
-        setIe("")
-        setRg("")
-        setSelectedCustomerId(initialClient.customerId)
-        // eslint-disable-next-line max-depth
-        if (initialClient.address && initialClient.address !== "Endereço não informado") {
-          const parsed = parseAddressString(initialClient.address)
-          setAddresses([
-            {
-              name: parsed.name,
-              street: parsed.street,
-              number: parsed.number,
-              complement: parsed.complement,
-              neighborhood: parsed.neighborhood,
-              city: parsed.city,
-              zip: parsed.zip,
-            },
-          ])
-        } else {
-          setAddresses([])
-        }
-      } else {
-        setName("")
-        setEmail("")
-        setDocument("")
-        setIe("")
-        setRg("")
-        setPhone("")
-        setAddresses([])
-        setSelectedCustomerId(undefined)
-      }
+      const next = resolveInitialModalClient(initialClient)
+      setName(next.name)
+      setPhone(next.phone)
+      setEmail("")
+      setDocument("")
+      setAddresses(next.addresses)
+      setSelectedCustomerId(next.selectedCustomerId)
     }
   }
 
@@ -115,130 +293,34 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
     setPhone(customer.phone || "")
     setEmail(customer.email || "")
     setDocument(customer.document || "")
-    setRg(customer.rg || "")
-    setIe(customer.ie || "")
-
-    if (customer.addresses && customer.addresses.length > 0) {
-      setAddresses(
-        customer.addresses.map((a) => {
-          let street = a.street
-          let number = a.number
-          let complement = a.complement || ""
-          let neighborhood = a.neighborhood
-          let city = a.city
-          let zip = a.zipCode
-
-          if (a.street && (a.street.includes("(CEP:") || a.street.includes(" - "))) {
-            const p = parseAddressString(a.street)
-            street = p.street
-            number = p.number !== "S/N" ? p.number : a.number
-            complement = p.complement || complement
-            neighborhood = p.neighborhood || neighborhood
-            city = p.city || city
-            zip = p.zip || zip
-          }
-
-          return {
-            id: a.id,
-            name: a.name || "Endereço",
-            street,
-            number,
-            complement,
-            neighborhood,
-            city,
-            zip,
-            reference_point: a.reference_point || "",
-          }
-        })
-      )
-    } else {
-      setAddresses([])
-    }
-
+    const addrs = (customer.addresses || []).map((a) => {
+      const p = parseAddressString(a.street)
+      return {
+        id: a.id,
+        name: a.name || "Endereço",
+        street: p.street,
+        number: p.number !== "S/N" ? p.number : a.number,
+        complement: p.complement || a.complement || "",
+        neighborhood: p.neighborhood || a.neighborhood,
+        city: p.city || a.city,
+        zip: p.zip || a.zipCode,
+        reference_point: a.reference_point || "",
+      }
+    })
+    setAddresses(addrs)
     setTab("form")
-  }
-
-  const handleSaveAddress = (addrData: AddressFormData) => {
-    if (editingAddressIndex !== null) {
-      setAddresses((prev) =>
-        prev.map((item, idx) => (idx === editingAddressIndex ? addrData : item))
-      )
-      setEditingAddressIndex(null)
-    } else {
-      setAddresses((prev) => [...prev, addrData])
-    }
-  }
-
-  const handleDeleteAddress = (idx: number) => {
-    setAddresses((prev) => prev.filter((_, i) => i !== idx))
-  }
-
-  const handleEditAddress = (idx: number) => {
-    setEditingAddressIndex(idx)
-    setIsAddressModalOpen(true)
   }
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     if (!name.trim()) return
 
-    // Formata o endereço principal para o delivery
-    let formattedAddress = "Endereço não informado"
-    if (addresses.length > 0) {
-      const primaryAddr = addresses[0]
-      let parts = primaryAddr.street
-      if (primaryAddr.number) parts += `, ${primaryAddr.number}`
-      if (primaryAddr.complement) parts += ` - ${primaryAddr.complement}`
-      if (primaryAddr.neighborhood) parts += `, ${primaryAddr.neighborhood}`
-      if (primaryAddr.city) parts += ` - ${primaryAddr.city}`
-      if (primaryAddr.zip) parts += ` (CEP: ${primaryAddr.zip})`
-      formattedAddress = parts
-    }
-
-    // Se é um cliente novo que ainda não está no Dexie, salva no Dexie para persistência multi-tenant
-    let finalCustomerId = selectedCustomerId
-    if (!finalCustomerId && tenantId) {
-      const newCustId = `cli-${Date.now()}`
-      try {
-        await dal.customers.create({
-          id: newCustId,
-          tenant_id: tenantId,
-          company_id: tenantId,
-          name: name.trim(),
-          phone: phone.trim(),
-          email: email.trim() || undefined,
-          document: document.trim() || "",
-          rg: rg.trim() || undefined,
-          ie: ie.trim() || undefined,
-          type: document.length > 14 ? "PJ" : "PF",
-          addresses: addresses.map((a, i) => ({
-            id: a.id || `addr-${Date.now()}-${i}`,
-            customerId: newCustId,
-            name: a.name,
-            street: a.street,
-            number: a.number,
-            complement: a.complement,
-            neighborhood: a.neighborhood,
-            city: a.city,
-            state: "",
-            zipCode: a.zip,
-            reference_point: a.reference_point,
-            isDefault: i === 0,
-          })),
-        })
-        finalCustomerId = newCustId
-      } catch (err) {
-        console.error("Erro ao salvar cliente no Dexie:", err)
-      }
-    }
-
-    onSelectClient({
-      name: name.trim(),
-      phone: phone.trim(),
-      address: formattedAddress,
-      customerId: finalCustomerId,
+    const formattedAddress = formatClientSelectAddress(addresses)
+    const finalCustId = await persistSelectedModalCustomer({
+      tenantId, selectedCustomerId, name, phone, email, document, addresses,
     })
 
+    onSelectClient({ name: name.trim(), phone: phone.trim(), address: formattedAddress, customerId: finalCustId })
     onClose()
   }
 
@@ -255,189 +337,54 @@ export const DeliveryClientSelectModal: React.FC<DeliveryClientSelectModalProps>
         showCancelButton={true}
       >
         <Stack gap={2.5} w="full">
-          {/* Alternância de Abas: Buscar Cadastrado vs Dados pessoais */}
           <Stack direction="row" gap={2.5} w="full">
-            <Button
-              variant={tab === "search" ? "primary" : "secondary"}
-              label={d.searchRegisteredTab}
-              icon={Search}
-              onClick={() => setTab("search")}
-            />
-            <Button
-              variant={tab === "form" ? "primary" : "secondary"}
-              label={d.clientDataTab}
-              icon={Plus}
-              onClick={() => setTab("form")}
-            />
+            <Button variant={tab === "search" ? "primary" : "secondary"} label={d.searchRegisteredTab} icon={Search} onClick={() => setTab("search")} />
+            <Button variant={tab === "form" ? "primary" : "secondary"} label={d.clientDataTab} icon={Plus} onClick={() => setTab("form")} />
           </Stack>
 
           {tab === "search" ? (
-            <Stack gap={2.5} w="full">
-              <Input
-                placeholder={d.searchClientPlaceholder}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                icon={Search}
-              />
-
-              <Box maxH="96" overflow="auto" w="full">
-                <Stack gap={1} w="full">
-                  {filteredCustomers.length === 0 ? (
-                    <EmptyState
-                      icon={UserX}
-                      title={d.noRegisteredClientTitle}
-                      subtitle={d.noRegisteredClientSubtitle}
-                    />
-                  ) : (
-                    filteredCustomers.map((customerObj: Customer) => {
-                      const isSelected = customerObj.id === selectedCustomerId
-                      const addr = customerObj.addresses?.find((a) => a.isDefault) || customerObj.addresses?.[0]
-                      return (
-                        <Box
-                          key={customerObj.id}
-                          padding={2.5}
-                          radius="default"
-                          border={true}
-                          borderColor={isSelected ? "border-brand-primary" : "border-border"}
-                          bg={isSelected ? "bg-brand-primary/5" : "bg-surface"}
-                          hoverBg="surface-sunken"
-                          cursor="pointer"
-                          onClick={() => handleSelectCustomer(customerObj)}
-                        >
-                          <Stack direction="row" justify="between" align="center" w="full">
-                            <Stack gap={0} align="start">
-                              <Font variant="body-bold" text={customerObj.name} />
-                              <Font variant="sub-tiny" color="muted" text={customerObj.phone || "Sem telefone"} />
-                              {addr && (
-                                <Font
-                                  variant="sub-tiny"
-                                  color="muted"
-                                  text={`${addr.street}, ${addr.number} - ${addr.neighborhood}`}
-                                />
-                              )}
-                            </Stack>
-                            {isSelected && <Icon icon={Check} size={16} color="primary" />}
-                          </Stack>
-                        </Box>
-                      )
-                    })
-                  )}
-                </Stack>
-              </Box>
-            </Stack>
+            <DeliveryClientSearchTab
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              filteredCustomers={filteredCustomers}
+              selectedCustomerId={selectedCustomerId}
+              onSelectCustomer={handleSelectCustomer}
+            />
           ) : (
-            /* ================= CARD DADOS PESSOAIS (FIEL AO PRINT) ================= */
-            <Box as="form" onSubmit={handleSubmit} w="full">
-              <Stack gap={2.5} w="full">
-                <Font variant="body-bold" text={cust.personalDataTitle} />
-
-                {/* 1. Nome */}
-                <Input
-                  placeholder={cust.nameRequiredPlaceholder}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-
-                {/* 2. E-mail */}
-                <Input
-                  placeholder={cust.emailPlaceholder}
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-
-                {/* 3. CPF */}
-                <Input
-                  mask="cpf"
-                  placeholder={cust.cpfPlaceholder}
-                  value={document}
-                  onChange={(e) => setDocument(e.target.value)}
-                />
-
-                {/* 4. Telefone */}
-                <Input
-                  mask="phone"
-                  placeholder={cust.phonePlaceholder}
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                />
-
-                {/* 7. Seção Endereço com Botão Pill de Adicionar (visível apenas se não houver endereço) */}
-                <Stack gap={2.5} w="full">
-                  <Stack direction="row" align="center" gap={2.5}>
-                    <Font variant="body-bold" text={cust.addressTitle} />
-                    {addresses.length === 0 && (
-                      <Button
-                        variant="primary-pill-icon"
-                        icon={Plus}
-                        onClick={() => {
-                          setEditingAddressIndex(null)
-                          setIsAddressModalOpen(true)
-                        }}
-                      />
-                    )}
-                  </Stack>
-
-                  {/* Lista de endereços adicionados */}
-                  {addresses.length > 0 && (
-                    <Stack gap={1} w="full">
-                      {addresses.map((addr, idx) => (
-                        <Box
-                          key={idx}
-                          padding={2.5}
-                          bg="surface-sunken"
-                          radius="default"
-                          border={true}
-                          borderColor="border-border"
-                          w="full"
-                        >
-                          <Stack direction="row" justify="between" align="center" w="full">
-                            <Stack direction="row" gap={2.5} align="center">
-                              <Box shrink="0">
-                                <Icon icon={MapPin} size={16} color="primary" />
-                              </Box>
-                              <Stack gap={0} align="start">
-                                <Font variant="body-sm-semibold" text={addr.name || `Endereço ${idx + 1}`} />
-                                <Font
-                                  variant="description"
-                                  color="muted"
-                                  text={`${addr.street}${addr.number ? `, ${addr.number}` : ""}${addr.neighborhood ? ` - ${addr.neighborhood}` : ""}${addr.city ? `, ${addr.city}` : ""}`}
-                                />
-                              </Stack>
-                            </Stack>
-                            <Stack direction="row" gap={1}>
-                              <Button
-                                variant="ghost"
-                                icon={Edit2}
-                                onClick={() => handleEditAddress(idx)}
-                              />
-                              <Button
-                                variant="ghost"
-                                icon={Trash2}
-                                onClick={() => handleDeleteAddress(idx)}
-                              />
-                            </Stack>
-                          </Stack>
-                        </Box>
-                      ))}
-                    </Stack>
-                  )}
-                </Stack>
-              </Stack>
-            </Box>
+            <DeliveryClientFormTab
+              name={name} setName={setName}
+              email={email} setEmail={setEmail}
+              document={document} setDocument={setDocument}
+              phone={phone} setPhone={setPhone}
+              addresses={addresses}
+              onOpenNewAddress={() => {
+                setEditingAddressIndex(null)
+                setIsAddressModalOpen(true)
+              }}
+              onEditAddress={(idx) => {
+                setEditingAddressIndex(idx)
+                setIsAddressModalOpen(true)
+              }}
+              onDeleteAddress={(idx) => setAddresses((prev) => prev.filter((_, i) => i !== idx))}
+            />
           )}
         </Stack>
       </Modal>
 
-      {/* Modal de Cadastro/Edição de Endereço */}
       <ClientAddressFormModal
         isOpen={isAddressModalOpen}
         onClose={() => {
           setIsAddressModalOpen(false)
           setEditingAddressIndex(null)
         }}
-        onSave={handleSaveAddress}
+        onSave={(addrData) => {
+          if (editingAddressIndex !== null) {
+            setAddresses((prev) => prev.map((it, idx) => (idx === editingAddressIndex ? addrData : it)))
+            setEditingAddressIndex(null)
+          } else {
+            setAddresses((prev) => [...prev, addrData])
+          }
+        }}
         initialData={editingAddressIndex !== null ? addresses[editingAddressIndex] : null}
       />
     </>

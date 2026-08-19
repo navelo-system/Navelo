@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
 import { Box } from "@/components/store/base/Box"
@@ -36,10 +34,7 @@ export const DEFAULT_THEME: ThemeColors = {
 }
 
 export const PRESET_THEMES: { name: string; colors: ThemeColors }[] = [
-  {
-    name: "Navelo Padrão",
-    colors: DEFAULT_THEME,
-  },
+  { name: "Navelo Padrão", colors: DEFAULT_THEME },
   {
     name: "Dark Luxe",
     colors: {
@@ -116,24 +111,116 @@ export function loadSavedTheme(): ThemeColors {
   return DEFAULT_THEME
 }
 
+const THEME_FIELDS: { key: keyof ThemeColors; label: string; description: string }[] = [
+  { key: "primary", label: "Cor Primária", description: "Cabeçalho, botões e barras principais" },
+  { key: "primaryFg", label: "Sobreposição da Primária", description: "Texto/Ícones sobre a cor primária" },
+  { key: "secondary", label: "Cor Secundária (Destaque)", description: "Badges, valores e acentos de destaque" },
+  { key: "secondaryFg", label: "Sobreposição da Secundária", description: "Texto/Ícones sobre a cor secundária" },
+  { key: "foreground", label: "Texto Principal", description: "Títulos e textos correntes" },
+  { key: "textSecondary", label: "Texto Secundário", description: "Subtítulos e descrições" },
+  { key: "textMuted", label: "Texto Suave", description: "Legendas e placeholders" },
+]
+
+function ThemePresetsGrid({
+  colors,
+  onApplyPreset,
+}: {
+  colors: ThemeColors
+  onApplyPreset: (p: ThemeColors) => void
+}) {
+  const s = UI_STRINGS.themeCustomizer
+  return (
+    <Stack gap={2.5} w="full">
+      <Font variant="body-bold" text={s.presetsTitle} />
+      <Grid cols={3} gap={2.5}>
+        {PRESET_THEMES.map((p) => {
+          const isActive = colors.primary === p.colors.primary && colors.secondary === p.colors.secondary
+          return (
+            <Box
+              key={p.name}
+              padding={2.5}
+              radius="lg"
+              border={true}
+              borderColor={isActive ? "border-brand-primary" : "border-border"}
+              bg="bg-surface"
+              cursor="pointer"
+              onClick={() => onApplyPreset(p.colors)}
+              interactive
+            >
+              <Stack gap={1} align="center">
+                <Stack direction="row" gap={1} align="center">
+                  <ColorDot color={p.colors.primary} />
+                  <ColorDot color={p.colors.secondary} />
+                </Stack>
+                <Font variant="auxiliary" text={p.name} align="center" />
+              </Stack>
+            </Box>
+          )
+        })}
+      </Grid>
+    </Stack>
+  )
+}
+
+function ThemeFieldsGrid({
+  colors,
+  onColorChange,
+}: {
+  colors: ThemeColors
+  onColorChange: (key: keyof ThemeColors, value: string) => void
+}) {
+  const s = UI_STRINGS.themeCustomizer
+  return (
+    <Stack gap={2.5} w="full">
+      <Font variant="body-bold" text={s.fineTuningTitle} />
+      <Grid cols={2} gap={2.5}>
+        {THEME_FIELDS.map((f) => (
+          <Box
+            key={f.key}
+            padding={2.5}
+            bg="bg-surface-sunken"
+            radius="lg"
+            border={true}
+            borderColor="border-border"
+          >
+            <Stack gap={1} w="full">
+              <Stack direction="row" align="center" justify="between" w="full">
+                <Font variant="body-sm-semibold" text={f.label} />
+                <ColorInput value={colors[f.key]} onChange={(val) => onColorChange(f.key, val)} />
+              </Stack>
+              <Stack direction="row" align="center" justify="between" w="full">
+                <Font variant="auxiliary" color="muted" text={f.description} />
+                <Box
+                  as="input"
+                  type="text"
+                  value={colors[f.key]}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => onColorChange(f.key, e.target.value)}
+                  w="w-20"
+                  radius="default"
+                  border={true}
+                  borderColor="border-border"
+                  bg="bg-white"
+                  paddingX={1}
+                  paddingY={1}
+                />
+              </Stack>
+            </Stack>
+          </Box>
+        ))}
+      </Grid>
+    </Stack>
+  )
+}
+
 export interface ThemeCustomizerModalProps {
   isOpen: boolean
   onClose: () => void
 }
 
-export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
-  isOpen,
-  onClose,
-}) => {
+export function ThemeCustomizerModal({ isOpen, onClose }: ThemeCustomizerModalProps) {
   const [colors, setColors] = React.useState<ThemeColors>(loadSavedTheme)
   const tenantCtx = useTenant()
   const s = UI_STRINGS.themeCustomizer
-
-  React.useEffect(() => {
-    if (isOpen) {
-      applyThemeColors(loadSavedTheme())
-    }
-  }, [isOpen])
 
   const handleColorChange = (key: keyof ThemeColors, value: string) => {
     const next = { ...colors, [key]: value }
@@ -175,16 +262,6 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
     }
   }
 
-  const fields: { key: keyof ThemeColors; label: string; description: string }[] = [
-    { key: "primary", label: "Cor Primária", description: "Cabeçalho, botões e barras principais" },
-    { key: "primaryFg", label: "Sobreposição da Primária", description: "Texto/Ícones sobre a cor primária" },
-    { key: "secondary", label: "Cor Secundária (Destaque)", description: "Badges, valores e acentos de destaque" },
-    { key: "secondaryFg", label: "Sobreposição da Secundária", description: "Texto/Ícones sobre a cor secundária" },
-    { key: "foreground", label: "Texto Principal", description: "Títulos e textos correntes" },
-    { key: "textSecondary", label: "Texto Secundário", description: "Subtítulos e descrições" },
-    { key: "textMuted", label: "Texto Suave", description: "Legendas e placeholders" },
-  ]
-
   return (
     <Modal
       isOpen={isOpen}
@@ -197,85 +274,9 @@ export const ThemeCustomizerModal: React.FC<ThemeCustomizerModalProps> = ({
       showCancelButton={false}
     >
       <Stack gap={5} w="full">
-        {/* Paletas Prontas (Presets) */}
-        <Stack gap={2.5} w="full">
-          <Font variant="body-bold" text={s.presetsTitle} />
-          <Grid cols={3} gap={2.5}>
-            {PRESET_THEMES.map((p) => {
-              const isActive =
-                colors.primary === p.colors.primary &&
-                colors.secondary === p.colors.secondary
-              return (
-                <Box
-                  key={p.name}
-                  padding={2.5}
-                  radius="lg"
-                  border={true}
-                  borderColor={isActive ? "border-brand-primary" : "border-border"}
-                  bg="bg-surface"
-                  cursor="pointer"
-                  onClick={() => handleApplyPreset(p.colors)}
-                  interactive
-                >
-                  <Stack gap={1} align="center">
-                    <Stack direction="row" gap={1} align="center">
-                      <ColorDot color={p.colors.primary} />
-                      <ColorDot color={p.colors.secondary} />
-                    </Stack>
-                    <Font variant="auxiliary" text={p.name} align="center" />
-                  </Stack>
-                </Box>
-              )
-            })}
-          </Grid>
-        </Stack>
-
+        <ThemePresetsGrid colors={colors} onApplyPreset={handleApplyPreset} />
         <Box h="h-[1px]" bg="bg-border" w="full" />
-
-        {/* Seletores Individuais de Cor */}
-        <Stack gap={2.5} w="full">
-          <Font variant="body-bold" text={s.fineTuningTitle} />
-          <Grid cols={2} gap={2.5}>
-            {fields.map((f) => (
-              <Box
-                key={f.key}
-                padding={2.5}
-                bg="bg-surface-sunken"
-                radius="lg"
-                border={true}
-                borderColor="border-border"
-              >
-                <Stack gap={1} w="full">
-                  <Stack direction="row" align="center" justify="between" w="full">
-                    <Font variant="body-sm-semibold" text={f.label} />
-                    <ColorInput
-                      value={colors[f.key]}
-                      onChange={(val) => handleColorChange(f.key, val)}
-                    />
-                  </Stack>
-                  <Stack direction="row" align="center" justify="between" w="full">
-                    <Font variant="auxiliary" color="muted" text={f.description} />
-                    <Box
-                      as="input"
-                      type="text"
-                      value={colors[f.key]}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleColorChange(f.key, e.target.value)}
-                      w="w-20"
-                      radius="default"
-                      border={true}
-                      borderColor="border-border"
-                      bg="bg-white"
-                      paddingX={1}
-                      paddingY={1}
-                    />
-                  </Stack>
-                </Stack>
-              </Box>
-            ))}
-          </Grid>
-        </Stack>
-
-        {/* Restaurar Padrão */}
+        <ThemeFieldsGrid colors={colors} onColorChange={handleColorChange} />
         <Box paddingY={2.5} w="full">
           <Button
             variant="outline"

@@ -53,3 +53,24 @@ export const maskCpfCnpj = (value: string) => {
   }
   return maskCNPJ(digits)
 }
+
+export const maskCurrency = (value: string | number) => {
+  const digits = String(value).replace(/\D/g, "")
+  if (!digits) return ""
+  const number = Number(digits) / 100
+  return number.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  })
+}
+
+export const maskPercent = (value: string | number) => {
+  const digits = String(value).replace(/\D/g, "")
+  if (!digits) return ""
+  const number = Number(digits) / 100
+  return `% ${number.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`
+}
+

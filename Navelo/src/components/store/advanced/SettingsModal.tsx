@@ -32,9 +32,15 @@ interface SettingsFormProps {
   handleLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
-const SettingsForm: React.FC<SettingsFormProps> = ({
-  tempPrimary, setTempPrimary, tempSecondary, setTempSecondary, tempLogo, setTempLogo, handleLogoChange
-}) => {
+function SettingsForm({
+  tempPrimary,
+  setTempPrimary,
+  tempSecondary,
+  setTempSecondary,
+  tempLogo,
+  setTempLogo,
+  handleLogoChange,
+}: SettingsFormProps) {
   const tc = UI_STRINGS.themeCustomizer
   return (
     <Stack gap={5}>
@@ -73,32 +79,43 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
   )
 }
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSave }) => {
+function readStoredSettings() {
+  if (typeof window === "undefined") {
+    return { primary: "#3b82f6", secondary: "#f97316", logo: "" }
+  }
+  const storedPrimary = localStorage.getItem("brand-primary")
+  const storedSecondary = localStorage.getItem("brand-secondary")
+  const storedLogo = localStorage.getItem("logo-data")
+  return {
+    primary: isValidHex(storedPrimary) ? storedPrimary : "#3b82f6",
+    secondary: isValidHex(storedSecondary) ? storedSecondary : "#f97316",
+    logo: storedLogo || "",
+  }
+}
+
+export function SettingsModal({ isOpen, onClose, onSave }: SettingsModalProps) {
   const tc = UI_STRINGS.themeCustomizer
-  const [tempLogo, setTempLogo] = React.useState<string>("")
-  const [tempPrimary, setTempPrimary] = React.useState<string>("#3b82f6")
-  const [tempSecondary, setTempSecondary] = React.useState<string>("#f97316")
+  const initial = readStoredSettings()
+  const [tempLogo, setTempLogo] = React.useState<string>(initial.logo)
+  const [tempPrimary, setTempPrimary] = React.useState<string>(initial.primary)
+  const [tempSecondary, setTempSecondary] = React.useState<string>(initial.secondary)
+  const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen)
 
-  React.useEffect(() => {
-    if (typeof window !== "undefined" && isOpen) {
-      const storedPrimary = localStorage.getItem("brand-primary")
-      const storedSecondary = localStorage.getItem("brand-secondary")
-      const storedLogo = localStorage.getItem("logo-data")
-
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTempPrimary(isValidHex(storedPrimary) ? storedPrimary : "#3b82f6")
-      setTempSecondary(isValidHex(storedSecondary) ? storedSecondary : "#f97316")
-      setTempLogo(storedLogo || "")
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen)
+    if (isOpen) {
+      const stored = readStoredSettings()
+      setTempPrimary(stored.primary)
+      setTempSecondary(stored.secondary)
+      setTempLogo(stored.logo)
     }
-  }, [isOpen])
+  }
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       const reader = new FileReader()
-      reader.onloadend = () => {
-        setTempLogo(reader.result as string)
-      }
+      reader.onloadend = () => setTempLogo(reader.result as string)
       reader.readAsDataURL(file)
     }
   }
@@ -108,23 +125,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
       localStorage.setItem("brand-primary", tempPrimary)
       localStorage.setItem("brand-secondary", tempSecondary)
       localStorage.setItem("logo-data", tempLogo)
-
-      document.documentElement.style.setProperty('--brand-primary', tempPrimary)
-      document.documentElement.style.setProperty('--brand-secondary', tempSecondary)
-
+      document.documentElement.style.setProperty("--brand-primary", tempPrimary)
+      document.documentElement.style.setProperty("--brand-secondary", tempSecondary)
       onSave?.(tempLogo)
     }
-    onClose()
-  }
-
-  const handleCancel = () => {
     onClose()
   }
 
   return (
     <Modal
       isOpen={isOpen}
-      onClose={handleCancel}
+      onClose={onClose}
       title={tc.systemSettingsTitle}
       subtitle={tc.systemSettingsSubtitle}
       icon={Settings}

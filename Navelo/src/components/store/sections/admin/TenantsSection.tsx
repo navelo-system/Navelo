@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, complexity */
-
 import * as React from "react"
 import { RegistrySection } from "@/components/store/advanced/RegistrySection"
 import { Button } from "@/components/store/base/Button"
@@ -22,7 +20,6 @@ import { useLiveQuery } from "dexie-react-hooks"
 import { db, Company } from "@/lib/dal/db"
 import { mutateLocalFirst } from "@/lib/dal/sync"
 import { UI_STRINGS } from "@/constants/strings"
-
 import { TenantListTable, TenantListRow } from "@/components/store/intermediary/TenantListTable"
 
 const INITIAL_FALLBACK_TENANTS: TenantListRow[] = [
@@ -40,42 +37,228 @@ const INITIAL_FALLBACK_TENANTS: TenantListRow[] = [
   },
 ]
 
-const plans = [
+const DEFAULT_PLANS = [
   { name: "Free", fee: 0 },
   { name: "Pro", fee: 149.9 },
   { name: "Enterprise", fee: 499.9 },
 ]
+
+interface TenantFormData {
+  name: string
+  tradeName: string
+  document: string
+  stateRegistration: string
+  phone: string
+  email: string
+  cep: string
+  street: string
+  number: string
+  complement: string
+  neighborhood: string
+  city: string
+  state: string
+  selectedPlan: string
+  isActive: boolean
+}
+
+function TenantIdentificationFields({ form, setForm }: { form: TenantFormData; setForm: React.Dispatch<React.SetStateAction<TenantFormData>> }) {
+  const tStrings = UI_STRINGS.admin.tenants
+  return (
+    <Stack gap={2.5}>
+      <Stack direction="row" align="center" gap={2.5}>
+        <Icon icon={Building2} size={16} color="primary" />
+        <Font variant="body-bold" text={tStrings.companyIdentification} />
+      </Stack>
+      <Input label={tStrings.companyNameRequired} placeholder={tStrings.companyNamePlaceholder} value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} required />
+      <Input label={tStrings.companyTradeName} placeholder={tStrings.companyTradeNamePlaceholder} value={form.tradeName} onChange={(e) => setForm((p) => ({ ...p, tradeName: e.target.value }))} />
+      <Stack direction="col" mobileDirection="row" gap={2.5}>
+        <Box flex="1">
+          <Input label={tStrings.cnpjCpfRequired} mask="cpf-cnpj" placeholder={tStrings.cnpjCpfPlaceholder} value={form.document} onChange={(e) => setForm((p) => ({ ...p, document: e.target.value }))} required />
+        </Box>
+        <Box flex="1">
+          <Input label={tStrings.stateRegistration} placeholder={tStrings.stateRegistrationPlaceholder} value={form.stateRegistration} onChange={(e) => setForm((p) => ({ ...p, stateRegistration: e.target.value }))} />
+        </Box>
+      </Stack>
+    </Stack>
+  )
+}
+
+function TenantContactAndAddressFields({ form, setForm }: { form: TenantFormData; setForm: React.Dispatch<React.SetStateAction<TenantFormData>> }) {
+  const tStrings = UI_STRINGS.admin.tenants
+  return (
+    <>
+      <Stack gap={2.5}>
+        <Stack direction="row" align="center" gap={2.5}>
+          <Icon icon={Phone} size={16} color="primary" />
+          <Font variant="body-bold" text={tStrings.commercialContact} />
+        </Stack>
+        <Stack direction="col" mobileDirection="row" gap={2.5}>
+          <Box flex="1">
+            <Input label={tStrings.phoneWhatsapp} mask="phone" placeholder={UI_STRINGS.common.phonePlaceholder} value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} />
+          </Box>
+          <Box flex="1">
+            <Input label={tStrings.contactEmail} type="email" placeholder={tStrings.contactEmailPlaceholder} value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
+          </Box>
+        </Stack>
+      </Stack>
+      <Box h="h-[1px]" w="full" bg="bg-border" />
+      <Stack gap={2.5}>
+        <Stack direction="row" align="center" gap={2.5}>
+          <Icon icon={MapPin} size={16} color="primary" />
+          <Font variant="body-bold" text={tStrings.commercialAddress} />
+        </Stack>
+        <Stack direction="col" mobileDirection="row" gap={2.5}>
+          <Box flex="1">
+            <Input label={tStrings.cepLabel} mask="cep" placeholder={tStrings.cepPlaceholder} value={form.cep} onChange={(e) => setForm((p) => ({ ...p, cep: e.target.value }))} />
+          </Box>
+          <Box flex="1">
+            <Input label={tStrings.streetLabel} placeholder={tStrings.streetPlaceholder} value={form.street} onChange={(e) => setForm((p) => ({ ...p, street: e.target.value }))} />
+          </Box>
+        </Stack>
+        <Stack direction="col" mobileDirection="row" gap={2.5}>
+          <Box flex="1">
+            <Input label={tStrings.numberLabel} placeholder={tStrings.numberPlaceholder} value={form.number} onChange={(e) => setForm((p) => ({ ...p, number: e.target.value }))} />
+          </Box>
+          <Box flex="1">
+            <Input label={tStrings.complementLabel} placeholder={tStrings.complementPlaceholder} value={form.complement} onChange={(e) => setForm((p) => ({ ...p, complement: e.target.value }))} />
+          </Box>
+        </Stack>
+        <Stack direction="col" mobileDirection="row" gap={2.5}>
+          <Box flex="1">
+            <Input label={tStrings.neighborhoodLabel} placeholder={tStrings.neighborhoodPlaceholder} value={form.neighborhood} onChange={(e) => setForm((p) => ({ ...p, neighborhood: e.target.value }))} />
+          </Box>
+          <Box flex="1">
+            <Input label={tStrings.cityLabel} placeholder={tStrings.cityPlaceholder} value={form.city} onChange={(e) => setForm((p) => ({ ...p, city: e.target.value }))} />
+          </Box>
+          <Box flex="1">
+            <Input label={tStrings.ufLabel} placeholder={tStrings.ufPlaceholder} maxLength={2} value={form.state} onChange={(e) => setForm((p) => ({ ...p, state: e.target.value.toUpperCase() }))} />
+          </Box>
+        </Stack>
+      </Stack>
+    </>
+  )
+}
+
+function TenantPlanFields({ form, setForm }: { form: TenantFormData; setForm: React.Dispatch<React.SetStateAction<TenantFormData>> }) {
+  const tStrings = UI_STRINGS.admin.tenants
+  return (
+    <Stack gap={2.5}>
+      <Stack direction="row" align="center" gap={2.5}>
+        <Icon icon={ShieldCheck} size={16} color="primary" />
+        <Font variant="body-bold" text={tStrings.licenseAndStatus} />
+      </Stack>
+      <Stack gap={2.5}>
+        <Badge variant="ghost" label={tStrings.billingPlanBadge} />
+        <CustomSelect value={form.selectedPlan} onChange={(v) => setForm((p) => ({ ...p, selectedPlan: v }))}>
+          {DEFAULT_PLANS.map((p) => (
+            <CustomSelectItem
+              key={p.name}
+              value={p.name}
+              text={`${p.name} (${p.fee === 0 ? "Grátis" : `R$ ${p.fee.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês`})`}
+              icon={CreditCard}
+            />
+          ))}
+        </CustomSelect>
+      </Stack>
+      <Stack direction="row" align="center" justify="between">
+        <Badge variant="ghost" label={tStrings.initialStatusBadge} />
+        <Switch checked={form.isActive} onChange={(e) => setForm((p) => ({ ...p, isActive: e.target.checked }))} />
+      </Stack>
+    </Stack>
+  )
+}
+
+function NewTenantModal({
+  isOpen,
+  onClose,
+  onSubmit,
+}: {
+  isOpen: boolean
+  onClose: () => void
+  onSubmit: (data: TenantFormData) => Promise<void>
+}) {
+  const tStrings = UI_STRINGS.admin.tenants
+  const [form, setForm] = React.useState<TenantFormData>({
+    name: "", tradeName: "", document: "", stateRegistration: "", phone: "", email: "",
+    cep: "", street: "", number: "", complement: "", neighborhood: "", city: "", state: "",
+    selectedPlan: "Pro", isActive: true,
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!form.name.trim() || !form.document.trim()) return
+    await onSubmit(form)
+  }
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={tStrings.newCompanyModalTitle}
+        subtitle={tStrings.newCompanyModalSubtitle}
+        icon={Building2}
+        successText={tStrings.saveCompanyButton}
+        isSubmit
+      >
+        <Box maxH="max-h-[70vh]" overflow="auto">
+          <Stack gap={5}>
+            <TenantIdentificationFields form={form} setForm={setForm} />
+            <Box h="h-[1px]" w="full" bg="bg-border" />
+            <TenantContactAndAddressFields form={form} setForm={setForm} />
+            <Box h="h-[1px]" w="full" bg="bg-border" />
+            <TenantPlanFields form={form} setForm={setForm} />
+          </Stack>
+        </Box>
+      </Modal>
+    </Form>
+  )
+}
+
+const cleanStr = (v?: string) => {
+  const trimmed = v?.trim()
+  return trimmed ? trimmed : undefined
+}
+
+async function persistNewCompany(form: TenantFormData) {
+  const rawDoc = form.document.replace(/\D/g, "")
+  const companyId = `tenant-${rawDoc || crypto.randomUUID().slice(0, 8)}`
+  const trimmedName = form.name.trim()
+  const newCompany: Company = {
+    id: companyId,
+    company_id: companyId,
+    tenant_id: companyId,
+    name: trimmedName,
+    trade_name: cleanStr(form.tradeName) || trimmedName,
+    document: form.document.trim(),
+    state_registration: cleanStr(form.stateRegistration),
+    phone: form.phone.trim(),
+    email: form.email.trim(),
+    address_cep: cleanStr(form.cep),
+    address_street: cleanStr(form.street),
+    address_number: cleanStr(form.number),
+    address_complement: cleanStr(form.complement),
+    address_neighborhood: cleanStr(form.neighborhood),
+    address_city: cleanStr(form.city),
+    address_state: cleanStr(form.state),
+    plan: form.selectedPlan,
+    status: form.isActive ? "active" : "inactive",
+    created_at: new Date().toISOString(),
+  }
+  try {
+    await db.companies.put(newCompany)
+    await mutateLocalFirst("companies", newCompany, "INSERT")
+  } catch (err) {
+    console.warn("[TenantsSection] Erro ao persistir empresa no sync:", err)
+  }
+}
 
 export function TenantsSection() {
   const [searchQuery, setSearchQuery] = React.useState("")
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   const tStrings = UI_STRINGS.admin.tenants
 
-  // Consulta em tempo real das empresas no Dexie
-  const dbCompanies = useLiveQuery(async () => {
-    return await db.companies.toArray()
-  }, [])
-
-  // Form State Completo
-  const [name, setName] = React.useState("")
-  const [tradeName, setTradeName] = React.useState("")
-  const [document, setDocument] = React.useState("")
-  const [stateRegistration, setStateRegistration] = React.useState("")
-  const [phone, setPhone] = React.useState("")
-  const [email, setEmail] = React.useState("")
-
-  // Endereço
-  const [cep, setCep] = React.useState("")
-  const [street, setStreet] = React.useState("")
-  const [number, setNumber] = React.useState("")
-  const [complement, setComplement] = React.useState("")
-  const [neighborhood, setNeighborhood] = React.useState("")
-  const [city, setCity] = React.useState("")
-  const [state, setState] = React.useState("")
-
-  // Plano e Status
-  const [selectedPlan, setSelectedPlan] = React.useState("Pro")
-  const [isActive, setIsActive] = React.useState(true)
+  const dbCompanies = useLiveQuery(async () => await db.companies.toArray(), [])
 
   const tenants: TenantListRow[] = React.useMemo(() => {
     if (dbCompanies && dbCompanies.length > 0) {
@@ -95,107 +278,32 @@ export function TenantsSection() {
     return INITIAL_FALLBACK_TENANTS
   }, [dbCompanies])
 
-  const handleCreateTenant = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!name.trim() || !document.trim()) return
-
-    const rawDoc = document.replace(/\D/g, "")
-    const companyId = `tenant-${rawDoc || crypto.randomUUID().slice(0, 8)}`
-
-    const newCompany: Company = {
-      id: companyId,
-      company_id: companyId,
-      tenant_id: companyId,
-      name: name.trim(),
-      trade_name: tradeName.trim() || name.trim(),
-      document: document.trim(),
-      state_registration: stateRegistration.trim() || undefined,
-      phone: phone.trim(),
-      email: email.trim(),
-      address_cep: cep.trim() || undefined,
-      address_street: street.trim() || undefined,
-      address_number: number.trim() || undefined,
-      address_complement: complement.trim() || undefined,
-      address_neighborhood: neighborhood.trim() || undefined,
-      address_city: city.trim() || undefined,
-      address_state: state.trim() || undefined,
-      plan: selectedPlan,
-      status: isActive ? "active" : "inactive",
-      created_at: new Date().toISOString(),
-    }
-
-    try {
-      await db.companies.put(newCompany)
-      await mutateLocalFirst("companies", newCompany, "INSERT")
-    } catch (err) {
-      console.warn("[TenantsSection] Erro ao persistir empresa no sync:", err)
-    }
-
-    setIsModalOpen(false)
-
-    // Reset Form
-    setName("")
-    setTradeName("")
-    setDocument("")
-    setStateRegistration("")
-    setPhone("")
-    setEmail("")
-    setCep("")
-    setStreet("")
-    setNumber("")
-    setComplement("")
-    setNeighborhood("")
-    setCity("")
-    setState("")
-    setSelectedPlan("Pro")
-    setIsActive(true)
-  }
-
-  const filteredTenants = tenants.filter(t => {
+  const filteredTenants = tenants.filter((t) => {
     const term = searchQuery.toLowerCase()
-    const matchName = (t.name || "").toLowerCase().includes(term)
-    const matchTrade = (t.trade_name || "").toLowerCase().includes(term)
-    const matchDoc = (t.document || "").includes(term)
-    const matchCity = (t.address_city || "").toLowerCase().includes(term)
-    return matchName || matchTrade || matchDoc || matchCity
+    return (
+      (t.name || "").toLowerCase().includes(term) ||
+      (t.trade_name || "").toLowerCase().includes(term) ||
+      (t.document || "").includes(term) ||
+      (t.address_city || "").toLowerCase().includes(term)
+    )
   })
 
   return (
     <>
       <Stack direction="row" align="start">
-        <Button
-          variant="ghost"
-          label={tStrings.backButton}
-          icon={ArrowLeft}
-          onClick={() => (window.location.href = "/admin")}
-        />
+        <Button variant="ghost" label={tStrings.backButton} icon={ArrowLeft} onClick={() => { window.location.href = "/admin" }} />
       </Stack>
 
       <RegistrySection
         title={tStrings.tenantsListTitle}
         description={tStrings.tenantsListDescription}
         icon={Users}
-        action={
-          <Button
-            variant="primary"
-            label={tStrings.newCompanyButton}
-            icon={Plus}
-            onClick={() => setIsModalOpen(true)}
-          />
-        }
+        action={<Button variant="primary" label={tStrings.newCompanyButton} icon={Plus} onClick={() => setIsModalOpen(true)} />}
       >
         <Stack gap={5}>
-          <FilterBar
-            searchPlaceholder={tStrings.searchTenantsPlaceholder}
-            onSearch={setSearchQuery}
-          />
-
+          <FilterBar searchPlaceholder={tStrings.searchTenantsPlaceholder} onSearch={setSearchQuery} />
           {filteredTenants.length === 0 ? (
-            <EmptyState
-              icon={Users}
-              title={tStrings.emptyCompaniesTitle}
-              subtitle={tStrings.emptyCompaniesSubtitle}
-            />
+            <EmptyState icon={Users} title={tStrings.emptyCompaniesTitle} subtitle={tStrings.emptyCompaniesSubtitle} />
           ) : (
             <TenantListTable tenants={filteredTenants} />
           )}
@@ -203,197 +311,14 @@ export function TenantsSection() {
       </RegistrySection>
 
       {isModalOpen && (
-        <Form onSubmit={handleCreateTenant}>
-          <Modal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            title={tStrings.newCompanyModalTitle}
-            subtitle={tStrings.newCompanyModalSubtitle}
-            icon={Building2}
-            successText={tStrings.saveCompanyButton}
-            isSubmit
-          >
-            <Box maxH="max-h-[70vh]" overflow="auto">
-              <Stack gap={5}>
-                {/* 1. DADOS DE IDENTIFICAÇÃO */}
-                <Stack gap={2.5}>
-                  <Stack direction="row" align="center" gap={2.5}>
-                    <Icon icon={Building2} size={16} color="primary" />
-                    <Font variant="body-bold" text={tStrings.companyIdentification} />
-                  </Stack>
-                  <Input
-                    label={tStrings.companyNameRequired}
-                    placeholder={tStrings.companyNamePlaceholder}
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    required
-                  />
-                  <Input
-                    label={tStrings.companyTradeName}
-                    placeholder={tStrings.companyTradeNamePlaceholder}
-                    value={tradeName}
-                    onChange={e => setTradeName(e.target.value)}
-                  />
-                  <Stack direction="col" mobileDirection="row" gap={2.5}>
-                    <Box flex="1">
-                      <Input
-                        label={tStrings.cnpjCpfRequired}
-                        mask="cpf-cnpj"
-                        placeholder={tStrings.cnpjCpfPlaceholder}
-                        value={document}
-                        onChange={e => setDocument(e.target.value)}
-                        required
-                      />
-                    </Box>
-                    <Box flex="1">
-                      <Input
-                        label={tStrings.stateRegistration}
-                        placeholder={tStrings.stateRegistrationPlaceholder}
-                        value={stateRegistration}
-                        onChange={e => setStateRegistration(e.target.value)}
-                      />
-                    </Box>
-                  </Stack>
-                </Stack>
-
-                <Box h="h-[1px]" w="full" bg="bg-border" />
-
-                {/* 2. CONTATO */}
-                <Stack gap={2.5}>
-                  <Stack direction="row" align="center" gap={2.5}>
-                    <Icon icon={Phone} size={16} color="primary" />
-                    <Font variant="body-bold" text={tStrings.commercialContact} />
-                  </Stack>
-                  <Stack direction="col" mobileDirection="row" gap={2.5}>
-                    <Box flex="1">
-                      <Input
-                        label={tStrings.phoneWhatsapp}
-                        mask="phone"
-                        placeholder={UI_STRINGS.common.phonePlaceholder}
-                        value={phone}
-                        onChange={e => setPhone(e.target.value)}
-                      />
-                    </Box>
-                    <Box flex="1">
-                      <Input
-                        label={tStrings.contactEmail}
-                        type="email"
-                        placeholder={tStrings.contactEmailPlaceholder}
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
-                      />
-                    </Box>
-                  </Stack>
-                </Stack>
-
-                <Box h="h-[1px]" w="full" bg="bg-border" />
-
-                {/* 3. ENDEREÇO COMPLETO */}
-                <Stack gap={2.5}>
-                  <Stack direction="row" align="center" gap={2.5}>
-                    <Icon icon={MapPin} size={16} color="primary" />
-                    <Font variant="body-bold" text={tStrings.commercialAddress} />
-                  </Stack>
-                  <Stack direction="col" mobileDirection="row" gap={2.5}>
-                    <Box flex="1">
-                      <Input
-                        label={tStrings.cepLabel}
-                        mask="cep"
-                        placeholder={tStrings.cepPlaceholder}
-                        value={cep}
-                        onChange={e => setCep(e.target.value)}
-                      />
-                    </Box>
-                    <Box flex="1">
-                      <Input
-                        label={tStrings.streetLabel}
-                        placeholder={tStrings.streetPlaceholder}
-                        value={street}
-                        onChange={e => setStreet(e.target.value)}
-                      />
-                    </Box>
-                  </Stack>
-                  <Stack direction="col" mobileDirection="row" gap={2.5}>
-                    <Box flex="1">
-                      <Input
-                        label={tStrings.numberLabel}
-                        placeholder={tStrings.numberPlaceholder}
-                        value={number}
-                        onChange={e => setNumber(e.target.value)}
-                      />
-                    </Box>
-                    <Box flex="1">
-                      <Input
-                        label={tStrings.complementLabel}
-                        placeholder={tStrings.complementPlaceholder}
-                        value={complement}
-                        onChange={e => setComplement(e.target.value)}
-                      />
-                    </Box>
-                  </Stack>
-                  <Stack direction="col" mobileDirection="row" gap={2.5}>
-                    <Box flex="1">
-                      <Input
-                        label={tStrings.neighborhoodLabel}
-                        placeholder={tStrings.neighborhoodPlaceholder}
-                        value={neighborhood}
-                        onChange={e => setNeighborhood(e.target.value)}
-                      />
-                    </Box>
-                    <Box flex="1">
-                      <Input
-                        label={tStrings.cityLabel}
-                        placeholder={tStrings.cityPlaceholder}
-                        value={city}
-                        onChange={e => setCity(e.target.value)}
-                      />
-                    </Box>
-                    <Box flex="1">
-                      <Input
-                        label={tStrings.ufLabel}
-                        placeholder={tStrings.ufPlaceholder}
-                        maxLength={2}
-                        value={state}
-                        onChange={e => setState(e.target.value.toUpperCase())}
-                      />
-                    </Box>
-                  </Stack>
-                </Stack>
-
-                <Box h="h-[1px]" w="full" bg="bg-border" />
-
-                {/* 4. PLANO E LICENÇA */}
-                <Stack gap={2.5}>
-                  <Stack direction="row" align="center" gap={2.5}>
-                    <Icon icon={ShieldCheck} size={16} color="primary" />
-                    <Font variant="body-bold" text={tStrings.licenseAndStatus} />
-                  </Stack>
-                  <Stack gap={2.5}>
-                    <Badge variant="ghost" label={tStrings.billingPlanBadge} />
-                    <CustomSelect value={selectedPlan} onChange={setSelectedPlan}>
-                      {plans.map(p => (
-                        <CustomSelectItem
-                          key={p.name}
-                          value={p.name}
-                          text={`${p.name} (${p.fee === 0 ? "Grátis" : `R$ ${p.fee.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês`})`}
-                          icon={CreditCard}
-                        />
-                      ))}
-                    </CustomSelect>
-                  </Stack>
-
-                  <Stack direction="row" align="center" justify="between">
-                    <Badge variant="ghost" label={tStrings.initialStatusBadge} />
-                    <Switch
-                      checked={isActive}
-                      onChange={e => setIsActive(e.target.checked)}
-                    />
-                  </Stack>
-                </Stack>
-              </Stack>
-            </Box>
-          </Modal>
-        </Form>
+        <NewTenantModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={async (data) => {
+            await persistNewCompany(data)
+            setIsModalOpen(false)
+          }}
+        />
       )}
     </>
   )

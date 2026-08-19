@@ -1,6 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, complexity, max-depth, react-hooks/set-state-in-effect, @typescript-eslint/no-explicit-any, @typescript-eslint/no-non-null-assertion, no-await-in-loop */
 
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
@@ -26,6 +25,7 @@ import { ContasAReceberSection } from "@/components/store/sections/pdv/pages/Con
 import { PdvObservacaoModal } from "@/components/store/sections/pdv/modals/PdvObservacaoModal"
 import { PdvSangriaModal } from "@/components/store/sections/pdv/modals/PdvSangriaModal"
 import { SaleSuccessModal } from "@/components/store/sections/pdv/modals/SaleSuccessModal"
+import { maskCurrency } from "@/lib/masks"
 
 import { DeliveryClientInfo, DeliveryCheckoutConfirmation, DeliveryType, PaymentMoment } from "@/components/store/advanced/DeliveryCheckoutConfirmation"
 import { UI_STRINGS } from "@/constants/strings"
@@ -241,6 +241,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   const [cartItems, setCartItems] = React.useState<CartItemType[]>(
     deliveryContext?.initialItems || []
   )
+  const [observationText, setObservationText] = React.useState("")
   const [activeCategory, setActiveCategory] = React.useState("Todos")
   const [searchQuery, setSearchQuery] = React.useState("")
   const [viewMode, setViewModeState] = React.useState<"grade" | "lista">(() => {
@@ -260,27 +261,23 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   const [quantityMultiplier, setQuantityMultiplier] = React.useState(1)
 
   // Carrega os itens e observação da comanda salva apenas uma vez ao abrir a comanda
-  const loadedComandaIdRef = React.useRef<string | null>(null)
-  React.useEffect(() => {
+  const [prevComandaId, setPrevComandaId] = React.useState<string | null>(activeComandaId || null)
+  if (activeComandaId !== prevComandaId) {
+    setPrevComandaId(activeComandaId || null)
     if (activeComandaId && !activeComandaId.startsWith("avulso-") && dbTabs) {
-      if (loadedComandaIdRef.current !== activeComandaId) {
-        const activeTab = dbTabs.find((t) => t.id === activeComandaId)
-        if (activeTab) {
-          if (Array.isArray(activeTab.items)) {
-            setCartItems((activeTab.items as unknown) as CartItemType[])
-          }
-          if ((activeTab as any).observation) {
-            setObservationText((activeTab as any).observation)
-          } else {
-            setObservationText("")
-          }
-          loadedComandaIdRef.current = activeComandaId
+      const activeTab = dbTabs.find((t) => t.id === activeComandaId)
+      if (activeTab) {
+        if (Array.isArray(activeTab.items)) {
+          setCartItems((activeTab.items as unknown) as CartItemType[])
+        }
+        if ((activeTab as any).observation) {
+          setObservationText((activeTab as any).observation)
+        } else {
+          setObservationText("")
         }
       }
-    } else if (!activeComandaId) {
-      loadedComandaIdRef.current = null
     }
-  }, [activeComandaId, dbTabs])
+  }
 
   const enrichedCartItems: CartItemType[] = React.useMemo(() => {
     return cartItems.map((item) => {
@@ -330,7 +327,6 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   const [isSangriaObsModalOpen, setIsSangriaObsModalOpen] = React.useState(false)
   const [sangriaModalMode, setSangriaModalMode] = React.useState<"sangria" | "suprimento">("sangria")
   const [pendingSangriaAmount, setPendingSangriaAmount] = React.useState<number>(0)
-  const [observationText, setObservationText] = React.useState("")
   const [selectedCustomerName, setSelectedCustomerName] = React.useState<string | null>(null)
 
   const handleSaveObservation = async (obs: string) => {
@@ -499,12 +495,12 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   // Sincroniza o valor de pagamento sugerido com o restante a pagar reativamente
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      setPaymentAmountInput(amountDue > 0 ? amountDue.toFixed(2).replace(".", ",") : "")
+      setPaymentAmountInput(amountDue > 0 ? maskCurrency(Math.round(amountDue * 100)) : "")
     }, 0)
     return () => clearTimeout(timer)
   }, [amountDue])
 
-  const parsedPaymentAmount = parseFloat(paymentAmountInput.replace(",", ".")) || amountDue
+  const parsedPaymentAmount = (Number(paymentAmountInput.replace(/\D/g, "")) || 0) / 100 || amountDue
   const launchAmount = Math.min(parsedPaymentAmount, amountDue)
 
   // Adicionar produto
@@ -569,24 +565,19 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
     }
   }
 
-  // Se a categoria ativa atual sumir devido ao filtro de estoque, volta para "Todos"
-  React.useEffect(() => {
-    if (activeCategory !== "Todos" && !categories.includes(activeCategory)) {
-      setActiveCategory("Todos")
-    }
-  }, [categories, activeCategory])
+  const effectiveCategory = activeCategory !== "Todos" && !categories.includes(activeCategory) ? "Todos" : activeCategory
 
   // Filtragem dos produtos por grupo ou subgrupo ativo e termo de busca
   const filteredProducts = React.useMemo(() => {
     return availableProducts.filter((prod) => {
       const matchesFilter =
-        activeCategory === "Todos" ||
-        prod.category.toLowerCase() === activeCategory.toLowerCase() ||
-        (prod.subgroup && prod.subgroup.toLowerCase() === activeCategory.toLowerCase())
+        effectiveCategory === "Todos" ||
+        prod.category.toLowerCase() === effectiveCategory.toLowerCase() ||
+        (prod.subgroup && prod.subgroup.toLowerCase() === effectiveCategory.toLowerCase())
       const matchesSearch = prod.name.toLowerCase().includes(searchQuery.toLowerCase())
       return matchesFilter && matchesSearch
     })
-  }, [availableProducts, activeCategory, searchQuery])
+  }, [availableProducts, effectiveCategory, searchQuery])
 
   // Pagamento rápido
   const handleLaunchPayment = (method: string, amount: number) => {
@@ -1138,6 +1129,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         onLaunchPayment={handleLaunchPayment}
         isDiscountModalOpen={isDiscountModalOpen}
         onCloseDiscountModal={() => setIsDiscountModalOpen(false)}
+        onOpenDiscountModal={() => setIsDiscountModalOpen(true)}
         discount={discount}
         onChangeDiscount={setDiscount}
         isSidebarOpen={isSidebarOpen}
@@ -1190,7 +1182,7 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         }}
         title={sangriaModalMode === "suprimento" ? "Suprimento" : "Sangria"}
         description={`Você está fazendo ${sangriaModalMode === "suprimento" ? "um suprimento" : "uma sangria"} de ${formatPrice(pendingSangriaAmount)}.`}
-        placeholder="Observação"
+        placeholder={UI_STRINGS.common.observation}
         initialObservation=""
         onSaveObservation={handleSaveSangriaMovement}
       />

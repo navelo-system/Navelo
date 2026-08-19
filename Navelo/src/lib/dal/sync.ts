@@ -1,4 +1,3 @@
-/* eslint-disable complexity, max-depth, no-await-in-loop, @typescript-eslint/no-explicit-any */
 import { db } from './db';
 import { supabase } from '../supabase/client';
 
@@ -231,7 +230,7 @@ export async function initialSync(tenantId?: string) {
  * Função genérica para realizar uma mutação Local-First vinculada ao Tenant.
  */
 export async function mutateLocalFirst<T extends { id: string; company_id?: string; tenant_id?: string }>(
-  tableName: 'products' | 'categories' | 'sales' | 'sale_items' | 'customers' | 'users' | 'suppliers' | 'units' | 'print_points' | 'cash_registers' | 'cash_movements' | 'restaurant_tables' | 'tabs' | 'contingency_notes' | 'riders' | 'delivery_rates' | 'delivery_orders' | 'companies',
+  tableName: 'products' | 'categories' | 'sales' | 'sale_items' | 'customers' | 'users' | 'suppliers' | 'units' | 'print_points' | 'cash_registers' | 'cash_movements' | 'restaurant_tables' | 'tabs' | 'contingency_notes' | 'riders' | 'delivery_rates' | 'delivery_orders' | 'companies' | 'inventory_audits',
   payload: T,
   action: 'INSERT' | 'UPDATE' | 'DELETE' = 'UPDATE',
   tenantId?: string
@@ -309,7 +308,6 @@ export async function processSyncQueue() {
         break;
       }
     }
-    /* eslint-enable max-depth, no-await-in-loop */
   } catch (err) {
     console.warn("[Sync] Erro ao ler fila de sincronização:", err);
   }

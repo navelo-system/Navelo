@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -27,10 +25,78 @@ export interface ConsultaPrecoSectionProps {
   setCustomTitle?: (title: string | null) => void
 }
 
+function ConsultaPrecoAuthCard({
+  password,
+  setPassword,
+}: {
+  password: string
+  setPassword: (v: string) => void
+}) {
+  const s = UI_STRINGS.priceCheck
+  return (
+    <Box bg="bg-white" border borderColor="border-border" radius="default" padding={5} w="full">
+      <Stack gap={5} w="full">
+        <Font variant="body-bold" text={s.authTitle} />
+        <Stack gap={2.5} w="full">
+          <Input label={s.passwordLabel} type="password" placeholder={s.passwordPlaceholder} value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Font variant="description" text={s.authDesc} />
+        </Stack>
+      </Stack>
+    </Box>
+  )
+}
+
+function ConsultaPrecoDevicesCard({
+  devices,
+  onOpenModal,
+  onRemoveDevice,
+}: {
+  devices: LinkedDevice[]
+  onOpenModal: () => void
+  onRemoveDevice: (id: string) => void
+}) {
+  const s = UI_STRINGS.priceCheck
+  return (
+    <Box bg="bg-white" border borderColor="border-border" radius="default" padding={5} w="full">
+      <Stack gap={5} w="full">
+        <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="start" mobileJustify="between" w="full" gap={2.5}>
+          <Font variant="body-bold" text={s.linkedDevicesTitle} />
+          <Button variant="primary" label={s.linkDeviceButton} icon={Plus} onClick={onOpenModal} />
+        </Stack>
+        {devices.length === 0 ? (
+          <EmptyState icon={Monitor} title={s.emptyTitle} subtitle={s.emptySubtitle} />
+        ) : (
+          <Stack gap={0} w="full">
+            {devices.map((device, idx) => (
+              <React.Fragment key={device.id}>
+                {idx > 0 && <Box h="h-[1px]" w="full" bg="bg-border" />}
+                <Box padding={2.5} w="full">
+                  <Stack direction="row" align="center" justify="between" w="full" gap={5}>
+                    <Stack direction="row" align="center" gap={2.5}>
+                      <Icon icon={Monitor} size={16} color="muted" />
+                      <Stack gap={1}>
+                        <Font variant="body-bold" text={device.name} />
+                        <Font variant="description" text={formatString(s.deviceCodeTemplate, { code: device.code })} />
+                      </Stack>
+                    </Stack>
+                    <Box cursor="pointer" onClick={() => onRemoveDevice(device.id)}>
+                      <Icon icon={Trash2} size={16} color="danger" />
+                    </Box>
+                  </Stack>
+                </Box>
+              </React.Fragment>
+            ))}
+          </Stack>
+        )}
+      </Stack>
+    </Box>
+  )
+}
+
 export const ConsultaPrecoSection: React.FC<ConsultaPrecoSectionProps> = ({
   onCancel,
   setCustomBack,
-  setCustomTitle
+  setCustomTitle,
 }) => {
   const [password, setPassword] = React.useState("")
   const [devices, setDevices] = React.useState<LinkedDevice[]>([])
@@ -46,116 +112,20 @@ export const ConsultaPrecoSection: React.FC<ConsultaPrecoSectionProps> = ({
     }
   }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
-  const handleSave = () => { onCancel() }
-
-  const handleLinkDevice = (code: string, name: string) => {
-    setDevices((prev) => [...prev, { id: Date.now().toString(), name, code }])
-  }
-
-  const handleRemoveDevice = (id: string) => {
-    setDevices((prev) => prev.filter((d) => d.id !== id))
-  }
-
   return (
     <Stack gap={5} w="full">
-      {/* Card de Autenticação */}
-      <Box
-        bg="bg-white"
-        border={true}
-        borderColor="border-border"
-        radius="default"
-        padding={5}
-        w="full"
-      >
-        <Stack gap={5} w="full">
-          <Font variant="body-bold" text={s.authTitle} />
-
-          <Stack gap={2.5} w="full">
-            <Input
-              label={s.passwordLabel}
-              type="password"
-              placeholder={s.passwordPlaceholder}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <Font
-              variant="description"
-              text={s.authDesc}
-            />
-          </Stack>
-        </Stack>
-      </Box>
-
-      {/* Card de Dispositivos Vinculados */}
-      <Box
-        bg="bg-white"
-        border={true}
-        borderColor="border-border"
-        radius="default"
-        padding={5}
-        w="full"
-      >
-        <Stack gap={5} w="full">
-          {/* Header do card */}
-          <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="start" mobileJustify="between" w="full" gap={2.5}>
-            <Font variant="body-bold" text={s.linkedDevicesTitle} />
-            <Button
-              variant="primary"
-              label={s.linkDeviceButton}
-              icon={Plus}
-              onClick={() => setIsModalOpen(true)}
-            />
-          </Stack>
-
-          {/* Corpo: lista ou empty state */}
-          {devices.length === 0 ? (
-            <EmptyState
-              icon={Monitor}
-              title={s.emptyTitle}
-              subtitle={s.emptySubtitle}
-            />
-          ) : (
-            <Stack gap={0} w="full">
-              {devices.map((device, idx) => (
-                <React.Fragment key={device.id}>
-                  {idx > 0 && <Box h="h-[1px]" w="full" bg="bg-border" />}
-                  <Box padding={2.5} w="full">
-                    <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-                      <Stack direction="row" align="center" gap={2.5}>
-                        <Icon icon={Monitor} size={16} color="muted" />
-                        <Stack gap={1}>
-                          <Font variant="body-bold" text={device.name} />
-                          <Font variant="description" text={formatString(s.deviceCodeTemplate, { code: device.code })} />
-                        </Stack>
-                      </Stack>
-                      <Box
-                        cursor="pointer"
-                        onClick={() => handleRemoveDevice(device.id)}
-                      >
-                        <Icon icon={Trash2} size={16} color="danger" />
-                      </Box>
-                    </Stack>
-                  </Box>
-                </React.Fragment>
-              ))}
-            </Stack>
-          )}
-        </Stack>
-      </Box>
-
-      {/* Botões de Ações */}
-      <FormActions
-        confirmLabel={UI_STRINGS.common.save}
-        onConfirm={handleSave}
-        onCancel={onCancel}
+      <ConsultaPrecoAuthCard password={password} setPassword={setPassword} />
+      <ConsultaPrecoDevicesCard
+        devices={devices}
+        onOpenModal={() => setIsModalOpen(true)}
+        onRemoveDevice={(id) => setDevices((prev) => prev.filter((d) => d.id !== id))}
       />
-
-      {/* Modal de Vinculação */}
+      <FormActions confirmLabel={UI_STRINGS.common.save} onConfirm={onCancel} onCancel={onCancel} />
       <LinkDeviceModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onConfirm={handleLinkDevice}
-        appName="Consulta Preço"
+        onConfirm={(code, name) => setDevices((prev) => [...prev, { id: Date.now().toString(), name, code }])}
+        appName={s.title}
         appIcon={Barcode}
       />
     </Stack>

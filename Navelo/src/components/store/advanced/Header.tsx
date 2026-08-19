@@ -10,7 +10,6 @@ import { SettingsModal } from "./SettingsModal"
 import { Eye, LogOut, Settings, Store } from "lucide-react"
 import { UI_STRINGS } from "@/constants/strings"
 
-
 const useHeaderScroll = () => {
   const [isMobileButtonsVisible, setIsMobileButtonsVisible] = React.useState(true)
   const [isDesktop, setIsDesktop] = React.useState(true)
@@ -44,28 +43,19 @@ const useHeaderScroll = () => {
   return { isDesktop, isMobileButtonsVisible }
 }
 
-export const Header: React.FC = () => {
+export function Header() {
   const common = UI_STRINGS.common
   const [isSettingsOpen, setIsSettingsOpen] = React.useState(false)
-  const [logoUrl, setLogoUrl] = React.useState<string>("")
+  const [logoUrl, setLogoUrl] = React.useState<string>(() => {
+    if (typeof window === "undefined") return ""
+    return localStorage.getItem("logo-data") || ""
+  })
   const [isEyeActive, setIsEyeActive] = React.useState(false)
   const { isDesktop, isMobileButtonsVisible } = useHeaderScroll()
-
-  React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedLogo = localStorage.getItem("logo-data")
-
-      if (storedLogo) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setLogoUrl(storedLogo)
-      }
-    }
-  }, [])
 
   return (
     <Box paddingY={5} paddingX={5} bg="bg-brand-primary" w="full" border borderColor="border-brand-primary/10" display="flex" direction="col">
       <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={isDesktop || isMobileButtonsVisible ? 5 : 0}>
-        {/* Left content: Logo aligned to the left/center */}
         <Stack gap={1} align="center" mobileAlign="start">
           {logoUrl ? (
             <Box as="img" src={logoUrl} alt="Logo" h="h-8" w="auto" objectFit="contain" />
@@ -77,7 +67,6 @@ export const Header: React.FC = () => {
           )}
         </Stack>
 
-        {/* Right content: Icons and logout stacked on mobile */}
         <Box
           w="full"
           transition="all"
@@ -94,20 +83,19 @@ export const Header: React.FC = () => {
             mobileJustify="end"
             gap={5}
           >
-              <Stack direction="row" align="center" justify="center" gap={5}>
-                <Button variant="secondary-pill-icon" icon={Settings} onClick={() => setIsSettingsOpen(true)} />
-                <Button
-                  variant={isEyeActive ? "primary-pill-icon" : "secondary-pill-icon"}
-                  icon={Eye}
-                  onClick={() => setIsEyeActive(prev => !prev)}
-                />
-                <Button variant="danger-pill-icon" icon={LogOut} />
-              </Stack>
-              <Button variant="secondary-sm" label={common.administrator} icon={LogOut} justify="center" />
+            <Stack direction="row" align="center" justify="center" gap={5}>
+              <Button variant="secondary-pill-icon" icon={Settings} onClick={() => setIsSettingsOpen(true)} />
+              <Button
+                variant={isEyeActive ? "primary-pill-icon" : "secondary-pill-icon"}
+                icon={Eye}
+                onClick={() => setIsEyeActive((prev) => !prev)}
+              />
+              <Button variant="danger-pill-icon" icon={LogOut} />
+            </Stack>
+            <Button variant="secondary-sm" label={common.administrator} icon={LogOut} justify="center" />
           </Stack>
         </Box>
       </Stack>
-
 
       <SettingsModal
         isOpen={isSettingsOpen}

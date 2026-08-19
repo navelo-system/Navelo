@@ -4,7 +4,6 @@
  * Adequado para impressoras de cupom / não fiscal (monocromático, fundo branco).
  */
 
-/* eslint-disable max-lines-per-function, complexity */
 
 export interface SaleReceiptPayment {
   method: string
@@ -272,8 +271,7 @@ export async function generateSaleReceiptPdf(
     },
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  y = (doc as any).lastAutoTable.finalY + 2
+    y = (doc as any).lastAutoTable.finalY + 2
 
   // Linha divisória
   doc.setFont("helvetica", "normal")
@@ -358,8 +356,7 @@ export async function generateSaleReceiptPdf(
     },
   })
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  y = (doc as any).lastAutoTable.finalY + 2
+    y = (doc as any).lastAutoTable.finalY + 2
 
   // Linha divisória
   doc.setFont("helvetica", "normal")

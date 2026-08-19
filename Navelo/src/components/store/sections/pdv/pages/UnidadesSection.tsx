@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -29,43 +27,82 @@ export interface UnidadesSectionProps {
   setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
+function getDecimalText(decimals: number) {
+  const s = UI_STRINGS.settings.unidades
+  if (decimals === 0) return s.zeroDecimals
+  if (decimals === 1) return s.oneDecimal
+  if (decimals === 2) return s.twoDecimals
+  return s.threeDecimals
+}
+
+function UnitFormCard({
+  formName,
+  setFormName,
+  formDecimals,
+  setFormDecimals,
+  onSubmit,
+}: {
+  formName: string
+  setFormName: (v: string) => void
+  formDecimals: string
+  setFormDecimals: (v: string) => void
+  onSubmit: (e: React.FormEvent) => void
+}) {
+  const s = UI_STRINGS.settings.unidades
+  return (
+    <Box as="form" id="unit-form" onSubmit={onSubmit} bg="bg-white" border borderColor="border-border" radius="default" padding={5} w="full">
+      <Stack gap={5} w="full">
+        <Input label={s.nameLabel} placeholder={s.namePlaceholder} value={formName} onChange={(e) => setFormName(e.target.value)} icon={Clipboard} required />
+        <Stack gap={1} w="full">
+          <Font variant="sub-tiny-bold" text={s.decimalsLabel} />
+          <CustomSelect value={formDecimals} onChange={setFormDecimals}>
+            <CustomSelectItem value="0" text={s.zeroDecimals} icon={Binary} />
+            <CustomSelectItem value="1" text={s.oneDecimal} icon={Binary} />
+            <CustomSelectItem value="2" text={s.twoDecimals} icon={Binary} />
+            <CustomSelectItem value="3" text={s.threeDecimals} icon={Binary} />
+          </CustomSelect>
+        </Stack>
+      </Stack>
+    </Box>
+  )
+}
+
+function UnitListItem({ unit, onClick }: { unit: UnitItem; onClick: () => void }) {
+  return (
+    <Box paddingY={2.5} paddingX={2.5} hoverBg="primary/10" w="full" cursor="pointer" onClick={onClick}>
+      <Stack gap={1} w="full">
+        <Font variant="body" text={unit.name} />
+        <Font variant="auxiliary" text={getDecimalText(unit.decimals)} color="muted" />
+      </Stack>
+    </Box>
+  )
+}
+
 export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
   onCancel,
   setCustomBack,
   setCustomTitle,
-  setCustomActions
+  setCustomActions,
 }) => {
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id
   const s = UI_STRINGS.settings.unidades
-
   const dbUnits = useUnits(tenantId)
+  const [mode, setMode] = React.useState<"list" | "form">("list")
+  const [editingUnit, setEditingUnit] = React.useState<UnitItem | null>(null)
+  const [formName, setFormName] = React.useState("")
+  const [formDecimals, setFormDecimals] = React.useState("0")
 
   const units: UnitItem[] = React.useMemo(() => {
     if (dbUnits && dbUnits.length > 0) {
-      return dbUnits.map(u => ({
-        id: u.id,
-        name: u.name,
-        decimals: u.decimals ?? 0
-      }))
+      return dbUnits.map((u) => ({ id: u.id, name: u.name, decimals: u.decimals ?? 0 }))
     }
     return []
   }, [dbUnits])
 
-  const [mode, setMode] = React.useState<"list" | "form">("list")
-  const [editingUnit, setEditingUnit] = React.useState<UnitItem | null>(null)
-
-  // Form states
-  const [formName, setFormName] = React.useState("")
-  const [formDecimals, setFormDecimals] = React.useState("0")
-
   const handleBack = React.useCallback(() => {
-    if (mode === "form") {
-      setMode("list")
-      setEditingUnit(null)
-    } else {
-      onCancel()
-    }
+    if (mode === "form") { setMode("list"); setEditingUnit(null) }
+    else onCancel()
   }, [mode, onCancel])
 
   React.useEffect(() => {
@@ -75,148 +112,50 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
       setCustomActions?.(
         <Stack direction="row" gap={2.5} align="center">
           {editingUnit && (
-            <Button
-              type="button"
-              variant="danger-pill-icon"
-              icon={Trash2}
-              onClick={async () => {
-                await dal.units.delete(editingUnit.id, tenantId)
-                setMode("list")
-                setEditingUnit(null)
-              }}
-              title={s.deleteUnitTitle}
-            />
+            <Button type="button" variant="danger-pill-icon" icon={Trash2} onClick={async () => { await dal.units.delete(editingUnit.id, tenantId); setMode("list"); setEditingUnit(null) }} title={s.deleteUnitTitle} />
           )}
-          <Button
-            type="submit"
-            form="unit-form"
-            variant="primary-pill-icon"
-            icon={Check}
-            title={s.saveUnitTitle}
-          />
+          <Button type="submit" form="unit-form" variant="primary-pill-icon" icon={Check} title={s.saveUnitTitle} />
         </Stack>
       )
     }
-  }, [mode, editingUnit, tenantId, setCustomBack, setCustomTitle, setCustomActions, handleBack, s.editUnitTitle, s.newUnitTitle, s.deleteUnitTitle, s.saveUnitTitle])
-
-  const handleCreateNew = () => {
-    setEditingUnit(null)
-    setFormName("")
-    setFormDecimals("0")
-    setMode("form")
-  }
-
-  const handleEdit = (unit: UnitItem) => {
-    setEditingUnit(unit)
-    setFormName(unit.name)
-    setFormDecimals(unit.decimals.toString())
-    setMode("form")
-  }
+  }, [mode, editingUnit, tenantId, setCustomBack, setCustomTitle, setCustomActions, handleBack, s])
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!formName.trim()) return
-
-    const decimalsVal = parseInt(formDecimals, 10) || 0
-    const unitId = editingUnit ? editingUnit.id : `uni-${Date.now()}`
-
     const unitPayload = {
-      id: unitId,
-      name: formName.toUpperCase(),
-      symbol: formName.toUpperCase().substring(0, 3),
-      company_id: tenantId || "demo-tenant",
-      tenant_id: tenantId || "demo-tenant",
-      decimals: decimalsVal
+      id: editingUnit ? editingUnit.id : `uni-${Date.now()}`,
+      name: formName.toUpperCase(), symbol: formName.toUpperCase().substring(0, 3),
+      company_id: tenantId || "demo-tenant", tenant_id: tenantId || "demo-tenant",
+      decimals: parseInt(formDecimals, 10) || 0,
     }
-
-    if (editingUnit) {
-      await dal.units.update(unitPayload)
-    } else {
-      await dal.units.create(unitPayload)
-    }
-
+    if (editingUnit) await dal.units.update(unitPayload)
+    else await dal.units.create(unitPayload)
     setMode("list")
     setEditingUnit(null)
-  }
-
-  const getDecimalText = (decimals: number) => {
-    if (decimals === 0) return s.zeroDecimals
-    if (decimals === 1) return s.oneDecimal
-    if (decimals === 2) return s.twoDecimals
-    return s.threeDecimals
   }
 
   return (
     <ViewTransition viewKey={mode} flex="1" minH="0">
       {mode === "form" ? (
-        <Box
-          as="form"
-          id="unit-form"
-          onSubmit={handleSave}
-          bg="bg-white"
-          border={true}
-          borderColor="border-border"
-          radius="default"
-          padding={5}
-          w="full"
-        >
-          <Stack gap={5} w="full">
-            <Input
-              label={s.nameLabel}
-              placeholder={s.namePlaceholder}
-              value={formName}
-              onChange={(e) => setFormName(e.target.value)}
-              icon={Clipboard}
-              required
-            />
-
-            <Stack gap={1} w="full">
-              <Font variant="sub-tiny-bold" text={s.decimalsLabel} />
-              <CustomSelect
-                value={formDecimals}
-                onChange={(val) => setFormDecimals(val)}
-              >
-                <CustomSelectItem value="0" text={s.zeroDecimals} icon={Binary} />
-                <CustomSelectItem value="1" text={s.oneDecimal} icon={Binary} />
-                <CustomSelectItem value="2" text={s.twoDecimals} icon={Binary} />
-                <CustomSelectItem value="3" text={s.threeDecimals} icon={Binary} />
-              </CustomSelect>
-            </Stack>
-          </Stack>
-        </Box>
+        <UnitFormCard formName={formName} setFormName={setFormName} formDecimals={formDecimals} setFormDecimals={setFormDecimals} onSubmit={handleSave} />
       ) : (
         <ListSectionLayout<UnitItem>
           title={s.title}
           items={units}
           searchPlaceholder={s.searchPlaceholder}
-          searchFilterFn={(unit, query) => unit.name.toLowerCase().includes(query.toLowerCase())}
+          searchFilterFn={(u, q) => u.name.toLowerCase().includes(q.toLowerCase())}
           emptyIcon={Scale}
           emptyTitle={s.emptyTitle}
           emptySubtitle={s.emptySubtitle}
-          onAdd={handleCreateNew}
-          getItemKey={(unit) => unit.id}
+          onAdd={() => { setEditingUnit(null); setFormName(""); setFormDecimals("0"); setMode("form") }}
+          getItemKey={(u) => u.id}
           setCustomBack={setCustomBack}
           setCustomTitle={setCustomTitle}
           setCustomActions={setCustomActions}
           onBackToDashboard={onCancel}
           renderItem={(unit) => (
-            <Box
-              paddingY={2.5}
-              paddingX={2.5}
-              hoverBg="primary/10"
-              w="full"
-              cursor="pointer"
-              onClick={() => handleEdit(unit)}
-            >
-              <Stack gap={1} w="full">
-                <Font variant="body" text={unit.name} />
-                <Font
-                  variant="auxiliary"
-                  text={getDecimalText(unit.decimals)}
-                  color="muted"
-                />
-              </Stack>
-            </Box>
+            <UnitListItem unit={unit} onClick={() => { setEditingUnit(unit); setFormName(unit.name); setFormDecimals(unit.decimals.toString()); setMode("form") }} />
           )}
         />
       )}

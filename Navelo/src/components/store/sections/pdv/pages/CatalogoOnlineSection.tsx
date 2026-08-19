@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -20,7 +18,8 @@ import {
   MessageSquare,
   Truck,
   Settings,
-  Check
+  Check,
+  type LucideIcon,
 } from "lucide-react"
 import { UI_STRINGS } from "@/constants/strings"
 
@@ -33,14 +32,83 @@ export interface CatalogoOnlineSectionProps {
 
 const CATALOG_URL = "https://basenavelo.comercio.net.br"
 
+function CatalogoOnlineUrlRow({ enabled }: { enabled: boolean }) {
+  const s = UI_STRINGS.onlineCatalog
+  const [copied, setCopied] = React.useState(false)
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(CATALOG_URL).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <Box padding={5} w="full">
+      <Stack direction="row" align="center" justify="between" w="full" gap={5}>
+        <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
+          <Box shrink="0">
+            <Icon icon={Globe} size={16} color="primary" />
+          </Box>
+          <Box flex="1" minW="min-w-0">
+            <Font as="p" variant="description" text={CATALOG_URL} color={enabled ? "primary" : "muted"} truncate={true} />
+          </Box>
+        </Stack>
+        <Stack direction="row" align="center" gap={2.5} flex="none">
+          <Box cursor="pointer" onClick={() => window.open(CATALOG_URL, "_blank")} title={s.openInBrowserTooltip}>
+            <Icon icon={ExternalLink} size={16} color={enabled ? "primary" : "muted"} />
+          </Box>
+          <Box cursor="pointer" onClick={handleCopy} title={copied ? s.copiedTooltip : s.copyUrlTooltip}>
+            <Icon icon={Copy} size={16} color={enabled ? "primary" : "muted"} />
+          </Box>
+        </Stack>
+      </Stack>
+    </Box>
+  )
+}
+
+function CatalogoNavItem({
+  icon,
+  title,
+  subtitle,
+  badgeText,
+  onClick,
+}: {
+  icon: LucideIcon
+  title: string
+  subtitle?: string
+  badgeText?: string
+  onClick: () => void
+}) {
+  return (
+    <>
+      <Box h="h-[1px]" w="full" bg="bg-border" />
+      <Box padding={5} cursor="pointer" hoverBg="primary/10" onClick={onClick} w="full">
+        <Stack direction="row" align="center" justify="between" w="full" gap={5}>
+          <Stack direction="row" align="center" gap={5} flex="1">
+            <Icon icon={icon} size={20} color="primary" />
+            <Stack gap={1} flex="1">
+              <Font variant="body-bold" text={title} align="left" />
+              {subtitle && <Font variant="description" text={subtitle} color="muted" align="left" />}
+            </Stack>
+          </Stack>
+          <Stack direction="row" align="center" justify="end" gap={2.5}>
+            {badgeText && <Badge variant="success" label={badgeText} icon={Check} />}
+            <Icon icon={ChevronRight} size={16} color="muted" />
+          </Stack>
+        </Stack>
+      </Box>
+    </>
+  )
+}
+
 export const CatalogoOnlineSection: React.FC<CatalogoOnlineSectionProps> = ({
   onCancel,
   setCustomBack,
   setCustomTitle,
-  onNavigate
+  onNavigate,
 }) => {
   const [enabled, setEnabled] = React.useState(true)
-  const [copied, setCopied] = React.useState(false)
   const s = UI_STRINGS.onlineCatalog
 
   React.useEffect(() => {
@@ -52,234 +120,28 @@ export const CatalogoOnlineSection: React.FC<CatalogoOnlineSectionProps> = ({
     }
   }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(CATALOG_URL).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
-  }
-
-  const handleOpenUrl = () => {
-    window.open(CATALOG_URL, "_blank")
-  }
-
   return (
-    <Box
-      bg="bg-white"
-      border={true}
-      borderColor="border-border"
-      radius="default"
-      overflow="hidden"
-      w="full"
-    >
-      {/* Linha: Habilitar */}
+    <Box bg="bg-white" border borderColor="border-border" radius="default" overflow="hidden" w="full">
       <Box padding={5} w="full">
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack gap={1}>
             <Font variant="body-bold" text={UI_STRINGS.selfService.enableToggle} />
-            <Font
-              variant="description"
-              text={s.enableDesc}
-              color="muted"
-            />
+            <Font variant="description" text={s.enableDesc} color="muted" />
           </Stack>
-          <Switch
-            checked={enabled}
-            onChange={(e) => setEnabled(e.target.checked)}
-          />
+          <Switch checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
         </Stack>
       </Box>
 
       <Box h="h-[1px]" w="full" bg="bg-border" />
+      <CatalogoOnlineUrlRow enabled={enabled} />
 
-      {/* Linha: URL */}
-      <Box padding={5} w="full">
-        <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-          <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
-            <Box shrink="0">
-              <Icon icon={Globe} size={16} color="primary" />
-            </Box>
-            <Box flex="1" minW="min-w-0">
-              <Font
-                as="p"
-                variant="description"
-                text={CATALOG_URL}
-                color={enabled ? "primary" : "muted"}
-                truncate={true}
-              />
-            </Box>
-          </Stack>
-          <Stack direction="row" align="center" gap={2.5} flex="none">
-            <Box
-              cursor="pointer"
-              onClick={handleOpenUrl}
-              title={s.openInBrowserTooltip}
-            >
-              <Icon icon={ExternalLink} size={16} color={enabled ? "primary" : "muted"} />
-            </Box>
-            <Box
-              cursor="pointer"
-              onClick={handleCopy}
-              title={copied ? s.copiedTooltip : s.copyUrlTooltip}
-            >
-              <Icon icon={Copy} size={16} color={enabled ? "primary" : "muted"} />
-            </Box>
-          </Stack>
-        </Stack>
-      </Box>
-
-      <Box h="h-[1px]" w="full" bg="bg-border" />
-
-      {/* Linha: Identificação */}
-      <Box
-        padding={5}
-        cursor="pointer"
-        hoverBg="primary/10"
-        onClick={() => onNavigate("identificacao")}
-        w="full"
-      >
-        <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-          <Stack direction="row" align="center" gap={5}>
-            <Icon icon={LayoutGrid} size={20} color="primary" />
-            <Stack gap={1}>
-              <Font variant="body-bold" text={s.identificationTitle} />
-              <Font variant="description" text={s.identificationSlug} color="muted" />
-            </Stack>
-          </Stack>
-          <Icon icon={ChevronRight} size={16} color="muted" />
-        </Stack>
-      </Box>
-
-      <Box h="h-[1px]" w="full" bg="bg-border" />
-
-      {/* Linha: Produtos */}
-      <Box
-        padding={5}
-        cursor="pointer"
-        hoverBg="primary/10"
-        onClick={() => onNavigate("catalogo-produtos")}
-        w="full"
-      >
-        <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-          <Stack direction="row" align="center" gap={5}>
-            <Icon icon={LayoutGrid} size={20} color="primary" />
-            <Stack gap={1}>
-              <Font variant="body-bold" text={s.productsTitle} />
-              <Font variant="description" text={s.productsSelectedCount} color="muted" />
-            </Stack>
-          </Stack>
-          <Icon icon={ChevronRight} size={16} color="muted" />
-        </Stack>
-      </Box>
-
-      <Box h="h-[1px]" w="full" bg="bg-border" />
-
-      {/* Linha: Horário de Atendimento */}
-      <Box
-        padding={5}
-        cursor="pointer"
-        hoverBg="primary/10"
-        onClick={() => onNavigate("horario-atendimento")}
-        w="full"
-      >
-        <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-          <Stack direction="row" align="center" gap={5}>
-            <Icon icon={Clock} size={20} color="primary" />
-            <Stack gap={1}>
-              <Font variant="body-bold" text={s.businessHoursTitle} />
-              <Font variant="description" text={s.everydayText} color="muted" />
-            </Stack>
-          </Stack>
-          <Icon icon={ChevronRight} size={16} color="muted" />
-        </Stack>
-      </Box>
-
-      <Box h="h-[1px]" w="full" bg="bg-border" />
-
-      {/* Linha: Formas de Pagamento */}
-      <Box
-        padding={5}
-        cursor="pointer"
-        hoverBg="primary/10"
-        onClick={() => onNavigate("formas-pagamento")}
-        w="full"
-      >
-        <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-          <Stack direction="row" align="center" gap={5}>
-            <Icon icon={CreditCard} size={20} color="primary" />
-            <Font variant="body-bold" text={s.paymentMethodsTitle} />
-          </Stack>
-          <Icon icon={ChevronRight} size={16} color="muted" />
-        </Stack>
-      </Box>
-
-      <Box h="h-[1px]" w="full" bg="bg-border" />
-
-      {/* Linha: WhatsApp */}
-      <Box
-        padding={5}
-        cursor="pointer"
-        hoverBg="primary/10"
-        onClick={() => onNavigate("whatsapp")}
-        w="full"
-      >
-        <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
-          <Stack direction="row" align="center" gap={5} flex="1">
-            <Icon icon={MessageSquare} size={20} color="primary" />
-            <Stack gap={1} flex="1">
-              <Font variant="body-bold" text={s.whatsappTitle} align="left" />
-              <Font
-                variant="description"
-                text={s.whatsappDesc}
-                color="muted"
-                align="left"
-              />
-            </Stack>
-          </Stack>
-          <Stack direction="row" align="center" justify="end" mobileJustify="end" gap={2.5} w="full">
-            <Badge variant="success" label={s.enabledBadge} icon={Check} />
-            <Icon icon={ChevronRight} size={16} color="muted" />
-          </Stack>
-        </Stack>
-      </Box>
-
-      <Box h="h-[1px]" w="full" bg="bg-border" />
-
-      {/* Linha: Opções de Entrega */}
-      <Box
-        padding={5}
-        cursor="pointer"
-        hoverBg="primary/10"
-        onClick={() => onNavigate("opcao-entrega")}
-        w="full"
-      >
-        <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-          <Stack direction="row" align="center" gap={5}>
-            <Icon icon={Truck} size={20} color="primary" />
-            <Font variant="body-bold" text={s.deliveryOptionsTitle} />
-          </Stack>
-          <Icon icon={ChevronRight} size={16} color="muted" />
-        </Stack>
-      </Box>
-
-      <Box h="h-[1px]" w="full" bg="bg-border" />
-
-      {/* Linha: Opções de Pedido */}
-      <Box
-        padding={5}
-        cursor="pointer"
-        hoverBg="primary/10"
-        onClick={() => onNavigate("opcao-pedido")}
-        w="full"
-      >
-        <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-          <Stack direction="row" align="center" gap={5}>
-            <Icon icon={Settings} size={20} color="primary" />
-            <Font variant="body-bold" text={s.orderOptionsTitle} />
-          </Stack>
-          <Icon icon={ChevronRight} size={16} color="muted" />
-        </Stack>
-      </Box>
+      <CatalogoNavItem icon={LayoutGrid} title={s.identificationTitle} subtitle={s.identificationSlug} onClick={() => onNavigate("identificacao")} />
+      <CatalogoNavItem icon={LayoutGrid} title={s.productsTitle} subtitle={s.productsSelectedCount} onClick={() => onNavigate("catalogo-produtos")} />
+      <CatalogoNavItem icon={Clock} title={s.businessHoursTitle} subtitle={s.everydayText} onClick={() => onNavigate("horario-atendimento")} />
+      <CatalogoNavItem icon={CreditCard} title={s.paymentMethodsTitle} onClick={() => onNavigate("formas-pagamento")} />
+      <CatalogoNavItem icon={MessageSquare} title={s.whatsappTitle} subtitle={s.whatsappDesc} badgeText={s.enabledBadge} onClick={() => onNavigate("whatsapp")} />
+      <CatalogoNavItem icon={Truck} title={s.deliveryOptionsTitle} onClick={() => onNavigate("opcao-entrega")} />
+      <CatalogoNavItem icon={Settings} title={s.orderOptionsTitle} onClick={() => onNavigate("opcao-pedido")} />
     </Box>
   )
 }

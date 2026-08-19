@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, complexity */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -37,33 +35,140 @@ export interface FilterPanelProps {
 
 const DEFAULT_PERIOD_OPTIONS = ["Hoje", "7D", "1M", "3M", "6M", "1A"]
 
-export const FilterPanel: React.FC<FilterPanelProps> = ({
-  title = "Filtros",
-  hideTitle = false,
-  hideFilterButton = false,
-  borderless = false,
-  periodOptions = DEFAULT_PERIOD_OPTIONS,
-  selectedPeriod,
-  onPeriodChange,
-  startDate,
-  onStartDateChange,
-  endDate,
-  onEndDateChange,
-  statusOptions,
-  selectedStatusIds = [],
-  onStatusToggle,
-  onFilter,
-  children,
-}) => {
+interface PeriodSelectorProps {
+  options?: string[]
+  selectedPeriod?: string
+  onPeriodChange?: (period: string) => void
+}
+
+function PeriodSelector(props: PeriodSelectorProps) {
   const common = UI_STRINGS.common
+  const options = props.options ?? DEFAULT_PERIOD_OPTIONS
+  if (options.length === 0) return null
+
+  return (
+    <Stack gap={2.5} w="full">
+      <Font variant="auxiliary" color="muted" text={common.period} />
+      <Stack direction="row" wrap gap={2.5} w="full">
+        {options.map((period) => {
+          const isSelected = props.selectedPeriod === period
+          return (
+            <Button
+              key={period}
+              variant={isSelected ? "primary-pill-xs" : "outline-pill-xs"}
+              label={period}
+              onClick={() => props.onPeriodChange?.(period)}
+              type="button"
+            />
+          )
+        })}
+      </Stack>
+    </Stack>
+  )
+}
+
+interface DateRangeSelectorProps {
+  startDate?: string
+  onStartDateChange?: (val: string) => void
+  endDate?: string
+  onEndDateChange?: (val: string) => void
+}
+
+function DateRangeSelector(props: DateRangeSelectorProps) {
+  const common = UI_STRINGS.common
+  if (props.startDate === undefined && props.endDate === undefined) return null
+
+  return (
+    <Stack gap={2.5} w="full">
+      {props.startDate !== undefined && (
+        <Input
+          variant="date"
+          label={common.startDate}
+          value={props.startDate}
+          onChange={(e) => props.onStartDateChange?.(e.target.value)}
+          iconRight={X}
+        />
+      )}
+      {props.endDate !== undefined && (
+        <Input
+          variant="date"
+          label={common.endDate}
+          value={props.endDate}
+          onChange={(e) => props.onEndDateChange?.(e.target.value)}
+          iconRight={X}
+        />
+      )}
+    </Stack>
+  )
+}
+
+interface StatusSelectorProps {
+  options?: FilterStatusOption[]
+  selectedStatusIds?: string[]
+  onStatusToggle?: (id: string) => void
+}
+
+function StatusSelector(props: StatusSelectorProps) {
+  const common = UI_STRINGS.common
+  const options = props.options
+  const selectedStatusIds = props.selectedStatusIds ?? []
+  if (!options || options.length === 0) return null
+
+  return (
+    <Stack gap={2.5} w="full">
+      <Font variant="auxiliary" color="muted" text={common.status} />
+      <Stack direction="row" wrap gap={2.5} w="full">
+        {options.map((opt) => {
+          const isSelected = selectedStatusIds.includes(opt.id)
+          return (
+            <Button
+              key={opt.id}
+              variant={isSelected ? "primary-pill-xs" : "outline-pill-xs"}
+              icon={isSelected ? Check : undefined}
+              label={opt.label}
+              onClick={() => props.onStatusToggle?.(opt.id)}
+              type="button"
+            />
+          )
+        })}
+      </Stack>
+    </Stack>
+  )
+}
+
+interface FilterPanelFooterProps {
+  onFilter?: () => void
+}
+
+function FilterPanelFooter({ onFilter }: FilterPanelFooterProps) {
+  const common = UI_STRINGS.common
+  return (
+    <Box shrink="0" w="full">
+      <Stack gap={5} w="full">
+        <Box h="h-[1px]" bg="bg-border" w="full" />
+        <Button
+          variant="primary"
+          label={common.filterAction}
+          fullWidth
+          onClick={onFilter}
+          type="button"
+        />
+      </Stack>
+    </Box>
+  )
+}
+
+export function FilterPanel(props: FilterPanelProps) {
+  const title = props.title ?? "Filtros"
+  const isBorderless = Boolean(props.borderless)
 
   return (
     <Box
-      bg={borderless ? undefined : "bg-white"}
-      padding={borderless ? 0 : 5}
-      radius={borderless ? "none" : "default"}
-      border={!borderless}
-      borderColor={borderless ? undefined : "border-border"}
+      bg={isBorderless ? undefined : "bg-white"}
+      padding={isBorderless ? 0 : 5}
+      radius={isBorderless ? "none" : "default"}
+      border={!isBorderless}
+      borderColor={isBorderless ? undefined : "border-border"}
       w="w-full lg:w-80"
       shrink="0"
       h="full"
@@ -73,96 +178,32 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
       minH="0"
     >
       <Stack gap={5} w="full" h="full" justify="between" direction="col" minH="0">
-        {/* Conteúdo dos Filtros - Scrollável Internamente */}
         <Stack direction="col" flex="1" w="full" gap={5} overflow="x-hidden y-auto" minH="0">
-          {!hideTitle && title && <Font variant="h4" text={title} />}
+          {!props.hideTitle && <Font variant="h4" text={title} />}
 
-          {/* Período */}
-          {periodOptions && periodOptions.length > 0 && (
-            <Stack gap={2.5} w="full">
-              <Font variant="auxiliary" color="muted" text={common.period} />
-              <Stack direction="row" wrap gap={2.5} w="full">
-                {periodOptions.map((period) => {
-                  const isSelected = selectedPeriod === period
-                  return (
-                    <Button
-                      key={period}
-                      variant={isSelected ? "primary-pill-xs" : "outline-pill-xs"}
-                      label={period}
-                      onClick={() => onPeriodChange?.(period)}
-                      type="button"
-                    />
-                  )
-                })}
-              </Stack>
-            </Stack>
-          )}
+          <PeriodSelector
+            options={props.periodOptions}
+            selectedPeriod={props.selectedPeriod}
+            onPeriodChange={props.onPeriodChange}
+          />
 
-          {/* Intervalo de Datas (Inicial e Final) */}
-          {(startDate !== undefined || endDate !== undefined) && (
-            <Stack gap={2.5} w="full">
-              {startDate !== undefined && (
-                <Input
-                  variant="date"
-                  label={common.startDate}
-                  value={startDate}
-                  onChange={(e) => onStartDateChange?.(e.target.value)}
-                  iconRight={X}
-                />
-              )}
-              {endDate !== undefined && (
-                <Input
-                  variant="date"
-                  label={common.endDate}
-                  value={endDate}
-                  onChange={(e) => onEndDateChange?.(e.target.value)}
-                  iconRight={X}
-                />
-              )}
-            </Stack>
-          )}
+          <DateRangeSelector
+            startDate={props.startDate}
+            onStartDateChange={props.onStartDateChange}
+            endDate={props.endDate}
+            onEndDateChange={props.onEndDateChange}
+          />
 
-          {/* Status Options */}
-          {statusOptions && statusOptions.length > 0 && (
-            <Stack gap={2.5} w="full">
-              <Font variant="auxiliary" color="muted" text={common.status} />
-              <Stack direction="row" wrap gap={2.5} w="full">
-                {statusOptions.map((opt) => {
-                  const isSelected = selectedStatusIds.includes(opt.id)
-                  return (
-                    <Button
-                      key={opt.id}
-                      variant={isSelected ? "primary-pill-xs" : "outline-pill-xs"}
-                      icon={isSelected ? Check : undefined}
-                      label={opt.label}
-                      onClick={() => onStatusToggle?.(opt.id)}
-                      type="button"
-                    />
-                  )
-                })}
-              </Stack>
-            </Stack>
-          )}
+          <StatusSelector
+            options={props.statusOptions}
+            selectedStatusIds={props.selectedStatusIds}
+            onStatusToggle={props.onStatusToggle}
+          />
 
-          {/* Slot para Filtros Adicionais Customizados */}
-          {children}
+          {props.children}
         </Stack>
 
-        {/* Botão de Filtrar Fixo no Rodapé com Divisória e Gap */}
-        {!hideFilterButton && (
-          <Box shrink="0" w="full">
-            <Stack gap={5} w="full">
-              <Box h="h-[1px]" bg="bg-border" w="full" />
-              <Button
-                variant="primary"
-                label={common.filterAction}
-                fullWidth
-                onClick={onFilter}
-                type="button"
-              />
-            </Stack>
-          </Box>
-        )}
+        {!props.hideFilterButton && <FilterPanelFooter onFilter={props.onFilter} />}
       </Stack>
     </Box>
   )

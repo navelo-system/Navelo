@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as React from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from './db';
@@ -167,6 +166,15 @@ export function useDeliveryOrders(tenantId?: string) {
   }, [tenantId]);
 }
 
+export function useInventoryAudits(tenantId?: string) {
+  return useLiveQuery(() => {
+    return db.inventory_audits
+      .filter((item) => matchesTenant(item, tenantId))
+      .reverse()
+      .sortBy('created_at');
+  }, [tenantId]);
+}
+
 export type DalPayload = { id: string; company_id?: string; tenant_id?: string; [key: string]: any };
 
 // Repositório Unificado da DAL (Local-First Mutate)
@@ -176,6 +184,12 @@ export const dal = {
     create: async (item: DalPayload) => mutateLocalFirst('products', item, 'INSERT'),
     update: async (item: DalPayload) => mutateLocalFirst('products', item, 'UPDATE'),
     delete: async (id: string, tenantId?: string) => mutateLocalFirst('products', { id, company_id: tenantId, tenant_id: tenantId }, 'DELETE')
+  },
+  inventoryAudits: {
+    getById: async (id: string) => db.inventory_audits.get(id),
+    create: async (item: DalPayload) => mutateLocalFirst('inventory_audits', item, 'INSERT'),
+    update: async (item: DalPayload) => mutateLocalFirst('inventory_audits', item, 'UPDATE'),
+    delete: async (id: string, tenantId?: string) => mutateLocalFirst('inventory_audits', { id, company_id: tenantId, tenant_id: tenantId }, 'DELETE')
   },
   categories: {
     create: async (item: DalPayload) => mutateLocalFirst('categories', item, 'INSERT'),

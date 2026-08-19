@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable react-hooks/set-state-in-effect */
-
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
 import { Stack } from "@/components/store/base/Stack"
@@ -21,7 +19,7 @@ export interface PdvObservacaoModalProps {
   onSaveObservation: (obs: string) => void
 }
 
-export const PdvObservacaoModal: React.FC<PdvObservacaoModalProps> = ({
+export function PdvObservacaoModal({
   isOpen,
   onClose,
   title,
@@ -30,14 +28,18 @@ export const PdvObservacaoModal: React.FC<PdvObservacaoModalProps> = ({
   icon: IconComp = NotepadTextIcon,
   initialObservation = "",
   onSaveObservation,
-}) => {
+}: PdvObservacaoModalProps) {
   const [observation, setObservation] = React.useState(initialObservation)
+  const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen)
+  const [prevInitial, setPrevInitial] = React.useState(initialObservation)
 
-  React.useEffect(() => {
+  if (isOpen !== prevIsOpen || initialObservation !== prevInitial) {
+    setPrevIsOpen(isOpen)
+    setPrevInitial(initialObservation)
     if (isOpen) {
       setObservation(initialObservation)
     }
-  }, [isOpen, initialObservation])
+  }
 
   const handleConfirm = () => {
     onSaveObservation(observation)
@@ -60,9 +62,7 @@ export const PdvObservacaoModal: React.FC<PdvObservacaoModalProps> = ({
       onSuccess={handleConfirm}
     >
       <Stack gap={2.5} w="full">
-        {description && (
-          <Font variant="body" text={description} />
-        )}
+        {description && <Font variant="body" text={description} />}
         <Input
           variant="textarea"
           rows={4}

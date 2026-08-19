@@ -3,7 +3,6 @@
  * Gerador de PDF client-side para o relatório de Vendas / Negociações (formato A4).
  */
 
-/* eslint-disable max-lines-per-function, complexity */
 
 export interface SalesReportItem {
   code: string

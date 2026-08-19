@@ -1,6 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, complexity, max-depth, react-hooks/set-state-in-effect, @typescript-eslint/no-explicit-any */
 
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
@@ -150,6 +149,14 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
   const [linkModalUrl, setLinkModalUrl] = React.useState("")
   const [isExportModalOpen, setIsExportModalOpen] = React.useState(false)
 
+  const [prevClientFilter, setPrevClientFilter] = React.useState(initialClientFilter)
+  if (initialClientFilter !== prevClientFilter) {
+    setPrevClientFilter(initialClientFilter)
+    if (initialClientFilter !== undefined) {
+      setCliente(initialClientFilter)
+    }
+  }
+
   const handlePeriodChange = (newPeriod: string) => {
     setPeriod(newPeriod)
     const { start, end } = getPeriodDates(newPeriod)
@@ -182,12 +189,6 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
       setCustomActions?.(null)
     }
   }, [setCustomBack, setCustomTitle, setCustomActions, title, s.title])
-
-  React.useEffect(() => {
-    if (initialClientFilter !== undefined) {
-      setCliente(initialClientFilter)
-    }
-  }, [initialClientFilter])
 
   const filteredSales = React.useMemo(() => {
     if (!dbSales || dbSales.length === 0) return []

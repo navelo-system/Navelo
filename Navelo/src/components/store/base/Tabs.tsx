@@ -3,46 +3,50 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-const TabsContext = React.createContext<{
+interface TabsContextValue {
   value: string
   onValueChange: (value: string) => void
-} | null>(null)
+}
 
-export function Tabs({
-  value,
-  defaultValue,
-  onValueChange,
-  className,
-  children,
-  ...props
-}: {
+const TabsContext = React.createContext<TabsContextValue | null>(null)
+
+export interface TabsProps extends React.HTMLAttributes<HTMLDivElement> {
   value?: string
   defaultValue?: string
   onValueChange?: (value: string) => void
   className?: string
   children: React.ReactNode
-} & React.HTMLAttributes<HTMLDivElement>) {
-  const [tabValue, setTabValue] = React.useState(value || defaultValue || "")
+}
 
-  React.useEffect(() => {
-    if (value !== undefined) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTabValue(value)
-    }
-  }, [value])
+export function Tabs({
+  value,
+  defaultValue = "",
+  onValueChange,
+  className,
+  children,
+  ...props
+}: TabsProps) {
+  const [uncontrolledValue, setUncontrolledValue] = React.useState(defaultValue)
+  const isControlled = value !== undefined
+  const currentTab = isControlled ? value : uncontrolledValue
 
   const handleValueChange = React.useCallback(
     (newValue: string) => {
-      if (value === undefined) {
-        setTabValue(newValue)
+      if (!isControlled) {
+        setUncontrolledValue(newValue)
       }
       onValueChange?.(newValue)
     },
-    [value, onValueChange]
+    [isControlled, onValueChange]
+  )
+
+  const contextValue = React.useMemo(
+    () => ({ value: currentTab, onValueChange: handleValueChange }),
+    [currentTab, handleValueChange]
   )
 
   return (
-    <TabsContext.Provider value={{ value: tabValue, onValueChange: handleValueChange }}>
+    <TabsContext.Provider value={contextValue}>
       <div className={cn("flex flex-col w-full", className)} {...props}>
         {children}
       </div>
@@ -50,76 +54,89 @@ export function Tabs({
   )
 }
 
-export const TabsList = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { grid?: boolean; cols?: 2 | 3 | 4 | 5 }
->(
-  ({ className, grid, cols, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(
-        grid
-          ? `grid w-full gap-2.5 ${{ 2: "grid-cols-2", 3: "grid-cols-3", 4: "grid-cols-4", 5: "grid-cols-5" }[cols ?? 3] ?? "grid-cols-3"}`
-          : "flex flex-wrap w-full items-center justify-start gap-2.5",
-        className
-      )}
-      {...props}
-    />
-  )
+export interface TabsListProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  grid?: boolean
+  cols?: 2 | 3 | 4 | 5
+}
+
+export const TabsList = React.forwardRef<HTMLDivElement, TabsListProps>(
+  ({ className, grid, cols, ...props }, ref) => {
+    const gridColsMap: Record<number, string> = {
+      2: "grid-cols-2",
+      3: "grid-cols-3",
+      4: "grid-cols-4",
+      5: "grid-cols-5",
+    }
+    const gridClass = grid
+      ? `grid w-full gap-2.5 ${gridColsMap[cols ?? 3] ?? "grid-cols-3"}`
+      : "flex flex-wrap w-full items-center justify-start gap-2.5"
+
+    return <div ref={ref} className={cn(gridClass, className)} {...props} />
+  }
 )
 TabsList.displayName = "TabsList"
 
-export const TabsTrigger = React.forwardRef<
-  HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement> & { value: string; fullWidth?: boolean }
->(({ className, value, fullWidth, ...props }, ref) => {
-  const context = React.useContext(TabsContext)
-  if (!context) throw new Error("TabsTrigger must be used within Tabs")
+export interface TabsTriggerProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  value: string
+  fullWidth?: boolean
+}
 
-  const isActive = context.value === value
+export const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
+  ({ className, value, fullWidth, ...props }, ref) => {
+    const context = React.useContext(TabsContext)
+    if (!context) throw new Error("TabsTrigger must be used within Tabs")
 
-  return (
-    <button
-      ref={ref}
-      type="button"
-      role="tab"
-      aria-selected={isActive}
-      data-state={isActive ? "active" : "inactive"}
-      onClick={() => context.onValueChange(value)}
-      className={cn(
-        "shrink-0 inline-flex items-center justify-center whitespace-nowrap rounded-[20px] px-4 py-1.5 text-sm font-normal ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
-        isActive
-          ? "bg-brand-primary text-brand-secondary"
-          : "bg-brand-secondary/10 text-brand-primary hover:bg-brand-secondary/20",
-        fullWidth && "w-full",
-        className
-      )}
-      {...props}
-    />
-  )
-})
+    const isActive = context.value === value
+
+    return (
+      <button
+        ref={ref}
+        type="button"
+        role="tab"
+        aria-selected={isActive}
+        data-state={isActive ? "active" : "inactive"}
+        onClick={() => context.onValueChange(value)}
+        className={cn(
+          "shrink-0 inline-flex items-center justify-center whitespace-nowrap rounded-[20px] px-4 py-1.5 text-sm font-normal ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+          isActive
+            ? "bg-brand-primary text-brand-secondary"
+            : "bg-brand-secondary/10 text-brand-primary hover:bg-brand-secondary/20",
+          fullWidth && "w-full",
+          className
+        )}
+        {...props}
+      />
+    )
+  }
+)
 TabsTrigger.displayName = "TabsTrigger"
 
-export const TabsContent = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { value: string }
->(({ className, value, ...props }, ref) => {
-  const context = React.useContext(TabsContext)
-  if (!context) throw new Error("TabsContent must be used within Tabs")
+export interface TabsContentProps
+  extends React.HTMLAttributes<HTMLDivElement> {
+  value: string
+}
 
-  if (context.value !== value) return null
+export const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
+  ({ className, value, ...props }, ref) => {
+    const context = React.useContext(TabsContext)
+    if (!context) throw new Error("TabsContent must be used within Tabs")
 
-  return (
-    <div
-      ref={ref}
-      role="tabpanel"
-      data-state="active"
-      className={cn(
-        "mt-5 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2",
-        className
-      )}
-      {...props}
-    />
-  )
-})
+    if (context.value !== value) return null
+
+    return (
+      <div
+        ref={ref}
+        role="tabpanel"
+        data-state="active"
+        className={cn(
+          "mt-5 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2",
+          className
+        )}
+        {...props}
+      />
+    )
+  }
+)
 TabsContent.displayName = "TabsContent"

@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -52,10 +50,7 @@ function toGridCols(count: number): GridCols {
   return 10
 }
 
-function useGridColumnCount(
-  minCardWidth: number,
-  gap: number
-) {
+function useGridColumnCount(minCardWidth: number, gap: number) {
   const [columns, setColumns] = React.useState<GridCols>(3)
   const observerRef = React.useRef<ResizeObserver | null>(null)
 
@@ -99,10 +94,171 @@ const adaptProduct = (prod: MockProduct): Product => ({
   otherCosts: 0,
   marginPercentage: 0,
   sellingPrice: prod.unitPrice,
-  isActive: true
+  isActive: true,
 })
 
-export const PdvCatalog: React.FC<PdvCatalogProps> = ({
+interface PdvCatalogListItemProps {
+  prod: MockProduct
+  qty: number
+  isLast: boolean
+  pulsingListId: string | null
+  pulseListKey: number
+  onProductClick: (prod: MockProduct) => void
+  onIncrease?: (id: string) => void
+  onDecrease?: (id: string) => void
+  onRemove?: (id: string) => void
+}
+
+function PdvCatalogListItem({
+  prod,
+  qty,
+  isLast,
+  pulsingListId,
+  pulseListKey,
+  onProductClick,
+  onIncrease,
+  onDecrease,
+  onRemove,
+}: PdvCatalogListItemProps) {
+  const formattedPrice = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(prod.unitPrice)
+  return (
+    <Box>
+      <Box
+        w="full"
+        paddingX={2.5}
+        paddingY={2.5}
+        hoverBg="secondary/10"
+        onClick={() => {
+          if (qty === 0) onProductClick(prod)
+        }}
+        cursor={qty === 0 ? "pointer" : undefined}
+      >
+        <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" gap={2.5} w="full">
+          <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
+            <Box position="relative" w="w-10" h="h-10" bg="bg-surface-sunken" radius="default" overflow="hidden" shrink="0">
+              {prod.image ? (
+                <Box as="img" src={prod.image} alt={prod.name} w="full" h="full" objectFit="cover" />
+              ) : (
+                <Stack align="center" justify="center" w="full" h="full">
+                  <Font variant="auxiliary" color="muted" text={UI_STRINGS.common.dash} />
+                </Stack>
+              )}
+              {pulsingListId === prod.id && (
+                <Box
+                  key={pulseListKey}
+                  position="absolute"
+                  top={0}
+                  left={0}
+                  right={0}
+                  bottom={0}
+                  w="full"
+                  h="full"
+                  zIndex="30"
+                  display="flex"
+                  align="center"
+                  justify="center"
+                  radius="default"
+                  pointerEvents="none"
+                  animation="zero-stock-pulse"
+                >
+                  <Font variant="body-bold" color="white" text="0" align="center" />
+                </Box>
+              )}
+            </Box>
+            <Font variant="body-sm-medium" text={prod.name.toUpperCase()} align="left" />
+          </Stack>
+          <Stack direction="row" align="center" gap={2.5} justify="end" w="w-full md:w-auto">
+            {qty > 0 && (
+              <QuantityControl
+                quantity={qty}
+                stock={prod.stock}
+                onIncrease={() => onIncrease?.(prod.id)}
+                onDecrease={() => onDecrease?.(prod.id)}
+                onRemove={() => onRemove?.(prod.id)}
+                stopPropagation={true}
+              />
+            )}
+            <Stack direction="row" align="baseline" gap={1} justify="end" w="min-w-[85px]">
+              <Font variant="body-sm-semibold" text={formattedPrice} align="right" />
+              <Font variant="auxiliary" color="muted" text={prod.unit || "UN"} />
+            </Stack>
+          </Stack>
+        </Stack>
+      </Box>
+      {!isLast && <Box h="h-[1px]" w="full" bg="bg-border" />}
+    </Box>
+  )
+}
+
+interface PdvCatalogListProps {
+  products: MockProduct[]
+  cartItems: CartItemType[]
+  pulsingListId: string | null
+  pulseListKey: number
+  onProductClick: (prod: MockProduct) => void
+  onIncrease?: (id: string) => void
+  onDecrease?: (id: string) => void
+  onRemove?: (id: string) => void
+}
+
+function PdvCatalogList({
+  products,
+  cartItems,
+  pulsingListId,
+  pulseListKey,
+  onProductClick,
+  onIncrease,
+  onDecrease,
+  onRemove,
+}: PdvCatalogListProps) {
+  return (
+    <Box display="flex" direction="col" radius="default" border={true} borderColor="border-border" bg="bg-white" overflow="hidden">
+      {products.map((prod, idx) => {
+        const qty = cartItems.find((it) => it.id === prod.id)?.quantity || 0
+        return (
+          <PdvCatalogListItem
+            key={prod.id}
+            prod={prod}
+            qty={qty}
+            isLast={idx === products.length - 1}
+            pulsingListId={pulsingListId}
+            pulseListKey={pulseListKey}
+            onProductClick={onProductClick}
+            onIncrease={onIncrease}
+            onDecrease={onDecrease}
+            onRemove={onRemove}
+          />
+        )
+      })}
+    </Box>
+  )
+}
+
+function usePdvPulse() {
+  const [pulsingListId, setPulsingListId] = React.useState<string | null>(null)
+  const [pulseListKey, setPulseListKey] = React.useState(0)
+  const pulseTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
+
+  React.useEffect(() => {
+    return () => {
+      if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current)
+    }
+  }, [])
+
+  const triggerPulse = (id: string) => {
+    if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current)
+    setPulsingListId(null)
+    requestAnimationFrame(() => {
+      setPulsingListId(id)
+      setPulseListKey((prev) => prev + 1)
+      pulseTimeoutRef.current = setTimeout(() => setPulsingListId(null), 450)
+    })
+  }
+
+  return { pulsingListId, pulseListKey, triggerPulse }
+}
+
+export function PdvCatalog({
   activeCategory,
   onActiveCategoryChange,
   filteredProducts,
@@ -113,9 +269,10 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
   onIncrease,
   onDecrease,
   onRemove,
-}) => {
+}: PdvCatalogProps) {
   const [minCardWidth, setMinCardWidth] = React.useState(105)
   const [gridColumns, gridContainerRef] = useGridColumnCount(minCardWidth, GRID_GAP_PX)
+  const { pulsingListId, pulseListKey, triggerPulse } = usePdvPulse()
 
   React.useEffect(() => {
     const mediaQuery = window.matchMedia("(min-width: 768px)")
@@ -125,166 +282,57 @@ export const PdvCatalog: React.FC<PdvCatalogProps> = ({
     return () => mediaQuery.removeEventListener("change", updateMinWidth)
   }, [])
 
-  const [pulsingListId, setPulsingListId] = React.useState<string | null>(null)
-  const [pulseListKey, setPulseListKey] = React.useState(0)
-  const pulseListTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
-
-  React.useEffect(() => {
-    return () => {
-      if (pulseListTimeoutRef.current) {
-        clearTimeout(pulseListTimeoutRef.current)
-      }
-    }
-  }, [])
-
   const handleListProductClick = (prod: MockProduct) => {
     if (prod.stock !== undefined && prod.stock <= 0) {
-      if (pulseListTimeoutRef.current) {
-        clearTimeout(pulseListTimeoutRef.current)
-      }
-      setPulsingListId(null)
-      requestAnimationFrame(() => {
-        setPulsingListId(prod.id)
-        setPulseListKey((prev) => prev + 1)
-        pulseListTimeoutRef.current = setTimeout(() => {
-          setPulsingListId(null)
-        }, 450)
-      })
+      triggerPulse(prod.id)
       return
     }
     onAddProduct(prod)
   }
 
-  const getProductQuantity = (id: string) => {
-    return cartItems.find((item) => item.id === id)?.quantity || 0
-  }
-
   return (
     <Stack gap={5} flex="1" minH="0">
-
-      {/* Abas de Categorias */}
       <Box w="full" overflow="auto" paddingY={1} shrink="0">
         <Tabs value={activeCategory} onValueChange={onActiveCategoryChange}>
           <Stack direction="row" gap={2.5}>
             {categories.map((cat) => (
-              <TabsTrigger key={cat} value={cat}>
-                {cat}
-              </TabsTrigger>
+              <TabsTrigger key={cat} value={cat}>{cat}</TabsTrigger>
             ))}
           </Stack>
         </Tabs>
       </Box>
 
-      {/* Grade/Lista de Produtos ou Carrinho */}
       <Box padding={0} flex="1" minH="0" overflow="x-hidden y-auto">
         {filteredProducts.length === 0 ? (
-          <EmptyState
-            icon={Package}
-            title={UI_STRINGS.pdv.catalog.noProductsTitle}
-            subtitle={UI_STRINGS.pdv.catalog.noProductsSubtitle}
-          />
+          <EmptyState icon={Package} title={UI_STRINGS.pdv.catalog.noProductsTitle} subtitle={UI_STRINGS.pdv.catalog.noProductsSubtitle} />
         ) : viewMode === "grade" ? (
           <Box ref={gridContainerRef} w="full">
             <Grid cols={gridColumns} responsive={false} gap={5} w="full">
-              {filteredProducts.map((prod) => {
-                const qty = getProductQuantity(prod.id)
-                return (
-                  <Box key={prod.id} display="flex" direction="col">
-                    <ProductCard
-                      product={adaptProduct(prod)}
-                      onClick={() => onAddProduct(prod)}
-                      quantity={qty}
-                      onIncrease={() => onIncrease?.(prod.id)}
-                      onDecrease={() => onDecrease?.(prod.id)}
-                      onRemove={() => onRemove?.(prod.id)}
-                    />
-                  </Box>
-                )
-              })}
+              {filteredProducts.map((prod) => (
+                <Box key={prod.id} display="flex" direction="col">
+                  <ProductCard
+                    product={adaptProduct(prod)}
+                    onClick={() => onAddProduct(prod)}
+                    quantity={cartItems.find((it) => it.id === prod.id)?.quantity || 0}
+                    onIncrease={() => onIncrease?.(prod.id)}
+                    onDecrease={() => onDecrease?.(prod.id)}
+                    onRemove={() => onRemove?.(prod.id)}
+                  />
+                </Box>
+              ))}
             </Grid>
           </Box>
         ) : (
-          /* Lista limpa — thumbnail + nome + preço/unidade */
-          <Box display="flex" direction="col" radius="default" border={true} borderColor="border-border" bg="bg-white" overflow="hidden">
-            {filteredProducts.map((prod, idx) => {
-              const qty = getProductQuantity(prod.id)
-              return (
-                <Box key={prod.id}>
-                  <Box
-                    w="full"
-                    paddingX={2.5}
-                    paddingY={2.5}
-                    hoverBg="secondary/10"
-                    onClick={() => {
-                      if (qty === 0) handleListProductClick(prod)
-                    }}
-                    cursor={qty === 0 ? "pointer" : undefined}
-                  >
-                    <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" gap={2.5} w="full">
-                      {/* Thumbnail + Nome */}
-                      <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
-                        <Box position="relative" w="w-10" h="h-10" bg="bg-surface-sunken" radius="default" overflow="hidden" shrink="0">
-                          {prod.image ? (
-                            <Box as="img" src={prod.image} alt={prod.name} w="full" h="full" objectFit="cover" />
-                          ) : (
-                            <Stack align="center" justify="center" w="full" h="full">
-                              <Font variant="auxiliary" color="muted" text={UI_STRINGS.common.dash} />
-                            </Stack>
-                          )}
-                          {pulsingListId === prod.id && (
-                            <Box
-                              key={pulseListKey}
-                              position="absolute"
-                              top={0}
-                              left={0}
-                              right={0}
-                              bottom={0}
-                              w="full"
-                              h="full"
-                              zIndex="30"
-                              display="flex"
-                              align="center"
-                              justify="center"
-                              radius="default"
-                              pointerEvents="none"
-                              animation="zero-stock-pulse"
-                            >
-                              <Font variant="body-bold" color="white" text="0" align="center" />
-                            </Box>
-                          )}
-                        </Box>
-                        <Font variant="body-sm-medium" text={prod.name.toUpperCase()} align="left" />
-                      </Stack>
-                      {/* Preço + Unidade e Controles */}
-                      <Stack direction="row" align="center" gap={2.5} justify="end" w="w-full md:w-auto">
-                        {qty > 0 && (
-                          <QuantityControl
-                            quantity={qty}
-                            stock={prod.stock}
-                            onIncrease={() => onIncrease?.(prod.id)}
-                            onDecrease={() => onDecrease?.(prod.id)}
-                            onRemove={() => onRemove?.(prod.id)}
-                            stopPropagation={true}
-                          />
-                        )}
-                        <Stack direction="row" align="baseline" gap={1} justify="end" w="min-w-[85px]">
-                          <Font
-                            variant="body-sm-semibold"
-                            text={new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(prod.unitPrice)}
-                            align="right"
-                          />
-                          <Font variant="auxiliary" color="muted" text={prod.unit || "UN"} />
-                        </Stack>
-                      </Stack>
-                    </Stack>
-                  </Box>
-                  {idx < filteredProducts.length - 1 && (
-                    <Box h="h-[1px]" w="full" bg="bg-border" />
-                  )}
-                </Box>
-              )
-            })}
-          </Box>
+          <PdvCatalogList
+            products={filteredProducts}
+            cartItems={cartItems}
+            pulsingListId={pulsingListId}
+            pulseListKey={pulseListKey}
+            onProductClick={handleListProductClick}
+            onIncrease={onIncrease}
+            onDecrease={onDecrease}
+            onRemove={onRemove}
+          />
         )}
       </Box>
     </Stack>

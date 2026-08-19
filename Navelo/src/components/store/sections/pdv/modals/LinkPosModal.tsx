@@ -14,22 +14,23 @@ export interface LinkPosModalProps {
   title: string
 }
 
-export const LinkPosModal: React.FC<LinkPosModalProps> = ({
+export function LinkPosModal({
   isOpen,
   onClose,
   onLink,
-  title
-}) => {
+  title,
+}: LinkPosModalProps) {
   const [linkingCode, setLinkingCode] = React.useState("")
+  const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen)
   const p = UI_STRINGS.posLink
   const c = UI_STRINGS.common
 
-  React.useEffect(() => {
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen)
     if (isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLinkingCode("")
     }
-  }, [isOpen])
+  }
 
   const handleLinkClick = () => {
     if (linkingCode.trim()) {

@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, react-hooks/set-state-in-effect, complexity */
-
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
 import { Box } from "@/components/store/base/Box"
@@ -10,8 +8,6 @@ import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Grid } from "@/components/store/base/Grid"
 import { Delete, Banknote, Wallet } from "lucide-react"
-import { db } from "@/lib/dal/db"
-import { useTenant } from "@/lib/context/TenantContext"
 import { UI_STRINGS } from "@/constants/strings"
 
 interface PdvSangriaModalProps {
@@ -22,20 +18,62 @@ interface PdvSangriaModalProps {
   onConfirmSangria?: (amount: number, mode: "sangria" | "suprimento") => void
 }
 
-export const PdvSangriaModal: React.FC<PdvSangriaModalProps> = ({
+const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "00", "0", "back"]
+
+function SangriaKeypad({ onKeyPress }: { onKeyPress: (k: string) => void }) {
+  return (
+    <Box w="full">
+      <Grid cols={3} responsive={false} gap={2.5}>
+        {KEYS.map((k) => (
+          <Button
+            key={k}
+            variant="outline"
+            fullWidth
+            onClick={() => onKeyPress(k)}
+            icon={k === "back" ? Delete : undefined}
+            label={k !== "back" ? k : undefined}
+          />
+        ))}
+      </Grid>
+    </Box>
+  )
+}
+
+function getSangriaConfig(mode: "sangria" | "suprimento") {
+  if (mode === "suprimento") {
+    return {
+      titleText: "Suprimento",
+      subtitleText: "Informe o valor a ser adicionado ao caixa",
+      successLabel: "Confirmar suprimento",
+      valuePrefix: "R$",
+      icon: Wallet,
+    }
+  }
+  return {
+    titleText: "Sangria",
+    subtitleText: "Informe o valor a ser retirado do caixa",
+    successLabel: "Confirmar sangria",
+    valuePrefix: "-R$",
+    icon: Banknote,
+  }
+}
+
+export function PdvSangriaModal({
   isOpen,
   onClose,
-  cashAvailable = 39.00,
+  cashAvailable = 39.0,
   mode = "sangria",
   onConfirmSangria,
-}) => {
+}: PdvSangriaModalProps) {
   const [digits, setDigits] = React.useState("")
+  const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen)
 
-  React.useEffect(() => {
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen)
     if (isOpen) {
       setDigits("")
     }
-  }, [isOpen])
+  }
 
   const handleKeyPress = (val: string) => {
     if (val === "back") {
@@ -57,43 +95,28 @@ export const PdvSangriaModal: React.FC<PdvSangriaModalProps> = ({
     maximumFractionDigits: 2,
   })
 
-  const tenantCtx = useTenant()
-  const tenantId = tenantCtx?.currentTenant?.id
-
   const handleConfirm = () => {
-    if (numericValue > 0) {
-      if (onConfirmSangria) {
-        onConfirmSangria(numericValue, mode)
-      }
+    if (numericValue > 0 && onConfirmSangria) {
+      onConfirmSangria(numericValue, mode)
     }
     onClose()
   }
 
-  const isSuprimento = mode === "suprimento"
-  const titleText = isSuprimento ? "Suprimento" : "Sangria"
-  const subtitleText = isSuprimento
-    ? "Informe o valor a ser adicionado ao caixa"
-    : "Informe o valor a ser retirado do caixa"
-  const successLabel = isSuprimento ? "Confirmar suprimento" : "Confirmar sangria"
-  const valuePrefix = isSuprimento ? "R$" : "-R$"
-  const IconComp = isSuprimento ? Wallet : Banknote
-
-  const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "00", "0", "back"]
+  const config = getSangriaConfig(mode)
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      icon={IconComp}
-      title={titleText}
-      subtitle={subtitleText}
+      icon={config.icon}
+      title={config.titleText}
+      subtitle={config.subtitleText}
       variant="default"
       showCancelButton={true}
-      successText={successLabel}
+      successText={config.successLabel}
       onSuccess={handleConfirm}
     >
       <Stack gap={5} w="full" align="center">
-        {/* Card Saldo Disponível */}
         <Box w="full" bg="bg-surface-sunken" padding={2.5} radius="default" border borderColor="border-border">
           <Stack direction="row" align="center" justify="between" w="full">
             <Font variant="body-sm-medium" color="muted" text={UI_STRINGS.cashManagement.availableInCash} />
@@ -101,27 +124,12 @@ export const PdvSangriaModal: React.FC<PdvSangriaModalProps> = ({
           </Stack>
         </Box>
 
-        {/* Valor da Sangria / Suprimento */}
         <Stack gap={1} align="center" w="full">
-          <Font variant="description" text={titleText} color="muted" align="center" />
-          <Font variant="h1" text={`${valuePrefix} ${formattedValue}`} color="primary" align="center" />
+          <Font variant="description" text={config.titleText} color="muted" align="center" />
+          <Font variant="h1" text={`${config.valuePrefix} ${formattedValue}`} color="primary" align="center" />
         </Stack>
 
-        {/* Teclado Numérico Interativo */}
-        <Box w="full">
-          <Grid cols={3} responsive={false} gap={2.5}>
-            {keys.map((k) => (
-              <Button
-                key={k}
-                variant="outline"
-                fullWidth
-                onClick={() => handleKeyPress(k)}
-                icon={k === "back" ? Delete : undefined}
-                label={k !== "back" ? k : undefined}
-              />
-            ))}
-          </Grid>
-        </Box>
+        <SangriaKeypad onKeyPress={handleKeyPress} />
       </Stack>
     </Modal>
   )

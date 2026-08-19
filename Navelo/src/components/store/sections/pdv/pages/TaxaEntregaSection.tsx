@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -27,81 +25,126 @@ export interface TaxaEntregaSectionProps {
   setCustomTitle?: (title: string | null) => void
 }
 
+const INITIAL_FEES: DeliveryFeeItem[] = [
+  { id: "1", name: "Taxa Centro", value: "5,00" },
+  { id: "2", name: "Taxa Bairros Adjacentes", value: "10,00" },
+  { id: "3", name: "Taxa Zonas Distantes", value: "15,00" },
+]
+
+function DeliveryFeeFormCard({
+  editingFee,
+  formName,
+  setFormName,
+  formValue,
+  setFormValue,
+  onSubmit,
+  onCancel,
+}: {
+  editingFee: DeliveryFeeItem | null
+  formName: string
+  setFormName: (v: string) => void
+  formValue: string
+  setFormValue: (v: string) => void
+  onSubmit: (e: React.FormEvent) => void
+  onCancel: () => void
+}) {
+  const d = UI_STRINGS.deliveryFees
+  return (
+    <Box bg="bg-white" border borderColor="border-border" radius="default" padding={5} w="full">
+      <Form onSubmit={onSubmit}>
+        <Stack gap={5} w="full">
+          <Input label={d.nameLabel} placeholder={d.namePlaceholder} value={formName} onChange={(e) => setFormName(e.target.value)} required />
+          <Input label={d.valueLabel} placeholder={d.valuePlaceholder} value={formValue} onChange={(e) => setFormValue(e.target.value)} required />
+          <FormActions confirmLabel={editingFee ? UI_STRINGS.pdv.cart.saveChangesButton : d.addFeeFormButton} onConfirm={() => {}} onCancel={onCancel} isSubmit={true} />
+        </Stack>
+      </Form>
+    </Box>
+  )
+}
+
+function DeliveryFeeTableCard({
+  fees,
+  onEdit,
+  onDelete,
+}: {
+  fees: DeliveryFeeItem[]
+  onEdit: (fee: DeliveryFeeItem) => void
+  onDelete: (id: string) => void
+}) {
+  const d = UI_STRINGS.deliveryFees
+  return (
+    <Box bg="bg-white" border borderColor="border-border" radius="default" w="full" overflow="hidden">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead text={d.nameColumnHeader} />
+            <TableHead text={d.valueColumnHeader} />
+            <TableHead text={UI_STRINGS.tabsConfig.actionsCol} align="right" w="w-[100px]" />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {fees.map((fee) => (
+            <TableRow key={fee.id}>
+              <TableCell>
+                <Font variant="body-bold" text={fee.name} />
+              </TableCell>
+              <TableCell>
+                <Font variant="body" text={`R$ ${fee.value}`} />
+              </TableCell>
+              <TableCell>
+                <Stack direction="row" gap={2.5} justify="end">
+                  <Button variant="ghost-primary" icon={Edit2} onClick={() => onEdit(fee)} />
+                  <Button
+                    variant="danger-icon-xs-confirm"
+                    confirmTitle="Excluir Taxa"
+                    confirmSubtitle="Confirmar exclusão de taxa"
+                    confirmParagraph="Tem certeza que deseja excluir esta taxa de entrega?"
+                    onConfirm={() => onDelete(fee.id)}
+                  />
+                </Stack>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Box>
+  )
+}
+
 export const TaxaEntregaSection: React.FC<TaxaEntregaSectionProps> = ({
   onCancel,
   setCustomBack,
-  setCustomTitle
+  setCustomTitle,
 }) => {
-  const [fees, setFees] = React.useState<DeliveryFeeItem[]>([
-    { id: "1", name: "Taxa Centro", value: "5,00" },
-    { id: "2", name: "Taxa Bairros Adjacentes", value: "10,00" },
-    { id: "3", name: "Taxa Zonas Distantes", value: "15,00" }
-  ])
-
+  const [fees, setFees] = React.useState<DeliveryFeeItem[]>(INITIAL_FEES)
   const [mode, setMode] = React.useState<"list" | "form">("list")
   const [editingFee, setEditingFee] = React.useState<DeliveryFeeItem | null>(null)
-  const s = UI_STRINGS.fees
-
-  // Form states
   const [formName, setFormName] = React.useState("")
   const [formValue, setFormValue] = React.useState("0,00")
+  const s = UI_STRINGS.fees
 
   const handleBack = React.useCallback(() => {
-    if (mode === "form") {
-      setMode("list")
-      setEditingFee(null)
-    } else {
-      onCancel()
-    }
+    if (mode === "form") { setMode("list"); setEditingFee(null) }
+    else onCancel()
   }, [mode, onCancel])
 
   React.useEffect(() => {
     setCustomBack?.(() => handleBack)
     setCustomTitle?.(mode === "form" ? (editingFee ? "Editar taxa de entrega" : "Nova taxa de entrega") : s.deliveryFeeTitle)
-
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
   }, [setCustomBack, setCustomTitle, handleBack, mode, editingFee, s.deliveryFeeTitle])
 
-  const handleAddClick = () => {
-    setEditingFee(null)
-    setFormName("")
-    setFormValue("0,00")
-    setMode("form")
-  }
-
-  const handleEditClick = (fee: DeliveryFeeItem) => {
-    setEditingFee(fee)
-    setFormName(fee.name)
-    setFormValue(fee.value)
-    setMode("form")
-  }
-
-  const handleDeleteClick = (id: string) => {
-    setFees((prev) => prev.filter((item) => item.id !== id))
-  }
-
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault()
     if (!formName.trim()) return
-
     if (editingFee) {
-      setFees((prev) =>
-        prev.map((item) =>
-          item.id === editingFee.id ? { ...item, name: formName, value: formValue } : item
-        )
-      )
+      setFees((prev) => prev.map((item) => (item.id === editingFee.id ? { ...item, name: formName, value: formValue } : item)))
     } else {
-      const newFee: DeliveryFeeItem = {
-        id: Date.now().toString(),
-        name: formName,
-        value: formValue
-      }
-      setFees((prev) => [...prev, newFee])
+      setFees((prev) => [...prev, { id: Date.now().toString(), name: formName, value: formValue }])
     }
-
     setMode("list")
     setEditingFee(null)
   }
@@ -109,45 +152,12 @@ export const TaxaEntregaSection: React.FC<TaxaEntregaSectionProps> = ({
   if (mode === "form") {
     return (
       <Stack gap={5} w="full">
-        <Box
-          bg="bg-white"
-          border={true}
-          borderColor="border-border"
-          radius="default"
-          padding={5}
-          w="full"
-        >
-          <Form onSubmit={handleSave}>
-            <Stack gap={5} w="full">
-              <Input
-                label={UI_STRINGS.deliveryFees.nameLabel}
-                placeholder={UI_STRINGS.deliveryFees.namePlaceholder}
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                required
-              />
-
-              <Input
-                label={UI_STRINGS.deliveryFees.valueLabel}
-                placeholder={UI_STRINGS.deliveryFees.valuePlaceholder}
-                value={formValue}
-                onChange={(e) => setFormValue(e.target.value)}
-                required
-              />
-
-              {/* Botões de Ações no Rodapé do Formulário */}
-              <FormActions
-                confirmLabel={editingFee ? UI_STRINGS.pdv.cart.saveChangesButton : UI_STRINGS.deliveryFees.addFeeFormButton}
-                onConfirm={() => {}}
-                onCancel={() => {
-                  setMode("list")
-                  setEditingFee(null)
-                }}
-                isSubmit={true}
-              />
-            </Stack>
-          </Form>
-        </Box>
+        <DeliveryFeeFormCard
+          editingFee={editingFee}
+          formName={formName} setFormName={setFormName}
+          formValue={formValue} setFormValue={setFormValue}
+          onSubmit={handleSave} onCancel={() => { setMode("list"); setEditingFee(null) }}
+        />
       </Stack>
     )
   }
@@ -155,88 +165,23 @@ export const TaxaEntregaSection: React.FC<TaxaEntregaSectionProps> = ({
   return (
     <Stack gap={5} w="full">
       {fees.length === 0 ? (
-        <Box
-          bg="bg-white"
-          border={true}
-          borderColor="border-border"
-          radius="default"
-          padding={5}
-          w="full"
-        >
+        <Box bg="bg-white" border borderColor="border-border" radius="default" padding={5} w="full">
           <Stack gap={5} align="center" justify="center" w="full">
-            <EmptyState
-              title={UI_STRINGS.deliveryFees.emptyTitle}
-              subtitle={UI_STRINGS.deliveryFees.emptySubtitle}
-              icon={Truck}
-            />
-            <Button
-              variant="primary"
-              label={UI_STRINGS.deliveryFees.addFeeButton}
-              icon={Plus}
-              onClick={handleAddClick}
-            />
+            <EmptyState title={UI_STRINGS.deliveryFees.emptyTitle} subtitle={UI_STRINGS.deliveryFees.emptySubtitle} icon={Truck} />
+            <Button variant="primary" label={UI_STRINGS.deliveryFees.addFeeButton} icon={Plus} onClick={() => { setEditingFee(null); setFormName(""); setFormValue("0,00"); setMode("form") }} />
           </Stack>
         </Box>
       ) : (
         <Stack gap={5} w="full">
-          {/* Cabeçalho de Controle */}
           <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
             <Font variant="body-bold" text={s.deliveryFeeTitle} />
-            <Button
-              variant="primary"
-              label={UI_STRINGS.deliveryFees.addFeeFormButton}
-              icon={Plus}
-              onClick={handleAddClick}
-            />
+            <Button variant="primary" label={UI_STRINGS.deliveryFees.addFeeFormButton} icon={Plus} onClick={() => { setEditingFee(null); setFormName(""); setFormValue("0,00"); setMode("form") }} />
           </Stack>
-
-          {/* Listagem de Taxas */}
-          <Box
-            bg="bg-white"
-            border={true}
-            borderColor="border-border"
-            radius="default"
-            w="full"
-            overflow="hidden"
-          >
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead text={UI_STRINGS.deliveryFees.nameColumnHeader} />
-                  <TableHead text={UI_STRINGS.deliveryFees.valueColumnHeader} />
-                  <TableHead text={UI_STRINGS.tabsConfig.actionsCol} align="right" w="w-[100px]" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {fees.map((fee) => (
-                  <TableRow key={fee.id}>
-                    <TableCell>
-                      <Font variant="body-bold" text={fee.name} />
-                    </TableCell>
-                    <TableCell>
-                      <Font variant="body" text={`R$ ${fee.value}`} />
-                    </TableCell>
-                    <TableCell>
-                      <Stack direction="row" gap={2.5} justify="end">
-                        <Button
-                          variant="ghost-primary"
-                          icon={Edit2}
-                          onClick={() => handleEditClick(fee)}
-                        />
-                        <Button
-                          variant="danger-icon-xs-confirm"
-                          confirmTitle="Excluir Taxa"
-                          confirmSubtitle="Confirmar exclusão de taxa"
-                          confirmParagraph="Tem certeza que deseja excluir esta taxa de entrega?"
-                          onConfirm={() => handleDeleteClick(fee.id)}
-                        />
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Box>
+          <DeliveryFeeTableCard
+            fees={fees}
+            onEdit={(fee) => { setEditingFee(fee); setFormName(fee.name); setFormValue(fee.value); setMode("form") }}
+            onDelete={(id) => setFees((prev) => prev.filter((item) => item.id !== id))}
+          />
         </Stack>
       )}
     </Stack>

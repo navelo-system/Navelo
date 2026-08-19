@@ -11,7 +11,6 @@ import { ArrowLeft, Download, BarChart3, PieChart } from "lucide-react"
 import { Tenant, Plan } from "@/src/types/domain"
 import { UI_STRINGS } from "@/constants/strings"
 
-/** Mock type para agrupar as informações */
 interface TenantRevenueRow {
   tenant: Pick<Tenant, "tradingName">
   plan: Pick<Plan, "name" | "price">
@@ -23,93 +22,71 @@ const MOCK_REVENUE: TenantRevenueRow[] = [
   { tenant: { tradingName: "Padaria Delícia" }, plan: { name: "Free", price: 0 } },
 ]
 
-// eslint-disable-next-line max-lines-per-function
+function AdminMetricsKpiGrid({ hideValues, onToggleHide }: { hideValues: boolean; onToggleHide: () => void }) {
+  const r = UI_STRINGS.admin.reports
+  return (
+    <Grid cols={3} gap={5}>
+      <KpiCard title={r.mrrCardTitle} value="R$ 18.420,00" subtitle={r.mrrCardSubtitle} hideValues={hideValues} onToggleHide={onToggleHide} />
+      <KpiCard title={r.arrCardTitle} value="R$ 221.040,00" subtitle={r.arrCardSubtitle} hideValues={hideValues} onToggleHide={onToggleHide} />
+      <KpiCard title={r.ltvCardTitle} value="R$ 1.800,00" subtitle={r.ltvCardSubtitle} hideValues={hideValues} onToggleHide={onToggleHide} />
+    </Grid>
+  )
+}
+
+function AdminRevenueTable({ rows }: { rows: TenantRevenueRow[] }) {
+  const r = UI_STRINGS.admin.reports
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead text={r.companyColumn} />
+          <TableHead text={r.planColumn} />
+          <TableHead align="right" text={r.annualRevenueColumn} />
+          <TableHead align="right" text={r.monthlyRevenueColumn} />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {rows.map((row, idx) => {
+          const annualRevenue = row.plan.price * 12
+          return (
+            <TableRow key={idx}>
+              <TableCell fontWeight="medium">{row.tenant.tradingName}</TableCell>
+              <TableCell>{row.plan.name}</TableCell>
+              <TableCell align="right">
+                {annualRevenue === 0 ? "R$ 0,00" : `R$ ${annualRevenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+              </TableCell>
+              <TableCell align="right">
+                {row.plan.price === 0 ? "R$ 0,00" : `R$ ${row.plan.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+              </TableCell>
+            </TableRow>
+          )
+        })}
+      </TableBody>
+    </Table>
+  )
+}
+
 export function RelatoriosSection() {
   const [hideValues, setHideValues] = React.useState<boolean>(false)
-  const toggleHideValues = () => setHideValues(prev => !prev)
   const r = UI_STRINGS.admin.reports
 
   return (
     <>
       <Stack direction="row" align="start" w="fit-content">
-        <Button
-          variant="ghost"
-          label={r.backButton}
-          icon={ArrowLeft}
-          onClick={() => window.location.href = "/admin"}
-        />
+        <Button variant="ghost" label={r.backButton} icon={ArrowLeft} onClick={() => { window.location.href = "/admin" }} />
       </Stack>
 
       <RegistrySection
         title={r.metricsTitle}
         description={r.metricsDescription}
         icon={BarChart3}
-        action={
-          <Button
-            variant="primary"
-            label={r.exportPdfButton}
-            icon={Download}
-            onClick={() => {}}
-          />
-        }
+        action={<Button variant="primary" label={r.exportPdfButton} icon={Download} onClick={() => {}} />}
       >
-        <Grid cols={3} gap={5}>
-          <KpiCard
-            title={r.mrrCardTitle}
-            value="R$ 18.420,00"
-            subtitle={r.mrrCardSubtitle}
-            hideValues={hideValues}
-            onToggleHide={toggleHideValues}
-          />
-          <KpiCard
-            title={r.arrCardTitle}
-            value="R$ 221.040,00"
-            subtitle={r.arrCardSubtitle}
-            hideValues={hideValues}
-            onToggleHide={toggleHideValues}
-          />
-          <KpiCard
-            title={r.ltvCardTitle}
-            value="R$ 1.800,00"
-            subtitle={r.ltvCardSubtitle}
-            hideValues={hideValues}
-            onToggleHide={toggleHideValues}
-          />
-        </Grid>
+        <AdminMetricsKpiGrid hideValues={hideValues} onToggleHide={() => setHideValues((prev) => !prev)} />
       </RegistrySection>
 
-      <RegistrySection 
-        title={r.revenueTitle}
-        description={r.revenueDescription}
-        icon={PieChart}
-      >
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead text={r.companyColumn} />
-              <TableHead text={r.planColumn} />
-              <TableHead align="right" text={r.annualRevenueColumn} />
-              <TableHead align="right" text={r.monthlyRevenueColumn} />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {MOCK_REVENUE.map((row, idx) => {
-              const annualRevenue = row.plan.price * 12
-              return (
-                <TableRow key={idx}>
-                  <TableCell fontWeight="medium">{row.tenant.tradingName}</TableCell>
-                  <TableCell>{row.plan.name}</TableCell>
-                  <TableCell align="right">
-                    {annualRevenue === 0 ? "R$ 0,00" : `R$ ${annualRevenue.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
-                  </TableCell>
-                  <TableCell align="right">
-                    {row.plan.price === 0 ? "R$ 0,00" : `R$ ${row.plan.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
-                  </TableCell>
-                </TableRow>
-              )
-            })}
-          </TableBody>
-        </Table>
+      <RegistrySection title={r.revenueTitle} description={r.revenueDescription} icon={PieChart}>
+        <AdminRevenueTable rows={MOCK_REVENUE} />
       </RegistrySection>
     </>
   )

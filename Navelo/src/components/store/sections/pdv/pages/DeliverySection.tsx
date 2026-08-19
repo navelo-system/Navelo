@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, complexity, react-hooks/set-state-in-effect, @typescript-eslint/no-explicit-any, no-await-in-loop */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -49,6 +47,120 @@ function useIsDesktop() {
   return isDesktop
 }
 
+interface DeliveryListViewProps {
+  orders: ExtendedDeliveryOrder[]
+  selectedOrderId: string
+  selectedOrder: ExtendedDeliveryOrder | undefined
+  searchQuery: string
+  onSelectOrder: (id: string) => void
+  onOpenNewOrder: () => void
+  renderOrderTimeline: (order: ExtendedDeliveryOrder) => React.ReactNode
+}
+
+function DeliveryListView({
+  orders,
+  selectedOrderId,
+  selectedOrder,
+  searchQuery,
+  onSelectOrder,
+  onOpenNewOrder,
+  renderOrderTimeline,
+}: DeliveryListViewProps) {
+  const s = UI_STRINGS.delivery
+  if (orders.length === 0) {
+    return (
+      <Box w="full" h="full" position="relative">
+        <EmptyState icon={Truck} title={s.emptyTitle} subtitle={s.emptySubtitle} />
+        <Box position="fixed" bottom="24px" right="24px" zIndex="30">
+          <Button variant="secondary-pill-icon" icon={Plus} onClick={onOpenNewOrder} />
+        </Box>
+      </Box>
+    )
+  }
+
+  return (
+    <Box w="full" h="full" minH="0" overflow="hidden" position="relative">
+      <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" h="full">
+        <Box w="w-full md:w-1/3" h="full" overflow="auto" flex="1" minH="0">
+          <DeliveryOrdersList
+            orders={orders}
+            selectedOrderId={selectedOrderId}
+            onSelectOrder={onSelectOrder}
+            searchQuery={searchQuery}
+          />
+        </Box>
+        <Box display="hidden md:flex" flex="1" h="full" minH="0" overflow="hidden" direction="col">
+          {selectedOrder ? (
+            renderOrderTimeline(selectedOrder)
+          ) : (
+            <EmptyState icon={Truck} title={s.noOrderSelectedTitle} subtitle={s.noOrderSelectedSubtitle} />
+          )}
+        </Box>
+      </Stack>
+      <Box position="fixed" bottom="24px" right="24px" zIndex="30">
+        <Button variant="secondary-pill-icon" icon={Plus} onClick={onOpenNewOrder} />
+      </Box>
+    </Box>
+  )
+}
+
+function useDeliveryHeaderSync(
+  viewMode: DeliveryView,
+  selectedOrder: ExtendedDeliveryOrder | undefined,
+  searchQuery: string,
+  setSearchQuery: (q: string) => void,
+  isDesktop: boolean,
+  hasSelectedOrder: boolean,
+  viewHistoryLength: number,
+  popView: () => void,
+  onBackToDashboard?: () => void,
+  setCustomTitle?: (t: string | null) => void,
+  setCustomBack?: (cb: (() => void) | null) => void,
+  setCustomActions?: (a: React.ReactNode | null) => void
+) {
+  const s = UI_STRINGS.delivery
+  const onBackRef = React.useRef(onBackToDashboard)
+  const setCustomTitleRef = React.useRef(setCustomTitle)
+  const setCustomBackRef = React.useRef(setCustomBack)
+  const setCustomActionsRef = React.useRef(setCustomActions)
+
+  React.useEffect(() => {
+    onBackRef.current = onBackToDashboard
+    setCustomTitleRef.current = setCustomTitle
+    setCustomBackRef.current = setCustomBack
+    setCustomActionsRef.current = setCustomActions
+  })
+
+  React.useEffect(() => {
+    if (viewMode === "list") {
+      setCustomTitleRef.current?.(s.title)
+      if (viewHistoryLength > 1) {
+        setCustomBackRef.current?.(() => popView)
+      } else if (onBackRef.current) {
+        const backCb = onBackRef.current
+        setCustomBackRef.current?.(() => backCb)
+      } else {
+        setCustomBackRef.current?.(null)
+      }
+      setCustomActionsRef.current?.(
+        <MobileHeaderSearch searchQuery={searchQuery} onSearchQueryChange={setSearchQuery} placeholder={s.searchPlaceholder}>
+          {isDesktop && hasSelectedOrder ? <Button variant="primary-icon-print" title={s.printOrderTitle} /> : null}
+        </MobileHeaderSearch>
+      )
+    } else if (viewMode === "order-detail") {
+      setCustomTitleRef.current?.(selectedOrder?.clientName || "Pedido")
+      setCustomBackRef.current?.(() => popView)
+      setCustomActionsRef.current?.(selectedOrder ? <Button variant="primary-icon-print" title={s.printOrderTitle} /> : null)
+    }
+
+    return () => {
+      if (viewMode === "list" || viewMode === "order-detail") {
+        setCustomActionsRef.current?.(null)
+      }
+    }
+  }, [viewMode, searchQuery, isDesktop, hasSelectedOrder, selectedOrder, viewHistoryLength, popView, s, setSearchQuery])
+}
+
 export const DeliverySection: React.FC<DeliverySectionProps> = ({
   setCustomActions,
   setCustomTitle,
@@ -59,15 +171,14 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
   const tenantId = tenantCtx?.currentTenant?.id || "default"
   const isDesktop = useIsDesktop()
   const isDesktopRef = React.useRef(isDesktop)
-  const s = UI_STRINGS.delivery
 
   React.useEffect(() => {
     isDesktopRef.current = isDesktop
   }, [isDesktop])
 
-  // Pilha de histórico de navegação interna do Delivery
   const [viewHistory, setViewHistory] = React.useState<DeliveryView[]>(["list"])
-  const viewMode = viewHistory[viewHistory.length - 1] || "list"
+  const rawViewMode = viewHistory[viewHistory.length - 1] || "list"
+  const viewMode = isDesktop && rawViewMode === "order-detail" ? "list" : rawViewMode
 
   const pushView = React.useCallback((newView: DeliveryView) => {
     setViewHistory((prev) => [...prev, newView])
@@ -77,7 +188,6 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
     setViewHistory((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev))
   }, [])
 
-  // Pedidos reais obtidos da DAL via Dexie
   const rawOrders = useDeliveryOrders(tenantId)
   const orders: ExtendedDeliveryOrder[] = React.useMemo(() => {
     if (!Array.isArray(rawOrders)) return []
@@ -116,137 +226,40 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
   const [searchQuery, setSearchQuery] = React.useState("")
   const [selectedClient, setSelectedClient] = React.useState<DeliveryClientInfo | null>(null)
 
-  React.useEffect(() => {
-    if (orders.length === 0) {
-      setSelectedOrderId("")
-      return
-    }
-    if (!isDesktop) return
-    setSelectedOrderId((current) => {
-      if (current && orders.some((o) => o.id === current)) return current
-      return orders[0].id
-    })
-  }, [orders, isDesktop])
+  const effectiveSelectedOrderId = React.useMemo(() => {
+    if (orders.length === 0) return ""
+    if (selectedOrderId && orders.some((o) => o.id === selectedOrderId)) return selectedOrderId
+    return isDesktop ? orders[0].id : ""
+  }, [orders, selectedOrderId, isDesktop])
 
-  React.useEffect(() => {
-    if (isDesktop && viewMode === "order-detail") {
-      setViewHistory(["list"])
-    }
-  }, [isDesktop, viewMode])
-
-  // Refs estáveis para callbacks do Header para evitar loops de render
-  const onBackRef = React.useRef(onBackToDashboard)
-  const setCustomTitleRef = React.useRef(setCustomTitle)
-  const setCustomBackRef = React.useRef(setCustomBack)
-  const setCustomActionsRef = React.useRef(setCustomActions)
-  const selectedOrderIdRef = React.useRef(selectedOrderId)
-
-  React.useEffect(() => {
-    onBackRef.current = onBackToDashboard
-    setCustomTitleRef.current = setCustomTitle
-    setCustomBackRef.current = setCustomBack
-    setCustomActionsRef.current = setCustomActions
-    selectedOrderIdRef.current = selectedOrderId
-  }, [onBackToDashboard, setCustomTitle, setCustomBack, setCustomActions, selectedOrderId])
-
-  const selectedOrder = orders.find((o) => o.id === selectedOrderId)
+  const selectedOrder = orders.find((o) => o.id === effectiveSelectedOrderId)
 
   const handleSelectOrder = React.useCallback((id: string) => {
     setSelectedOrderId(id)
-    if (!isDesktopRef.current) {
-      pushView("order-detail")
-    }
+    if (!isDesktopRef.current) pushView("order-detail")
   }, [pushView])
 
-  // Header no modo listagem com botão de impressora em tamanho normal primário
-  React.useEffect(() => {
-    if (viewMode === "list") {
-      setCustomTitleRef.current?.(s.title)
-      if (viewHistory.length > 1) {
-        setCustomBackRef.current?.(() => popView)
-      } else if (onBackRef.current) {
-        const backCb = onBackRef.current
-        setCustomBackRef.current?.(() => backCb)
-      } else {
-        setCustomBackRef.current?.(null)
-      }
-      setCustomActionsRef.current?.(
-        <MobileHeaderSearch
-          searchQuery={searchQuery}
-          onSearchQueryChange={setSearchQuery}
-          placeholder={s.searchPlaceholder}
-        >
-          {isDesktop && selectedOrderIdRef.current ? (
-            <Button variant="primary-icon-print" title={s.printOrderTitle} />
-          ) : null}
-        </MobileHeaderSearch>
-      )
-    } else if (viewMode === "order-detail") {
-      setCustomTitleRef.current?.(selectedOrder?.clientName || "Pedido")
-      setCustomBackRef.current?.(() => popView)
-      setCustomActionsRef.current?.(
-        selectedOrder ? (
-          <Button variant="primary-icon-print" title={s.printOrderTitle} />
-        ) : null
-      )
-    }
-
-    return () => {
-      if (viewMode === "list" || viewMode === "order-detail") {
-        setCustomActionsRef.current?.(null)
-      }
-    }
-  }, [viewMode, searchQuery, selectedOrderId, selectedOrder, isDesktop, viewHistory.length, popView, s.title, s.printOrderTitle, s.searchPlaceholder])
-
-  const handleOpenNewOrder = () => {
-    setEditingOrderId(null)
-    setSelectedClient(null)
-    pushView("client-form")
-  }
-
-  const handleStartEditOrder = () => {
-    if (!selectedOrder) return
-    setEditingOrderId(selectedOrder.id)
-    setSelectedClient({
-      name: selectedOrder.clientName,
-      phone: selectedOrder.clientPhone,
-      address: selectedOrder.address,
-      document: selectedOrder.clientDocument,
-    })
-    pushView("pos")
-  }
-
-  const handleSelectClient = (client: DeliveryClientInfo) => {
-    setSelectedClient(client)
-    pushView("pos")
-  }
+  useDeliveryHeaderSync(
+    viewMode, selectedOrder, searchQuery, setSearchQuery, isDesktop,
+    Boolean(effectiveSelectedOrderId), viewHistory.length, popView,
+    onBackToDashboard, setCustomTitle, setCustomBack, setCustomActions
+  )
 
   const handleUpdateStatus = async (status: DeliveryStatus) => {
-    if (!selectedOrderId) return
-
+    if (!effectiveSelectedOrderId) return
     try {
-      const orderToUpdate = rawOrders ? rawOrders.find((o) => o.id === selectedOrderId) : undefined
-      if (orderToUpdate) {
-        await dal.deliveryOrders.update({
-          ...orderToUpdate,
-          status,
-        })
-      }
+      const orderToUpdate = rawOrders?.find((o) => o.id === effectiveSelectedOrderId)
+      if (orderToUpdate) await dal.deliveryOrders.update({ ...orderToUpdate, status })
     } catch (err) {
-      console.error("Erro ao atualizar status do pedido de delivery:", err)
+      console.error("Erro ao atualizar status do delivery:", err)
     }
   }
 
   const handleAssignMotoboy = async (rider: Rider) => {
-    if (!selectedOrderId) return
+    if (!effectiveSelectedOrderId) return
     try {
-      const orderToUpdate = rawOrders ? rawOrders.find((o) => o.id === selectedOrderId) : undefined
-      if (orderToUpdate) {
-        await dal.deliveryOrders.update({
-          ...orderToUpdate,
-          motoboy: rider.name,
-        })
-      }
+      const orderToUpdate = rawOrders?.find((o) => o.id === effectiveSelectedOrderId)
+      if (orderToUpdate) await dal.deliveryOrders.update({ ...orderToUpdate, motoboy: rider.name })
       popView()
     } catch (err) {
       console.error("Erro ao atribuir motoboy:", err)
@@ -256,111 +269,76 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
   const handleDeleteOrder = async (id: string) => {
     try {
       await dal.deliveryOrders.delete(id, tenantId || "demo-tenant")
-      if (selectedOrderId === id) {
+      if (effectiveSelectedOrderId === id) {
         const remaining = orders.filter((o) => o.id !== id)
         setSelectedOrderId(remaining.length > 0 && isDesktopRef.current ? remaining[0].id : "")
-        if (!isDesktopRef.current && viewMode === "order-detail") {
-          popView()
-        }
+        if (!isDesktopRef.current && viewMode === "order-detail") popView()
       }
     } catch (err) {
-      console.error("Erro ao deletar pedido de delivery na DAL:", err)
+      console.error("Erro ao deletar pedido:", err)
     }
   }
 
-  const handleSaveOrderEdits = async (
-    updatedItems: CartItemType[],
-    newSubtotal: number,
-    newDiscount: number
-  ) => {
+  const handleSaveOrderEdits = async (updatedItems: CartItemType[], newSubtotal: number, newDiscount: number) => {
     if (!editingOrderId) return
     try {
-      const existing = rawOrders ? rawOrders.find((o) => o.id === editingOrderId) : null
+      const existing = rawOrders?.find((o) => o.id === editingOrderId)
       if (existing) {
         const computedFee = existing.delivery_fee ?? 10.0
         const finalTotal = Math.max(0, newSubtotal + computedFee - newDiscount)
         await dal.deliveryOrders.update({
           ...existing,
           items: updatedItems.map((it) => ({
-            id: it.id,
-            name: it.name,
-            quantity: it.quantity,
-            unitPrice: it.unitPrice,
-            totalPrice: it.quantity * it.unitPrice,
+            id: it.id, name: it.name, quantity: it.quantity, unitPrice: it.unitPrice, totalPrice: it.quantity * it.unitPrice,
           })),
-          subtotal: newSubtotal,
-          discount: newDiscount,
-          total: finalTotal,
+          subtotal: newSubtotal, discount: newDiscount, total: finalTotal,
         })
       }
     } catch (err) {
-      console.error("Erro ao salvar alterações no pedido de delivery:", err)
+      console.error("Erro ao salvar alterações no pedido:", err)
     }
-
     setEditingOrderId(null)
     setViewHistory(["list"])
   }
 
   const handleConfirmDeliveryOrder = async (orderData: {
-    status: string
-    deliveryType: string
-    paymentMoment: string
-    client: DeliveryClientInfo
-    rider?: Rider | null
-    rate?: DeliveryRate | null
-    items: CartItemType[]
-    total: number
-    subtotal: number
-    discount: number
+    status: string; deliveryType: string; paymentMoment: string
+    client: DeliveryClientInfo; rider?: Rider | null; rate?: DeliveryRate | null
+    items: CartItemType[]; total: number; subtotal: number; discount: number
   }) => {
     const orderId = Math.floor(1000 + Math.random() * 9000).toString()
-
-    // O status inicial de QUALQUER novo pedido de delivery é SEMPRE 'confirmed' ("Aberto")
     const deliveryStatus: DeliveryStatus = "confirmed"
-
     const motoboyName = orderData.rider?.name || "Entregador não selecionado"
     const deliveryFee = orderData.rate?.fee ?? 10.0
     const finalTotal = Math.max(0, orderData.subtotal + deliveryFee - orderData.discount)
 
     try {
       await dal.deliveryOrders.create({
-        id: orderId,
-        tenant_id: tenantId,
-        company_id: tenantId,
+        id: orderId, tenant_id: tenantId, company_id: tenantId,
         client_name: orderData.client.name,
         client_document: orderData.client.document || "101.389.219-46",
         client_phone: orderData.client.phone || "(41) 998364028",
         address: orderData.client.address || "Endereço não informado",
-        status: deliveryStatus,
-        estimated_time: "1 hora",
-        subtotal: orderData.subtotal,
-        discount: orderData.discount,
-        delivery_fee: deliveryFee,
-        total: finalTotal,
-        motoboy: motoboyName,
+        status: deliveryStatus, estimated_time: "1 hora",
+        subtotal: orderData.subtotal, discount: orderData.discount,
+        delivery_fee: deliveryFee, total: finalTotal, motoboy: motoboyName,
         created_at: new Date().toISOString(),
         items: orderData.items.map((it) => ({
-          id: it.id,
-          name: it.name,
-          quantity: it.quantity,
-          unitPrice: it.unitPrice,
-          totalPrice: it.quantity * it.unitPrice,
+          id: it.id, name: it.name, quantity: it.quantity, unitPrice: it.unitPrice, totalPrice: it.quantity * it.unitPrice,
         })),
       })
 
-      for (const item of orderData.items) {
-        const dbProduct = await dal.products.getById(item.id)
-        if (dbProduct) {
-          const currentStock = dbProduct.stock ?? 0
-          const newStock = Math.max(0, currentStock - item.quantity)
-          await dal.products.update({
-            ...dbProduct,
-            stock: newStock,
-          })
-        }
-      }
+      await Promise.all(
+        orderData.items.map(async (item) => {
+          const dbProduct = await dal.products.getById(item.id)
+          if (dbProduct) {
+            const currentStock = dbProduct.stock ?? 0
+            await dal.products.update({ ...dbProduct, stock: Math.max(0, currentStock - item.quantity) })
+          }
+        })
+      )
     } catch (err) {
-      console.error("Erro ao registrar pedido de delivery na DAL:", err)
+      console.error("Erro ao registrar pedido de delivery:", err)
     }
 
     setSelectedOrderId(orderId)
@@ -369,25 +347,18 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
 
   const renderOrderTimeline = (order: ExtendedDeliveryOrder) => (
     <DeliveryTimeline
-      orderId={order.id}
-      status={order.status}
-      clientName={order.clientName}
-      clientDocument={order.clientDocument}
-      clientPhone={order.clientPhone}
-      motoboyName={order.motoboy}
-      estimatedTime={order.estimatedTime}
-      address={order.address}
-      createdAt={order.createdAt}
-      origin={order.origin}
-      paymentMethod={order.paymentMethod}
-      deliveryType={order.deliveryType}
-      items={order.items}
-      subtotal={order.subtotal}
-      deliveryFee={order.deliveryFee}
-      discount={order.discount}
-      total={order.total}
+      orderId={order.id} status={order.status} clientName={order.clientName}
+      clientDocument={order.clientDocument} clientPhone={order.clientPhone}
+      motoboyName={order.motoboy} estimatedTime={order.estimatedTime} address={order.address}
+      createdAt={order.createdAt} origin={order.origin} paymentMethod={order.paymentMethod}
+      deliveryType={order.deliveryType} items={order.items} subtotal={order.subtotal}
+      deliveryFee={order.deliveryFee} discount={order.discount} total={order.total}
       onDeleteOrder={handleDeleteOrder}
-      onEditOrder={handleStartEditOrder}
+      onEditOrder={() => {
+        setEditingOrderId(order.id)
+        setSelectedClient({ name: order.clientName, phone: order.clientPhone, address: order.address, document: order.clientDocument })
+        pushView("pos")
+      }}
       onSelectMotoboy={() => pushView("riders-select")}
       onUpdateStatus={handleUpdateStatus}
     />
@@ -398,112 +369,42 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
       {viewMode === "client-form" && (
         <DeliveryClientFormScreen
           onBack={popView}
-          onSelectClient={handleSelectClient}
+          onSelectClient={(c) => { setSelectedClient(c); pushView("pos") }}
           initialClient={selectedClient}
-          setCustomActions={setCustomActions}
-          setCustomTitle={setCustomTitle}
-          setCustomBack={setCustomBack}
+          setCustomActions={setCustomActions} setCustomTitle={setCustomTitle} setCustomBack={setCustomBack}
         />
       )}
-
       {viewMode === "pos" && (
         <PdvSection
-          onBackToDashboard={() => {
-            setEditingOrderId(null)
-            popView()
-          }}
-          setCustomActions={setCustomActions}
-          setCustomTitle={setCustomTitle}
-          setCustomBack={setCustomBack}
+          onBackToDashboard={() => { setEditingOrderId(null); popView() }}
+          setCustomActions={setCustomActions} setCustomTitle={setCustomTitle} setCustomBack={setCustomBack}
           deliveryContext={
             editingOrderId && selectedOrder
               ? {
                   client: selectedClient || { name: selectedOrder.clientName, phone: selectedOrder.clientPhone, address: selectedOrder.address },
-                  initialItems: (selectedOrder.items || []) as CartItemType[],
-                  initialDiscount: selectedOrder.discount || 0,
-                  isEditing: true,
-                  onSaveEdits: handleSaveOrderEdits,
-                  onConfirmDelivery: handleConfirmDeliveryOrder,
+                  initialItems: (selectedOrder.items || []) as CartItemType[], initialDiscount: selectedOrder.discount || 0,
+                  isEditing: true, onSaveEdits: handleSaveOrderEdits, onConfirmDelivery: handleConfirmDeliveryOrder,
                 }
               : {
                   client: selectedClient || { name: "Cliente Delivery", phone: "", address: "" },
-                  onAlterClient: () => pushView("client-form"),
-                  onConfirmDelivery: handleConfirmDeliveryOrder,
+                  onAlterClient: () => pushView("client-form"), onConfirmDelivery: handleConfirmDeliveryOrder,
                 }
           }
         />
       )}
-
       {viewMode === "riders-select" && (
-        <DeliveryRidersScreen
-          onBack={popView}
-          onSelectRider={handleAssignMotoboy}
-          setCustomActions={setCustomActions}
-          setCustomTitle={setCustomTitle}
-          setCustomBack={setCustomBack}
-        />
+        <DeliveryRidersScreen onBack={popView} onSelectRider={handleAssignMotoboy} setCustomActions={setCustomActions} setCustomTitle={setCustomTitle} setCustomBack={setCustomBack} />
       )}
-
       {viewMode === "order-detail" && selectedOrder && (
-        <Box w="full" h="full" minH="0" overflow="hidden">
-          {renderOrderTimeline(selectedOrder)}
-        </Box>
+        <Box w="full" h="full" minH="0" overflow="hidden">{renderOrderTimeline(selectedOrder)}</Box>
       )}
-
       {viewMode === "list" && (
-        orders.length === 0 ? (
-          <Box w="full" h="full" position="relative">
-            <EmptyState
-              icon={Truck}
-              title={s.emptyTitle}
-              subtitle={s.emptySubtitle}
-            />
-
-            <Box position="fixed" bottom="24px" right="24px" zIndex="30">
-              <Button
-                variant="secondary-pill-icon"
-                icon={Plus}
-                onClick={handleOpenNewOrder}
-              />
-            </Box>
-          </Box>
-        ) : (
-          <Box w="full" h="full" minH="0" overflow="hidden" position="relative">
-            <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" h="full">
-              {/* Lista de pedidos — menu no mobile, coluna esquerda no desktop */}
-              <Box w="w-full md:w-1/3" h="full" overflow="auto" flex="1" minH="0">
-                <DeliveryOrdersList
-                  orders={orders}
-                  selectedOrderId={selectedOrderId}
-                  onSelectOrder={handleSelectOrder}
-                  searchQuery={searchQuery}
-                />
-              </Box>
-
-              {/* Detalhes — split-view apenas no desktop */}
-              <Box display="hidden md:flex" flex="1" h="full" minH="0" overflow="hidden" direction="col">
-                {selectedOrder ? (
-                  renderOrderTimeline(selectedOrder)
-                ) : (
-                  <EmptyState
-                    icon={Truck}
-                    title={s.noOrderSelectedTitle}
-                    subtitle={s.noOrderSelectedSubtitle}
-                  />
-                )}
-              </Box>
-            </Stack>
-
-            {/* Botão FAB fixo no canto inferior direito */}
-            <Box position="fixed" bottom="24px" right="24px" zIndex="30">
-              <Button
-                variant="secondary-pill-icon"
-                icon={Plus}
-                onClick={handleOpenNewOrder}
-              />
-            </Box>
-          </Box>
-        )
+        <DeliveryListView
+          orders={orders} selectedOrderId={effectiveSelectedOrderId} selectedOrder={selectedOrder}
+          searchQuery={searchQuery} onSelectOrder={handleSelectOrder}
+          onOpenNewOrder={() => { setEditingOrderId(null); setSelectedClient(null); pushView("client-form") }}
+          renderOrderTimeline={renderOrderTimeline}
+        />
       )}
     </ViewTransition>
   )

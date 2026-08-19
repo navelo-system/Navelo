@@ -12,132 +12,108 @@ import { FilterBar } from "@/components/store/intermediary/FilterBar"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { UI_STRINGS } from "@/constants/strings"
 
-// eslint-disable-next-line max-lines-per-function
-export const PlansCrudSection: React.FC = () => {
-  const [plans, setPlans] = React.useState<Plan[]>([
-    { id: "1", name: "Plano Free", price: 0, status: PlanStatus.ACTIVE, features: ["pos_touch", "thermal_print"] },
-    { id: "2", name: "Plano Pro", price: 149.90, status: PlanStatus.ACTIVE, features: ["pos_touch", "thermal_print", "bill_splitter", "cash_session", "bento_dashboard", "peripherals_manager"] },
-    { id: "3", name: "Plano Enterprise", price: 499.90, status: PlanStatus.ACTIVE, features: APP_FEATURES.map((f: { id: string }) => f.id) }
-  ])
+const INITIAL_PLANS: Plan[] = [
+  { id: "1", name: "Plano Free", price: 0, status: PlanStatus.ACTIVE, features: ["pos_touch", "thermal_print"] },
+  { id: "2", name: "Plano Pro", price: 149.90, status: PlanStatus.ACTIVE, features: ["pos_touch", "thermal_print", "bill_splitter", "cash_session", "bento_dashboard", "peripherals_manager"] },
+  { id: "3", name: "Plano Enterprise", price: 499.90, status: PlanStatus.ACTIVE, features: APP_FEATURES.map((f: { id: string }) => f.id) },
+]
 
+function PlansTable({
+  plans,
+  onEdit,
+  onDelete,
+}: {
+  plans: Plan[]
+  onEdit: (plan: Plan) => void
+  onDelete: (id: string) => void
+}) {
+  const p = UI_STRINGS.admin.plans
+  if (plans.length === 0) {
+    return <EmptyState icon={CreditCard} title={p.emptyTitle} subtitle={p.emptySubtitle} />
+  }
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead text={p.planNameColumn} />
+          <TableHead text={p.monthlyPriceColumn} />
+          <TableHead text={p.activeModulesColumn} />
+          <TableHead text={p.statusColumn} />
+          <TableHead align="right" text={p.actionsColumn} />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {plans.map((plan) => (
+          <TableRow key={plan.id}>
+            <TableCell fontWeight="medium">{plan.name}</TableCell>
+            <TableCell>
+              {plan.price === 0 ? "Grátis" : `R$ ${plan.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+            </TableCell>
+            <TableCell>{`${plan.features.length} de ${APP_FEATURES.length} módulos ativados`}</TableCell>
+            <TableCell>
+              <Badge
+                variant={plan.status === PlanStatus.ACTIVE ? "success" : "danger"}
+                label={plan.status === PlanStatus.ACTIVE ? "Ativo" : "Inativo"}
+              />
+            </TableCell>
+            <TableCell align="right">
+              <Stack direction="row" gap={2.5} justify="end">
+                <Button variant="primary-icon-xs" icon={Edit2} onClick={() => onEdit(plan)} />
+                <Button
+                  variant="danger-icon-xs-confirm"
+                  confirmTitle={p.deleteConfirmTitle}
+                  confirmSubtitle={p.deleteConfirmSubtitle}
+                  confirmParagraph={p.deleteConfirmParagraph}
+                  onConfirm={() => onDelete(plan.id)}
+                />
+              </Stack>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
+}
+
+export const PlansCrudSection: React.FC = () => {
+  const [plans, setPlans] = React.useState<Plan[]>(INITIAL_PLANS)
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [editingPlan, setEditingPlan] = React.useState<Plan | null>(null)
   const [searchQuery, setSearchQuery] = React.useState("")
-
-  const handleOpenCreate = () => {
-    setEditingPlan(null)
-    setIsModalOpen(true)
-  }
-
-  const handleOpenEdit = (plan: Plan) => {
-    setEditingPlan(plan)
-    setIsModalOpen(true)
-  }
+  const p = UI_STRINGS.admin.plans
 
   const handleSavePlan = (name: string, price: number, features: string[]) => {
     if (editingPlan) {
-      setPlans(prev => prev.map(p => p.id === editingPlan.id ? {
-        ...p,
-        name,
-        price,
-        features
-      } : p))
+      setPlans((prev) => prev.map((item) => (item.id === editingPlan.id ? { ...item, name, price, features } : item)))
     } else {
-      const newPlan: Plan = {
-        id: crypto.randomUUID(),
-        name,
-        price,
-        status: PlanStatus.ACTIVE,
-        features
-      }
-      setPlans(prev => [...prev, newPlan])
+      setPlans((prev) => [...prev, { id: crypto.randomUUID(), name, price, status: PlanStatus.ACTIVE, features }])
     }
   }
 
-  const handleDelete = (id: string) => {
-    setPlans(prev => prev.filter(p => p.id !== id))
-  }
-
-  const filteredPlans = plans.filter(p =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
-  const p = UI_STRINGS.admin.plans
+  const filteredPlans = plans.filter((item) => item.name.toLowerCase().includes(searchQuery.toLowerCase()))
 
   return (
     <>
       <Stack direction="row" align="start" w="fit-content">
-        <Button
-          variant="ghost"
-          label={p.backButton}
-          icon={ArrowLeft}
-          onClick={() => window.location.href = "/admin"}
-        />
+        <Button variant="ghost" label={p.backButton} icon={ArrowLeft} onClick={() => { window.location.href = "/admin" }} />
       </Stack>
 
       <RegistrySection
         title={p.title}
         description={p.description}
         icon={CreditCard}
-        action={<Button variant="primary" label={p.newPlanButton} icon={Plus} onClick={handleOpenCreate} />}
+        action={<Button variant="primary" label={p.newPlanButton} icon={Plus} onClick={() => { setEditingPlan(null); setIsModalOpen(true) }} />}
       >
         <Stack gap={5}>
-          <FilterBar
-            searchPlaceholder={p.searchPlaceholder}
-            onSearch={setSearchQuery}
+          <FilterBar searchPlaceholder={p.searchPlaceholder} onSearch={setSearchQuery} />
+          <PlansTable
+            plans={filteredPlans}
+            onEdit={(plan) => { setEditingPlan(plan); setIsModalOpen(true) }}
+            onDelete={(id) => setPlans((prev) => prev.filter((item) => item.id !== id))}
           />
-
-          {filteredPlans.length === 0 ? (
-            <EmptyState
-              icon={CreditCard}
-              title={p.emptyTitle}
-              subtitle={p.emptySubtitle}
-            />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead text={p.planNameColumn} />
-                  <TableHead text={p.monthlyPriceColumn} />
-                  <TableHead text={p.activeModulesColumn} />
-                  <TableHead text={p.statusColumn} />
-                  <TableHead align="right" text={p.actionsColumn} />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredPlans.map(plan => (
-                  <TableRow key={plan.id}>
-                    <TableCell fontWeight="medium">{plan.name}</TableCell>
-                    <TableCell>
-                      {plan.price === 0 ? "Grátis" : `R$ ${plan.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
-                    </TableCell>
-                    <TableCell>
-                      {`${plan.features.length} de ${APP_FEATURES.length} módulos ativados`}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={plan.status === PlanStatus.ACTIVE ? "success" : "danger"} label={plan.status === PlanStatus.ACTIVE ? "Ativo" : "Inativo"} />
-                    </TableCell>
-                    <TableCell align="right">
-                      <Stack direction="row" gap={2.5} justify="end">
-                        <Button variant="primary-icon-xs" icon={Edit2} onClick={() => handleOpenEdit(plan)} />
-                        <Button
-                          variant="danger-icon-xs-confirm"
-                          confirmTitle={p.deleteConfirmTitle}
-                          confirmSubtitle={p.deleteConfirmSubtitle}
-                          confirmParagraph={p.deleteConfirmParagraph}
-                          onConfirm={() => handleDelete(plan.id)}
-                        />
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-
-          {/* Modal Form */}
           {isModalOpen && (
-            <PlanFormModal 
+            <PlanFormModal
               key={editingPlan ? editingPlan.id : "new"}
               isOpen={isModalOpen}
               onClose={() => setIsModalOpen(false)}

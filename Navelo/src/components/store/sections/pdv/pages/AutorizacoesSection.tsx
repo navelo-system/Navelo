@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -22,7 +20,7 @@ export interface AutorizacoesSectionProps {
   setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
-const CustomCheckbox = ({ checked, onChange, label }: { checked: boolean, onChange: () => void, label: string }) => (
+const CustomCheckbox = ({ checked, onChange, label }: { checked: boolean; onChange: () => void; label: string }) => (
   <Stack direction="col" mobileDirection="row" gap={5} align="start" mobileAlign="center" justify="start" mobileJustify="between" w="full">
     <Box order="2" mdOrder="1">
       <Font variant="body-sm-medium" text={label} align="left" />
@@ -32,6 +30,36 @@ const CustomCheckbox = ({ checked, onChange, label }: { checked: boolean, onChan
     </Box>
   </Stack>
 )
+
+function AutorizacoesFilterInputs({
+  operator,
+  setOperator,
+  authorizer,
+  setAuthorizer,
+  device,
+  setDevice,
+  showDenied,
+  setShowDenied,
+}: {
+  operator: string
+  setOperator: (v: string) => void
+  authorizer: string
+  setAuthorizer: (v: string) => void
+  device: string
+  setDevice: (v: string) => void
+  showDenied: boolean
+  setShowDenied: (v: boolean) => void
+}) {
+  const s = UI_STRINGS.authorizations
+  return (
+    <>
+      <Input label={s.operatorLabel} placeholder={s.operatorLabel} value={operator} onChange={(e) => setOperator(e.target.value)} />
+      <Input label={s.authorizerLabel} placeholder={s.authorizerLabel} value={authorizer} onChange={(e) => setAuthorizer(e.target.value)} />
+      <Input label={s.deviceLabel} placeholder={s.deviceLabel} value={device} onChange={(e) => setDevice(e.target.value)} />
+      <CustomCheckbox checked={showDenied} onChange={() => setShowDenied(!showDenied)} label={s.showDeniedLabel} />
+    </>
+  )
+}
 
 export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
   onCancel,
@@ -54,14 +82,9 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
     setCustomTitle?.(s.title)
     setCustomActions?.(
       <Box display="block md:hidden">
-        <Button
-          variant="primary-pill-icon"
-          icon={Filter}
-          onClick={() => setIsFilterDrawerOpen(true)}
-        />
+        <Button variant="primary-pill-icon" icon={Filter} onClick={() => setIsFilterDrawerOpen(true)} />
       </Box>
     )
-
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
@@ -69,57 +92,26 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
     }
   }, [setCustomBack, setCustomTitle, setCustomActions, onCancel, s.title])
 
-  const renderFilterInputs = () => (
-    <>
-      <Input
-        label={s.operatorLabel}
-        placeholder={s.operatorLabel}
-        value={operator}
-        onChange={(e) => setOperator(e.target.value)}
-      />
-      <Input
-        label={s.authorizerLabel}
-        placeholder={s.authorizerLabel}
-        value={authorizer}
-        onChange={(e) => setAuthorizer(e.target.value)}
-      />
-      <Input
-        label={s.deviceLabel}
-        placeholder={s.deviceLabel}
-        value={device}
-        onChange={(e) => setDevice(e.target.value)}
-      />
-      <CustomCheckbox
-        checked={showDenied}
-        onChange={() => setShowDenied(!showDenied)}
-        label={s.showDeniedLabel}
-      />
-    </>
+  const filterInputs = (
+    <AutorizacoesFilterInputs
+      operator={operator}
+      setOperator={setOperator}
+      authorizer={authorizer}
+      setAuthorizer={setAuthorizer}
+      device={device}
+      setDevice={setDevice}
+      showDenied={showDenied}
+      setShowDenied={setShowDenied}
+    />
   )
 
   return (
     <Stack direction="col" gap={5} w="full" flex="1" minH="0">
       <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" minH="0" h="full">
-        {/* Painel Principal (Esquerda) */}
-        <Box
-          flex="1"
-          w="full"
-          h="full"
-          bg="bg-surface"
-          radius="default"
-          padding={5}
-          direction="col"
-          justify="center"
-          minH="0"
-        >
-          <EmptyState
-            icon={Search}
-            title={s.emptyTitle}
-            subtitle={s.emptySubtitle}
-          />
+        <Box flex="1" w="full" h="full" bg="bg-surface" radius="default" padding={5} direction="col" justify="center" minH="0">
+          <EmptyState icon={Search} title={s.emptyTitle} subtitle={s.emptySubtitle} />
         </Box>
 
-        {/* Painel de Filtros Desktop (Direita) */}
         <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
           <FilterPanel
             title={UI_STRINGS.common.filter}
@@ -131,17 +123,11 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
             onEndDateChange={setDateEnd}
             onFilter={() => {}}
           >
-            {renderFilterInputs()}
+            {filterInputs}
           </FilterPanel>
         </Box>
 
-        {/* Drawer Mobile: FilterPanel dentro de Modal Sidebar */}
-        <Modal
-          isOpen={isFilterDrawerOpen}
-          onClose={() => setIsFilterDrawerOpen(false)}
-          title={UI_STRINGS.common.filter}
-          variant="sidebar"
-        >
+        <Modal isOpen={isFilterDrawerOpen} onClose={() => setIsFilterDrawerOpen(false)} title={UI_STRINGS.common.filter} variant="sidebar">
           <FilterPanel
             hideTitle
             borderless
@@ -153,7 +139,7 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
             onEndDateChange={setDateEnd}
             onFilter={() => setIsFilterDrawerOpen(false)}
           >
-            {renderFilterInputs()}
+            {filterInputs}
           </FilterPanel>
         </Modal>
       </Stack>

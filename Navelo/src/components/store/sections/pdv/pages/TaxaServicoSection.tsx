@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -29,84 +27,149 @@ export interface TaxaServicoSectionProps {
   setCustomTitle?: (title: string | null) => void
 }
 
+const INITIAL_FEES: ServiceFeeItem[] = [
+  { id: "1", name: "Taxa de Serviço Padrão", type: "percentage", value: "10,00" },
+  { id: "2", name: "Acoplagem/Couvert", type: "fixed", value: "15,00" },
+]
+
+function ServiceFeeFormCard({
+  editingFee,
+  formName,
+  setFormName,
+  formType,
+  setFormType,
+  formValue,
+  setFormValue,
+  onSubmit,
+  onCancel,
+}: {
+  editingFee: ServiceFeeItem | null
+  formName: string
+  setFormName: (v: string) => void
+  formType: "fixed" | "percentage"
+  setFormType: (v: "fixed" | "percentage") => void
+  formValue: string
+  setFormValue: (v: string) => void
+  onSubmit: (e: React.FormEvent) => void
+  onCancel: () => void
+}) {
+  const c = UI_STRINGS.serviceCharges
+  return (
+    <Box bg="bg-white" border borderColor="border-border" radius="default" padding={5} w="full">
+      <Form onSubmit={onSubmit}>
+        <Stack gap={5} w="full">
+          <Input label={c.nameLabel} placeholder={c.namePlaceholder} value={formName} onChange={(e) => setFormName(e.target.value)} required />
+          <Stack gap={2.5} w="full">
+            <Font variant="description" text={c.chargeTypeLabel} color="muted" />
+            <CustomSelect value={formType} onChange={(val) => setFormType(val as "fixed" | "percentage")}>
+              <CustomSelectItem value="percentage" text={c.percentualOption} icon={Percent} />
+              <CustomSelectItem value="fixed" text={c.fixedOption} icon={Coins} />
+            </CustomSelect>
+          </Stack>
+          <Input
+            mask={formType === "percentage" ? "percent" : "currency"}
+            label={formType === "percentage" ? c.percentualLabel : c.fixedLabel}
+            placeholder={formType === "percentage" ? c.percentualPlaceholder : c.fixedPlaceholder}
+            value={formValue}
+            onChange={(e) => setFormValue(e.target.value)}
+            required
+          />
+          <FormActions confirmLabel={editingFee ? UI_STRINGS.pdv.cart.saveChangesButton : c.addFeeFormButton} onConfirm={() => {}} onCancel={onCancel} isSubmit={true} />
+        </Stack>
+      </Form>
+    </Box>
+  )
+}
+
+function ServiceFeeTableCard({
+  fees,
+  onEdit,
+  onDelete,
+}: {
+  fees: ServiceFeeItem[]
+  onEdit: (fee: ServiceFeeItem) => void
+  onDelete: (id: string) => void
+}) {
+  const d = UI_STRINGS.deliveryFees
+  const c = UI_STRINGS.serviceCharges
+  return (
+    <Box bg="bg-white" border borderColor="border-border" radius="default" w="full" overflow="hidden">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead text={d.nameColumnHeader} />
+            <TableHead text={c.typeColumnHeader} />
+            <TableHead text={d.valueColumnHeader} />
+            <TableHead text={UI_STRINGS.tabsConfig.actionsCol} align="right" w="w-[100px]" />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {fees.map((fee) => (
+            <TableRow key={fee.id}>
+              <TableCell>
+                <Font variant="body-bold" text={fee.name} />
+              </TableCell>
+              <TableCell>
+                <Font variant="body" text={fee.type === "percentage" ? "Percentual" : "Valor Fixo"} />
+              </TableCell>
+              <TableCell>
+                <Font variant="body" text={fee.type === "percentage" ? `${fee.value}%` : `R$ ${fee.value}`} />
+              </TableCell>
+              <TableCell>
+                <Stack direction="row" gap={2.5} justify="end">
+                  <Button variant="ghost-primary" icon={Edit2} onClick={() => onEdit(fee)} />
+                  <Button
+                    variant="danger-icon-xs-confirm"
+                    confirmTitle="Excluir Taxa de Serviço"
+                    confirmSubtitle="Confirmar exclusão de taxa"
+                    confirmParagraph="Tem certeza que deseja excluir esta taxa de serviço?"
+                    onConfirm={() => onDelete(fee.id)}
+                  />
+                </Stack>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Box>
+  )
+}
+
 export const TaxaServicoSection: React.FC<TaxaServicoSectionProps> = ({
   onCancel,
   setCustomBack,
-  setCustomTitle
+  setCustomTitle,
 }) => {
-  const [fees, setFees] = React.useState<ServiceFeeItem[]>([
-    { id: "1", name: "Taxa de Serviço Padrão", type: "percentage", value: "10,00" },
-    { id: "2", name: "Acoplagem/Couvert", type: "fixed", value: "15,00" }
-  ])
-
+  const [fees, setFees] = React.useState<ServiceFeeItem[]>(INITIAL_FEES)
   const [mode, setMode] = React.useState<"list" | "form">("list")
   const [editingFee, setEditingFee] = React.useState<ServiceFeeItem | null>(null)
-  const s = UI_STRINGS.fees
-  
-  // Form states
   const [formName, setFormName] = React.useState("")
   const [formType, setFormType] = React.useState<"fixed" | "percentage">("percentage")
   const [formValue, setFormValue] = React.useState("10,00")
+  const s = UI_STRINGS.fees
 
   const handleBack = React.useCallback(() => {
-    if (mode === "form") {
-      setMode("list")
-      setEditingFee(null)
-    } else {
-      onCancel()
-    }
+    if (mode === "form") { setMode("list"); setEditingFee(null) }
+    else onCancel()
   }, [mode, onCancel])
 
   React.useEffect(() => {
     setCustomBack?.(() => handleBack)
     setCustomTitle?.(mode === "form" ? (editingFee ? "Editar taxa de serviço" : "Nova taxa de serviço") : s.serviceFeeTitle)
-
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
     }
   }, [setCustomBack, setCustomTitle, handleBack, mode, editingFee, s.serviceFeeTitle])
 
-  const handleAddClick = () => {
-    setEditingFee(null)
-    setFormName("")
-    setFormType("percentage")
-    setFormValue("10,00")
-    setMode("form")
-  }
-
-  const handleEditClick = (fee: ServiceFeeItem) => {
-    setEditingFee(fee)
-    setFormName(fee.name)
-    setFormType(fee.type)
-    setFormValue(fee.value)
-    setMode("form")
-  }
-
-  const handleDeleteClick = (id: string) => {
-    setFees((prev) => prev.filter((item) => item.id !== id))
-  }
-
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault()
     if (!formName.trim()) return
-
     if (editingFee) {
-      setFees((prev) =>
-        prev.map((item) =>
-          item.id === editingFee.id ? { ...item, name: formName, type: formType, value: formValue } : item
-        )
-      )
+      setFees((prev) => prev.map((item) => (item.id === editingFee.id ? { ...item, name: formName, type: formType, value: formValue } : item)))
     } else {
-      const newFee: ServiceFeeItem = {
-        id: Date.now().toString(),
-        name: formName,
-        type: formType,
-        value: formValue
-      }
-      setFees((prev) => [...prev, newFee])
+      setFees((prev) => [...prev, { id: Date.now().toString(), name: formName, type: formType, value: formValue }])
     }
-
     setMode("list")
     setEditingFee(null)
   }
@@ -114,56 +177,13 @@ export const TaxaServicoSection: React.FC<TaxaServicoSectionProps> = ({
   if (mode === "form") {
     return (
       <Stack gap={5} w="full">
-        <Box
-          bg="bg-white"
-          border={true}
-          borderColor="border-border"
-          radius="default"
-          padding={5}
-          w="full"
-        >
-          <Form onSubmit={handleSave}>
-            <Stack gap={5} w="full">
-              <Input
-                label={UI_STRINGS.serviceCharges.nameLabel}
-                placeholder={UI_STRINGS.serviceCharges.namePlaceholder}
-                value={formName}
-                onChange={(e) => setFormName(e.target.value)}
-                required
-              />
-
-              <Stack gap={2.5} w="full">
-                <Font variant="description" text={UI_STRINGS.serviceCharges.chargeTypeLabel} color="muted" />
-                <CustomSelect
-                  value={formType}
-                  onChange={(val) => setFormType(val as "fixed" | "percentage")}
-                >
-                  <CustomSelectItem value="percentage" text={UI_STRINGS.serviceCharges.percentualOption} icon={Percent} />
-                  <CustomSelectItem value="fixed" text={UI_STRINGS.serviceCharges.fixedOption} icon={Coins} />
-                </CustomSelect>
-              </Stack>
-
-              <Input
-                label={formType === "percentage" ? UI_STRINGS.serviceCharges.percentualLabel : UI_STRINGS.serviceCharges.fixedLabel}
-                placeholder={formType === "percentage" ? UI_STRINGS.serviceCharges.percentualPlaceholder : UI_STRINGS.serviceCharges.fixedPlaceholder}
-                value={formValue}
-                onChange={(e) => setFormValue(e.target.value)}
-                required
-              />
-
-              {/* Botões de Ações no Rodapé do Formulário */}
-              <FormActions
-                confirmLabel={editingFee ? UI_STRINGS.pdv.cart.saveChangesButton : UI_STRINGS.serviceCharges.addFeeFormButton}
-                onConfirm={() => {}}
-                onCancel={() => {
-                  setMode("list")
-                  setEditingFee(null)
-                }}
-                isSubmit={true}
-              />
-            </Stack>
-          </Form>
-        </Box>
+        <ServiceFeeFormCard
+          editingFee={editingFee}
+          formName={formName} setFormName={setFormName}
+          formType={formType} setFormType={setFormType}
+          formValue={formValue} setFormValue={setFormValue}
+          onSubmit={handleSave} onCancel={() => { setMode("list"); setEditingFee(null) }}
+        />
       </Stack>
     )
   }
@@ -171,98 +191,23 @@ export const TaxaServicoSection: React.FC<TaxaServicoSectionProps> = ({
   return (
     <Stack gap={5} w="full">
       {fees.length === 0 ? (
-        <Box
-          bg="bg-white"
-          border={true}
-          borderColor="border-border"
-          radius="default"
-          padding={5}
-          w="full"
-        >
+        <Box bg="bg-white" border borderColor="border-border" radius="default" padding={5} w="full">
           <Stack gap={5} align="center" justify="center" w="full">
-            <EmptyState
-              title={UI_STRINGS.serviceCharges.emptyTitle}
-              subtitle={UI_STRINGS.serviceCharges.emptySubtitle}
-              icon={Coins}
-            />
-            <Button
-              variant="primary"
-              label={UI_STRINGS.serviceCharges.addFeeButton}
-              icon={Plus}
-              onClick={handleAddClick}
-            />
+            <EmptyState title={UI_STRINGS.serviceCharges.emptyTitle} subtitle={UI_STRINGS.serviceCharges.emptySubtitle} icon={Coins} />
+            <Button variant="primary" label={UI_STRINGS.serviceCharges.addFeeButton} icon={Plus} onClick={() => { setEditingFee(null); setFormName(""); setFormType("percentage"); setFormValue("10,00"); setMode("form") }} />
           </Stack>
         </Box>
       ) : (
         <Stack gap={5} w="full">
-          {/* Cabeçalho de Controle */}
           <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
             <Font variant="body-bold" text={s.serviceFeeTitle} />
-            <Button
-              variant="primary"
-              label={UI_STRINGS.deliveryFees.addFeeFormButton}
-              icon={Plus}
-              onClick={handleAddClick}
-            />
+            <Button variant="primary" label={UI_STRINGS.deliveryFees.addFeeFormButton} icon={Plus} onClick={() => { setEditingFee(null); setFormName(""); setFormType("percentage"); setFormValue("10,00"); setMode("form") }} />
           </Stack>
-
-          {/* Listagem de Taxas */}
-          <Box
-            bg="bg-white"
-            border={true}
-            borderColor="border-border"
-            radius="default"
-            w="full"
-            overflow="hidden"
-          >
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead text={UI_STRINGS.deliveryFees.nameColumnHeader} />
-                  <TableHead text={UI_STRINGS.serviceCharges.typeColumnHeader} />
-                  <TableHead text={UI_STRINGS.deliveryFees.valueColumnHeader} />
-                  <TableHead text={UI_STRINGS.tabsConfig.actionsCol} align="right" w="w-[100px]" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {fees.map((fee) => (
-                  <TableRow key={fee.id}>
-                    <TableCell>
-                      <Font variant="body-bold" text={fee.name} />
-                    </TableCell>
-                    <TableCell>
-                      <Font
-                        variant="body"
-                        text={fee.type === "percentage" ? "Percentual" : "Valor Fixo"}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Font
-                        variant="body"
-                        text={fee.type === "percentage" ? `${fee.value}%` : `R$ ${fee.value}`}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Stack direction="row" gap={2.5} justify="end">
-                        <Button
-                          variant="ghost-primary"
-                          icon={Edit2}
-                          onClick={() => handleEditClick(fee)}
-                        />
-                        <Button
-                          variant="danger-icon-xs-confirm"
-                          confirmTitle="Excluir Taxa de Serviço"
-                          confirmSubtitle="Confirmar exclusão de taxa"
-                          confirmParagraph="Tem certeza que deseja excluir esta taxa de serviço?"
-                          onConfirm={() => handleDeleteClick(fee.id)}
-                        />
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Box>
+          <ServiceFeeTableCard
+            fees={fees}
+            onEdit={(fee) => { setEditingFee(fee); setFormName(fee.name); setFormType(fee.type); setFormValue(fee.value); setMode("form") }}
+            onDelete={(id) => setFees((prev) => prev.filter((item) => item.id !== id))}
+          />
         </Stack>
       )}
     </Stack>

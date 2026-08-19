@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 "use client"
 
 import * as React from "react"
@@ -14,17 +13,24 @@ interface ViewTransitionProps {
   overflow?: "hidden" | "auto" | "x-hidden y-auto"
 }
 
-/**
- * ViewTransition — envolve uma view e aplica transição suave de entrada por opacidade
- * toda vez que `viewKey` muda. Usa opacidade pura (sem transform no container root)
- * para garantir que elementos position: fixed (como FABs) permaneçam perfeitamente
- * ancorados na tela durante a transição sem causar glitches.
- */
-export const ViewTransition: React.FC<ViewTransitionProps> = ({ children, viewKey, className, flex, direction, minH, overflow }) => {
-  const [isActive, setIsActive] = React.useState(false)
+export const ViewTransition: React.FC<ViewTransitionProps> = ({
+  children,
+  viewKey,
+  className,
+  flex,
+  direction,
+  minH,
+  overflow,
+}) => {
+  const [activeKey, setActiveKey] = React.useState(viewKey)
+  const [isActive, setIsActive] = React.useState(true)
+
+  if (viewKey !== activeKey) {
+    setActiveKey(viewKey)
+    setIsActive(false)
+  }
 
   React.useEffect(() => {
-    setIsActive(false)
     let raf2: number
     const raf1 = requestAnimationFrame(() => {
       raf2 = requestAnimationFrame(() => {

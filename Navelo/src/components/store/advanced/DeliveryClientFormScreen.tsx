@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, complexity */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -48,44 +46,275 @@ export function parseAddressString(address: string) {
   }
 
   const parts = str.split(",").map((p) => p.trim()).filter(Boolean)
-  let street = ""
-  let number = ""
-  let complement = ""
-  let neighborhood = ""
-  let city = ""
+  const street = parts[0] || address
+  const number = parts[1]?.split("-")[0]?.trim() || "S/N"
+  const complement = parts[1]?.split("-").slice(1).join(" - ").trim() || ""
+  const neighborhood = parts[2]?.split("-")[0]?.trim() || ""
+  const city = parts[2]?.split("-").slice(1).join(" - ").trim() || ""
 
-  if (parts.length >= 1) {
-    street = parts[0]
-  }
+  return { name: "Principal", street, number, complement, neighborhood, city, zip }
+}
 
-  if (parts.length >= 2) {
-    const subParts2 = parts[1].split("-").map((p) => p.trim())
-    number = subParts2[0] || ""
-    if (subParts2.length > 1) {
-      complement = subParts2.slice(1).join(" - ")
-    }
-  }
-
-  if (parts.length >= 3) {
-    const subParts3 = parts[2].split("-").map((p) => p.trim())
-    neighborhood = subParts3[0] || ""
-    if (subParts3.length > 1) {
-      city = subParts3[1] || ""
-    }
-  }
-
+function resolveInitialCustomer(c: Customer) {
   return {
-    name: "Principal",
-    street: street || address,
-    number: number || "S/N",
-    complement: complement || "",
-    neighborhood: neighborhood || "",
-    city: city || "",
-    zip: zip || "",
+    name: c.name || "",
+    email: c.email || "",
+    document: c.document || "",
+    phone: c.phone || "",
+    selectedCustomerId: c.id,
+    addresses: c.addresses || [],
   }
 }
 
-export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> = ({
+function resolveInitialClient(client: DeliveryClientInfo, customersList: Customer[]) {
+  const matching = customersList.find(
+    (c) =>
+      (client.customerId && c.id === client.customerId) ||
+      (c.name && c.name.trim().toLowerCase() === client.name.trim().toLowerCase()) ||
+      (client.phone && c.phone && c.phone.trim() === client.phone.trim())
+  )
+  if (matching) return resolveInitialCustomer(matching)
+
+  const parsed = parseAddressString(client.address || "")
+  const initialAddresses =
+    client.address && client.address !== "Endereço não informado"
+      ? [{
+          id: `addr-init-${Date.now()}`,
+          customerId: client.customerId || "",
+          street: parsed.street,
+          number: parsed.number,
+          complement: parsed.complement,
+          neighborhood: parsed.neighborhood,
+          city: parsed.city,
+          state: "",
+          zipCode: parsed.zip,
+          isDefault: true,
+        }]
+      : []
+
+  return {
+    name: client.name,
+    email: client.email || "",
+    document: client.document || "",
+    phone: client.phone || "",
+    selectedCustomerId: client.customerId,
+    addresses: initialAddresses,
+  }
+}
+
+function resolveInitialClientState(
+  initialCustomer?: Customer | null,
+  initialClient?: DeliveryClientInfo | null,
+  customersList: Customer[] = []
+) {
+  if (initialCustomer) return resolveInitialCustomer(initialCustomer)
+  if (initialClient?.name) return resolveInitialClient(initialClient, customersList)
+  return { name: "", email: "", document: "", phone: "", selectedCustomerId: undefined, addresses: [] }
+}
+
+function formatCustomerPrimaryAddress(clientAddresses: CustomerAddress[]) {
+  if (clientAddresses.length === 0) return "Endereço não informado"
+  const a = clientAddresses.find((it) => it.isDefault) || clientAddresses[0]
+  if (a.street.includes("(CEP:") || (a.street.includes(" - ") && a.street.includes(","))) return a.street
+  const segs: string[] = [a.street]
+  if (a.number && a.number !== "S/N" && !a.street.includes(a.number)) segs.push(a.number)
+  if (a.complement && !a.street.includes(a.complement)) segs.push(a.complement)
+  if (a.neighborhood && !a.street.includes(a.neighborhood)) segs.push(a.neighborhood)
+  if (a.city && !a.street.includes(a.city)) segs.push(a.city)
+  const base = segs.join(", ")
+  return a.zipCode && !a.street.includes(a.zipCode) ? `${base} (CEP: ${a.zipCode})` : base
+}
+
+function DeliveryClientSearchResults({
+  customers,
+  onSelectCustomer,
+}: {
+  customers: Customer[]
+  onSelectCustomer: (c: Customer) => void
+}) {
+  const cust = UI_STRINGS.customers
+  if (customers.length === 0) {
+    return <EmptyState icon={UserX} title={cust.noCustomerFoundTitle} subtitle={cust.noCustomerFoundSubtitle} />
+  }
+
+  return (
+    <Box display="flex" direction="col" w="full">
+      {customers.map((client, idx) => (
+        <Box key={client.id}>
+          <Box
+            w="full"
+            paddingY={2.5}
+            paddingX={2.5}
+            radius="none"
+            hoverBg="primary/10"
+            cursor="pointer"
+            onClick={() => onSelectCustomer(client)}
+          >
+            <Stack direction="row" align="center" justify="between" w="full">
+              <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
+                <Avatar fallback={client.name ? client.name.charAt(0).toUpperCase() : "C"} />
+                <Stack gap={0} align="start" flex="1" minW="0">
+                  <Font variant="body" text={client.name} />
+                  {(client.document || client.phone) && (
+                    <Font variant="auxiliary" color="muted" truncate={true} text={client.document || client.phone || ""} />
+                  )}
+                </Stack>
+              </Stack>
+            </Stack>
+          </Box>
+          {idx < customers.length - 1 && <Box borderBottom={true} borderColor="border-border" w="full" />}
+        </Box>
+      ))}
+    </Box>
+  )
+}
+
+function DeliveryClientPersonalFields({
+  name, setName,
+  email, setEmail,
+  document, setDocument,
+  phone, setPhone,
+}: {
+  name: string; setName: (v: string) => void
+  email: string; setEmail: (v: string) => void
+  document: string; setDocument: (v: string) => void
+  phone: string; setPhone: (v: string) => void
+}) {
+  const cust = UI_STRINGS.customers
+  return (
+    <Stack gap={2.5} w="full">
+      <Input placeholder={cust.nameRequiredPlaceholder} value={name} onChange={(e) => setName(e.target.value)} required />
+      <Input placeholder={cust.emailPlaceholder} type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+      <Input mask="cpf" placeholder={cust.cpfPlaceholder} value={document} onChange={(e) => setDocument(e.target.value)} />
+      <Input mask="phone" placeholder={cust.phonePlaceholder} value={phone} onChange={(e) => setPhone(e.target.value)} />
+    </Stack>
+  )
+}
+
+interface PersistClientParams {
+  tenantId: string
+  selectedCustomerId: string | undefined
+  saveClient: boolean
+  showSaveSwitch: boolean
+  name: string
+  phone: string
+  email: string
+  document: string
+  clientAddresses: CustomerAddress[]
+}
+
+async function persistClientRecord(p: PersistClientParams) {
+  if (p.selectedCustomerId && p.tenantId && p.name.trim()) {
+    try {
+      await dal.customers.update({
+        id: p.selectedCustomerId,
+        tenant_id: p.tenantId,
+        company_id: p.tenantId,
+        name: p.name.trim(),
+        phone: p.phone.trim(),
+        email: p.email.trim() || undefined,
+        document: p.document.trim() || "",
+        type: p.document.length > 14 ? "PJ" : "PF",
+        addresses: p.clientAddresses.map((a, i) => ({ ...a, customerId: p.selectedCustomerId, isDefault: i === 0 })),
+      })
+      return p.selectedCustomerId
+    } catch (err) {
+      console.error("Erro ao atualizar cliente:", err)
+      return p.selectedCustomerId
+    }
+  }
+
+  if ((p.saveClient || !p.showSaveSwitch) && !p.selectedCustomerId && p.tenantId && p.name.trim()) {
+    const newCustId = `cli-${Date.now()}`
+    try {
+      await dal.customers.create({
+        id: newCustId,
+        tenant_id: p.tenantId,
+        company_id: p.tenantId,
+        name: p.name.trim(),
+        phone: p.phone.trim(),
+        email: p.email.trim() || undefined,
+        document: p.document.trim() || "",
+        type: p.document.length > 14 ? "PJ" : "PF",
+        addresses: p.clientAddresses.map((a, i) => ({ ...a, customerId: newCustId, isDefault: i === 0 })),
+      })
+      return newCustId
+    } catch (err) {
+      console.error("Erro ao salvar cliente:", err)
+      return undefined
+    }
+  }
+
+  return p.selectedCustomerId
+}
+
+function useDeliveryClientHeaderSync(
+  title: string,
+  searchQuery: string,
+  setSearchQuery: (v: string) => void,
+  showSearchInHeader: boolean,
+  showDelete: boolean,
+  onBack: () => void,
+  onSubmit: () => void,
+  onDelete: () => void,
+  setCustomBack?: (cb: (() => void) | null) => void,
+  setCustomTitle?: (t: string | null) => void,
+  setCustomActions?: (a: React.ReactNode | null) => void
+) {
+  const cust = UI_STRINGS.customers
+  const common = UI_STRINGS.common
+  const onBackRef = React.useRef(onBack)
+  const onSubmitRef = React.useRef(onSubmit)
+  const onDeleteRef = React.useRef(onDelete)
+  const setCustomBackRef = React.useRef(setCustomBack)
+  const setCustomTitleRef = React.useRef(setCustomTitle)
+  const setCustomActionsRef = React.useRef(setCustomActions)
+
+  React.useEffect(() => {
+    onBackRef.current = onBack
+    onSubmitRef.current = onSubmit
+    onDeleteRef.current = onDelete
+    setCustomBackRef.current = setCustomBack
+    setCustomTitleRef.current = setCustomTitle
+    setCustomActionsRef.current = setCustomActions
+  })
+
+  React.useEffect(() => {
+    setCustomTitleRef.current?.(title)
+    setCustomBackRef.current?.(() => () => onBackRef.current())
+
+    const actions = (
+      <Stack direction="row" align="center" gap={2.5}>
+        {showDelete && (
+          <Button
+            type="button"
+            variant="danger-pill-icon-confirm"
+            confirmTitle={cust.deleteCustomerConfirmTitle}
+            confirmSubtitle={cust.deleteCustomerConfirmSubtitle}
+            confirmParagraph={cust.deleteCustomerConfirmParagraph}
+            onConfirm={() => onDeleteRef.current()}
+            title={cust.deleteCustomerButtonTitle}
+          />
+        )}
+        <Button type="button" variant="primary-pill-icon" icon={Check} onClick={() => onSubmitRef.current()} title={common.confirm} />
+      </Stack>
+    )
+
+    setCustomActionsRef.current?.(
+      showSearchInHeader ? (
+        <MobileHeaderSearch searchQuery={searchQuery} onSearchQueryChange={setSearchQuery} placeholder={cust.searchRegisteredCustomerPlaceholder}>
+          {actions}
+        </MobileHeaderSearch>
+      ) : (
+        actions
+      )
+    )
+
+    return () => setCustomActionsRef.current?.(null)
+  }, [searchQuery, title, showSearchInHeader, showDelete, cust, common])
+}
+
+export function DeliveryClientFormScreen({
   onBack,
   onSelectClient,
   initialClient,
@@ -97,433 +326,108 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
   setCustomActions,
   setCustomTitle,
   setCustomBack,
-}) => {
+}: DeliveryClientFormScreenProps) {
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id || "default"
   const rawCustomers = useCustomers(tenantId)
-  const customers = React.useMemo(() => Array.isArray(rawCustomers) ? rawCustomers : [], [rawCustomers])
-  const customersRef = React.useRef(customers)
-  React.useEffect(() => {
-    customersRef.current = customers
-  }, [customers])
-
-  // Busca de clientes no cabeçalho
-  const [searchQuery, setSearchQuery] = React.useState("")
-
-  // Switch de salvar cliente (default: ativo / true)
-  const [saveClient, setSaveClient] = React.useState(true)
-
-  // Form states (Dados pessoais)
-  const [name, setName] = React.useState("")
-  const [email, setEmail] = React.useState("")
-  const [document, setDocument] = React.useState("")
-  const [ie, setIe] = React.useState("")
-  const [rg, setRg] = React.useState("")
-  const [phone, setPhone] = React.useState("")
-  const [selectedCustomerId, setSelectedCustomerId] = React.useState<string | undefined>()
-
-  // Endereços
-  const [clientAddresses, setClientAddresses] = React.useState<CustomerAddress[]>([])
-  const [isAddressModalOpen, setIsAddressModalOpen] = React.useState(false)
-  const [editingAddress, setEditingAddress] = React.useState<CustomerAddress | null>(null)
-
-  // Referência do formulário para validação HTML5 nativa
-  const formRef = React.useRef<HTMLFormElement>(null)
+  const customers = React.useMemo(() => (Array.isArray(rawCustomers) ? rawCustomers : []), [rawCustomers])
 
   const initialKey = initialCustomer?.id || initialClient?.customerId || initialClient?.name || initialClient?.phone || ""
+  const init = resolveInitialClientState(initialCustomer, initialClient, customers)
 
-  React.useEffect(() => {
-    if (initialCustomer) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setName(initialCustomer.name || "")
-      setEmail(initialCustomer.email || "")
-      setDocument(initialCustomer.document || "")
-      setIe(initialCustomer.ie || "")
-      setRg(initialCustomer.rg || "")
-      setPhone(initialCustomer.phone || "")
-      setSelectedCustomerId(initialCustomer.id)
-      setClientAddresses(initialCustomer.addresses || [])
-    } else if (initialClient && initialClient.name) {
-      const matchingCustomer = customersRef.current.find(
-        (c) =>
-          (initialClient.customerId && c.id === initialClient.customerId) ||
-          (c.name && c.name.trim().toLowerCase() === initialClient.name.trim().toLowerCase()) ||
-          (initialClient.phone && c.phone && c.phone.trim() === initialClient.phone.trim())
-      )
+  const [searchQuery, setSearchQuery] = React.useState("")
+  const [saveClient, setSaveClient] = React.useState(true)
+  const [name, setName] = React.useState(init.name)
+  const [email, setEmail] = React.useState(init.email)
+  const [document, setDocument] = React.useState(init.document)
+  const [phone, setPhone] = React.useState(init.phone)
+  const [selectedCustomerId, setSelectedCustomerId] = React.useState<string | undefined>(init.selectedCustomerId)
+  const [clientAddresses, setClientAddresses] = React.useState<CustomerAddress[]>(init.addresses)
+  const [isAddressModalOpen, setIsAddressModalOpen] = React.useState(false)
+  const [editingAddress, setEditingAddress] = React.useState<CustomerAddress | null>(null)
+  const [prevKey, setPrevKey] = React.useState(initialKey)
 
-      if (matchingCustomer) {
-        setName(matchingCustomer.name || initialClient.name)
-        setEmail(matchingCustomer.email || "")
-        setDocument(matchingCustomer.document || "")
-        setIe(matchingCustomer.ie || "")
-        setRg(matchingCustomer.rg || "")
-        setPhone(matchingCustomer.phone || initialClient.phone || "")
-        setSelectedCustomerId(matchingCustomer.id)
-        if (matchingCustomer.addresses && matchingCustomer.addresses.length > 0) {
-          setClientAddresses(matchingCustomer.addresses)
-        } else if (initialClient.address && initialClient.address !== "Endereço não informado") {
-          const parsed = parseAddressString(initialClient.address)
-          setClientAddresses([
-            {
-              id: `addr-init-${Date.now()}`,
-              customerId: matchingCustomer.id,
-              street: parsed.street,
-              number: parsed.number,
-              complement: parsed.complement,
-              neighborhood: parsed.neighborhood,
-              city: parsed.city,
-              state: "",
-              zipCode: parsed.zip,
-              isDefault: true,
-            },
-          ])
-        } else {
-          setClientAddresses([])
-        }
-      } else {
-        setName(initialClient.name)
-        setPhone(initialClient.phone || "")
-        setEmail(initialClient.email || "")
-        setDocument(initialClient.document || "")
-        setIe("")
-        setRg("")
-        setSelectedCustomerId(initialClient.customerId)
-        if (initialClient.address && initialClient.address !== "Endereço não informado") {
-          const parsed = parseAddressString(initialClient.address)
-          setClientAddresses([
-            {
-              id: `addr-init-${Date.now()}`,
-              customerId: initialClient.customerId || "",
-              street: parsed.street,
-              number: parsed.number,
-              complement: parsed.complement,
-              neighborhood: parsed.neighborhood,
-              city: parsed.city,
-              state: "",
-              zipCode: parsed.zip,
-              isDefault: true,
-            },
-          ])
-        } else {
-          setClientAddresses([])
-        }
-      }
-    } else {
-      setName("")
-      setEmail("")
-      setDocument("")
-      setIe("")
-      setRg("")
-      setPhone("")
-      setClientAddresses([])
-      setSelectedCustomerId(undefined)
-    }
-  }, [initialKey, initialClient, initialCustomer])
+  if (initialKey !== prevKey) {
+    setPrevKey(initialKey)
+    const next = resolveInitialClientState(initialCustomer, initialClient, customers)
+    setName(next.name); setEmail(next.email); setDocument(next.document); setPhone(next.phone)
+    setSelectedCustomerId(next.selectedCustomerId); setClientAddresses(next.addresses)
+  }
 
-  const filteredCustomers = React.useMemo(() => {
-    if (!searchQuery.trim()) return []
-    const q = searchQuery.toLowerCase()
-    return customers.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) ||
-        (c.phone && c.phone.includes(q)) ||
-        (c.document && c.document.includes(q))
-    )
-  }, [customers, searchQuery])
+  const formRef = React.useRef<HTMLFormElement>(null)
+  const cust = UI_STRINGS.customers
+  const common = UI_STRINGS.common
 
-  const handleSelectCustomer = (customer: Customer) => {
-    setSelectedCustomerId(customer.id)
-    setName(customer.name)
-    setPhone(customer.phone || "")
-    setEmail(customer.email || "")
-    setDocument(customer.document || "")
-    setRg(customer.rg || "")
-    setIe(customer.ie || "")
-
-    if (customer.addresses && customer.addresses.length > 0) {
-      const cleanAddresses = customer.addresses.map((a) => {
-        if (a.street && (a.street.includes("(CEP:") || a.street.includes(" - "))) {
-          const p = parseAddressString(a.street)
-          return {
-            ...a,
-            street: p.street,
-            number: p.number !== "S/N" ? p.number : a.number,
-            complement: p.complement || a.complement,
-            neighborhood: p.neighborhood || a.neighborhood,
-            city: p.city || a.city,
-            zipCode: p.zip || a.zipCode,
-          }
-        }
-        return a
-      })
-      setClientAddresses(cleanAddresses)
-    } else {
-      setClientAddresses([])
-    }
+  const handleSelectCustomer = (c: Customer) => {
+    setSelectedCustomerId(c.id); setName(c.name); setPhone(c.phone || "")
+    setEmail(c.email || ""); setDocument(c.document || ""); setClientAddresses(c.addresses || [])
+    setSearchQuery("")
   }
 
   const handleSaveAddress = (addrData: AddressFormData) => {
     if (editingAddress) {
-      setClientAddresses((prev) =>
-        prev.map((a) =>
-          a.id === editingAddress.id
-            ? {
-              ...a,
-              name: addrData.name,
-              street: addrData.street,
-              number: addrData.number,
-              complement: addrData.complement,
-              neighborhood: addrData.neighborhood,
-              city: addrData.city,
-              zipCode: addrData.zip,
-              reference_point: addrData.reference_point,
-            }
-            : a
-        )
-      )
+      setClientAddresses((prev) => prev.map((a) => (a.id === editingAddress.id ? { ...a, ...addrData, zipCode: addrData.zip } : a)))
     } else {
-      const newAddress: CustomerAddress = {
-        id: `addr-${Date.now()}`,
-        customerId: selectedCustomerId || "",
-        name: addrData.name,
-        street: addrData.street,
-        number: addrData.number,
-        complement: addrData.complement,
-        neighborhood: addrData.neighborhood,
-        city: addrData.city,
-        state: "",
-        zipCode: addrData.zip,
-        reference_point: addrData.reference_point,
-        isDefault: clientAddresses.length === 0,
-      }
-      setClientAddresses((prev) => [...prev, newAddress])
+      setClientAddresses((prev) => [...prev, {
+        id: `addr-${Date.now()}`, customerId: selectedCustomerId || "",
+        name: addrData.name, street: addrData.street, number: addrData.number, complement: addrData.complement,
+        neighborhood: addrData.neighborhood, city: addrData.city, state: "", zipCode: addrData.zip,
+        reference_point: addrData.reference_point, isDefault: clientAddresses.length === 0,
+      }])
     }
     setIsAddressModalOpen(false)
     setEditingAddress(null)
   }
 
-  const handleEditAddress = (addr: CustomerAddress) => {
-    setEditingAddress(addr)
-    setIsAddressModalOpen(true)
-  }
-
-  const handleDeleteAddress = (addr: CustomerAddress) => {
-    setClientAddresses((prev) => prev.filter((a) => a.id !== addr.id))
-  }
-
-  const formatPrimaryAddress = React.useCallback(() => {
-    if (clientAddresses.length === 0) return "Endereço não informado"
-    const primaryAddr = clientAddresses.find((a) => a.isDefault) || clientAddresses[0]
-
-    if (primaryAddr.street.includes("(CEP:") || (primaryAddr.street.includes(" - ") && primaryAddr.street.includes(","))) {
-      return primaryAddr.street
-    }
-
-    let parts = primaryAddr.street
-    if (primaryAddr.number && primaryAddr.number !== "S/N" && !primaryAddr.street.includes(primaryAddr.number)) {
-      parts += `, ${primaryAddr.number}`
-    }
-    if (primaryAddr.complement && !primaryAddr.street.includes(primaryAddr.complement)) {
-      parts += ` - ${primaryAddr.complement}`
-    }
-    if (primaryAddr.neighborhood && !primaryAddr.street.includes(primaryAddr.neighborhood)) {
-      parts += `, ${primaryAddr.neighborhood}`
-    }
-    if (primaryAddr.city && !primaryAddr.street.includes(primaryAddr.city)) {
-      parts += ` - ${primaryAddr.city}`
-    }
-    if (primaryAddr.zipCode && !primaryAddr.street.includes(primaryAddr.zipCode)) {
-      parts += ` (CEP: ${primaryAddr.zipCode})`
-    }
-    return parts
-  }, [clientAddresses])
-
   const handleSubmit = React.useCallback(async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
+    if (formRef.current && !formRef.current.reportValidity()) return
+    if (!name.trim()) return
 
-    // Validação estrita dos campos obrigatórios do formulário
-    if (formRef.current && !formRef.current.reportValidity()) {
-      return
-    }
-
-    if (!name.trim()) {
-      formRef.current?.reportValidity()
-      return
-    }
-
-    const formattedAddress = formatPrimaryAddress()
-
-    let finalCustomerId = selectedCustomerId
-    if (selectedCustomerId && tenantId && name.trim()) {
-      try {
-        await dal.customers.update({
-          id: selectedCustomerId,
-          tenant_id: tenantId,
-          company_id: tenantId,
-          name: name.trim(),
-          phone: phone.trim(),
-          email: email.trim() || undefined,
-          document: document.trim() || "",
-          rg: rg.trim() || undefined,
-          ie: ie.trim() || undefined,
-          type: document.length > 14 ? "PJ" : "PF",
-          addresses: clientAddresses.map((a, i) => ({
-            ...a,
-            customerId: selectedCustomerId,
-            isDefault: i === 0,
-          })),
-        })
-      } catch (err) {
-        console.error("Erro ao atualizar cliente no Dexie:", err)
-      }
-    } else if ((saveClient || !showSaveSwitch) && !finalCustomerId && tenantId && name.trim()) {
-      const newCustId = `cli-${Date.now()}`
-      try {
-        await dal.customers.create({
-          id: newCustId,
-          tenant_id: tenantId,
-          company_id: tenantId,
-          name: name.trim(),
-          phone: phone.trim(),
-          email: email.trim() || undefined,
-          document: document.trim() || "",
-          rg: rg.trim() || undefined,
-          ie: ie.trim() || undefined,
-          type: document.length > 14 ? "PJ" : "PF",
-          addresses: clientAddresses.map((a, i) => ({
-            ...a,
-            customerId: newCustId,
-            isDefault: i === 0,
-          })),
-        })
-        finalCustomerId = newCustId
-      } catch (err) {
-        console.error("Erro ao salvar cliente no Dexie:", err)
-      }
-    }
+    const formattedAddress = formatCustomerPrimaryAddress(clientAddresses)
+    const finalCustId = await persistClientRecord({
+      tenantId, selectedCustomerId, saveClient, showSaveSwitch, name, phone, email, document, clientAddresses
+    })
 
     onSelectClient?.({
-      name: name.trim(),
-      phone: phone.trim(),
-      address: formattedAddress,
-      customerId: finalCustomerId,
-      email: email.trim(),
-      document: document.trim(),
+      name: name.trim(), phone: phone.trim(), address: formattedAddress,
+      customerId: finalCustId, email: email.trim(), document: document.trim(),
     })
-  }, [name, phone, email, document, rg, ie, selectedCustomerId, tenantId, clientAddresses, saveClient, showSaveSwitch, onSelectClient, formatPrimaryAddress])
+  }, [name, phone, email, document, selectedCustomerId, tenantId, clientAddresses, saveClient, showSaveSwitch, onSelectClient])
 
-  const handleSkip = () => {
-    const formattedAddress = formatPrimaryAddress()
-    onSelectClient?.({
-      name: name.trim() || "Cliente Balcão",
-      phone: phone.trim(),
-      address: formattedAddress !== "Endereço não informado" ? formattedAddress : "Entrega a combinar",
-      customerId: selectedCustomerId,
-    })
-  }
-
-  const handleDeleteCustomer = React.useCallback(async () => {
+  const handleDelete = async () => {
     if (selectedCustomerId && tenantId) {
-      try {
-        await dal.customers.delete(selectedCustomerId, tenantId)
-      } catch (err) {
-        console.error("Erro ao excluir cliente:", err)
-      }
+      await dal.customers.delete(selectedCustomerId, tenantId).catch(() => {})
     }
     onBack()
-  }, [selectedCustomerId, tenantId, onBack])
+  }
 
-  const handleSubmitRef = React.useRef(handleSubmit)
-  const handleDeleteCustomerRef = React.useRef(handleDeleteCustomer)
-  const onBackRef = React.useRef(onBack)
-  const setCustomActionsRef = React.useRef(setCustomActions)
-  const setCustomTitleRef = React.useRef(setCustomTitle)
-  const setCustomBackRef = React.useRef(setCustomBack)
-  const cust = UI_STRINGS.customers
-  const common = UI_STRINGS.common
+  const showDelete = Boolean(initialCustomer) && !title.toLowerCase().includes("identificar") && !title.toLowerCase().includes("novo")
 
-  // Botão de deletar deve ser exibido EXCLUSIVAMENTE na tela de EDITAR cliente existente
-  const showDeleteButton = Boolean(initialCustomer) && !title.toLowerCase().includes("identificar") && !title.toLowerCase().includes("novo")
+  useDeliveryClientHeaderSync(
+    title, searchQuery, setSearchQuery, showSearchInHeader, showDelete,
+    onBack, handleSubmit, handleDelete, setCustomBack, setCustomTitle, setCustomActions
+  )
 
-  React.useEffect(() => {
-    handleSubmitRef.current = handleSubmit
-    handleDeleteCustomerRef.current = handleDeleteCustomer
-    onBackRef.current = onBack
-    setCustomActionsRef.current = setCustomActions
-    setCustomTitleRef.current = setCustomTitle
-    setCustomBackRef.current = setCustomBack
-  })
-
-  React.useEffect(() => {
-    setCustomTitleRef.current?.(title)
-    setCustomBackRef.current?.(() => () => onBackRef.current())
-
-    const actionsContent = (
-      <Stack direction="row" align="center" gap={2.5}>
-        {showDeleteButton && (
-          <Button
-            type="button"
-            variant="danger-pill-icon-confirm"
-            confirmTitle={cust.deleteCustomerConfirmTitle}
-            confirmSubtitle={cust.deleteCustomerConfirmSubtitle}
-            confirmParagraph={cust.deleteCustomerConfirmParagraph}
-            onConfirm={() => handleDeleteCustomerRef.current()}
-            title={cust.deleteCustomerButtonTitle}
-          />
-        )}
-        <Button
-          type="button"
-          variant="primary-pill-icon"
-          icon={Check}
-          onClick={() => handleSubmitRef.current()}
-          title={common.confirm}
-        />
-      </Stack>
-    )
-
-    setCustomActionsRef.current?.(
-      showSearchInHeader ? (
-        <MobileHeaderSearch
-          searchQuery={searchQuery}
-          onSearchQueryChange={setSearchQuery}
-          placeholder={cust.searchRegisteredCustomerPlaceholder}
-        >
-          {actionsContent}
-        </MobileHeaderSearch>
-      ) : (
-        actionsContent
-      )
-    )
-
-    return () => {
-      setCustomActionsRef.current?.(null)
-    }
-  }, [searchQuery, title, showSearchInHeader, showDeleteButton, cust, common])
+  const filteredCustomers = React.useMemo(() => {
+    if (!searchQuery.trim()) return []
+    const q = searchQuery.toLowerCase()
+    return customers.filter((c) => c.name.toLowerCase().includes(q) || (c.phone && c.phone.includes(q)) || (c.document && c.document.includes(q)))
+  }, [customers, searchQuery])
 
   return (
     <Box display="flex" direction="col" flex="1" minH="0" overflow="auto" w="full">
       <Stack gap={5} w="full">
-        {/* Barra superior: Switch salvar na lista (esquerda) e Botão Pular (direita) - Ocultos durante busca */}
         {searchQuery.trim().length === 0 && (showSaveSwitch || showSkip) && (
           <Stack direction="row" justify="between" align="center" w="full">
             {showSaveSwitch ? (
               <Stack direction="row" align="center" gap={2.5}>
-                <Switch
-                  id="save-client-switch"
-                  checked={saveClient}
-                  onChange={(e) => setSaveClient(e.target.checked)}
-                />
+                <Switch id="save-client-switch" checked={saveClient} onChange={(e) => setSaveClient(e.target.checked)} />
                 <Box cursor="pointer" onClick={() => setSaveClient((prev) => !prev)}>
-                  <Font
-                    variant="body-sm-semibold"
-                    text={cust.saveClientInList}
-                  />
+                  <Font variant="body-sm-semibold" text={cust.saveClientInList} />
                 </Box>
               </Stack>
-            ) : (
-              <Box />
-            )}
-
+            ) : <Box />}
             {showSkip && (
               <Box w="auto" shrink="0">
                 <Button
@@ -531,104 +435,31 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
                   variant="outline-sm"
                   label={common.skip}
                   iconRight={ArrowRight}
-                  onClick={handleSkip}
+                  onClick={() => {
+                    const formatted = formatCustomerPrimaryAddress(clientAddresses)
+                    onSelectClient?.({
+                      name: name.trim() || "Cliente Balcão",
+                      phone: phone.trim(),
+                      address: formatted !== "Endereço não informado" ? formatted : "Entrega a combinar",
+                      customerId: selectedCustomerId,
+                    })
+                  }}
                 />
               </Box>
             )}
           </Stack>
         )}
 
-        {/* Se houver busca ativa, substitui o formulário pela lista de clientes no mesmo formato da ClientesSection */}
         {searchQuery.trim().length > 0 ? (
           <Box w="full" position="relative">
-            {filteredCustomers.length > 0 ? (
-              <Box display="flex" direction="col" w="full">
-                {filteredCustomers.map((client, idx) => (
-                  <Box key={client.id}>
-                    <Box
-                      w="full"
-                      paddingY={2.5}
-                      paddingX={2.5}
-                      radius="none"
-                      hoverBg="primary/10"
-                      cursor="pointer"
-                      onClick={() => {
-                        handleSelectCustomer(client)
-                        setSearchQuery("")
-                      }}
-                    >
-                      <Stack direction="row" align="center" justify="between" w="full">
-                        {/* Lado Esquerdo: Avatar + Nome e Documento/Telefone */}
-                        <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
-                          <Avatar fallback={client.name ? client.name.charAt(0).toUpperCase() : "C"} />
-
-                          <Stack gap={0} align="start" flex="1" minW="0">
-                            <Font variant="body" text={client.name} />
-                            {(client.document || client.phone) && (
-                              <Font
-                                variant="auxiliary"
-                                color="muted"
-                                truncate={true}
-                                text={client.document || client.phone || ""}
-                              />
-                            )}
-                          </Stack>
-                        </Stack>
-                      </Stack>
-                    </Box>
-                    {idx < filteredCustomers.length - 1 && (
-                      <Box borderBottom={true} borderColor="border-border" w="full" />
-                    )}
-                  </Box>
-                ))}
-              </Box>
-            ) : (
-              <EmptyState
-                icon={UserX}
-                title={cust.noCustomerFoundTitle}
-                subtitle={cust.noCustomerFoundSubtitle}
-              />
-            )}
+            <DeliveryClientSearchResults customers={filteredCustomers} onSelectCustomer={handleSelectCustomer} />
           </Box>
         ) : (
-          /* ================= FORMULÁRIO DADOS PESSOAIS EM LARGURA TOTAL ================= */
-          <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border" w="full">
+          <Box padding={5} bg="bg-surface" radius="default" border borderColor="border-border" w="full">
             <Box as="form" ref={formRef} onSubmit={handleSubmit} w="full">
               <Stack gap={5} w="full">
                 <Font variant="body-bold" text={cust.personalDataTitle} />
-
-                {/* Lista vertical de campos bordered */}
-                <Stack gap={2.5} w="full">
-                  <Input
-                    placeholder={cust.nameRequiredPlaceholder}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                  />
-
-                  <Input
-                    placeholder={cust.emailPlaceholder}
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-
-                  <Input
-                    mask="cpf"
-                    placeholder={cust.cpfPlaceholder}
-                    value={document}
-                    onChange={(e) => setDocument(e.target.value)}
-                  />
-
-                  <Input
-                    mask="phone"
-                    placeholder={cust.phonePlaceholder}
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
-                </Stack>
-
-                {/* Seção de Endereço com botão Pill + (visível apenas se não houver endereço cadastrado) */}
+                <DeliveryClientPersonalFields name={name} setName={setName} email={email} setEmail={setEmail} document={document} setDocument={setDocument} phone={phone} setPhone={setPhone} />
                 <Stack gap={2.5} w="full">
                   <Stack direction="row" align="center" gap={2.5}>
                     <Font variant="body-bold" text={cust.addressTitle} />
@@ -645,13 +476,15 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
                       />
                     )}
                   </Stack>
-
                   {clientAddresses.length > 0 && (
                     <Box paddingY={2.5} w="full">
                       <AddressList
                         addresses={clientAddresses}
-                        onEdit={handleEditAddress}
-                        onDelete={handleDeleteAddress}
+                        onEdit={(addr) => {
+                          setEditingAddress(addr)
+                          setIsAddressModalOpen(true)
+                        }}
+                        onDelete={(addr) => setClientAddresses((prev) => prev.filter((a) => a.id !== addr.id))}
                       />
                     </Box>
                   )}
@@ -662,7 +495,6 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
         )}
       </Stack>
 
-      {/* Modal exclusivo para Adicionar/Editar Endereço */}
       <ClientAddressFormModal
         isOpen={isAddressModalOpen}
         onClose={() => {
@@ -673,15 +505,15 @@ export const DeliveryClientFormScreen: React.FC<DeliveryClientFormScreenProps> =
         initialData={
           editingAddress
             ? {
-              id: editingAddress.id,
-              name: editingAddress.name || "Principal",
-              street: editingAddress.street,
-              number: editingAddress.number,
-              complement: editingAddress.complement,
-              neighborhood: editingAddress.neighborhood,
-              city: editingAddress.city,
-              zip: editingAddress.zipCode,
-            }
+                id: editingAddress.id,
+                name: editingAddress.name || "Principal",
+                street: editingAddress.street,
+                number: editingAddress.number,
+                complement: editingAddress.complement,
+                neighborhood: editingAddress.neighborhood,
+                city: editingAddress.city,
+                zip: editingAddress.zipCode,
+              }
             : null
         }
       />

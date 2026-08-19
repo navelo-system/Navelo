@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, complexity */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -61,48 +59,162 @@ const ALL_STATUS_OPTIONS: { key: DeliveryStatus; label: string }[] = [
   { key: "delivered", label: "Entregue" },
 ]
 
-export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
+interface DeliveryStatusFilterDropdownProps {
+  selectedStatuses: DeliveryStatus[]
+  getStatusCount: (st: DeliveryStatus) => number
+  onToggleStatus: (st: DeliveryStatus) => void
+  onClear: () => void
+  onApply: () => void
+}
+
+function DeliveryStatusFilterDropdown({
+  selectedStatuses,
+  getStatusCount,
+  onToggleStatus,
+  onClear,
+  onApply,
+}: DeliveryStatusFilterDropdownProps) {
+  const d = UI_STRINGS.delivery
+  const common = UI_STRINGS.common
+
+  return (
+    <Box
+      position="absolute"
+      top="100%"
+      right="0"
+      zIndex="50"
+      w="w-64"
+      bg="bg-surface"
+      radius="default"
+      border={true}
+      borderColor="border-border"
+      padding={2.5}
+    >
+      <Stack gap={2.5} w="full">
+        <Font variant="body-sm-semibold" text={d.filterByStatusTitle} />
+        <Stack gap={1} w="full">
+          {ALL_STATUS_OPTIONS.map((opt) => {
+            const count = getStatusCount(opt.key)
+            const isChecked = selectedStatuses.includes(opt.key)
+            return (
+              <Box
+                key={opt.key}
+                padding={1}
+                cursor="pointer"
+                hoverBg="secondary/10"
+                radius="default"
+                onClick={() => onToggleStatus(opt.key)}
+                w="full"
+              >
+                <Stack direction="row" align="center" justify="between" w="full">
+                  <Stack direction="row" align="center" gap={2.5}>
+                    <Box
+                      padding={1}
+                      radius="default"
+                      border={true}
+                      borderColor={isChecked ? "border-brand-primary" : "border-border"}
+                      bg={isChecked ? "bg-brand-primary" : "transparent"}
+                      align="center"
+                      justify="center"
+                    >
+                      {isChecked && <Icon icon={Check} size={12} color="white" />}
+                    </Box>
+                    <Font variant="body-sm-medium" text={`${opt.label} (${count})`} />
+                  </Stack>
+                </Stack>
+              </Box>
+            )
+          })}
+        </Stack>
+
+        <Box h="h-[2px]" bg="bg-border" w="full" />
+
+        <Stack direction="row" justify="between" gap={2.5} w="full">
+          <Button variant="secondary-xs" label={common.clear} onClick={onClear} />
+          <Button variant="primary-xs" label={common.apply} onClick={onApply} />
+        </Stack>
+      </Stack>
+    </Box>
+  )
+}
+
+function DeliveryOrderCard({
+  ord,
+  isSelected,
+  onClick,
+}: {
+  ord: DeliveryOrder
+  isSelected: boolean
+  onClick: () => void
+}) {
+  const statusInfo = statusBadgeMap[ord.status] || { variant: "default" as const, label: ord.status }
+  const dateStr = ord.createdAt
+    ? new Date(ord.createdAt).toLocaleDateString("pt-BR") + " " + new Date(ord.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    : "07/08/2026 13:45"
+
+  return (
+    <Box
+      onClick={onClick}
+      padding={2.5}
+      bg="bg-surface"
+      radius="default"
+      border={true}
+      borderColor={isSelected ? "border-brand-secondary" : "border-border"}
+      w="full"
+      hoverBg="secondary/10"
+      cursor="pointer"
+    >
+      <Stack gap={1} align="start" w="full">
+        <Stack direction="row" justify="between" align="center" w="full">
+          <Font variant="auxiliary" color="muted" text={dateStr} align="left" />
+          <Badge
+            variant={statusInfo.variant}
+            label={`${statusInfo.label} ⏱ ${ord.estimatedTime || "1 hora"}`}
+          />
+        </Stack>
+        <Font variant="body-bold" text={ord.clientName} align="left" />
+        <Font variant="auxiliary" color="muted" text={ord.address} align="left" truncate={true} />
+      </Stack>
+    </Box>
+  )
+}
+
+function matchDeliveryOrder(o: DeliveryOrder, searchQuery: string, selectedStatuses: DeliveryStatus[]) {
+  const q = (searchQuery || "").toLowerCase()
+  const matchesSearch =
+    !q ||
+    (o.clientName || "").toLowerCase().includes(q) ||
+    (o.id || "").includes(q) ||
+    (o.address || "").toLowerCase().includes(q)
+
+  const matchesStatus =
+    selectedStatuses.length === 0 || selectedStatuses.includes(o.status)
+
+  return matchesSearch && matchesStatus
+}
+
+export function DeliveryOrdersList({
   orders,
   selectedOrderId,
   onSelectOrder,
   searchQuery = "",
-}) => {
+}: DeliveryOrdersListProps) {
   const [isFilterOpen, setIsFilterOpen] = React.useState(false)
   const [selectedStatuses, setSelectedStatuses] = React.useState<DeliveryStatus[]>([])
   const d = UI_STRINGS.delivery
-  const common = UI_STRINGS.common
 
-  const handleToggleStatusFilter = (st: DeliveryStatus) => {
-    setSelectedStatuses((prev) =>
-      prev.includes(st) ? prev.filter((s) => s !== st) : [...prev, st]
-    )
-  }
-
-  const handleClearFilter = () => {
-    setSelectedStatuses([])
+  const handleToggleStatus = (st: DeliveryStatus) => {
+    setSelectedStatuses((prev) => (prev.includes(st) ? prev.filter((s) => s !== st) : [...prev, st]))
   }
 
   const filtered = React.useMemo(() => {
-    return orders.filter((o) => {
-      const matchesSearch =
-        (o.clientName || "").toLowerCase().includes((searchQuery || "").toLowerCase()) ||
-        (o.id || "").includes(searchQuery || "") ||
-        (o.address || "").toLowerCase().includes((searchQuery || "").toLowerCase())
-
-      const matchesStatus =
-        selectedStatuses.length === 0 || selectedStatuses.includes(o.status)
-
-      return matchesSearch && matchesStatus
-    })
+    return orders.filter((o) => matchDeliveryOrder(o, searchQuery, selectedStatuses))
   }, [orders, searchQuery, selectedStatuses])
 
-  const getStatusCount = (st: DeliveryStatus) => {
-    return orders.filter((o) => o.status === st).length
-  }
+  const getStatusCount = (st: DeliveryStatus) => orders.filter((o) => o.status === st).length
 
   return (
     <Stack gap={2.5} w="full">
-      {/* Header do painel de pedidos */}
       <Box paddingX={2.5} paddingY={2.5} w="full">
         <Stack direction="row" align="center" justify="between" w="full">
           <Font variant="body-bold" text={d.ordersSectionTitle} />
@@ -113,129 +225,29 @@ export const DeliveryOrdersList: React.FC<DeliveryOrdersListProps> = ({
               title={d.filterByStatusTitle}
               onClick={() => setIsFilterOpen(!isFilterOpen)}
             />
-
-            {/* Menu suspenso de filtro de status (Print 3) */}
             {isFilterOpen && (
-              <Box
-                position="absolute"
-                top="100%"
-                right="0"
-                zIndex="50"
-                w="w-64"
-                bg="bg-surface"
-                radius="default"
-                border={true}
-                borderColor="border-border"
-                padding={2.5}
-              >
-                <Stack gap={2.5} w="full">
-                  <Font variant="body-sm-semibold" text={d.filterByStatusTitle} />
-                  <Stack gap={1} w="full">
-                    {ALL_STATUS_OPTIONS.map((opt) => {
-                      const count = getStatusCount(opt.key)
-                      const isChecked = selectedStatuses.includes(opt.key)
-                      return (
-                        <Box
-                          key={opt.key}
-                          padding={1}
-                          cursor="pointer"
-                          hoverBg="secondary/10"
-                          radius="default"
-                          onClick={() => handleToggleStatusFilter(opt.key)}
-                          w="full"
-                        >
-                          <Stack direction="row" align="center" justify="between" w="full">
-                            <Stack direction="row" align="center" gap={2.5}>
-                              <Box
-                                padding={1}
-                                radius="default"
-                                border={true}
-                                borderColor={isChecked ? "border-brand-primary" : "border-border"}
-                                bg={isChecked ? "bg-brand-primary" : "transparent"}
-                                align="center"
-                                justify="center"
-                              >
-                                {isChecked && <Icon icon={Check} size={12} color="white" />}
-                              </Box>
-                              <Font variant="body-sm-medium" text={`${opt.label} (${count})`} />
-                            </Stack>
-                          </Stack>
-                        </Box>
-                      )
-                    })}
-                  </Stack>
-
-                  <Box h="h-[2px]" bg="bg-border" w="full" />
-
-                  <Stack direction="row" justify="between" gap={2.5} w="full">
-                    <Button
-                      variant="secondary-xs"
-                      label={common.clear}
-                      onClick={handleClearFilter}
-                    />
-                    <Button
-                      variant="primary-xs"
-                      label={common.apply}
-                      onClick={() => setIsFilterOpen(false)}
-                    />
-                  </Stack>
-                </Stack>
-              </Box>
+              <DeliveryStatusFilterDropdown
+                selectedStatuses={selectedStatuses}
+                getStatusCount={getStatusCount}
+                onToggleStatus={handleToggleStatus}
+                onClear={() => setSelectedStatuses([])}
+                onApply={() => setIsFilterOpen(false)}
+              />
             )}
           </Box>
         </Stack>
       </Box>
 
-      {/* Lista de Pedidos */}
       <Box overflow="auto" w="full">
         <Stack gap={2.5} w="full">
-          {filtered.map((ord) => {
-            const isSelected = ord.id === selectedOrderId
-            const statusInfo = statusBadgeMap[ord.status] || { variant: "default" as const, label: ord.status }
-            const dateStr = ord.createdAt
-              ? new Date(ord.createdAt).toLocaleDateString("pt-BR") + " " + new Date(ord.createdAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
-              : "07/08/2026 13:45"
-
-            return (
-              <Box
-                key={ord.id}
-                onClick={() => onSelectOrder(ord.id)}
-                padding={2.5}
-                bg="bg-surface"
-                radius="default"
-                border={true}
-                borderColor={isSelected ? "border-brand-secondary" : "border-border"}
-                w="full"
-                hoverBg="secondary/10"
-                cursor="pointer"
-              >
-                <Stack gap={1} align="start" w="full">
-                  {/* Linha superior: Data/Hora e Badge de Status com relógio */}
-                  <Stack direction="row" justify="between" align="center" w="full">
-                    <Font variant="auxiliary" color="muted" text={dateStr} align="left" />
-                    <Stack direction="row" align="center" gap={1}>
-                      <Badge
-                        variant={statusInfo.variant}
-                        label={`${statusInfo.label} ⏱ ${ord.estimatedTime || "1 hora"}`}
-                      />
-                    </Stack>
-                  </Stack>
-
-                  {/* Nome do Cliente */}
-                  <Font variant="body-bold" text={ord.clientName} align="left" />
-
-                  {/* Endereço */}
-                  <Font
-                    variant="auxiliary"
-                    color="muted"
-                    text={ord.address}
-                    align="left"
-                    truncate={true}
-                  />
-                </Stack>
-              </Box>
-            )
-          })}
+          {filtered.map((ord) => (
+            <DeliveryOrderCard
+              key={ord.id}
+              ord={ord}
+              isSelected={ord.id === selectedOrderId}
+              onClick={() => onSelectOrder(ord.id)}
+            />
+          ))}
         </Stack>
       </Box>
     </Stack>

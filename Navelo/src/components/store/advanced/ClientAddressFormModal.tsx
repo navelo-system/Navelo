@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
 import { Stack } from "@/components/store/base/Stack"
@@ -30,44 +28,47 @@ export interface ClientAddressFormModalProps {
   initialData?: AddressFormData | null
 }
 
-export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
-  isOpen,
-  onClose,
-  onSave,
-  initialData,
-}) => {
-  const [name, setName] = React.useState("")
-  const [zip, setZip] = React.useState("")
-  const [street, setStreet] = React.useState("")
-  const [number, setNumber] = React.useState("")
-  const [complement, setComplement] = React.useState("")
-  const [neighborhood, setNeighborhood] = React.useState("")
-  const [city, setCity] = React.useState("")
-  const cust = UI_STRINGS.customers
-  const common = UI_STRINGS.common
+function resolveInitialAddressData(data?: AddressFormData | null) {
+  if (!data) {
+    return { name: "", zip: "", street: "", number: "", complement: "", neighborhood: "", city: "" }
+  }
+  return {
+    name: data.name || "",
+    zip: data.zip || "",
+    street: data.street || "",
+    number: data.number || "",
+    complement: data.complement || "",
+    neighborhood: data.neighborhood || "",
+    city: data.city || "",
+  }
+}
 
-  React.useEffect(() => {
+function useAddressFormFields(isOpen: boolean, initialData?: AddressFormData | null) {
+  const init = resolveInitialAddressData(initialData)
+  const [name, setName] = React.useState(init.name)
+  const [zip, setZip] = React.useState(init.zip)
+  const [street, setStreet] = React.useState(init.street)
+  const [number, setNumber] = React.useState(init.number)
+  const [complement, setComplement] = React.useState(init.complement)
+  const [neighborhood, setNeighborhood] = React.useState(init.neighborhood)
+  const [city, setCity] = React.useState(init.city)
+  const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen)
+  const [prevData, setPrevData] = React.useState(initialData)
+
+  if (isOpen !== prevIsOpen || initialData !== prevData) {
+    setPrevIsOpen(isOpen)
+    setPrevData(initialData)
     if (isOpen) {
-      if (initialData) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setName(initialData.name || "")
-        setZip(initialData.zip || "")
-        setStreet(initialData.street || "")
-        setNumber(initialData.number || "")
-        setComplement(initialData.complement || "")
-        setNeighborhood(initialData.neighborhood || "")
-        setCity(initialData.city || "")
-      } else {
-        setName("")
-        setZip("")
-        setStreet("")
-        setNumber("")
-        setComplement("")
-        setNeighborhood("")
-        setCity("")
-      }
+      const next = resolveInitialAddressData(initialData)
+      setName(next.name)
+      setZip(next.zip)
+      setStreet(next.street)
+      setNumber(next.number)
+      setComplement(next.complement)
+      setNeighborhood(next.neighborhood)
+      setCity(next.city)
     }
-  }, [isOpen, initialData])
+  }
 
   const handleZipChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value
@@ -81,8 +82,7 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
             if (data.logradouro) setStreet(data.logradouro)
             if (data.bairro) setNeighborhood(data.bairro)
             if (data.localidade) {
-              const formattedCity = data.uf ? `${data.localidade} - ${data.uf}` : data.localidade
-              setCity(formattedCity)
+              setCity(data.uf ? `${data.localidade} - ${data.uf}` : data.localidade)
             }
           }
         })
@@ -90,23 +90,101 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
     }
   }
 
+  return {
+    name, setName,
+    zip, handleZipChange,
+    street, setStreet,
+    number, setNumber,
+    complement, setComplement,
+    neighborhood, setNeighborhood,
+    city, setCity,
+  }
+}
+
+interface AddressModalInputsProps {
+  fields: ReturnType<typeof useAddressFormFields>
+}
+
+function AddressModalInputs({ fields }: AddressModalInputsProps) {
+  const cust = UI_STRINGS.customers
+  return (
+    <Stack gap={2.5}>
+      <Input
+        label={cust.addressNameLabel}
+        placeholder={cust.addressNamePlaceholder}
+        value={fields.name}
+        onChange={(e) => fields.setName(e.target.value)}
+        required
+      />
+      <Grid cols={2} gap={2.5}>
+        <Input
+          label={cust.cepLabel}
+          variant="cep"
+          placeholder={cust.cepPlaceholder}
+          value={fields.zip}
+          onChange={fields.handleZipChange}
+        />
+      </Grid>
+      <Input
+        label={cust.streetLabel}
+        placeholder={cust.streetPlaceholder}
+        value={fields.street}
+        onChange={(e) => fields.setStreet(e.target.value)}
+      />
+      <Grid cols={2} gap={2.5}>
+        <Input
+          label={cust.numberLabel}
+          placeholder={cust.numberPlaceholder}
+          value={fields.number}
+          onChange={(e) => fields.setNumber(e.target.value)}
+        />
+        <Input
+          label={cust.complementLabel}
+          placeholder={cust.complementPlaceholder}
+          value={fields.complement}
+          onChange={(e) => fields.setComplement(e.target.value)}
+        />
+      </Grid>
+      <Input
+        label={cust.neighborhoodLabel}
+        placeholder={cust.neighborhoodPlaceholder}
+        value={fields.neighborhood}
+        onChange={(e) => fields.setNeighborhood(e.target.value)}
+      />
+      <Input
+        label={cust.cityLabel}
+        placeholder={cust.cityPlaceholder}
+        value={fields.city}
+        onChange={(e) => fields.setCity(e.target.value)}
+        required
+      />
+    </Stack>
+  )
+}
+
+export function ClientAddressFormModal({
+  isOpen,
+  onClose,
+  onSave,
+  initialData,
+}: ClientAddressFormModalProps) {
+  const fields = useAddressFormFields(isOpen, initialData)
+  const cust = UI_STRINGS.customers
+  const common = UI_STRINGS.common
+
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
-
-    const finalName = name.trim() || "Principal"
-
     onSave({
       id: initialData?.id,
-      name: finalName,
-      zip: zip.trim(),
-      street: street.trim(),
-      number: number.trim() || "S/N",
-      complement: complement.trim(),
-      neighborhood: neighborhood.trim(),
-      city: city.trim(),
+      name: fields.name.trim() || "Principal",
+      zip: fields.zip.trim(),
+      street: fields.street.trim(),
+      number: fields.number.trim() || "S/N",
+      complement: fields.complement.trim(),
+      neighborhood: fields.neighborhood.trim(),
+      city: fields.city.trim(),
       reference_point: initialData?.reference_point,
     })
-
     onClose()
   }
 
@@ -122,68 +200,7 @@ export const ClientAddressFormModal: React.FC<ClientAddressFormModalProps> = ({
         isSubmit={true}
         onSuccess={handleSubmit}
       >
-        <Stack gap={2.5}>
-          {/* 1. * Nome do Endereço */}
-          <Input
-            label={cust.addressNameLabel}
-            placeholder={cust.addressNamePlaceholder}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-
-          {/* 2. CEP */}
-          <Grid cols={2} gap={2.5}>
-            <Input
-              label={cust.cepLabel}
-              variant="cep"
-              placeholder={cust.cepPlaceholder}
-              value={zip}
-              onChange={handleZipChange}
-            />
-          </Grid>
-
-          {/* 3. Logradouro */}
-          <Input
-            label={cust.streetLabel}
-            placeholder={cust.streetPlaceholder}
-            value={street}
-            onChange={(e) => setStreet(e.target.value)}
-          />
-
-          {/* 4. Número e Complemento */}
-          <Grid cols={2} gap={2.5}>
-            <Input
-              label={cust.numberLabel}
-              placeholder={cust.numberPlaceholder}
-              value={number}
-              onChange={(e) => setNumber(e.target.value)}
-            />
-            <Input
-              label={cust.complementLabel}
-              placeholder={cust.complementPlaceholder}
-              value={complement}
-              onChange={(e) => setComplement(e.target.value)}
-            />
-          </Grid>
-
-          {/* 5. Bairro */}
-          <Input
-            label={cust.neighborhoodLabel}
-            placeholder={cust.neighborhoodPlaceholder}
-            value={neighborhood}
-            onChange={(e) => setNeighborhood(e.target.value)}
-          />
-
-          {/* 6. * Cidade */}
-          <Input
-            label={cust.cityLabel}
-            placeholder={cust.cityPlaceholder}
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            required
-          />
-        </Stack>
+        <AddressModalInputs fields={fields} />
       </Modal>
     </Form>
   )

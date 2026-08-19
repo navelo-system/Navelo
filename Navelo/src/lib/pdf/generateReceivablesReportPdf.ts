@@ -3,7 +3,6 @@
  * Gerador de PDF client-side para o relatório de Contas a Receber (formato A4).
  */
 
-/* eslint-disable max-lines-per-function, complexity */
 
 export interface ReceivableReportItem {
   client: string

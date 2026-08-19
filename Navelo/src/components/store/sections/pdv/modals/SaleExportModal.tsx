@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { FileText, FileSpreadsheet, Download } from "lucide-react"
 import { Stack } from "@/components/store/base/Stack"

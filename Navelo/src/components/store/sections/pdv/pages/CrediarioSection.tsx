@@ -1,6 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
 
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
@@ -70,18 +69,18 @@ export const CrediarioSection: React.FC<CrediarioSectionProps> = ({
 
           {/* Juros */}
           <Input
+            mask="percent"
             label={UI_STRINGS.credit.interestRateLabel}
             value={interestRate}
             onChange={(e) => setInterestRate(e.target.value)}
-            placeholder="% 0,00"
           />
 
           {/* Multa */}
           <Input
+            mask="percent"
             label={UI_STRINGS.credit.fineRateLabel}
             value={fineRate}
             onChange={(e) => setFineRate(e.target.value)}
-            placeholder="% 0,00"
           />
 
           {/* Dias de Carência com Seletor Incremental */}

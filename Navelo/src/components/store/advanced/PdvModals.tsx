@@ -17,6 +17,7 @@ interface PdvModalsProps {
   onLaunchPayment: (method: string, amount: number) => void
   isDiscountModalOpen: boolean
   onCloseDiscountModal: () => void
+  onOpenDiscountModal: () => void
   discount: number
   onChangeDiscount: (val: number) => void
   isSidebarOpen: boolean
@@ -44,6 +45,7 @@ export const PdvModals: React.FC<PdvModalsProps> = ({
   onLaunchPayment,
   isDiscountModalOpen,
   onCloseDiscountModal,
+  onOpenDiscountModal,
   discount,
   onChangeDiscount,
   isSidebarOpen,
@@ -92,6 +94,8 @@ export const PdvModals: React.FC<PdvModalsProps> = ({
         onNavigate={onNavigate}
         onOpenObservationModal={onOpenObservationModal}
         onOpenSangriaModal={onOpenSangriaModal}
+        discount={discount}
+        subtotal={subtotal}
         customerName={customerName}
         showOutOfStockProducts={showOutOfStockProducts}
         onToggleShowOutOfStock={onToggleShowOutOfStock}
@@ -99,7 +103,7 @@ export const PdvModals: React.FC<PdvModalsProps> = ({
         onCancelOperation={onCancelOperation}
         onOpenDiscountModal={() => {
           onCloseSidebar()
-          onCloseDiscountModal()
+          onOpenDiscountModal()
         }}
       />
     </>

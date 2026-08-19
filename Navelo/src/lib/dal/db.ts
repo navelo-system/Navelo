@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import Dexie, { type EntityTable } from 'dexie';
 
 export interface PlatformSettingEntity {
@@ -318,6 +317,26 @@ export interface UserEntity {
   active: boolean;
 }
 
+export interface InventoryAuditItem {
+  productId: string;
+  productName: string;
+  category: string;
+  systemStock: number;
+  countedStock: number;
+  diff: number;
+}
+
+export interface InventoryAuditEntity {
+  id: string;
+  company_id: string;
+  tenant_id?: string;
+  date: string;
+  groups: string;
+  status: "Finalizado" | "Pendente";
+  items: InventoryAuditItem[];
+  created_at?: string;
+}
+
 // Classe do Banco Local
 export class NaveloLocalDB extends Dexie {
   platform_settings!: EntityTable<PlatformSettingEntity, 'id'>;
@@ -341,6 +360,7 @@ export class NaveloLocalDB extends Dexie {
   delivery_orders!: EntityTable<DeliveryOrderEntity, 'id'>;
   audit_logs!: EntityTable<AuditLog, 'id'>;
   print_points!: EntityTable<PrintPoint, 'id'>;
+  inventory_audits!: EntityTable<InventoryAuditEntity, 'id'>;
   
   // Fila de Sincronização (Sync Queue)
   sync_queue!: EntityTable<SyncQueueItem, 'id'>;
@@ -372,6 +392,11 @@ export class NaveloLocalDB extends Dexie {
       audit_logs: 'id, company_id, tenant_id',
       print_points: 'id, company_id, tenant_id',
       sync_queue: 'id, table, tenant_id, created_at'
+    });
+
+    // Schema v8 com inventory_audits
+    this.version(8).stores({
+      inventory_audits: 'id, company_id, tenant_id, status, created_at'
     });
   }
 }

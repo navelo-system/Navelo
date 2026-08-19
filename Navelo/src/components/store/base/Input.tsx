@@ -3,12 +3,12 @@ import { cn } from "@/lib/utils"
 import { Font } from "./Font"
 import { Stack } from "./Stack"
 import { LucideIcon, Eye, EyeOff, Calendar } from "lucide-react"
-import { maskCPF, maskCNPJ, maskPhone, maskDate, maskCEP, maskCpfCnpj } from "@/lib/masks"
+import { maskCPF, maskCNPJ, maskPhone, maskDate, maskCEP, maskCpfCnpj, maskCurrency, maskPercent } from "@/lib/masks"
 import { DatePickerModal } from "./DatePickerModal"
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  variant?: "default" | "cpf" | "cnpj" | "cpf-cnpj" | "phone" | "date" | "cep" | "email" | "image-upload" | "outlined-label" | "bordered" | "textarea"
-  mask?: "cpf" | "cnpj" | "cpf-cnpj" | "phone" | "date" | "cep"
+  variant?: "default" | "cpf" | "cnpj" | "cpf-cnpj" | "phone" | "date" | "cep" | "email" | "image-upload" | "outlined-label" | "bordered" | "textarea" | "currency" | "percent"
+  mask?: "cpf" | "cnpj" | "cpf-cnpj" | "phone" | "date" | "cep" | "currency" | "percent"
   hasError?: boolean
   label?: string
   description?: string
@@ -26,7 +26,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const internalRef = React.useRef<HTMLInputElement | null>(null)
     const isPassword = type === "password"
 
-    const activeMask = mask || variant
+    const activeMask = mask || (variant === "currency" || variant === "percent" || variant === "cpf" || variant === "cnpj" || variant === "cpf-cnpj" || variant === "phone" || variant === "date" || variant === "cep" ? variant : undefined)
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (activeMask === "cpf") e.target.value = maskCPF(e.target.value)
       else if (activeMask === "cnpj") e.target.value = maskCNPJ(e.target.value)
@@ -34,6 +34,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       else if (activeMask === "phone") e.target.value = maskPhone(e.target.value)
       else if (activeMask === "date") e.target.value = maskDate(e.target.value)
       else if (activeMask === "cep") e.target.value = maskCEP(e.target.value)
+      else if (activeMask === "currency") e.target.value = maskCurrency(e.target.value)
+      else if (activeMask === "percent") e.target.value = maskPercent(e.target.value)
       
       onChange?.(e)
     }
@@ -41,21 +43,25 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     const inputType = isPassword 
       ? (showPassword ? "text" : "password") 
       : (variant === "date" ? "text" : variant === "email" ? "email" : type)
-    const placeholder = variant === "date" && !props.placeholder ? "DD/MM/AAAA" : props.placeholder
+    const placeholder = 
+      variant === "date" && !props.placeholder ? "DD/MM/AAAA"
+      : (activeMask === "currency") && !props.placeholder ? "R$ 0,00"
+      : (activeMask === "percent") && !props.placeholder ? "% 0,00"
+      : props.placeholder
 
     if (variant === "textarea") {
       const textareaElement = (
         <textarea
           placeholder={placeholder}
           rows={rows || 4}
-          onChange={onChange as any}
+          onChange={onChange as unknown as React.ChangeEventHandler<HTMLTextAreaElement>}
           className={cn(
-            "flex w-full rounded-[5px] border border-border bg-white p-3.5 text-sm text-foreground placeholder:text-text-muted focus:outline-none focus:border-brand-primary disabled:cursor-not-allowed disabled:opacity-50 transition-colors resize-none",
+            "flex w-full rounded-[5px] border-2 border-border bg-white p-3.5 text-sm text-foreground placeholder:text-text-muted focus:outline-none focus:border-brand-primary disabled:cursor-not-allowed disabled:opacity-50 transition-colors resize-none",
             (hasError || error) && "border-brand-danger focus:border-brand-danger",
             className
           )}
-          ref={ref as any}
-          {...(props as any)}
+          ref={ref as unknown as React.Ref<HTMLTextAreaElement>}
+          {...(props as unknown as React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
         />
       )
 

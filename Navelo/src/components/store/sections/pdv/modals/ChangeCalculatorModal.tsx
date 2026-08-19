@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
 import { ChangeCalculator } from "@/components/store/advanced/ChangeCalculator"
@@ -12,20 +11,30 @@ export interface ChangeCalculatorModalProps {
   launchAmount: number
 }
 
-export const ChangeCalculatorModal: React.FC<ChangeCalculatorModalProps> = ({
+export function ChangeCalculatorModal({
   isOpen,
   onClose,
   onConfirm,
-  launchAmount
-}) => {
+  launchAmount,
+}: ChangeCalculatorModalProps) {
   const [calculatorAmount, setCalculatorAmount] = React.useState(launchAmount)
+  const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen)
+  const [prevLaunch, setPrevLaunch] = React.useState(launchAmount)
   const m = UI_STRINGS.pdv.modals
 
-  React.useEffect(() => {
+  if (isOpen !== prevIsOpen || launchAmount !== prevLaunch) {
+    setPrevIsOpen(isOpen)
+    setPrevLaunch(launchAmount)
     if (isOpen) {
       setCalculatorAmount(launchAmount)
     }
-  }, [isOpen, launchAmount])
+  }
+
+  const handleConfirm = () => {
+    const finalAmount = calculatorAmount > 0 ? calculatorAmount : launchAmount
+    onConfirm(Math.min(finalAmount, launchAmount))
+    onClose()
+  }
 
   return (
     <Modal
@@ -35,11 +44,7 @@ export const ChangeCalculatorModal: React.FC<ChangeCalculatorModalProps> = ({
       subtitle={m.changeCalculatorSubtitle}
       icon={DollarSign}
       successText={m.confirmPaymentButton}
-      onSuccess={() => {
-        const finalAmount = calculatorAmount > 0 ? calculatorAmount : launchAmount
-        onConfirm(Math.min(finalAmount, launchAmount))
-        onClose()
-      }}
+      onSuccess={handleConfirm}
     >
       <ChangeCalculator
         totalAmount={launchAmount}

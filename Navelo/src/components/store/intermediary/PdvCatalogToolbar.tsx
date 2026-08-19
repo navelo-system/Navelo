@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -30,6 +28,61 @@ export interface MobileHeaderSearchProps {
   children?: React.ReactNode
 }
 
+interface ExpandableSearchOverlayProps {
+  isOpen: boolean
+  placeholder: string
+  searchQuery: string
+  onSearchQueryChange: (value: string) => void
+  onClose: () => void
+}
+
+function ExpandableSearchOverlay({
+  isOpen,
+  placeholder,
+  searchQuery,
+  onSearchQueryChange,
+  onClose,
+}: ExpandableSearchOverlayProps) {
+  const searchInputRef = React.useRef<HTMLInputElement>(null)
+
+  React.useEffect(() => {
+    if (!isOpen) return
+    const timer = setTimeout(() => searchInputRef.current?.focus(), SEARCH_ANIMATION_MS)
+    return () => clearTimeout(timer)
+  }, [isOpen])
+
+  if (!isOpen) return null
+
+  return (
+    <Box
+      position="absolute"
+      top={0}
+      left={0}
+      right={0}
+      w="full"
+      h="h-10"
+      bg="bg-background"
+      animation="search-expand-in"
+      zIndex="20"
+    >
+      <Stack direction="row" align="center" gap={2.5} w="full">
+        <Box flex="1" padding={0} minW="min-w-0">
+          <Input
+            ref={searchInputRef}
+            placeholder={placeholder}
+            value={searchQuery}
+            onChange={(e) => onSearchQueryChange(e.target.value)}
+            icon={Search}
+          />
+        </Box>
+        <Box shrink="0">
+          <Button variant="secondary-pill-icon" icon={X} onClick={onClose} />
+        </Box>
+      </Stack>
+    </Box>
+  )
+}
+
 export const MobileHeaderSearch: React.FC<MobileHeaderSearchProps> = ({
   searchQuery,
   onSearchQueryChange,
@@ -37,105 +90,32 @@ export const MobileHeaderSearch: React.FC<MobileHeaderSearchProps> = ({
   children,
 }) => {
   const [isSearchOpen, setIsSearchOpen] = React.useState(false)
-  const [searchMounted, setSearchMounted] = React.useState(false)
-  const [searchAnimation, setSearchAnimation] = React.useState<"search-expand-in" | "search-collapse-out">("search-expand-in")
-  const searchInputRef = React.useRef<HTMLInputElement>(null)
-  const searchExitTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const openSearch = () => {
-    if (searchExitTimerRef.current) {
-      clearTimeout(searchExitTimerRef.current)
-      searchExitTimerRef.current = null
-    }
-    setSearchMounted(true)
-    setSearchAnimation("search-expand-in")
-    setIsSearchOpen(true)
-  }
-
-  const closeSearch = React.useCallback(() => {
-    if (!searchMounted) return
-    setIsSearchOpen(false)
-    setSearchAnimation("search-collapse-out")
-    searchExitTimerRef.current = setTimeout(() => {
-      setSearchMounted(false)
-      setSearchAnimation("search-expand-in")
-      searchExitTimerRef.current = null
-    }, SEARCH_ANIMATION_MS)
-  }, [searchMounted])
-
-  React.useEffect(() => {
-    if (!isSearchOpen) return
-    const timer = setTimeout(() => searchInputRef.current?.focus(), SEARCH_ANIMATION_MS)
-    return () => clearTimeout(timer)
-  }, [isSearchOpen])
-
-  const prevQueryRef = React.useRef(searchQuery)
-
-  React.useEffect(() => {
-    if (prevQueryRef.current.trim().length > 0 && !searchQuery.trim() && isSearchOpen) {
-      closeSearch()
-    }
-    prevQueryRef.current = searchQuery
-  }, [searchQuery, isSearchOpen, closeSearch])
-
-  React.useEffect(() => {
-    return () => {
-      if (searchExitTimerRef.current) {
-        clearTimeout(searchExitTimerRef.current)
-      }
-    }
-  }, [])
 
   return (
     <Box position="relative" w="full" h="h-10">
       <Box
         w="full"
         transition="opacity"
-        opacity={searchMounted ? "0" : "100"}
-        pointerEvents={searchMounted ? "none" : "auto"}
+        opacity={isSearchOpen ? "0" : "100"}
+        pointerEvents={isSearchOpen ? "none" : "auto"}
       >
         <Stack direction="row" align="center" justify="end" w="full" gap={2.5}>
           <Button
             variant="secondary-pill-icon"
             icon={Search}
-            onClick={openSearch}
+            onClick={() => setIsSearchOpen(true)}
           />
           {children}
         </Stack>
       </Box>
 
-      {searchMounted && (
-        <Box
-          position="absolute"
-          top={0}
-          left={0}
-          right={0}
-          w="full"
-          h="h-10"
-          bg="bg-background"
-          animation={searchAnimation}
-          zIndex="20"
-        >
-          <Stack direction="row" align="center" gap={2.5} w="full">
-            <Box flex="1" padding={0} minW="min-w-0">
-              <Input
-                ref={searchInputRef}
-                placeholder={placeholder}
-                value={searchQuery}
-                onChange={(e) => onSearchQueryChange(e.target.value)}
-                icon={Search}
-              />
-            </Box>
-            <Box shrink="0">
-              <Button
-                variant="secondary-pill-icon"
-                icon={X}
-                onClick={closeSearch}
-              />
-            </Box>
-          </Stack>
-        </Box>
-      )}
+      <ExpandableSearchOverlay
+        isOpen={isSearchOpen}
+        placeholder={placeholder}
+        searchQuery={searchQuery}
+        onSearchQueryChange={onSearchQueryChange}
+        onClose={() => setIsSearchOpen(false)}
+      />
     </Box>
   )
 }
@@ -149,36 +129,7 @@ export const PdvCatalogToolbar: React.FC<PdvCatalogToolbarProps> = ({
   onBarcodeScanned,
 }) => {
   const [isSearchOpen, setIsSearchOpen] = React.useState(false)
-  const [searchMounted, setSearchMounted] = React.useState(false)
-  const [searchAnimation, setSearchAnimation] = React.useState<"search-expand-in" | "search-collapse-out">("search-expand-in")
   const [isScannerOpen, setIsScannerOpen] = React.useState(false)
-  const searchInputRef = React.useRef<HTMLInputElement>(null)
-  const searchExitTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const closeSearch = () => {
-    if (!searchMounted) return
-    setIsSearchOpen(false)
-    setSearchAnimation("search-collapse-out")
-    searchExitTimerRef.current = setTimeout(() => {
-      setSearchMounted(false)
-      setSearchAnimation("search-expand-in")
-      searchExitTimerRef.current = null
-    }, SEARCH_ANIMATION_MS)
-  }
-
-  React.useEffect(() => {
-    if (!isSearchOpen) return
-    const timer = setTimeout(() => searchInputRef.current?.focus(), SEARCH_ANIMATION_MS)
-    return () => clearTimeout(timer)
-  }, [isSearchOpen])
-
-  React.useEffect(() => {
-    return () => {
-      if (searchExitTimerRef.current) {
-        clearTimeout(searchExitTimerRef.current)
-      }
-    }
-  }, [])
 
   return (
     <>
@@ -186,8 +137,8 @@ export const PdvCatalogToolbar: React.FC<PdvCatalogToolbarProps> = ({
         <Box
           w="full"
           transition="opacity"
-          opacity={searchMounted ? "0" : "100"}
-          pointerEvents={searchMounted ? "none" : "auto"}
+          opacity={isSearchOpen ? "0" : "100"}
+          pointerEvents={isSearchOpen ? "none" : "auto"}
         >
           <Stack direction="row" align="center" justify="between" w="full" gap={2.5}>
             <Stack direction="row" align="center" gap={2.5}>
@@ -213,36 +164,13 @@ export const PdvCatalogToolbar: React.FC<PdvCatalogToolbarProps> = ({
           </Stack>
         </Box>
 
-        {searchMounted && (
-          <Box
-            position="absolute"
-            top={0}
-            left={0}
-            right={0}
-            w="full"
-            h="h-10"
-            animation={searchAnimation}
-          >
-            <Stack direction="row" align="center" gap={2.5} w="full">
-              <Box flex="1" padding={0} minW="min-w-0">
-                <Input
-                  ref={searchInputRef}
-                  placeholder={UI_STRINGS.pdv.catalog.searchProductsPlaceholder}
-                  value={searchQuery}
-                  onChange={(e) => onSearchQueryChange(e.target.value)}
-                  icon={Search}
-                />
-              </Box>
-              <Box shrink="0">
-                <Button
-                  variant="secondary-pill-icon"
-                  icon={X}
-                  onClick={closeSearch}
-                />
-              </Box>
-            </Stack>
-          </Box>
-        )}
+        <ExpandableSearchOverlay
+          isOpen={isSearchOpen}
+          placeholder={UI_STRINGS.pdv.catalog.searchProductsPlaceholder}
+          searchQuery={searchQuery}
+          onSearchQueryChange={onSearchQueryChange}
+          onClose={() => setIsSearchOpen(false)}
+        />
       </Box>
 
       <ProductBarcodeScannerModal

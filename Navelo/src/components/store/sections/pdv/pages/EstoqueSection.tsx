@@ -1,6 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, complexity */
 
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
@@ -43,7 +42,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
   const dbProducts = useProducts(tenantId)
 
   const [estoqueView, setEstoqueView] = React.useState<"menu" | "balanco" | "notas" | "entrada_manual">("menu")
-  const [balancoSubMode, setBalancoSubMode] = React.useState<"history" | "resumo">("history")
+  const [balancoSubMode, setBalancoSubMode] = React.useState<"history" | "resumo" | "novo">("history")
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
   const s = UI_STRINGS.inventory
 
@@ -95,14 +94,24 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
     if (estoqueView !== "menu") {
       setCustomBack?.(() => () => {
         setSuccessMsg("")
-        setEstoqueView("menu")
+        if (estoqueView === "balanco" && balancoSubMode !== "history") {
+          setBalancoSubMode("history")
+        } else {
+          setEstoqueView("menu")
+        }
       })
     } else {
       setCustomBack?.(null)
     }
 
     if (estoqueView === "balanco") {
-      setCustomTitle?.(balancoSubMode === "resumo" ? s.balancoSummaryTitle : s.title)
+      if (balancoSubMode === "resumo") {
+        setCustomTitle?.(s.balancoSummaryTitle)
+      } else if (balancoSubMode === "novo") {
+        setCustomTitle?.(s.balancoCardTitle)
+      } else {
+        setCustomTitle?.("Balanços de estoque")
+      }
     } else if (estoqueView === "notas") {
       setCustomTitle?.(UI_STRINGS.fiscal.title)
     } else if (estoqueView === "entrada_manual") {
@@ -121,17 +130,19 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
           <Button
             variant="primary-pill-icon"
             icon={Filter}
-            onClick={() => {}}
+            onClick={() => { }}
           />
         </MobileHeaderSearch>
       )
-    } else if (estoqueView === "balanco") {
+    } else if (estoqueView === "balanco" && balancoSubMode === "history") {
       setCustomActions?.(
-        <Button
-          variant="primary-pill-icon"
-          icon={Filter}
-          onClick={() => setIsFilterDrawerOpen(true)}
-        />
+        <Box display="block md:hidden">
+          <Button
+            variant="primary-pill-icon"
+            icon={Filter}
+            onClick={() => setIsFilterDrawerOpen(true)}
+          />
+        </Box>
       )
     } else {
       setCustomActions?.(null)
@@ -142,25 +153,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
       setCustomTitle?.(null)
       setCustomActions?.(null)
     }
-  }, [estoqueView, balancoSubMode, invoiceSearchQuery, setCustomBack, setCustomTitle, setCustomActions, s.title, s.adjustStockButton, s.balancoSummaryTitle, s.searchInvoicesPlaceholder])
-  
-  const handleSaveBalanco = async (updatedProducts: typeof balancoProducts) => {
-    for (const p of updatedProducts) {
-      if (p.counted !== "") {
-        const newStock = parseFloat(p.counted) || 0
-        const existing = dbProducts?.find((prod) => prod.id === p.id)
-        if (existing) {
-          // eslint-disable-next-line no-await-in-loop
-          await dal.products.update({
-            ...existing,
-            stock: newStock
-          })
-        }
-      }
-    }
-    setSuccessMsg("Balanço de estoque salvo com sucesso!")
-    setEstoqueView("menu")
-  }
+  }, [estoqueView, balancoSubMode, invoiceSearchQuery, setCustomBack, setCustomTitle, setCustomActions, s.title, s.adjustStockButton, s.balancoSummaryTitle, s.balancoCardTitle, s.searchInvoicesPlaceholder])
 
   const handleUploadXml = () => {
     setSuccessMsg("Upload de XML de nota fiscal realizado com sucesso (Simulado).")
@@ -188,133 +181,132 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
 
   return (
     <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
-    <Stack gap={5} w="full" flex="1" minH="0" h="full">
-      {successMsg && (
-        <Box padding={2.5} bg="bg-brand-success/10" radius="default" w="full">
-          <Stack direction="row" align="center" gap={2.5}>
-            <Icon icon={Check} size={16} color="success" />
-            <Font variant="body-xs-semibold" color="success" text={successMsg} />
+      <Stack gap={5} w="full" flex="1" minH="0" h="full">
+        {successMsg && (
+          <Box padding={2.5} bg="bg-brand-success/10" radius="default" w="full">
+            <Stack direction="row" align="center" gap={2.5}>
+              <Icon icon={Check} size={16} color="success" />
+              <Font variant="body-xs-semibold" color="success" text={successMsg} />
+            </Stack>
+          </Box>
+        )}
+
+        {estoqueView === "menu" && (
+          /* ================= MENU PRINCIPAL DO ESTOQUE ================= */
+          <Stack gap={2.5} w="full">
+            {/* Balanço de estoque */}
+            <Box
+              onClick={() => { setSuccessMsg(""); setEstoqueView("balanco") }}
+              padding={5}
+              bg="bg-surface"
+              radius="default"
+              border={true}
+              borderColor="border-border"
+              w="full"
+              hoverBg="primary/10"
+              cursor="pointer"
+            >
+              <Stack direction="row" align="center" justify="between" w="full" gap={5}>
+                <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" gap={5} flex="1">
+                  <Icon icon={ClipboardList} variant="circular-secondary" />
+                  <Stack gap={1} align="start" w="full">
+                    <Font variant="body-bold" text={s.balancoCardTitle} align="left" />
+                    <Font variant="auxiliary" color="muted" text={s.balancoCardDesc} align="left" />
+                  </Stack>
+                </Stack>
+                <Icon icon={ChevronRight} size={20} color="muted" />
+              </Stack>
+            </Box>
+
+            {/* Notas Fiscais */}
+            <Box
+              onClick={() => { setSuccessMsg(""); setEstoqueView("notas") }}
+              padding={5}
+              bg="bg-surface"
+              radius="default"
+              border={true}
+              borderColor="border-border"
+              w="full"
+              hoverBg="primary/10"
+              cursor="pointer"
+            >
+              <Stack direction="row" align="center" justify="between" w="full" gap={5}>
+                <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" gap={5} flex="1">
+                  <Icon icon={FileText} variant="circular-secondary" />
+                  <Stack gap={1} align="start" w="full">
+                    <Font variant="body-bold" text={s.invoicesCardTitle} align="left" />
+                    <Font variant="auxiliary" color="muted" text={s.invoicesCardDesc} align="left" />
+                  </Stack>
+                </Stack>
+                <Icon icon={ChevronRight} size={20} color="muted" />
+              </Stack>
+            </Box>
+
+            {/* Entrada Manual */}
+            <Box
+              onClick={() => { setSuccessMsg(""); setEstoqueView("entrada_manual") }}
+              padding={5}
+              bg="bg-surface"
+              radius="default"
+              border={true}
+              borderColor="border-border"
+              w="full"
+              hoverBg="primary/10"
+              cursor="pointer"
+            >
+              <Stack direction="row" align="center" justify="between" w="full" gap={5}>
+                <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" gap={5} flex="1">
+                  <Icon icon={PlusCircle} variant="circular-secondary" />
+                  <Stack gap={1} align="start" w="full">
+                    <Font variant="body-bold" text={s.manualMovementCardTitle} align="left" />
+                    <Font variant="auxiliary" color="muted" text={s.manualMovementCardDesc} align="left" />
+                  </Stack>
+                </Stack>
+                <Icon icon={ChevronRight} size={20} color="muted" />
+              </Stack>
+            </Box>
           </Stack>
-        </Box>
-      )}
+        )}
 
-      {estoqueView === "menu" && (
-        /* ================= MENU PRINCIPAL DO ESTOQUE ================= */
-        <Stack gap={5} w="full">
-          {/* Balanço de estoque */}
-          <Box
-            onClick={() => { setSuccessMsg(""); setEstoqueView("balanco") }}
-            padding={5}
-            bg="bg-surface"
-            radius="default"
-            border={true}
-            borderColor="border-border"
-            w="full"
-            hoverBg="primary/10"
-            cursor="pointer"
-          >
-            <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-              <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" gap={5} flex="1">
-                <Icon icon={ClipboardList} variant="circular-secondary" />
-                <Stack gap={1} align="start" w="full">
-                  <Font variant="body-bold" text={s.balancoCardTitle} align="left" />
-                  <Font variant="auxiliary" color="muted" text={s.balancoCardDesc} align="left" />
-                </Stack>
-              </Stack>
-              <Icon icon={ChevronRight} size={20} color="muted" />
-            </Stack>
+        {estoqueView === "balanco" && (
+          /* ================= SUB-SEÇÃO: BALANÇO DE ESTOQUE ================= */
+          <InventoryAuditTable
+            mode={balancoSubMode}
+            searchQuery=""
+            onCancel={() => setEstoqueView("menu")}
+            onModeChange={(mode) => setBalancoSubMode(mode)}
+            isFilterDrawerOpen={isFilterDrawerOpen}
+            onCloseFilterDrawer={() => setIsFilterDrawerOpen(false)}
+          />
+        )}
+
+        {estoqueView === "notas" && (
+          /* ================= SUB-SEÇÃO: NOTAS FISCAIS ================= */
+          <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
+            <InvoicesTable invoices={filteredInvoices} />
+
+            {/* Botão FAB fixo no canto inferior direito */}
+            <Box position="fixed" bottom="24px" right="24px" zIndex="30">
+              <Button
+                variant="secondary-pill-icon"
+                icon={Upload}
+                onClick={handleUploadXml}
+              />
+            </Box>
           </Box>
+        )}
 
-          {/* Notas Fiscais */}
-          <Box
-            onClick={() => { setSuccessMsg(""); setEstoqueView("notas") }}
-            padding={5}
-            bg="bg-surface"
-            radius="default"
-            border={true}
-            borderColor="border-border"
-            w="full"
-            hoverBg="primary/10"
-            cursor="pointer"
-          >
-            <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-              <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" gap={5} flex="1">
-                <Icon icon={FileText} variant="circular-secondary" />
-                <Stack gap={1} align="start" w="full">
-                  <Font variant="body-bold" text={s.invoicesCardTitle} align="left" />
-                  <Font variant="auxiliary" color="muted" text={s.invoicesCardDesc} align="left" />
-                </Stack>
-              </Stack>
-              <Icon icon={ChevronRight} size={20} color="muted" />
-            </Stack>
-          </Box>
-
-          {/* Entrada Manual */}
-          <Box
-            onClick={() => { setSuccessMsg(""); setEstoqueView("entrada_manual") }}
-            padding={5}
-            bg="bg-surface"
-            radius="default"
-            border={true}
-            borderColor="border-border"
-            w="full"
-            hoverBg="primary/10"
-            cursor="pointer"
-          >
-            <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-              <Stack direction="col" mobileDirection="row" align="start" mobileAlign="center" gap={5} flex="1">
-                <Icon icon={PlusCircle} variant="circular-secondary" />
-                <Stack gap={1} align="start" w="full">
-                  <Font variant="body-bold" text={s.manualMovementCardTitle} align="left" />
-                  <Font variant="auxiliary" color="muted" text={s.manualMovementCardDesc} align="left" />
-                </Stack>
-              </Stack>
-              <Icon icon={ChevronRight} size={20} color="muted" />
-            </Stack>
-          </Box>
-        </Stack>
-      )}
-
-      {estoqueView === "balanco" && (
-        /* ================= SUB-SEÇÃO: BALANÇO DE ESTOQUE ================= */
-        <InventoryAuditTable
-          products={balancoProducts}
-          searchQuery=""
-          onCancel={() => setEstoqueView("menu")}
-          onSave={handleSaveBalanco}
-          onModeChange={(mode) => setBalancoSubMode(mode)}
-          isFilterDrawerOpen={isFilterDrawerOpen}
-          onCloseFilterDrawer={() => setIsFilterDrawerOpen(false)}
-        />
-      )}
-
-      {estoqueView === "notas" && (
-        /* ================= SUB-SEÇÃO: NOTAS FISCAIS ================= */
-        <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
-          <InvoicesTable invoices={filteredInvoices} />
-
-          {/* Botão FAB fixo no canto inferior direito */}
-          <Box position="fixed" bottom="24px" right="24px" zIndex="30">
-            <Button
-              variant="secondary-pill-icon"
-              icon={Upload}
-              onClick={handleUploadXml}
+        {estoqueView === "entrada_manual" && (
+          /* ================= SUB-SEÇÃO: ENTRADA MANUAL ================= */
+          <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
+            <ManualMovementForm
+              products={balancoProducts}
+              onCancel={() => setEstoqueView("menu")}
+              onSubmit={handleSaveManualMovement}
             />
           </Box>
-        </Box>
-      )}
-
-      {estoqueView === "entrada_manual" && (
-        /* ================= SUB-SEÇÃO: ENTRADA MANUAL ================= */
-        <Box padding={5} bg="bg-surface" radius="default" border={true} borderColor="border-border">
-          <ManualMovementForm
-            products={balancoProducts}
-            onCancel={() => setEstoqueView("menu")}
-            onSubmit={handleSaveManualMovement}
-          />
-        </Box>
-      )}
-    </Stack>
+        )}
+      </Stack>
     </Box>
   )
 }

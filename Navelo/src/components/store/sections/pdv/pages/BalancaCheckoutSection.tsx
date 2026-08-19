@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function, complexity */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -22,24 +20,146 @@ export interface BalancaCheckoutSectionProps {
   setCustomTitle?: (title: string | null) => void
 }
 
+function BalancaModelAndPortSelectors({
+  enabled,
+  modelo,
+  setModelo,
+  porta,
+  setPorta,
+  baudRate,
+  setBaudRate,
+  onPortHelp,
+}: {
+  enabled: boolean
+  modelo: string
+  setModelo: (v: string) => void
+  porta: string
+  setPorta: (v: string) => void
+  baudRate: string
+  setBaudRate: (v: string) => void
+  onPortHelp: () => void
+}) {
+  const s = UI_STRINGS.scales
+  return (
+    <>
+      <Box opacity={enabled ? "100" : "50"} w="full">
+        <Stack gap={1} w="full">
+          <Font variant="sub-tiny-bold" text={s.scaleModelLabel} />
+          <CustomSelect value={modelo} onChange={setModelo} disabled={!enabled}>
+            <CustomSelectItem value="filizola" text={s.fizilolaModel} icon={Scale} />
+            <CustomSelectItem value="toledo" text={s.toledoModel} icon={Scale} />
+            <CustomSelectItem value="urano" text={s.uranoModel} icon={Scale} />
+          </CustomSelect>
+        </Stack>
+      </Box>
+
+      <Box opacity={enabled ? "100" : "50"} w="full">
+        <Stack gap={1} w="full">
+          <Font variant="sub-tiny-bold" text={s.portLabel} />
+          <CustomSelect value={porta} onChange={setPorta} disabled={!enabled}>
+            {["COM1", "COM2", "COM3", "COM4"].map((pName) => (
+              <CustomSelectItem key={pName} value={pName} text={pName} icon={Settings} />
+            ))}
+          </CustomSelect>
+        </Stack>
+      </Box>
+
+      <Button variant="ghost-primary" label={s.portHelpButton} disabled={!enabled} onClick={onPortHelp} />
+
+      <Box opacity={enabled ? "100" : "50"} w="full">
+        <Stack gap={1} w="full">
+          <Font variant="sub-tiny-bold" text={s.baudRateLabel} />
+          <CustomSelect value={baudRate} onChange={setBaudRate} disabled={!enabled}>
+            {["2400", "4800", "9600", "19200"].map((bRate) => (
+              <CustomSelectItem key={bRate} value={bRate} text={bRate} icon={Settings} />
+            ))}
+          </CustomSelect>
+        </Stack>
+      </Box>
+    </>
+  )
+}
+
+function BalancaAdvancedSettingsAccordion({
+  enabled,
+  showAdvanced,
+  setShowAdvanced,
+  dataBits,
+  setDataBits,
+  stopBits,
+  setStopBits,
+  parity,
+  setParity,
+}: {
+  enabled: boolean
+  showAdvanced: boolean
+  setShowAdvanced: React.Dispatch<React.SetStateAction<boolean>>
+  dataBits: string
+  setDataBits: (v: string) => void
+  stopBits: string
+  setStopBits: (v: string) => void
+  parity: string
+  setParity: (v: string) => void
+}) {
+  const s = UI_STRINGS.scales
+  return (
+    <Box opacity={enabled ? "100" : "50"} w="full">
+      <Stack gap={2.5} w="full">
+        <Box cursor={enabled ? "pointer" : undefined} onClick={() => enabled && setShowAdvanced((prev) => !prev)} w="full" paddingY={2.5}>
+          <Stack direction="row" align="center" justify="between" gap={0} w="full">
+            <Font variant="body-bold" text={s.advancedSettingsTitle} color={enabled ? "foreground" : "muted"} />
+            <Icon icon={showAdvanced ? ChevronUp : ChevronDown} size={16} color="muted" />
+          </Stack>
+        </Box>
+
+        {enabled && showAdvanced && (
+          <Stack gap={5} w="full">
+            <Grid cols={3} gap={5}>
+              <Stack gap={1} w="full">
+                <Font variant="sub-tiny-bold" text={s.dataBitsLabel} />
+                <CustomSelect value={dataBits} onChange={setDataBits}>
+                  <CustomSelectItem value="7" text="7" icon={Settings} />
+                  <CustomSelectItem value="8" text="8" icon={Settings} />
+                </CustomSelect>
+              </Stack>
+              <Stack gap={1} w="full">
+                <Font variant="sub-tiny-bold" text={s.stopBitsLabel} />
+                <CustomSelect value={stopBits} onChange={setStopBits}>
+                  <CustomSelectItem value="1" text="1" icon={Settings} />
+                  <CustomSelectItem value="2" text="2" icon={Settings} />
+                </CustomSelect>
+              </Stack>
+              <Stack gap={1} w="full">
+                <Font variant="sub-tiny-bold" text={s.parityLabel} />
+                <CustomSelect value={parity} onChange={setParity}>
+                  <CustomSelectItem value="none" text={s.parityNone} icon={Settings} />
+                  <CustomSelectItem value="odd" text={s.parityOdd} icon={Settings} />
+                  <CustomSelectItem value="even" text={s.parityEven} icon={Settings} />
+                </CustomSelect>
+              </Stack>
+            </Grid>
+          </Stack>
+        )}
+      </Stack>
+    </Box>
+  )
+}
+
 export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
   onCancel,
   setCustomBack,
-  setCustomTitle
+  setCustomTitle,
 }) => {
   const [enabled, setEnabled] = React.useState(false)
   const [modelo, setModelo] = React.useState("filizola")
   const [porta, setPorta] = React.useState("COM1")
   const [baudRate, setBaudRate] = React.useState("4800")
   const [showAdvanced, setShowAdvanced] = React.useState(false)
-  const s = UI_STRINGS.scales
-
-  // Advanced form states (e.g. dataBits, stopBits, parity)
   const [dataBits, setDataBits] = React.useState("8")
   const [stopBits, setStopBits] = React.useState("1")
   const [parity, setParity] = React.useState("none")
-
   const [modalMsg, setModalMsg] = React.useState<string | null>(null)
+  const s = UI_STRINGS.scales
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onCancel())
@@ -50,168 +170,36 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
     }
   }, [setCustomBack, setCustomTitle, onCancel, s.checkoutScaleTitle])
 
-  const handleSave = () => {
-    onCancel()
-  }
-
-  const handleTestCommunication = () => {
-    setModalMsg("Testando comunicação com a balança...")
-  }
-
   return (
     <Stack gap={5} w="full">
-      <Box
-        bg="bg-white"
-        border={true}
-        borderColor="border-border"
-        radius="default"
-        padding={5}
-        w="full"
-      >
+      <Box bg="bg-white" border borderColor="border-border" radius="default" padding={5} w="full">
         <Stack gap={5} w="full">
-          {/* Habilitar */}
           <Stack direction="row" align="start" justify="between" w="full" gap={5}>
             <Stack gap={1} flex="1">
               <Font variant="body-bold" text={UI_STRINGS.selfService.enableToggle} />
-              <Font
-                variant="description"
-                text={s.enableCheckoutScaleDesc}
-                color="muted"
-              />
+              <Font variant="description" text={s.enableCheckoutScaleDesc} color="muted" />
             </Stack>
-            <Switch
-              checked={enabled}
-              onChange={(e) => setEnabled(e.target.checked)}
-            />
+            <Switch checked={enabled} onChange={(e) => setEnabled(e.target.checked)} />
           </Stack>
 
-          {/* Seletor Modelo */}
-          <Box opacity={enabled ? "100" : "50"} w="full">
-            <Stack gap={1} w="full">
-              <Font variant="sub-tiny-bold" text={s.scaleModelLabel} />
-              <CustomSelect
-                value={modelo}
-                onChange={(val) => setModelo(val)}
-                disabled={!enabled}
-              >
-                <CustomSelectItem value="filizola" text={s.fizilolaModel} icon={Scale} />
-                <CustomSelectItem value="toledo" text={s.toledoModel} icon={Scale} />
-                <CustomSelectItem value="urano" text={s.uranoModel} icon={Scale} />
-              </CustomSelect>
-            </Stack>
-          </Box>
-
-          {/* Seletor Porta */}
-          <Box opacity={enabled ? "100" : "50"} w="full">
-            <Stack gap={1} w="full">
-              <Font variant="sub-tiny-bold" text={s.portLabel} />
-              <CustomSelect
-                value={porta}
-                onChange={(val) => setPorta(val)}
-                disabled={!enabled}
-              >
-                <CustomSelectItem value="COM1" text={`COM1`} icon={Settings} />
-                <CustomSelectItem value="COM2" text={`COM2`} icon={Settings} />
-                <CustomSelectItem value="COM3" text={`COM3`} icon={Settings} />
-                <CustomSelectItem value="COM4" text={`COM4`} icon={Settings} />
-              </CustomSelect>
-            </Stack>
-          </Box>
-
-          {/* Link: Não encontrei a porta de comunicação */}
-          <Button
-            variant="ghost-primary"
-            label={s.portHelpButton}
-            disabled={!enabled}
-            onClick={() => {
-              if (enabled) {
-                setModalMsg("Certifique-se de que a balança está ligada e os drivers estão instalados.");
-              }
-            }}
+          <BalancaModelAndPortSelectors
+            enabled={enabled}
+            modelo={modelo} setModelo={setModelo}
+            porta={porta} setPorta={setPorta}
+            baudRate={baudRate} setBaudRate={setBaudRate}
+            onPortHelp={() => enabled && setModalMsg("Certifique-se de que a balança está ligada e os drivers estão instalados.")}
           />
 
-          {/* Velocidade de comunicação */}
-          <Box opacity={enabled ? "100" : "50"} w="full">
-            <Stack gap={1} w="full">
-              <Font variant="sub-tiny-bold" text={s.baudRateLabel} />
-              <CustomSelect
-                value={baudRate}
-                onChange={(val) => setBaudRate(val)}
-                disabled={!enabled}
-              >
-                <CustomSelectItem value="2400" text="2400" icon={Settings} />
-                <CustomSelectItem value="4800" text="4800" icon={Settings} />
-                <CustomSelectItem value="9600" text="9600" icon={Settings} />
-                <CustomSelectItem value="19200" text="19200" icon={Settings} />
-              </CustomSelect>
-            </Stack>
-          </Box>
-
-          {/* Configurações avançadas Accordion */}
-          <Box opacity={enabled ? "100" : "50"} w="full">
-            <Stack gap={2.5} w="full">
-              <Box
-                cursor={enabled ? "pointer" : undefined}
-                onClick={() => enabled && setShowAdvanced((prev) => !prev)}
-                w="full"
-                paddingY={2.5}
-              >
-                <Stack
-                  direction="row"
-                  align="center"
-                  justify="between"
-                  gap={0}
-                  w="full"
-                >
-                  <Font variant="body-bold" text={s.advancedSettingsTitle} color={enabled ? "foreground" : "muted"} />
-                  <Icon icon={showAdvanced ? ChevronUp : ChevronDown} size={16} color="muted" />
-                </Stack>
-              </Box>
-
-              {enabled && showAdvanced && (
-                <Stack gap={5} w="full">
-                  <Grid cols={3} gap={5}>
-                    <Stack gap={1} w="full">
-                      <Font variant="sub-tiny-bold" text={s.dataBitsLabel} />
-                      <CustomSelect value={dataBits} onChange={(val) => setDataBits(val)}>
-                        <CustomSelectItem value="7" text="7" icon={Settings} />
-                        <CustomSelectItem value="8" text="8" icon={Settings} />
-                      </CustomSelect>
-                    </Stack>
-
-                    <Stack gap={1} w="full">
-                      <Font variant="sub-tiny-bold" text={s.stopBitsLabel} />
-                      <CustomSelect value={stopBits} onChange={(val) => setStopBits(val)}>
-                        <CustomSelectItem value="1" text="1" icon={Settings} />
-                        <CustomSelectItem value="2" text="2" icon={Settings} />
-                      </CustomSelect>
-                    </Stack>
-
-                    <Stack gap={1} w="full">
-                      <Font variant="sub-tiny-bold" text={s.parityLabel} />
-                      <CustomSelect value={parity} onChange={(val) => setParity(val)}>
-                        <CustomSelectItem value="none" text={s.parityNone} icon={Settings} />
-                        <CustomSelectItem value="odd" text={s.parityOdd} icon={Settings} />
-                        <CustomSelectItem value="even" text={s.parityEven} icon={Settings} />
-                      </CustomSelect>
-                    </Stack>
-                  </Grid>
-                </Stack>
-              )}
-            </Stack>
-          </Box>
+          <BalancaAdvancedSettingsAccordion
+            enabled={enabled}
+            showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}
+            dataBits={dataBits} setDataBits={setDataBits}
+            stopBits={stopBits} setStopBits={setStopBits}
+            parity={parity} setParity={setParity}
+          />
 
           <Box h="h-[1px]" w="full" bg="bg-border" />
-
-          {/* Nota */}
-          <Font
-            variant="description"
-            text={s.testWeightNote}
-            color="muted"
-            align="center"
-          />
-
-          {/* Botão de Teste */}
+          <Font variant="description" text={s.testWeightNote} color="muted" align="center" />
           <Box w="full">
             <Button
               type="button"
@@ -219,19 +207,13 @@ export const BalancaCheckoutSection: React.FC<BalancaCheckoutSectionProps> = ({
               label={s.testConnectionButton}
               icon={RefreshCw}
               disabled={!enabled}
-              onClick={handleTestCommunication}
+              onClick={() => setModalMsg("Testando comunicação com a balança...")}
             />
           </Box>
         </Stack>
       </Box>
 
-      {/* Ações de Cancelar / Salvar */}
-      <FormActions
-        confirmLabel={UI_STRINGS.common.save}
-        onConfirm={handleSave}
-        onCancel={onCancel}
-      />
-
+      <FormActions confirmLabel={UI_STRINGS.common.save} onConfirm={onCancel} onCancel={onCancel} />
       <ScaleStatusModal
         isOpen={modalMsg !== null}
         onClose={() => setModalMsg(null)}

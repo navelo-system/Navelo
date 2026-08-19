@@ -25,7 +25,129 @@ interface ClientTenant {
   monthlyFee: number
 }
 
-// eslint-disable-next-line max-lines-per-function
+const DEFAULT_PLANS = [
+  { name: "Free", fee: 0 },
+  { name: "Pro", fee: 149.90 },
+  { name: "Enterprise", fee: 499.90 },
+]
+
+function ClientTenantsTable({ tenants }: { tenants: ClientTenant[] }) {
+  const c = UI_STRINGS.admin.clients
+  if (tenants.length === 0) {
+    return <EmptyState icon={Users} title={c.emptyTitle} subtitle={c.emptySubtitle} />
+  }
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead text={c.companyColumn} />
+          <TableHead text={c.documentColumn} />
+          <TableHead text={c.planColumn} />
+          <TableHead text={c.statusColumn} />
+          <TableHead align="right" text={c.monthlyFeeColumn} />
+          <TableHead w="w-[50px]" />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {tenants.map((tenant) => (
+          <TableRow key={tenant.id}>
+            <TableCell fontWeight="medium">{tenant.name}</TableCell>
+            <TableCell>{tenant.document}</TableCell>
+            <TableCell>
+              <Badge
+                variant={tenant.plan === "Enterprise" ? "primary" : tenant.plan === "Free" ? "outline" : "success"}
+                label={tenant.plan}
+              />
+            </TableCell>
+            <TableCell>
+              <Badge
+                variant={tenant.status === "active" ? "success" : "danger"}
+                label={tenant.status === "active" ? c.activeStatus : c.inactiveStatus}
+              />
+            </TableCell>
+            <TableCell align="right">
+              {tenant.monthlyFee === 0 ? c.freeFee : `R$ ${tenant.monthlyFee.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
+            </TableCell>
+            <TableCell align="right">
+              <Button variant="primary-icon-xs" icon={MoreHorizontal} />
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
+}
+
+function NewClientModal({
+  isOpen,
+  onClose,
+  onSubmit,
+}: {
+  isOpen: boolean
+  onClose: () => void
+  onSubmit: (tenant: Omit<ClientTenant, "id">) => void
+}) {
+  const [name, setName] = React.useState("")
+  const [document, setDocument] = React.useState("")
+  const [selectedPlan, setSelectedPlan] = React.useState("Pro")
+  const [status, setStatus] = React.useState<"active" | "inactive">("active")
+  const c = UI_STRINGS.admin.clients
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!name || !document) return
+    const planObj = DEFAULT_PLANS.find((p) => p.name === selectedPlan)
+    onSubmit({
+      name,
+      document,
+      plan: selectedPlan,
+      status,
+      monthlyFee: planObj ? planObj.fee : 0,
+    })
+    setName("")
+    setDocument("")
+    setSelectedPlan("Pro")
+    setStatus("active")
+  }
+
+  return (
+    <Form onSubmit={handleSubmit}>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={c.newClientModalTitle}
+        subtitle={c.newClientModalSubtitle}
+        icon={Users}
+        successText={c.saveTenantButton}
+        isSubmit
+      >
+        <Stack gap={5}>
+          <Input label={c.companyNameLabel} placeholder={c.companyNamePlaceholder} value={name} onChange={(e) => setName(e.target.value)} required />
+          <Input label={c.cnpjDocumentLabel} placeholder={c.cnpjDocumentPlaceholder} value={document} onChange={(e) => setDocument(e.target.value)} required />
+          <Stack gap={2.5}>
+            <Badge variant="ghost" label={c.billingPlanBadge} />
+            <CustomSelect value={selectedPlan} onChange={setSelectedPlan}>
+              {DEFAULT_PLANS.map((p) => (
+                <CustomSelectItem
+                  key={p.name}
+                  value={p.name}
+                  text={`${p.name} (${p.fee === 0 ? c.freeFee : `R$ ${p.fee.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês`})`}
+                  icon={CreditCard}
+                />
+              ))}
+            </CustomSelect>
+          </Stack>
+          <Stack direction="row" align="center" justify="between">
+            <Badge variant="ghost" label={c.initialActiveStatusBadge} />
+            <Switch checked={status === "active"} onChange={(e) => setStatus(e.target.checked ? "active" : "inactive")} />
+          </Stack>
+        </Stack>
+      </Modal>
+    </Form>
+  )
+}
+
 export function ClientesSection() {
   const [searchQuery, setSearchQuery] = React.useState("")
   const [isModalOpen, setIsModalOpen] = React.useState(false)
@@ -38,181 +160,35 @@ export function ClientesSection() {
     { id: "4", name: "Mercado Central", document: "11.222.333/0001-44", plan: "Pro", status: "active", monthlyFee: 149.90 },
   ])
 
-  // Form State
-  const [name, setName] = React.useState("")
-  const [document, setDocument] = React.useState("")
-  const [selectedPlan, setSelectedPlan] = React.useState("Pro")
-  const [status, setStatus] = React.useState<"active" | "inactive">("active")
-
-  const plans = [
-    { name: "Free", fee: 0 },
-    { name: "Pro", fee: 149.90 },
-    { name: "Enterprise", fee: 499.90 }
-  ]
-
-  const handleCreateTenant = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!name || !document) return
-
-    const planObj = plans.find(p => p.name === selectedPlan)
-    const newTenant: ClientTenant = {
-      id: crypto.randomUUID(),
-      name,
-      document,
-      plan: selectedPlan,
-      status,
-      monthlyFee: planObj ? planObj.fee : 0
-    }
-
-    setTenants(prev => [...prev, newTenant])
+  const handleCreateTenant = (tenantData: Omit<ClientTenant, "id">) => {
+    setTenants((prev) => [...prev, { ...tenantData, id: crypto.randomUUID() }])
     setIsModalOpen(false)
-
-    // Reset Form
-    setName("")
-    setDocument("")
-    setSelectedPlan("Pro")
-    setStatus("active")
   }
 
-  const filteredTenants = tenants.filter(t => 
-    t.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    t.document.includes(searchQuery)
+  const filteredTenants = tenants.filter(
+    (t) => t.name.toLowerCase().includes(searchQuery.toLowerCase()) || t.document.includes(searchQuery)
   )
 
   return (
     <>
       <Stack direction="row" align="start">
-        <Button
-          variant="ghost"
-          label={c.backButton}
-          icon={ArrowLeft}
-          onClick={() => window.location.href = "/admin"}
-        />
+        <Button variant="ghost" label={c.backButton} icon={ArrowLeft} onClick={() => { window.location.href = "/admin" }} />
       </Stack>
 
       <RegistrySection
         title={c.title}
         description={c.description}
         icon={Users}
-        action={
-          <Button
-            variant="primary"
-            label={c.newTenantButton}
-            icon={Plus}
-            onClick={() => setIsModalOpen(true)}
-          />
-        }
+        action={<Button variant="primary" label={c.newTenantButton} icon={Plus} onClick={() => setIsModalOpen(true)} />}
       >
         <Stack gap={5}>
-          <FilterBar
-            searchPlaceholder={c.searchPlaceholder}
-            onSearch={setSearchQuery}
-          />
-
-          {filteredTenants.length === 0 ? (
-            <EmptyState
-              icon={Users}
-              title={c.emptyTitle}
-              subtitle={c.emptySubtitle}
-            />
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead text={c.companyColumn} />
-                  <TableHead text={c.documentColumn} />
-                  <TableHead text={c.planColumn} />
-                  <TableHead text={c.statusColumn} />
-                  <TableHead align="right" text={c.monthlyFeeColumn} />
-                  <TableHead w="w-[50px]" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTenants.map(tenant => (
-                  <TableRow key={tenant.id}>
-                    <TableCell fontWeight="medium">{tenant.name}</TableCell>
-                    <TableCell>{tenant.document}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={tenant.plan === "Enterprise" ? "primary" : tenant.plan === "Free" ? "outline" : "success"}
-                        label={tenant.plan}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={tenant.status === "active" ? "success" : "danger"}
-                        label={tenant.status === "active" ? c.activeStatus : c.inactiveStatus}
-                      />
-                    </TableCell>
-                    <TableCell align="right">
-                      {tenant.monthlyFee === 0 ? c.freeFee : `R$ ${tenant.monthlyFee.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
-                    </TableCell>
-                    <TableCell align="right">
-                      <Button variant="primary-icon-xs" icon={MoreHorizontal} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <FilterBar searchPlaceholder={c.searchPlaceholder} onSearch={setSearchQuery} />
+          <ClientTenantsTable tenants={filteredTenants} />
         </Stack>
       </RegistrySection>
 
-      {/* New Client Modal */}
       {isModalOpen && (
-        <Form onSubmit={handleCreateTenant}>
-          <Modal
-            isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
-            title={c.newClientModalTitle}
-            subtitle={c.newClientModalSubtitle}
-            icon={Users}
-            successText={c.saveTenantButton}
-            isSubmit
-          >
-            <Stack gap={5}>
-              <Input
-                label={c.companyNameLabel}
-                placeholder={c.companyNamePlaceholder}
-                value={name}
-                onChange={e => setName(e.target.value)}
-                required
-              />
-              <Input
-                label={c.cnpjDocumentLabel}
-                placeholder={c.cnpjDocumentPlaceholder}
-                value={document}
-                onChange={e => setDocument(e.target.value)}
-                required
-              />
-              
-              <Stack gap={2.5}>
-                <Badge variant="ghost" label={c.billingPlanBadge} />
-                <CustomSelect
-                  value={selectedPlan}
-                  onChange={setSelectedPlan}
-                >
-                  {plans.map(p => (
-                    <CustomSelectItem
-                      key={p.name}
-                      value={p.name}
-                      text={`${p.name} (${p.fee === 0 ? c.freeFee : `R$ ${p.fee.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}/mês`})`}
-                      icon={CreditCard}
-                    />
-                  ))}
-                </CustomSelect>
-              </Stack>
-
-              <Stack direction="row" align="center" justify="between">
-                <Badge variant="ghost" label={c.initialActiveStatusBadge} />
-                <Switch
-                  checked={status === "active"}
-                  onChange={(e) => setStatus(e.target.checked ? "active" : "inactive")}
-                />
-              </Stack>
-            </Stack>
-          </Modal>
-        </Form>
+        <NewClientModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSubmit={handleCreateTenant} />
       )}
     </>
   )

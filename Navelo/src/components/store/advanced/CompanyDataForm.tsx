@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -18,10 +16,156 @@ export interface CompanyDataFormProps {
   onSave: (data: Record<string, unknown>) => void
 }
 
-export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
-  onCancel,
-  onSave
-}) => {
+function CompanyLogoSection({
+  logo,
+  onLogoChange,
+  onRemoveLogo,
+  fileInputRef,
+}: {
+  logo: string | null
+  onLogoChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onRemoveLogo: () => void
+  fileInputRef: React.RefObject<HTMLInputElement | null>
+}) {
+  const cd = UI_STRINGS.companyData
+  return (
+    <Box padding={5} w="full">
+      <Stack align="center" justify="center" w="full">
+        {logo ? (
+          <Stack gap={2.5} align="center">
+            <Box
+              as="img"
+              src={logo}
+              alt={cd.logoAlt}
+              w="h-16"
+              h="h-16"
+              objectFit="contain"
+              cursor="pointer"
+              onClick={() => fileInputRef.current?.click()}
+              title={cd.clickToChangeLogoTitle}
+            />
+            <Button variant="secondary" label={cd.removeLogoButton} onClick={onRemoveLogo} />
+          </Stack>
+        ) : (
+          <Box w="full">
+            <Input variant="image-upload" placeholder={cd.uploadLogoPlaceholder} icon={Upload} onChange={onLogoChange} />
+          </Box>
+        )}
+      </Stack>
+    </Box>
+  )
+}
+
+function CompanyGeneralFields({
+  razaoSocial,
+  setRazaoSocial,
+  nomeFantasia,
+  setNomeFantasia,
+  cnpj,
+  setCnpj,
+  ie,
+  setIe,
+}: {
+  razaoSocial: string
+  setRazaoSocial: (v: string) => void
+  nomeFantasia: string
+  setNomeFantasia: (v: string) => void
+  cnpj: string
+  setCnpj: (v: string) => void
+  ie: string
+  setIe: (v: string) => void
+}) {
+  const cd = UI_STRINGS.companyData
+  return (
+    <Stack gap={5} w="full">
+      <Input label={cd.corporateReasonLabel} value={razaoSocial} onChange={(e) => setRazaoSocial(e.target.value)} icon={Building} />
+      <Input label={cd.tradeNameLabel} value={nomeFantasia} onChange={(e) => setNomeFantasia(e.target.value)} icon={Building} />
+      <Input label={cd.cnpjLabel} variant="cnpj" value={cnpj} onChange={(e) => setCnpj(e.target.value)} icon={FileText} />
+      <Input label={cd.ieLabel} value={ie} onChange={(e) => setIe(e.target.value)} icon={FileText} />
+    </Stack>
+  )
+}
+
+function CompanyAddressFields({
+  cep,
+  setCep,
+  logradouro,
+  setLogradouro,
+  numero,
+  setNumero,
+  complemento,
+  setComplemento,
+  bairro,
+  setBairro,
+  cidade,
+  setCidade,
+}: {
+  cep: string
+  setCep: (v: string) => void
+  logradouro: string
+  setLogradouro: (v: string) => void
+  numero: string
+  setNumero: (v: string) => void
+  complemento: string
+  setComplemento: (v: string) => void
+  bairro: string
+  setBairro: (v: string) => void
+  cidade: string
+  setCidade: (v: string) => void
+}) {
+  const cd = UI_STRINGS.companyData
+  return (
+    <Stack gap={5} w="full">
+      <Font variant="body-bold" text={cd.addressSectionTitle} />
+      <Stack direction="row" gap={5} w="full">
+        <Box w="w-full md:w-1/3">
+          <Input label={cd.cepLabel} variant="cep" value={cep} onChange={(e) => setCep(e.target.value)} icon={MapPin} />
+        </Box>
+      </Stack>
+      <Input label={cd.streetLabel} value={logradouro} onChange={(e) => setLogradouro(e.target.value)} icon={MapPin} />
+      <Stack direction="row" gap={5} w="full">
+        <Box flex="1">
+          <Input label={cd.numberLabel} value={numero} onChange={(e) => setNumero(e.target.value)} icon={MapPin} />
+        </Box>
+        <Box flex="1">
+          <Input label={cd.complementLabel} value={complemento} onChange={(e) => setComplemento(e.target.value)} icon={MapPin} />
+        </Box>
+      </Stack>
+      <Input label={cd.neighborhoodLabel} value={bairro} onChange={(e) => setBairro(e.target.value)} icon={MapPin} />
+      <Input label={cd.cityLabel} value={cidade} onChange={(e) => setCidade(e.target.value)} icon={MapPin} />
+    </Stack>
+  )
+}
+
+function CompanyContactFields({
+  contatoNome,
+  setContatoNome,
+  contatoTelefone,
+  setContatoTelefone,
+}: {
+  contatoNome: string
+  setContatoNome: (v: string) => void
+  contatoTelefone: string
+  setContatoTelefone: (v: string) => void
+}) {
+  const cd = UI_STRINGS.companyData
+  return (
+    <Stack gap={5} w="full">
+      <Font variant="body-bold" text={cd.contactSectionTitle} />
+      <Input label={cd.contactNameLabel} value={contatoNome} onChange={(e) => setContatoNome(e.target.value)} icon={User} />
+      <Input
+        label={cd.contactPhoneLabel}
+        variant="phone"
+        icon={Phone}
+        iconRight={WhatsAppIcon as unknown as LucideIcon}
+        value={contatoTelefone}
+        onChange={(e) => setContatoTelefone(e.target.value)}
+      />
+    </Stack>
+  )
+}
+
+export function CompanyDataForm({ onCancel, onSave }: CompanyDataFormProps) {
   const cd = UI_STRINGS.companyData
   const [logo, setLogo] = React.useState<string | null>("/logo-default.svg")
   const [razaoSocial, setRazaoSocial] = React.useState("NAVELO PDV")
@@ -43,9 +187,7 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
     const file = e.target.files?.[0]
     if (file) {
       const reader = new FileReader()
-      reader.onloadend = () => {
-        setLogo(reader.result as string)
-      }
+      reader.onloadend = () => setLogo(reader.result as string)
       reader.readAsDataURL(file)
     }
   }
@@ -65,171 +207,19 @@ export const CompanyDataForm: React.FC<CompanyDataFormProps> = ({
       bairro,
       cidade,
       contatoNome,
-      contatoTelefone
+      contatoTelefone,
     })
   }
 
   return (
-    <Box
-      as="form"
-      onSubmit={handleSubmit}
-      bg="bg-white"
-      border={true}
-      borderColor="border-border"
-      radius="default"
-      padding={5}
-      w="full"
-    >
-      <Box
-        as="input"
-        type="file"
-        ref={logoFileInputRef}
-        accept="image/*"
-        onChange={handleLogoChange}
-        display="hidden"
-      />
+    <Box as="form" onSubmit={handleSubmit} bg="bg-white" border={true} borderColor="border-border" radius="default" padding={5} w="full">
+      <Box as="input" type="file" ref={logoFileInputRef} accept="image/*" onChange={handleLogoChange} display="hidden" />
       <Stack gap={5} w="full">
-        {/* Logo / Upload */}
-        <Box padding={5} w="full">
-          <Stack align="center" justify="center" w="full">
-            {logo ? (
-              <Stack gap={2.5} align="center">
-                <Box
-                  as="img"
-                  src={logo}
-                  alt={cd.logoAlt}
-                  w="h-16"
-                  h="h-16"
-                  objectFit="contain"
-                  cursor="pointer"
-                  onClick={() => logoFileInputRef.current?.click()}
-                  title={cd.clickToChangeLogoTitle}
-                />
-                <Button
-                  variant="secondary"
-                  label={cd.removeLogoButton}
-                  onClick={() => setLogo(null)}
-                />
-              </Stack>
-            ) : (
-              <Box w="full">
-                <Input
-                  variant="image-upload"
-                  placeholder={cd.uploadLogoPlaceholder}
-                  icon={Upload}
-                  onChange={handleLogoChange}
-                />
-              </Box>
-            )}
-          </Stack>
-        </Box>
-
-        {/* Dados Gerais */}
-        <Stack gap={5} w="full">
-          <Input
-            label={cd.corporateReasonLabel}
-            value={razaoSocial}
-            onChange={(e) => setRazaoSocial(e.target.value)}
-            icon={Building}
-          />
-          <Input
-            label={cd.tradeNameLabel}
-            value={nomeFantasia}
-            onChange={(e) => setNomeFantasia(e.target.value)}
-            icon={Building}
-          />
-          <Input
-            label={cd.cnpjLabel}
-            variant="cnpj"
-            value={cnpj}
-            onChange={(e) => setCnpj(e.target.value)}
-            icon={FileText}
-          />
-          <Input
-            label={cd.ieLabel}
-            value={ie}
-            onChange={(e) => setIe(e.target.value)}
-            icon={FileText}
-          />
-        </Stack>
-
-        {/* Seção Endereço */}
-        <Stack gap={5} w="full">
-          <Font variant="body-bold" text={cd.addressSectionTitle} />
-          <Stack direction="row" gap={5} w="full">
-            <Box w="w-full md:w-1/3">
-              <Input
-                label={cd.cepLabel}
-                variant="cep"
-                value={cep}
-                onChange={(e) => setCep(e.target.value)}
-                icon={MapPin}
-              />
-            </Box>
-          </Stack>
-          <Input
-            label={cd.streetLabel}
-            value={logradouro}
-            onChange={(e) => setLogradouro(e.target.value)}
-            icon={MapPin}
-          />
-          <Stack direction="row" gap={5} w="full">
-            <Box flex="1">
-              <Input
-                label={cd.numberLabel}
-                value={numero}
-                onChange={(e) => setNumero(e.target.value)}
-                icon={MapPin}
-              />
-            </Box>
-            <Box flex="1">
-              <Input
-                label={cd.complementLabel}
-                value={complemento}
-                onChange={(e) => setComplemento(e.target.value)}
-                icon={MapPin}
-              />
-            </Box>
-          </Stack>
-          <Input
-            label={cd.neighborhoodLabel}
-            value={bairro}
-            onChange={(e) => setBairro(e.target.value)}
-            icon={MapPin}
-          />
-          <Input
-            label={cd.cityLabel}
-            value={cidade}
-            onChange={(e) => setCidade(e.target.value)}
-            icon={MapPin}
-          />
-        </Stack>
-
-        {/* Seção Contato */}
-        <Stack gap={5} w="full">
-          <Font variant="body-bold" text={cd.contactSectionTitle} />
-          <Input
-            label={cd.contactNameLabel}
-            value={contatoNome}
-            onChange={(e) => setContatoNome(e.target.value)}
-            icon={User}
-          />
-          <Input
-            label={cd.contactPhoneLabel}
-            variant="phone"
-            icon={Phone}
-            iconRight={WhatsAppIcon as unknown as LucideIcon}
-            value={contatoTelefone}
-            onChange={(e) => setContatoTelefone(e.target.value)}
-          />
-        </Stack>
-
-        <FormActions
-          confirmLabel={cd.saveChangesButton}
-          onConfirm={() => {}}
-          isSubmit={true}
-          onCancel={onCancel}
-        />
+        <CompanyLogoSection logo={logo} onLogoChange={handleLogoChange} onRemoveLogo={() => setLogo(null)} fileInputRef={logoFileInputRef} />
+        <CompanyGeneralFields razaoSocial={razaoSocial} setRazaoSocial={setRazaoSocial} nomeFantasia={nomeFantasia} setNomeFantasia={setNomeFantasia} cnpj={cnpj} setCnpj={setCnpj} ie={ie} setIe={setIe} />
+        <CompanyAddressFields cep={cep} setCep={setCep} logradouro={logradouro} setLogradouro={setLogradouro} numero={numero} setNumero={setNumero} complemento={complemento} setComplemento={setComplemento} bairro={bairro} setBairro={setBairro} cidade={cidade} setCidade={setCidade} />
+        <CompanyContactFields contatoNome={contatoNome} setContatoNome={setContatoNome} contatoTelefone={contatoTelefone} setContatoTelefone={setContatoTelefone} />
+        <FormActions confirmLabel={cd.saveChangesButton} onConfirm={() => {}} isSubmit={true} onCancel={onCancel} />
       </Stack>
     </Box>
   )

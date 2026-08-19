@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { Download, Link2, Share2 } from "lucide-react"
 import { Stack } from "@/components/store/base/Stack"
@@ -14,22 +12,50 @@ import { UI_STRINGS } from "@/constants/strings"
 interface SaleShareModalProps {
   isOpen: boolean
   onClose: () => void
-  /** URL pública do PDF no Supabase Storage. Null se ainda não gerado. */
   pdfUrl: string | null
   saleName: string
-  /** Callback async que gera o PDF sob demanda (retorna a URL pública) */
   onGeneratePdf: () => Promise<string | null>
   onOpenLinkModal: (url: string) => void
 }
 
-export const SaleShareModal: React.FC<SaleShareModalProps> = ({
+interface ShareOptionCardProps {
+  icon: typeof Download
+  color: "primary" | "secondary"
+  title: string
+  subtitle: string
+  onClick: () => void
+}
+
+function ShareOptionCard({ icon, color, title, subtitle, onClick }: ShareOptionCardProps) {
+  return (
+    <Box
+      w="full"
+      padding={5}
+      radius="default"
+      bg="bg-brand-primary/10"
+      hoverBg="primary/10"
+      cursor="pointer"
+      onClick={onClick}
+    >
+      <Stack direction="row" gap={2.5} align="center" w="full">
+        <CircularIcon icon={icon} size={20} variant="solid" solidColor={color} solidRadius="default" />
+        <Stack direction="col" gap={1} align="start" flex="1">
+          <Font variant="body-medium" text={title} />
+          <Font variant="auxiliary" color="muted" text={subtitle} />
+        </Stack>
+      </Stack>
+    </Box>
+  )
+}
+
+export function SaleShareModal({
   isOpen,
   onClose,
   pdfUrl,
   saleName,
   onGeneratePdf,
   onOpenLinkModal,
-}) => {
+}: SaleShareModalProps) {
   const [isGenerating, setIsGenerating] = React.useState(false)
   const s = UI_STRINGS.saleShare
 
@@ -37,8 +63,7 @@ export const SaleShareModal: React.FC<SaleShareModalProps> = ({
     if (pdfUrl) return pdfUrl
     setIsGenerating(true)
     try {
-      const url = await onGeneratePdf()
-      return url
+      return await onGeneratePdf()
     } finally {
       setIsGenerating(false)
     }
@@ -75,43 +100,20 @@ export const SaleShareModal: React.FC<SaleShareModalProps> = ({
       showCancelButton
     >
       <Stack direction="col" gap={2.5} w="full">
-        {/* Opção 1 — Salvar arquivo */}
-        <Box
-          w="full"
-          padding={5}
-          radius="default"
-          bg="bg-brand-primary/10"
-          hoverBg="primary/10"
-          cursor="pointer"
+        <ShareOptionCard
+          icon={Download}
+          color="primary"
+          title={isGenerating ? s.generatingPdf : s.saveFile}
+          subtitle={s.downloadPdfDevice}
           onClick={handleSaveFile}
-        >
-          <Stack direction="row" gap={2.5} align="center" w="full">
-            <CircularIcon icon={Download} size={20} variant="solid" solidColor="primary" solidRadius="default" />
-            <Stack direction="col" gap={1} align="start" flex="1">
-              <Font variant="body-medium" text={isGenerating ? s.generatingPdf : s.saveFile} />
-              <Font variant="auxiliary" color="muted" text={s.downloadPdfDevice} />
-            </Stack>
-          </Stack>
-        </Box>
-
-        {/* Opção 2 — Enviar link */}
-        <Box
-          w="full"
-          padding={5}
-          radius="default"
-          bg="bg-brand-primary/10"
-          hoverBg="primary/10"
-          cursor="pointer"
+        />
+        <ShareOptionCard
+          icon={Link2}
+          color="secondary"
+          title={s.sendDownloadLink}
+          subtitle={s.shareQrOrWhatsApp}
           onClick={handleSendLink}
-        >
-          <Stack direction="row" gap={2.5} align="center" w="full">
-            <CircularIcon icon={Link2} size={20} variant="solid" solidColor="secondary" solidRadius="default" />
-            <Stack direction="col" gap={1} align="start" flex="1">
-              <Font variant="body-medium" text={s.sendDownloadLink} />
-              <Font variant="auxiliary" color="muted" text={s.shareQrOrWhatsApp} />
-            </Stack>
-          </Stack>
-        </Box>
+        />
       </Stack>
     </Modal>
   )

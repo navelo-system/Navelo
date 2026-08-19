@@ -1,110 +1,120 @@
-/* eslint-disable max-lines-per-function, complexity */
-import React from 'react';
-import { Box } from '@/components/store/base/Box';
-import { Stack } from '@/components/store/base/Stack';
-import { Font } from '@/components/store/base/Font';
-import { Badge } from '@/components/store/base/Badge';
-import { Button } from '@/components/store/base/Button';
-import { Icon } from '@/components/store/base/Icon';
-import { EmptyState } from '@/components/store/intermediary/EmptyState';
-import { Edit2, MapPin } from 'lucide-react';
-import { CustomerAddress } from '@/src/types/domain';
-import { UI_STRINGS } from '@/constants/strings';
+import React from "react"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Font } from "@/components/store/base/Font"
+import { Badge } from "@/components/store/base/Badge"
+import { Button } from "@/components/store/base/Button"
+import { Icon } from "@/components/store/base/Icon"
+import { EmptyState } from "@/components/store/intermediary/EmptyState"
+import { Edit2, MapPin } from "lucide-react"
+import { CustomerAddress } from "@/src/types/domain"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface AddressListProps {
-  addresses: CustomerAddress[];
-  onEdit?: (address: CustomerAddress) => void;
-  onDelete?: (address: CustomerAddress) => void;
+  addresses: CustomerAddress[]
+  onEdit?: (address: CustomerAddress) => void
+  onDelete?: (address: CustomerAddress) => void
+}
+
+interface AddressCardItemProps {
+  addr: CustomerAddress
+  isMultiple: boolean
+  onEdit?: (address: CustomerAddress) => void
+  onDelete?: (address: CustomerAddress) => void
+}
+
+function resolveAddressTexts(addr: CustomerAddress) {
+  let streetText = addr.street
+  if (addr.number && addr.number !== "S/N" && !addr.street.includes(addr.number)) {
+    streetText = `${addr.street}, ${addr.number}`
+  }
+
+  const parts: string[] = []
+  if (addr.neighborhood) parts.push(addr.neighborhood)
+  if (addr.city) {
+    parts.push(addr.state ? `${addr.city}/${addr.state}` : addr.city)
+  }
+  if (addr.zipCode) {
+    parts.push(`CEP: ${addr.zipCode}`)
+  }
+
+  return {
+    streetText,
+    detailsText: parts.join(" - "),
+    hasDetails: parts.length > 0,
+  }
+}
+
+function AddressCardItem({ addr, isMultiple, onEdit, onDelete }: AddressCardItemProps) {
+  const cust = UI_STRINGS.customers
+  const { streetText, detailsText, hasDetails } = resolveAddressTexts(addr)
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    onEdit?.(addr)
+  }
+
+  return (
+    <Box padding={5} border borderColor="border-border" radius="default" w="full">
+      <Stack gap={2.5} w="full">
+        <Stack direction="row" justify="between" align="center" w="full">
+          <Box padding={2.5} bg="bg-brand-primary/10" radius="full">
+            <Icon icon={MapPin} size={20} color="primary" />
+          </Box>
+          <Stack direction="row" gap={2.5} align="center">
+            <Button
+              type="button"
+              variant="primary-icon-xs"
+              icon={Edit2}
+              onClick={handleEditClick}
+              title={cust.editAddressTitle}
+            />
+            {onDelete && (
+              <Button
+                type="button"
+                variant="danger-icon-xs-confirm"
+                confirmTitle={cust.deleteAddressConfirmTitle}
+                confirmSubtitle={cust.deleteAddressConfirmSubtitle}
+                confirmParagraph={cust.deleteAddressConfirmParagraph}
+                onConfirm={() => onDelete(addr)}
+                title={cust.deleteAddressTitle}
+              />
+            )}
+          </Stack>
+        </Stack>
+
+        <Stack gap={1} w="full" align="start">
+          <Stack direction="row" align="center" gap={2.5} wrap={true}>
+            <Font variant="body-bold" text={streetText} />
+            {isMultiple && addr.isDefault && <Badge variant="primary" label={cust.defaultAddressBadge} />}
+          </Stack>
+          {hasDetails && <Font variant="description" text={detailsText} />}
+          {addr.complement && <Font variant="auxiliary" color="muted" text={`Complemento: ${addr.complement}`} />}
+        </Stack>
+      </Stack>
+    </Box>
+  )
 }
 
 export function AddressList({ addresses, onEdit, onDelete }: AddressListProps) {
   const cust = UI_STRINGS.customers
 
   if (!addresses || addresses.length === 0) {
-    return (
-      <EmptyState
-        icon={MapPin}
-        title={cust.emptyAddressTitle}
-        subtitle={cust.emptyAddressSubtitle}
-      />
-    );
+    return <EmptyState icon={MapPin} title={cust.emptyAddressTitle} subtitle={cust.emptyAddressSubtitle} />
   }
 
   return (
     <Stack gap={2.5}>
-      {addresses.map((addr) => {
-        const hasDetails = Boolean(addr.neighborhood || addr.city || addr.zipCode)
-        const streetText = addr.number && addr.number !== "S/N" && !addr.street.includes(addr.number)
-          ? `${addr.street}, ${addr.number}`
-          : addr.street
-
-        const detailsText = [
-          addr.neighborhood,
-          addr.city && addr.state ? `${addr.city}/${addr.state}` : addr.city,
-          addr.zipCode ? `CEP: ${addr.zipCode}` : null,
-        ].filter(Boolean).join(" - ")
-
-        return (
-          <Box
-            key={addr.id}
-            padding={5}
-            border
-            borderColor="border-border"
-            radius="default"
-            w="full"
-          >
-            <Stack gap={2.5} w="full">
-              {/* Linha Superior: Ícone à esquerda, Ações (Editar/Deletar) à direita */}
-              <Stack direction="row" justify="between" align="center" w="full">
-                <Box padding={2.5} bg="bg-brand-primary/10" radius="full">
-                  <Icon icon={MapPin} size={20} color="primary" />
-                </Box>
-                <Stack direction="row" gap={2.5} align="center">
-                  <Button
-                    type="button"
-                    variant="primary-icon-xs"
-                    icon={Edit2}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      onEdit?.(addr)
-                    }}
-                    title={cust.editAddressTitle}
-                  />
-                  {onDelete && (
-                    <Button
-                      type="button"
-                      variant="danger-icon-xs-confirm"
-                      confirmTitle={cust.deleteAddressConfirmTitle}
-                      confirmSubtitle={cust.deleteAddressConfirmSubtitle}
-                      confirmParagraph={cust.deleteAddressConfirmParagraph}
-                      onConfirm={() => onDelete?.(addr)}
-                      title={cust.deleteAddressTitle}
-                    />
-                  )}
-                </Stack>
-              </Stack>
-
-              {/* Detalhes do Endereço abaixo */}
-              <Stack gap={1} w="full" align="start">
-                <Stack direction="row" align="center" gap={2.5} wrap={true}>
-                  <Font variant="body-bold" text={streetText} />
-                  {addresses.length > 1 && addr.isDefault && <Badge variant="primary" label={cust.defaultAddressBadge} />}
-                </Stack>
-                {hasDetails && (
-                  <Font
-                    variant="description"
-                    text={detailsText}
-                  />
-                )}
-                {addr.complement && (
-                  <Font variant="auxiliary" color="muted" text={`Complemento: ${addr.complement}`} />
-                )}
-              </Stack>
-            </Stack>
-          </Box>
-        )
-      })}
+      {addresses.map((addr) => (
+        <AddressCardItem
+          key={addr.id}
+          addr={addr}
+          isMultiple={addresses.length > 1}
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+      ))}
     </Stack>
-  );
+  )
 }

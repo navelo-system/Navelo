@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -18,17 +16,54 @@ export interface ListSectionLayoutProps<T> {
   onAdd?: () => void
   renderItem: (item: T, idx: number) => React.ReactNode
   getItemKey?: (item: T, idx: number) => string | number
-
-  // Empty State Customization
   emptyIcon?: LucideIcon
   emptyTitle?: string
   emptySubtitle?: string
-
-  // Header Injection Handlers
   setCustomBack?: (cb: (() => void) | null) => void
   setCustomTitle?: (title: string | null) => void
   setCustomActions?: (actions: React.ReactNode | null) => void
   onBackToDashboard?: () => void
+}
+
+interface ItemsListContainerProps<T> {
+  items: T[]
+  renderItem: (item: T, idx: number) => React.ReactNode
+  getItemKey?: (item: T, idx: number) => string | number
+  emptyIcon: LucideIcon
+  emptyTitle: string
+  emptySubtitle: string
+}
+
+function ItemsListContainer<T>({
+  items,
+  renderItem,
+  getItemKey,
+  emptyIcon,
+  emptyTitle,
+  emptySubtitle,
+}: ItemsListContainerProps<T>) {
+  if (items.length === 0) {
+    return (
+      <EmptyState
+        icon={emptyIcon}
+        title={emptyTitle}
+        subtitle={emptySubtitle}
+      />
+    )
+  }
+
+  return (
+    <Box display="flex" direction="col" w="full">
+      {items.map((item, idx) => (
+        <Box key={getItemKey ? getItemKey(item, idx) : idx}>
+          {renderItem(item, idx)}
+          {idx < items.length - 1 && (
+            <Box h="h-[2px]" w="full" bg="bg-border" />
+          )}
+        </Box>
+      ))}
+    </Box>
+  )
 }
 
 export function ListSectionLayout<T>({
@@ -45,27 +80,34 @@ export function ListSectionLayout<T>({
   setCustomBack,
   setCustomTitle,
   setCustomActions,
-  onBackToDashboard
+  onBackToDashboard,
 }: ListSectionLayoutProps<T>) {
   const [searchQuery, setSearchQuery] = React.useState("")
 
+  const onBackToDashboardRef = React.useRef(onBackToDashboard)
   const setCustomBackRef = React.useRef(setCustomBack)
   const setCustomTitleRef = React.useRef(setCustomTitle)
   const setCustomActionsRef = React.useRef(setCustomActions)
-  const onBackToDashboardRef = React.useRef(onBackToDashboard)
 
   React.useEffect(() => {
+    onBackToDashboardRef.current = onBackToDashboard
     setCustomBackRef.current = setCustomBack
     setCustomTitleRef.current = setCustomTitle
     setCustomActionsRef.current = setCustomActions
-    onBackToDashboardRef.current = onBackToDashboard
-  }, [setCustomBack, setCustomTitle, setCustomActions, onBackToDashboard])
+  })
+
+  React.useEffect(() => {
+    return () => {
+      setCustomBackRef.current?.(null)
+      setCustomTitleRef.current?.(null)
+      setCustomActionsRef.current?.(null)
+    }
+  }, [])
 
   React.useEffect(() => {
     setCustomTitleRef.current?.(title)
     if (onBackToDashboardRef.current) {
-      const cb = onBackToDashboardRef.current
-      setCustomBackRef.current?.(() => cb)
+      setCustomBackRef.current?.(() => onBackToDashboardRef.current!)
     } else {
       setCustomBackRef.current?.(null)
     }
@@ -77,40 +119,24 @@ export function ListSectionLayout<T>({
         placeholder={searchPlaceholder}
       />
     )
-
-    return () => {
-      setCustomBackRef.current?.(null)
-      setCustomTitleRef.current?.(null)
-      setCustomActionsRef.current?.(null)
-    }
   }, [title, searchQuery, searchPlaceholder])
 
   const filteredItems = React.useMemo(() => {
     if (!searchQuery.trim()) return items
-    return items.filter(item => searchFilterFn(item, searchQuery))
+    return items.filter((item) => searchFilterFn(item, searchQuery))
   }, [items, searchQuery, searchFilterFn])
 
   return (
     <Box flex="1" minH="0" h="full" overflowY="auto" w="full" position="relative">
       <Stack gap={5} w="full">
-        {filteredItems.length > 0 ? (
-          <Box display="flex" direction="col" w="full">
-            {filteredItems.map((item, idx) => (
-              <Box key={getItemKey ? getItemKey(item, idx) : idx}>
-                {renderItem(item, idx)}
-                {idx < filteredItems.length - 1 && (
-                  <Box h="h-[2px]" w="full" bg="bg-border" />
-                )}
-              </Box>
-            ))}
-          </Box>
-        ) : (
-          <EmptyState
-            icon={emptyIcon}
-            title={emptyTitle}
-            subtitle={emptySubtitle}
-          />
-        )}
+        <ItemsListContainer
+          items={filteredItems}
+          renderItem={renderItem}
+          getItemKey={getItemKey}
+          emptyIcon={emptyIcon}
+          emptyTitle={emptyTitle}
+          emptySubtitle={emptySubtitle}
+        />
 
         {onAdd && (
           <Box position="fixed" bottom="24px" right="24px" zIndex="30">

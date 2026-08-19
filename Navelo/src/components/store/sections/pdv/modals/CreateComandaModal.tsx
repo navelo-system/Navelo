@@ -15,20 +15,21 @@ interface CreateComandaModalProps {
   onSubmit: (name: string) => void
 }
 
-export const CreateComandaModal: React.FC<CreateComandaModalProps> = ({
+export function CreateComandaModal({
   isOpen,
   onClose,
-  onSubmit
-}) => {
+  onSubmit,
+}: CreateComandaModalProps) {
   const [newComandaName, setNewComandaName] = React.useState("")
+  const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen)
   const t = UI_STRINGS.tables
 
-  React.useEffect(() => {
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen)
     if (isOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setNewComandaName("")
     }
-  }, [isOpen])
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

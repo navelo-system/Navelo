@@ -22,12 +22,68 @@ const MOCK_CONFIG: GlobalConfig = {
     primaryColor: typeof window !== "undefined" ? localStorage.getItem("brand-primary") || "#3b82f6" : "#3b82f6",
     secondaryColor: typeof window !== "undefined" ? localStorage.getItem("brand-secondary") || "#f97316" : "#f97316",
     logoUrl: typeof window !== "undefined" ? localStorage.getItem("logo-data") || "" : "",
-  }
+  },
 }
 
-// eslint-disable-next-line max-lines-per-function
-export function ConfiguracoesSection() {
-  const [config, setConfig] = React.useState<GlobalConfig>(MOCK_CONFIG)
+function SystemParamsSection({
+  config,
+  setConfig,
+}: {
+  config: GlobalConfig
+  setConfig: React.Dispatch<React.SetStateAction<GlobalConfig>>
+}) {
+  const s = UI_STRINGS.admin.settings
+  return (
+    <RegistrySection title={s.systemParamsTitle} description={s.systemParamsDesc} icon={Settings}>
+      <Stack gap={5}>
+        <Input
+          label={s.platformNameLabel}
+          placeholder={s.platformNamePlaceholder}
+          value={config.systemName}
+          onChange={(e) => setConfig((prev) => ({ ...prev, systemName: e.target.value }))}
+        />
+        <Input
+          label={s.adminEmailSupportLabel}
+          placeholder={s.adminEmailSupportPlaceholder}
+          value={config.adminEmail}
+          onChange={(e) => setConfig((prev) => ({ ...prev, adminEmail: e.target.value }))}
+        />
+        <Stack gap={5}>
+          <Stack direction="row" align="center" justify="between">
+            <Stack gap={1}>
+              <Font variant="body-bold" text={s.allowRegistrationLabel} />
+              <Font variant="auxiliary" text={s.allowRegistrationDesc} />
+            </Stack>
+            <Switch
+              checked={config.allowRegistration}
+              onChange={(e) => setConfig((prev) => ({ ...prev, allowRegistration: e.target.checked }))}
+            />
+          </Stack>
+          <Stack direction="row" align="center" justify="between">
+            <Stack gap={1}>
+              <Font variant="body-bold" text={s.maintenanceModeLabel} />
+              <Font variant="auxiliary" text={s.maintenanceModeDesc} />
+            </Stack>
+            <Switch
+              checked={config.maintenanceMode}
+              onChange={(e) => setConfig((prev) => ({ ...prev, maintenanceMode: e.target.checked }))}
+            />
+          </Stack>
+        </Stack>
+      </Stack>
+    </RegistrySection>
+  )
+}
+
+function VisualIdentitySection({
+  config,
+  setConfig,
+  onSave,
+}: {
+  config: GlobalConfig
+  setConfig: React.Dispatch<React.SetStateAction<GlobalConfig>>
+  onSave: () => void
+}) {
   const s = UI_STRINGS.admin.settings
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,138 +91,72 @@ export function ConfiguracoesSection() {
     if (file) {
       const reader = new FileReader()
       reader.onloadend = () => {
-        setConfig(prev => ({ ...prev, whitelabel: { ...prev.whitelabel, logoUrl: reader.result as string } }))
+        setConfig((prev) => ({ ...prev, whitelabel: { ...prev.whitelabel, logoUrl: reader.result as string } }))
       }
       reader.readAsDataURL(file)
     }
   }
+
+  return (
+    <RegistrySection title={s.visualIdentityTitle} description={s.visualIdentityDesc} icon={Palette}>
+      <Stack gap={5}>
+        <Grid cols={2} gap={5}>
+          <Input
+            type="color"
+            label={s.primaryColorLabel}
+            value={config.whitelabel.primaryColor}
+            onChange={(e) => setConfig((prev) => ({ ...prev, whitelabel: { ...prev.whitelabel, primaryColor: e.target.value } }))}
+          />
+          <Input
+            type="color"
+            label={s.secondaryColorLabel}
+            value={config.whitelabel.secondaryColor}
+            onChange={(e) => setConfig((prev) => ({ ...prev, whitelabel: { ...prev.whitelabel, secondaryColor: e.target.value } }))}
+          />
+        </Grid>
+        <Stack gap={2.5}>
+          <Input variant="image-upload" label={s.platformLogoLabel} placeholder={s.platformLogoPlaceholder} icon={Upload} onChange={handleLogoChange} />
+          {config.whitelabel.logoUrl && (
+            <Stack direction="row" align="center" gap={2.5}>
+              <Box w="w-16" h="h-16" radius="default" display="flex" justify="center" overflow="hidden" bg="bg-surface-sunken" border borderColor="border-slate-200">
+                <Stack w="full" h="full" align="center" justify="center">
+                  <Box as="img" src={config.whitelabel.logoUrl} alt="Preview Logo" w="w-[48px]" h="h-[48px]" objectFit="contain" />
+                </Stack>
+              </Box>
+              <Button variant="outline" label={s.removeLogoButton} onClick={() => setConfig((prev) => ({ ...prev, whitelabel: { ...prev.whitelabel, logoUrl: "" } }))} />
+            </Stack>
+          )}
+        </Stack>
+        <Stack direction="row" justify="end">
+          <Button variant="primary" label={s.saveChangesButton} icon={Save} onClick={onSave} />
+        </Stack>
+      </Stack>
+    </RegistrySection>
+  )
+}
+
+export function ConfiguracoesSection() {
+  const [config, setConfig] = React.useState<GlobalConfig>(MOCK_CONFIG)
+  const s = UI_STRINGS.admin.settings
 
   const handleSave = () => {
     if (typeof window !== "undefined") {
       localStorage.setItem("brand-primary", config.whitelabel.primaryColor)
       localStorage.setItem("brand-secondary", config.whitelabel.secondaryColor)
       localStorage.setItem("logo-data", config.whitelabel.logoUrl || "")
-
-      // Apply dynamically
-      document.documentElement.style.setProperty('--brand-primary', config.whitelabel.primaryColor)
-      document.documentElement.style.setProperty('--brand-secondary', config.whitelabel.secondaryColor)
-      
-      window.location.reload() // Reload to propagate logo to header cleanly
+      document.documentElement.style.setProperty("--brand-primary", config.whitelabel.primaryColor)
+      document.documentElement.style.setProperty("--brand-secondary", config.whitelabel.secondaryColor)
+      window.location.reload()
     }
   }
 
   return (
     <>
       <Stack direction="row" align="start" w="fit-content">
-        <Button
-          variant="ghost"
-          label={s.backButton}
-          icon={ArrowLeft}
-          onClick={() => window.location.href = "/admin"}
-        />
+        <Button variant="ghost" label={s.backButton} icon={ArrowLeft} onClick={() => { window.location.href = "/admin" }} />
       </Stack>
-
-      <RegistrySection 
-        title={s.systemParamsTitle}
-        description={s.systemParamsDesc}
-        icon={Settings}
-      >
-        <Stack gap={5}>
-          <Input
-            label={s.platformNameLabel}
-            placeholder={s.platformNamePlaceholder}
-            value={config.systemName}
-            onChange={(e) => setConfig({ ...config, systemName: e.target.value })}
-          />
-
-          <Input
-            label={s.adminEmailSupportLabel}
-            placeholder={s.adminEmailSupportPlaceholder}
-            value={config.adminEmail}
-            onChange={(e) => setConfig({ ...config, adminEmail: e.target.value })}
-          />
-
-          <Stack gap={5}>
-            <Stack direction="row" align="center" justify="between">
-              <Stack gap={1}>
-                <Font variant="body-bold" text={s.allowRegistrationLabel} />
-                <Font variant="auxiliary" text={s.allowRegistrationDesc} />
-              </Stack>
-              <Switch
-                checked={config.allowRegistration}
-                onChange={(e) => setConfig({ ...config, allowRegistration: e.target.checked })}
-              />
-            </Stack>
-
-            <Stack direction="row" align="center" justify="between">
-              <Stack gap={1}>
-                <Font variant="body-bold" text={s.maintenanceModeLabel} />
-                <Font variant="auxiliary" text={s.maintenanceModeDesc} />
-              </Stack>
-              <Switch
-                checked={config.maintenanceMode}
-                onChange={(e) => setConfig({ ...config, maintenanceMode: e.target.checked })}
-              />
-            </Stack>
-          </Stack>
-        </Stack>
-      </RegistrySection>
-
-      <RegistrySection 
-        title={s.visualIdentityTitle}
-        description={s.visualIdentityDesc}
-        icon={Palette}
-      >
-        <Stack gap={5}>
-          <Grid cols={2} gap={5}>
-            <Input
-              type="color"
-              label={s.primaryColorLabel}
-              value={config.whitelabel.primaryColor}
-              onChange={(e) => setConfig({ ...config, whitelabel: { ...config.whitelabel, primaryColor: e.target.value } })}
-            />
-            <Input
-              type="color"
-              label={s.secondaryColorLabel}
-              value={config.whitelabel.secondaryColor}
-              onChange={(e) => setConfig({ ...config, whitelabel: { ...config.whitelabel, secondaryColor: e.target.value } })}
-            />
-          </Grid>
-
-          <Stack gap={2.5}>
-            <Input
-              variant="image-upload"
-              label={s.platformLogoLabel}
-              placeholder={s.platformLogoPlaceholder}
-              icon={Upload}
-              onChange={handleLogoChange}
-            />
-            {config.whitelabel.logoUrl && (
-              <Stack direction="row" align="center" gap={2.5}>
-                <Box w="w-16" h="h-16" radius="default" display="flex" justify="center" overflow="hidden" bg="bg-surface-sunken" border borderColor="border-slate-200">
-                  <Stack w="full" h="full" align="center" justify="center">
-                    <Box as="img" src={config.whitelabel.logoUrl} alt="Preview Logo" w="w-[48px]" h="h-[48px]" objectFit="contain" />
-                  </Stack>
-                </Box>
-                <Button
-                  variant="outline"
-                  label={s.removeLogoButton}
-                  onClick={() => setConfig({ ...config, whitelabel: { ...config.whitelabel, logoUrl: "" } })}
-                />
-              </Stack>
-            )}
-          </Stack>
-
-          <Stack direction="row" justify="end">
-            <Button
-              variant="primary"
-              label={s.saveChangesButton}
-              icon={Save}
-              onClick={handleSave}
-            />
-          </Stack>
-        </Stack>
-      </RegistrySection>
+      <SystemParamsSection config={config} setConfig={setConfig} />
+      <VisualIdentitySection config={config} setConfig={setConfig} onSave={handleSave} />
     </>
   )
 }

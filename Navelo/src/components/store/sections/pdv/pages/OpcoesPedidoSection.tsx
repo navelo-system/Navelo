@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -18,10 +16,97 @@ export interface OpcoesPedidoSectionProps {
   setCustomTitle?: (title: string | null) => void
 }
 
+function OpcoesPedidoTogglesCard({
+  login, setLogin,
+  bloquearForaHorario, setBloquearForaHorario,
+  notificacao, setNotificacao,
+  avisoSonoro, setAvisoSonoro,
+  avisoContinuo, setAvisoContinuo,
+}: {
+  login: boolean; setLogin: (v: boolean) => void
+  bloquearForaHorario: boolean; setBloquearForaHorario: (v: boolean) => void
+  notificacao: boolean; setNotificacao: (v: boolean) => void
+  avisoSonoro: boolean; setAvisoSonoro: (v: boolean) => void
+  avisoContinuo: boolean; setAvisoContinuo: (v: boolean) => void
+}) {
+  const o = UI_STRINGS.orderOptions
+  return (
+    <>
+      <Stack direction="row" align="start" gap={2.5} w="full">
+        <Checkbox checked={login} onChange={(e) => setLogin(e.target.checked)} />
+        <Stack gap={1} flex="1">
+          <Font variant="body-bold" text={o.askCustomerNameToggle} />
+          <Font variant="description" text={o.loginDesc} color="muted" />
+        </Stack>
+      </Stack>
+      <Box h="h-[1px]" w="full" bg="bg-border" />
+
+      <Stack direction="row" align="start" gap={2.5} w="full">
+        <Checkbox checked={bloquearForaHorario} onChange={(e) => setBloquearForaHorario(e.target.checked)} />
+        <Stack gap={1} flex="1">
+          <Font variant="body-bold" text={o.blockOutOfHoursToggle} />
+          <Font variant="description" text={o.blockOutOfHoursDesc} color="muted" />
+        </Stack>
+      </Stack>
+      <Box h="h-[1px]" w="full" bg="bg-border" />
+
+      <Stack direction="row" align="start" gap={2.5} w="full">
+        <Checkbox checked={notificacao} onChange={(e) => setNotificacao(e.target.checked)} />
+        <Stack gap={1} flex="1">
+          <Font variant="body-bold" text={UI_STRINGS.ifood.notificationCheckboxLabel} />
+          <Font variant="description" text={o.notificationDesc} color="muted" />
+        </Stack>
+      </Stack>
+      <Box h="h-[1px]" w="full" bg="bg-border" />
+
+      <Stack direction="row" align="start" gap={2.5} w="full">
+        <Checkbox checked={avisoSonoro} onChange={(e) => setAvisoSonoro(e.target.checked)} />
+        <Stack gap={1} flex="1">
+          <Font variant="body-bold" text={o.soundAlertToggle} />
+          <Font variant="description" text={o.soundAlertDesc} color="muted" />
+        </Stack>
+      </Stack>
+
+      {avisoSonoro && (
+        <Stack direction="row" gap={5} w="full">
+          <Box w="w-[2px]" bg="bg-border" shrink="0" />
+          <Stack direction="row" align="start" gap={2.5} flex="1">
+            <Checkbox checked={avisoContinuo} onChange={(e) => setAvisoContinuo(e.target.checked)} />
+            <Stack gap={1} flex="1">
+              <Font variant="body-bold" text={UI_STRINGS.ifood.continuousSoundCheckboxLabel} />
+              <Font variant="description" text={o.continuousSoundDesc} color="muted" />
+            </Stack>
+          </Stack>
+        </Stack>
+      )}
+    </>
+  )
+}
+
+function OpcoesPedidoDeviceCard({
+  dispositivo,
+  setDispositivo,
+}: {
+  dispositivo: string
+  setDispositivo: (v: string) => void
+}) {
+  const o = UI_STRINGS.orderOptions
+  return (
+    <Stack gap={2.5} w="full">
+      <Font variant="description" text={o.deviceReceivingOrdersLabel} color="muted" />
+      <CustomSelect value={dispositivo} onChange={setDispositivo} placeholder={o.selectDevicePlaceholder}>
+        <CustomSelectItem value="dev-06" text={o.device06} icon={Monitor} />
+        <CustomSelectItem value="dev-01" text={o.device01} icon={Monitor} />
+        <CustomSelectItem value="dev-caixa" text={o.mainCashierDevice} icon={Monitor} />
+      </CustomSelect>
+    </Stack>
+  )
+}
+
 export const OpcoesPedidoSection: React.FC<OpcoesPedidoSectionProps> = ({
   onCancel,
   setCustomBack,
-  setCustomTitle
+  setCustomTitle,
 }) => {
   const [login, setLogin] = React.useState(true)
   const [bloquearForaHorario, setBloquearForaHorario] = React.useState(true)
@@ -40,153 +125,27 @@ export const OpcoesPedidoSection: React.FC<OpcoesPedidoSectionProps> = ({
     }
   }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
-  const handleSave = () => {
-    onCancel()
-  }
-
   return (
     <Stack gap={5} w="full">
-      <Box
-        bg="bg-white"
-        border={true}
-        borderColor="border-border"
-        radius="default"
-        padding={5}
-        w="full"
-      >
+      <Box bg="bg-white" border borderColor="border-border" radius="default" padding={5} w="full">
         <Stack gap={5} w="full">
-          {/* Login */}
-          <Stack direction="row" align="start" gap={2.5} w="full">
-            <Checkbox
-              checked={login}
-              onChange={(e) => setLogin(e.target.checked)}
-            />
-            <Stack gap={1} flex="1">
-              <Font variant="body-bold" text={s.askCustomerNameToggle} />
-              <Font
-                variant="description"
-                text={UI_STRINGS.orderOptions.loginDesc}
-                color="muted"
-              />
-            </Stack>
-          </Stack>
-
+          <OpcoesPedidoTogglesCard
+            login={login} setLogin={setLogin}
+            bloquearForaHorario={bloquearForaHorario} setBloquearForaHorario={setBloquearForaHorario}
+            notificacao={notificacao} setNotificacao={setNotificacao}
+            avisoSonoro={avisoSonoro} setAvisoSonoro={setAvisoSonoro}
+            avisoContinuo={avisoContinuo} setAvisoContinuo={setAvisoContinuo}
+          />
           <Box h="h-[1px]" w="full" bg="bg-border" />
-
-          {/* Bloquear fora do horário */}
-          <Stack direction="row" align="start" gap={2.5} w="full">
-            <Checkbox
-              checked={bloquearForaHorario}
-              onChange={(e) => setBloquearForaHorario(e.target.checked)}
-            />
-            <Stack gap={1} flex="1">
-              <Font variant="body-bold" text={UI_STRINGS.orderOptions.blockOutOfHoursToggle} />
-              <Font
-                variant="description"
-                text={UI_STRINGS.orderOptions.blockOutOfHoursDesc}
-                color="muted"
-              />
-            </Stack>
-          </Stack>
-
-          <Box h="h-[1px]" w="full" bg="bg-border" />
-
-          {/* Notificação */}
-          <Stack direction="row" align="start" gap={2.5} w="full">
-            <Checkbox
-              checked={notificacao}
-              onChange={(e) => setNotificacao(e.target.checked)}
-            />
-            <Stack gap={1} flex="1">
-              <Font variant="body-bold" text={UI_STRINGS.ifood.notificationCheckboxLabel} />
-              <Font
-                variant="description"
-                text={UI_STRINGS.orderOptions.notificationDesc}
-                color="muted"
-              />
-            </Stack>
-          </Stack>
-
-          <Box h="h-[1px]" w="full" bg="bg-border" />
-
-          {/* Aviso Sonoro */}
-          <Stack direction="row" align="start" gap={2.5} w="full">
-            <Checkbox
-              checked={avisoSonoro}
-              onChange={(e) => setAvisoSonoro(e.target.checked)}
-            />
-            <Stack gap={1} flex="1">
-              <Font variant="body-bold" text={UI_STRINGS.orderOptions.soundAlertToggle} />
-              <Font
-                variant="description"
-                text={UI_STRINGS.orderOptions.soundAlertDesc}
-                color="muted"
-              />
-            </Stack>
-          </Stack>
-
-          {/* Aviso Sonoro Contínuo (Recuado) */}
-          {avisoSonoro && (
-            <Stack direction="row" gap={5} w="full">
-              {/* Linha vertical de recuo */}
-              <Box w="w-[2px]" bg="bg-border" shrink="0" />
-              <Stack direction="row" align="start" gap={2.5} flex="1">
-                <Checkbox
-                  checked={avisoContinuo}
-                  onChange={(e) => setAvisoContinuo(e.target.checked)}
-                />
-                <Stack gap={1} flex="1">
-                  <Font variant="body-bold" text={UI_STRINGS.ifood.continuousSoundCheckboxLabel} />
-                  <Font
-                    variant="description"
-                    text={UI_STRINGS.orderOptions.continuousSoundDesc}
-                    color="muted"
-                  />
-                </Stack>
-              </Stack>
-            </Stack>
-          )}
-
-          <Box h="h-[1px]" w="full" bg="bg-border" />
-
-          {/* Selecionar dispositivo */}
-          <Stack gap={2.5} w="full">
-            <Font variant="description" text={UI_STRINGS.orderOptions.deviceReceivingOrdersLabel} color="muted" />
-            <CustomSelect
-              value={dispositivo}
-              onChange={(val) => setDispositivo(val)}
-              placeholder={UI_STRINGS.orderOptions.selectDevicePlaceholder}
-            >
-              <CustomSelectItem value="dev-06" text={UI_STRINGS.orderOptions.device06} icon={Monitor} />
-              <CustomSelectItem value="dev-01" text={UI_STRINGS.orderOptions.device01} icon={Monitor} />
-              <CustomSelectItem value="dev-caixa" text={UI_STRINGS.orderOptions.mainCashierDevice} icon={Monitor} />
-            </CustomSelect>
-          </Stack>
+          <OpcoesPedidoDeviceCard dispositivo={dispositivo} setDispositivo={setDispositivo} />
         </Stack>
       </Box>
 
-      {/* Nota informativa */}
-      <Box
-        bg="bg-surface"
-        border={true}
-        borderColor="border-border"
-        radius="default"
-        padding={5}
-        w="full"
-      >
-        <Font
-          variant="description"
-          text={UI_STRINGS.orderOptions.deviceInfoNote}
-          color="muted"
-        />
+      <Box bg="bg-surface" border borderColor="border-border" radius="default" padding={5} w="full">
+        <Font variant="description" text={s.deviceInfoNote} color="muted" />
       </Box>
 
-      {/* Botões de Ação */}
-      <FormActions
-        confirmLabel={UI_STRINGS.pdv.cart.saveChangesButton}
-        onConfirm={handleSave}
-        onCancel={onCancel}
-      />
+      <FormActions confirmLabel={UI_STRINGS.pdv.cart.saveChangesButton} onConfirm={onCancel} onCancel={onCancel} />
     </Stack>
   )
 }

@@ -1,7 +1,5 @@
 "use client"
 
-/* eslint-disable max-lines-per-function */
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -40,10 +38,7 @@ function toGridCols(count: number): GridCols {
   return 10
 }
 
-function useGridColumnCount(
-  minCardWidth: number,
-  gap: number
-) {
+function useGridColumnCount(minCardWidth: number, gap: number) {
   const [columns, setColumns] = React.useState<GridCols>(3)
   const observerRef = React.useRef<ResizeObserver | null>(null)
 
@@ -53,14 +48,12 @@ function useGridColumnCount(
         observerRef.current.disconnect()
         observerRef.current = null
       }
-
       if (node) {
         const updateColumns = () => {
           const width = node.getBoundingClientRect().width
           const next = Math.floor((width + gap) / (minCardWidth + gap))
           setColumns(toGridCols(next))
         }
-
         updateColumns()
         const observer = new ResizeObserver(updateColumns)
         observer.observe(node)
@@ -71,6 +64,41 @@ function useGridColumnCount(
   )
 
   return [columns, refCallback] as const
+}
+
+function ComandaGridCard({
+  comanda,
+  onSelect,
+}: {
+  comanda: ComandaItem
+  onSelect: () => void
+}) {
+  return (
+    <Box
+      onClick={onSelect}
+      position="relative"
+      padding={0}
+      bg="bg-surface"
+      radius="lg"
+      border
+      borderColor="border-brand-secondary"
+      overflow="hidden"
+      w="full"
+      h="h-[170px]"
+      hoverBg="secondary/10"
+      display="flex"
+      direction="col"
+      cursor="pointer"
+    >
+      <TagFoldSvg />
+      <Box position="absolute" top={3} right={3}>
+        <Font variant="body-sm-medium" text={comanda.label} />
+      </Box>
+      <Stack w="full" h="full" justify="center" align="center">
+        <Font variant="body-medium" text={comanda.time} />
+      </Stack>
+    </Box>
+  )
 }
 
 export const ComandasSection: React.FC<ComandasSectionProps> = ({
@@ -86,8 +114,8 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
   const [gridColumns, gridContainerRef] = useGridColumnCount(130, 20)
   const s = UI_STRINGS.tables
 
-  const filtered = comandas.filter((c) =>
-    c.label.toLowerCase().includes(searchQuery.toLowerCase()) || c.id.includes(searchQuery)
+  const filtered = comandas.filter(
+    (c) => c.label.toLowerCase().includes(searchQuery.toLowerCase()) || c.id.includes(searchQuery)
   )
 
   const handleCreate = (name: string) => {
@@ -98,68 +126,23 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
 
   React.useEffect(() => {
     setCustomActions?.(
-      <MobileHeaderSearch
-        searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
-        placeholder={s.searchComandaPlaceholder}
-      >
-        <Button
-          variant="primary-pill-icon"
-          icon={Menu}
-          onClick={() => setIsSidebarOpen(true)}
-        />
+      <MobileHeaderSearch searchQuery={searchQuery} onSearchQueryChange={setSearchQuery} placeholder={s.searchComandaPlaceholder}>
+        <Button variant="primary-pill-icon" icon={Menu} onClick={() => setIsSidebarOpen(true)} />
       </MobileHeaderSearch>
     )
-
     return () => setCustomActions?.(null)
   }, [setCustomActions, searchQuery, s.searchComandaPlaceholder])
-
 
   return (
     <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
       <Stack gap={5} w="full">
-
-        {/* Grade de Comandas Ativas */}
         {filtered.length === 0 ? (
-          <EmptyState
-            icon={Receipt}
-            title={s.emptyComandasTitle}
-            subtitle={s.emptyComandasSubtitle}
-          />
+          <EmptyState icon={Receipt} title={s.emptyComandasTitle} subtitle={s.emptyComandasSubtitle} />
         ) : (
           <Box ref={gridContainerRef} w="full">
             <Grid cols={gridColumns} responsive={false} gap={5} w="full">
               {filtered.map((comanda) => (
-                <Box
-                  key={comanda.id}
-                  onClick={() => onSelectComanda(comanda.id)}
-                  position="relative"
-                  padding={0}
-                  bg="bg-surface"
-                  radius="lg"
-                  border={true}
-                  borderColor="border-brand-secondary"
-                  overflow="hidden"
-                  w="full"
-                  h="h-[170px]"
-                  hoverBg="secondary/10"
-                  display="flex"
-                  direction="col"
-                  cursor="pointer"
-                >
-                  {/* Tag fold */}
-                  <TagFoldSvg />
-
-                  {/* Identifier */}
-                  <Box position="absolute" top={3} right={3}>
-                    <Font variant="body-sm-medium" text={comanda.label} />
-                  </Box>
-
-                  {/* Time */}
-                  <Stack w="full" h="full" justify="center" align="center">
-                    <Font variant="body-medium" text={comanda.time} />
-                  </Stack>
-                </Box>
+                <ComandaGridCard key={comanda.id} comanda={comanda} onSelect={() => onSelectComanda(comanda.id)} />
               ))}
             </Grid>
           </Box>
@@ -170,10 +153,9 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
           onClose={() => setIsSidebarOpen(false)}
           onNewComanda={() => setIsCreateModalOpen(true)}
           onStartAvulsoService={onStartAvulsoService}
-          onFinishAll={() => { /* handle finish all */ }}
+          onFinishAll={() => {}}
         />
 
-        {/* Modal Novo Atendimento */}
         <CreateComandaModal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
