@@ -267,6 +267,45 @@ function DefaultModalContent({
   )
 }
 
+interface CompoundContentProps {
+  zIndex: number
+  backdropStyle: React.CSSProperties
+  dialogStyle: React.CSSProperties
+  children: React.ReactNode
+  onClose: () => void
+}
+
+function CompoundModalContent({
+  zIndex,
+  backdropStyle,
+  dialogStyle,
+  children,
+  onClose,
+}: CompoundContentProps) {
+  return (
+    <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex }}>
+      <div
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+        style={backdropStyle}
+        onClick={(e) => {
+          e.stopPropagation()
+          onClose()
+        }}
+        aria-hidden="true"
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        style={{ ...dialogStyle, zIndex: zIndex + 1 }}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-lg rounded-[5px] border-2 border-border bg-surface shadow-lg sm:rounded-[8px]"
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
+
 function getDialogStyle(isSidebar: boolean, isBottom: boolean, isActive: boolean): React.CSSProperties {
   if (isSidebar) {
     return {
@@ -340,7 +379,7 @@ export function Modal(props: ModalProps) {
     }, 250)
   }
 
-  if (!shouldRender) return null
+  if (!isOpen && !shouldRender) return null
 
   const isSidebar = variant === "sidebar"
   const isBottom = variant === "bottom"
@@ -381,7 +420,7 @@ export function Modal(props: ModalProps) {
         {children}
       </BottomModalContent>
     )
-  } else {
+  } else if (title) {
     modalContent = (
       <DefaultModalContent
         zIndex={zIndex}
@@ -400,6 +439,17 @@ export function Modal(props: ModalProps) {
       >
         {children}
       </DefaultModalContent>
+    )
+  } else {
+    modalContent = (
+      <CompoundModalContent
+        zIndex={zIndex}
+        backdropStyle={backdropStyle}
+        dialogStyle={dialogStyle}
+        onClose={handleClose}
+      >
+        {children}
+      </CompoundModalContent>
     )
   }
 

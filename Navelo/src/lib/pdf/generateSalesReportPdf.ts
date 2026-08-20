@@ -2,7 +2,8 @@
  * generateSalesReportPdf.ts
  * Gerador de PDF client-side para o relatório de Vendas / Negociações (formato A4).
  */
-
+import type { jsPDF } from "jspdf"
+import type autoTableType from "jspdf-autotable"
 
 export interface SalesReportItem {
   code: string
@@ -43,24 +44,8 @@ function formatCurrentDateTime(): string {
   return `${day}/${month}/${year} ${hours}:${mins}`
 }
 
-export async function generateSalesReportPdf(
-  data: SalesReportPdfData,
-  company?: CompanyInfo
-): Promise<{ blob: Blob; base64: string; dataUrl: string }> {
-  const { default: jsPDF } = await import("jspdf")
-  const { default: autoTable } = await import("jspdf-autotable")
-
-  const doc = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4",
-  })
-
-  const pageWidth = 210
-  const margin = 14
-  const rightMargin = pageWidth - margin
-
-  // 1. Cabeçalho Superior Direito
+function renderSalesReportHeader(doc: jsPDF, margin: number, company?: CompanyInfo, title?: string) {
+  const rightMargin = 210 - margin
   const companyName = company?.trade_name || company?.name || "NAVELO PDV"
   doc.setFont("helvetica", "bold")
   doc.setFontSize(11)
@@ -68,42 +53,39 @@ export async function generateSalesReportPdf(
   doc.text(companyName.toUpperCase(), rightMargin, 18, { align: "right" })
 
   doc.setFontSize(16)
-  doc.text(data.title || "Vendas", rightMargin, 26, { align: "right" })
+  doc.text(title || "Vendas", rightMargin, 26, { align: "right" })
 
-  // Linha Divisória Superior
   doc.setDrawColor(0, 0, 0)
   doc.setLineWidth(0.6)
   doc.line(margin, 30, rightMargin, 30)
 
-  // Data de Impressão
   doc.setFont("helvetica", "normal")
   doc.setFontSize(8.5)
   doc.setTextColor(50, 50, 50)
   doc.text(`Data de impressão: ${formatCurrentDateTime()}`, rightMargin, 35, { align: "right" })
+}
 
-  // 2. Metadados do Relatório (Lado Esquerdo)
+function renderSalesReportMeta(doc: jsPDF, margin: number, data: SalesReportPdfData) {
   doc.setTextColor(0, 0, 0)
   doc.setFontSize(9.5)
 
-  // Período
   doc.setFont("helvetica", "bold")
   doc.text("Período:", margin, 42)
   doc.setFont("helvetica", "normal")
   doc.text(data.periodText || "Todos", margin + 16, 42)
 
-  // Situação da venda
   doc.setFont("helvetica", "bold")
   doc.text("Situação da venda:", margin, 47)
   doc.setFont("helvetica", "normal")
   doc.text(data.statusText || "Ativa", margin + 35, 47)
 
-  // Tipo de venda
   doc.setFont("helvetica", "bold")
   doc.text("Tipo de venda:", margin, 52)
   doc.setFont("helvetica", "normal")
   doc.text(data.typeText || "Qualquer", margin + 27, 52)
+}
 
-  // 3. Tabela de Vendas
+function renderSalesReportTable(doc: jsPDF, autoTable: typeof autoTableType, margin: number, data: SalesReportPdfData) {
   const tableRows = (data.items || []).map((it) => [
     it.code,
     it.date,
@@ -157,6 +139,26 @@ export async function generateSalesReportPdf(
       3: { cellWidth: 38, halign: "right" },
     },
   })
+}
+
+export async function generateSalesReportPdf(
+  data: SalesReportPdfData,
+  company?: CompanyInfo
+): Promise<{ blob: Blob; base64: string; dataUrl: string }> {
+  const { default: jsPDF } = await import("jspdf")
+  const { default: autoTable } = await import("jspdf-autotable")
+
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+  })
+
+  const margin = 14
+
+  renderSalesReportHeader(doc, margin, company, data.title)
+  renderSalesReportMeta(doc, margin, data)
+  renderSalesReportTable(doc, autoTable, margin, data)
 
   const blob = doc.output("blob")
   const dataUrl = doc.output("dataurlstring")

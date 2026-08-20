@@ -286,12 +286,41 @@ function HomeContent() {
     })
   }
 
+  const handleBatchCheckoutComandas = (comandaIds: string[]) => {
+    if (comandaIds.length === 0) return
+    setActiveComandaId(`batch:${comandaIds.join(",")}`)
+    setCurrentView("caixa")
+  }
+
   const handleCloseComanda = async (id: string) => {
-    if (id && !id.startsWith("avulso-")) {
-      try {
-        await dal.tabs.delete(id, tenantId || "demo-tenant")
-      } catch (err) {
-        console.error("Erro ao fechar comanda na DAL:", err)
+    if (id) {
+      if (id.startsWith("batch:")) {
+        const ids = id.replace("batch:", "").split(",")
+        for (const singleId of ids) {
+          if (singleId && !singleId.startsWith("avulso-")) {
+            try {
+              const existing = await db.tabs.get(singleId)
+              if (existing?.is_fixed) {
+                await dal.tabs.update({ ...existing, items: [], total: 0, observation: undefined, status: "OPEN" })
+              } else {
+                await dal.tabs.delete(singleId, tenantId || "demo-tenant")
+              }
+            } catch (err) {
+              console.error("Erro ao fechar comanda do lote na DAL:", err)
+            }
+          }
+        }
+      } else if (!id.startsWith("avulso-")) {
+        try {
+          const existing = await db.tabs.get(id)
+          if (existing?.is_fixed) {
+            await dal.tabs.update({ ...existing, items: [], total: 0, observation: undefined, status: "OPEN" })
+          } else {
+            await dal.tabs.delete(id, tenantId || "demo-tenant")
+          }
+        } catch (err) {
+          console.error("Erro ao fechar comanda na DAL:", err)
+        }
       }
     }
     setActiveComandaId(null)
@@ -415,6 +444,9 @@ function HomeContent() {
                       onSelectComanda={handleSelectComanda}
                       comandas={comandas}
                       onAddComanda={handleAddComanda}
+                      onBatchCheckoutComandas={handleBatchCheckoutComandas}
+                      setCustomTitle={setCustomTitle}
+                      setCustomBack={setCustomBack}
                       setCustomActions={setCustomActions}
                     />
                   </Box>

@@ -205,21 +205,22 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       baseColor === "ghost" || baseColor === "ghost-secondary" || baseColor === "ghost-primary" || baseColor === "ghost-menu"
 
     const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.preventDefault()
-      e.stopPropagation()
-
       if (spinOnClick) {
         setIsSpinning(true)
         setTimeout(() => setIsSpinning(false), 450)
       }
 
       if (isConfirmButton) {
+        e.preventDefault()
+        e.stopPropagation()
         clickEventRef.current = e
         setIsConfirmOpen(true)
         return
       }
 
       if (isPrintButton) {
+        e.preventDefault()
+        e.stopPropagation()
         clickEventRef.current = e
 
         try {
@@ -316,12 +317,15 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           </span>
         )}
         {label && (
-          <Font
-            variant={getFontVariant()}
-            color="inherit"
-            text={label}
-            align={justify === "start" || justify === "between" ? "left" : justify === "end" ? "right" : "center"}
-          />
+          <span className="truncate min-w-0 max-w-full">
+            <Font
+              variant={getFontVariant()}
+              color="inherit"
+              text={label}
+              align={justify === "start" || justify === "between" ? "left" : justify === "end" ? "right" : "center"}
+              truncate
+            />
+          </span>
         )}
         {rightLabel && <Font variant="sub-tiny" color="muted" text={rightLabel} />}
         {IconRightComponent && <BaseIcon icon={IconRightComponent} size={getIconSize()} color="inherit" />}

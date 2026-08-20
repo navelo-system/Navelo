@@ -13,6 +13,7 @@ import { Plus, Trash2, Bike, Check } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { useTenant } from "@/lib/context/TenantContext"
 import { useRiders, dal, Rider } from "@/lib/dal"
+import { DiscardChangesModal } from "@/components/store/advanced/DiscardChangesModal"
 import { UI_STRINGS } from "@/constants/strings"
 
 export interface DeliveryRidersScreenProps {
@@ -220,6 +221,20 @@ function useDeliveryRidersSync(params: RidersSyncParams) {
   }, [mode, searchQuery, editingRider, d, setMode, setSearchQuery])
 }
 
+function checkRiderDirty(
+  editingRider: Rider | null,
+  curr: { name: string; document: string; phone: string; conectaCode: string }
+): boolean {
+  if (editingRider) {
+    if (curr.name !== (editingRider.name || "")) return true
+    if (curr.document !== (editingRider.document || "")) return true
+    if (curr.phone !== (editingRider.phone || "")) return true
+    return curr.conectaCode !== (editingRider.conecta_code || "")
+  }
+  const hasContent = [curr.name, curr.document, curr.phone, curr.conectaCode].some((v) => v.trim() !== "")
+  return hasContent
+}
+
 function useDeliveryRiderForm(tenantId: string, onSelectRider?: (r: Rider) => void) {
   const [mode, setMode] = React.useState<"list" | "form">("list")
   const [editingRider, setEditingRider] = React.useState<Rider | null>(null)
@@ -276,10 +291,12 @@ function useDeliveryRiderForm(tenantId: string, onSelectRider?: (r: Rider) => vo
     }
   }
 
+  const isDirty = checkRiderDirty(editingRider, { name, document, phone, conectaCode })
+
   return {
-    mode, setMode, editingRider, name, setName, document, setDocument,
+    mode, setMode, editingRider, setEditingRider, name, setName, document, setDocument,
     phone, setPhone, conectaEnabled, setConectaEnabled, conectaCode, setConectaCode,
-    handleEdit, handleCreateNew, handleDelete, handleSubmit,
+    handleEdit, handleCreateNew, handleDelete, handleSubmit, isDirty,
   }
 }
 
@@ -295,12 +312,26 @@ export function DeliveryRidersScreen({
   const dbRiders = useRiders(tenantId)
   const ridersList = React.useMemo(() => (Array.isArray(dbRiders) ? dbRiders : []), [dbRiders])
   const [searchQuery, setSearchQuery] = React.useState("")
+  const [isDiscardModalOpen, setIsDiscardModalOpen] = React.useState(false)
 
   const form = useDeliveryRiderForm(tenantId, onSelectRider)
 
+  const handleRequestBack = React.useCallback(() => {
+    if (form.mode === "form") {
+      if (form.isDirty) {
+        setIsDiscardModalOpen(true)
+      } else {
+        form.setMode("list")
+        form.setEditingRider(null)
+      }
+    } else {
+      onBack()
+    }
+  }, [form, onBack])
+
   useDeliveryRidersSync({
     mode: form.mode, editingRider: form.editingRider, searchQuery, setSearchQuery,
-    setMode: form.setMode, onBack, setCustomBack, setCustomTitle, setCustomActions,
+    setMode: form.setMode, onBack: handleRequestBack, setCustomBack, setCustomTitle, setCustomActions,
   })
 
   const filteredRiders = React.useMemo(() => {
@@ -311,15 +342,26 @@ export function DeliveryRidersScreen({
 
   if (form.mode === "form") {
     return (
-      <RiderFormView
-        editingRider={form.editingRider}
-        name={form.name} setName={form.setName}
-        document={form.document} setDocument={form.setDocument}
-        phone={form.phone} setPhone={form.setPhone}
-        conectaEnabled={form.conectaEnabled} setConectaEnabled={form.setConectaEnabled}
-        conectaCode={form.conectaCode} setConectaCode={form.setConectaCode}
-        onSubmit={form.handleSubmit} onDelete={form.handleDelete}
-      />
+      <Box display="flex" direction="col" flex="1" minH="0" overflow="auto" w="full" padding={0}>
+        <RiderFormView
+          editingRider={form.editingRider}
+          name={form.name} setName={form.setName}
+          document={form.document} setDocument={form.setDocument}
+          phone={form.phone} setPhone={form.setPhone}
+          conectaEnabled={form.conectaEnabled} setConectaEnabled={form.setConectaEnabled}
+          conectaCode={form.conectaCode} setConectaCode={form.setConectaCode}
+          onSubmit={form.handleSubmit} onDelete={form.handleDelete}
+        />
+        <DiscardChangesModal
+          isOpen={isDiscardModalOpen}
+          onClose={() => setIsDiscardModalOpen(false)}
+          onConfirmDiscard={() => {
+            setIsDiscardModalOpen(false)
+            form.setMode("list")
+            form.setEditingRider(null)
+          }}
+        />
+      </Box>
     )
   }
 

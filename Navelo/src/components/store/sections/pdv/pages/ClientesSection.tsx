@@ -119,6 +119,11 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
               onBack={popMode}
               setCustomTitle={setCustomTitle}
               setCustomBack={setCustomBack}
+              setCustomActions={setCustomActions}
+              showSkip={false}
+              showSaveSwitch={false}
+              showSearchInHeader={false}
+              title={editingClient ? "Editar Cliente" : "Novo Cliente"}
             />
           )}
         </Stack>

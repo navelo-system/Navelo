@@ -1,8 +1,5 @@
 import * as React from "react"
-import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
-import { Font } from "@/components/store/base/Font"
-import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { Modal } from "@/components/store/base/Modal"
 import { UI_STRINGS } from "@/constants/strings"
@@ -39,22 +36,24 @@ export function LinkPosModal({
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <Box padding={5}>
-        <Stack gap={5} w="full">
-          <Font variant="h3" text={title} />
-          <Input
-            label={p.linkingCodeLabel}
-            value={linkingCode}
-            onChange={(e) => setLinkingCode(e.target.value)}
-            placeholder={p.linkingCodePlaceholder}
-          />
-          <Stack direction="row" justify="end" gap={5} w="full">
-            <Button variant="ghost-primary" label={c.cancel} onClick={onClose} />
-            <Button variant="ghost-primary" label={p.linkButton} onClick={handleLinkClick} />
-          </Stack>
-        </Stack>
-      </Box>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      showCancelButton={true}
+      cancelText={c.cancel}
+      successText={p.linkButton}
+      onSuccess={handleLinkClick}
+    >
+      <Stack gap={5} w="full">
+        <Input
+          label={p.linkingCodeLabel}
+          value={linkingCode}
+          onChange={(e) => setLinkingCode(e.target.value)}
+          placeholder={p.linkingCodePlaceholder}
+          autoFocus
+        />
+      </Stack>
     </Modal>
   )
 }

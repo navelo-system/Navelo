@@ -38,11 +38,7 @@ export interface InventoryAuditTableProps {
 
 const DEFAULT_SESSIONS: InventoryAuditEntity[] = [
   {
-    id: "b1",
-    company_id: "demo-tenant",
-    date: "01/06/26 14:49",
-    groups: "Todos os grupos selecionados",
-    status: "Finalizado",
+    id: "b1", company_id: "demo-tenant", date: "01/06/26 14:49", groups: "Todos os grupos selecionados", status: "Finalizado",
     created_at: new Date(2026, 5, 1, 14, 49).toISOString(),
     items: [
       { productId: "1", productName: "COCA COLA 2L", category: "BEBIDAS - REFRIGERANTE", systemStock: 20, countedStock: 0, diff: -20 },
@@ -50,11 +46,7 @@ const DEFAULT_SESSIONS: InventoryAuditEntity[] = [
     ],
   },
   {
-    id: "b2",
-    company_id: "demo-tenant",
-    date: "21/07/26 10:30",
-    groups: "Bebidas, Lanches",
-    status: "Pendente",
+    id: "b2", company_id: "demo-tenant", date: "21/07/26 10:30", groups: "Bebidas, Lanches", status: "Pendente",
     created_at: new Date(2026, 6, 21, 10, 30).toISOString(),
     items: [
       { productId: "1", productName: "COCA COLA 2L", category: "BEBIDAS - REFRIGERANTE", systemStock: 20, countedStock: 25, diff: 5 },
@@ -63,9 +55,7 @@ const DEFAULT_SESSIONS: InventoryAuditEntity[] = [
 ]
 
 function AuditHistoryList({
-  filteredSessions,
-  onOpenResumo,
-  onOpenNovo,
+  filteredSessions, onOpenResumo, onOpenNovo,
 }: {
   filteredSessions: InventoryAuditEntity[]
   onOpenResumo: (s: InventoryAuditEntity) => void
@@ -78,16 +68,8 @@ function AuditHistoryList({
         {filteredSessions.length > 0 ? (
           filteredSessions.map((ses) => (
             <Box
-              key={ses.id}
-              padding={5}
-              bg="bg-white"
-              radius="default"
-              border
-              borderColor="border-border"
-              hoverBg="surface-sunken"
-              cursor="pointer"
-              onClick={() => onOpenResumo(ses)}
-              w="full"
+              key={ses.id} padding={5} bg="bg-white" radius="default" border borderColor="border-border"
+              hoverBg="surface-sunken" cursor="pointer" onClick={() => onOpenResumo(ses)} w="full"
             >
               <Stack direction="row" align="center" justify="between" w="full">
                 <Stack gap={1} align="start">
@@ -110,12 +92,8 @@ function AuditHistoryList({
 }
 
 function AuditHistoryView({
-  filteredSessions,
-  selectedPeriod, setSelectedPeriod,
-  startDate, setStartDate,
-  endDate, setEndDate,
-  statusFilters, toggleStatus,
-  isFilterDrawerOpen, onCloseFilterDrawer,
+  filteredSessions, selectedPeriod, setSelectedPeriod, startDate, setStartDate,
+  endDate, setEndDate, statusFilters, toggleStatus, isFilterDrawerOpen, onCloseFilterDrawer,
   onOpenResumo, onOpenNovo,
 }: {
   filteredSessions: InventoryAuditEntity[]
@@ -128,36 +106,25 @@ function AuditHistoryView({
   onOpenResumo: (s: InventoryAuditEntity) => void; onOpenNovo: () => void
 }) {
   const common = UI_STRINGS.common
-  const statusOptions = [
-    { id: "pendente", label: "Pendente" },
-    { id: "finalizado", label: "Finalizado" },
-  ]
-  const selectedStatusIds = [
-    ...(statusFilters.pendente ? ["pendente"] : []),
-    ...(statusFilters.finalizado ? ["finalizado"] : []),
-  ]
+  const statusOptions = [{ id: "pendente", label: "Pendente" }, { id: "finalizado", label: "Finalizado" }]
+  const selectedStatusIds = [...(statusFilters.pendente ? ["pendente"] : []), ...(statusFilters.finalizado ? ["finalizado"] : [])]
 
   return (
     <Stack direction="col" mobileDirection="row" gap={5} w="full" h="full" align="stretch" flex="1" minH="0">
       <AuditHistoryList filteredSessions={filteredSessions} onOpenResumo={onOpenResumo} onOpenNovo={onOpenNovo} />
       <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
         <FilterPanel
-          selectedPeriod={selectedPeriod} onPeriodChange={setSelectedPeriod}
-          startDate={startDate} onStartDateChange={setStartDate}
-          endDate={endDate} onEndDateChange={setEndDate}
-          statusOptions={statusOptions} selectedStatusIds={selectedStatusIds}
+          selectedPeriod={selectedPeriod} onPeriodChange={setSelectedPeriod} startDate={startDate} onStartDateChange={setStartDate}
+          endDate={endDate} onEndDateChange={setEndDate} statusOptions={statusOptions} selectedStatusIds={selectedStatusIds}
           onStatusToggle={(id) => toggleStatus(id as "pendente" | "finalizado")}
         />
       </Box>
       <Modal isOpen={isFilterDrawerOpen} onClose={onCloseFilterDrawer || (() => {})} title={common.filter} variant="sidebar">
         <FilterPanel
-          hideTitle borderless
-          selectedPeriod={selectedPeriod} onPeriodChange={setSelectedPeriod}
-          startDate={startDate} onStartDateChange={setStartDate}
-          endDate={endDate} onEndDateChange={setEndDate}
+          hideTitle borderless selectedPeriod={selectedPeriod} onPeriodChange={setSelectedPeriod}
+          startDate={startDate} onStartDateChange={setStartDate} endDate={endDate} onEndDateChange={setEndDate}
           statusOptions={statusOptions} selectedStatusIds={selectedStatusIds}
-          onStatusToggle={(id) => toggleStatus(id as "pendente" | "finalizado")}
-          onFilter={onCloseFilterDrawer}
+          onStatusToggle={(id) => toggleStatus(id as "pendente" | "finalizado")} onFilter={onCloseFilterDrawer}
         />
       </Modal>
     </Stack>
@@ -165,11 +132,8 @@ function AuditHistoryView({
 }
 
 function AuditNovoProductSelector({
-  productSearch, setProductSearch,
-  isDropdownOpen, setIsDropdownOpen,
-  countQuantity, setCountQuantity,
-  availableProducts, selectedProduct,
-  onSelectProduct, onAddItem,
+  productSearch, setProductSearch, isDropdownOpen, setIsDropdownOpen,
+  countQuantity, setCountQuantity, availableProducts, selectedProduct, onSelectProduct, onAddItem,
 }: {
   productSearch: string; setProductSearch: (v: string) => void
   isDropdownOpen: boolean; setIsDropdownOpen: (v: boolean) => void
@@ -187,14 +151,8 @@ function AuditNovoProductSelector({
       <Stack gap={5} w="full">
         <Box position="relative" w="full">
           <Input
-            variant="outlined-label"
-            label={inv.productFieldLabel}
-            placeholder={inv.searchProductPlaceholder}
-            value={productSearch}
-            onChange={(e) => {
-              setProductSearch(e.target.value)
-              setIsDropdownOpen(true)
-            }}
+            variant="outlined-label" label={inv.productFieldLabel} placeholder={inv.searchProductPlaceholder}
+            value={productSearch} onChange={(e) => { setProductSearch(e.target.value); setIsDropdownOpen(true) }}
             onFocus={() => setIsDropdownOpen(true)}
           />
           <Font variant="auxiliary" color="muted" text={inv.searchProductHelp} />
@@ -221,13 +179,7 @@ function AuditNovoProductSelector({
         <Stack direction="row" align="center" gap={2.5} w="full">
           <Button variant="secondary-pill-icon" icon={Minus} title={inv.decreaseQuantity} onClick={() => setCountQuantity((prev) => prev - 1)} />
           <Box flex="1">
-            <Input
-              variant="outlined-label"
-              label={inv.quantityFieldLabel}
-              type="number"
-              value={countQuantity.toString()}
-              onChange={(e) => setCountQuantity(parseInt(e.target.value) || 0)}
-            />
+            <Input variant="outlined-label" label={inv.quantityFieldLabel} type="number" value={countQuantity.toString()} onChange={(e) => setCountQuantity(parseInt(e.target.value) || 0)} />
           </Box>
           <Button variant="secondary-pill-icon" icon={Plus} title={inv.increaseQuantity} onClick={() => setCountQuantity((prev) => prev + 1)} />
         </Stack>
@@ -239,9 +191,7 @@ function AuditNovoProductSelector({
 }
 
 function AuditNovoItemsList({
-  addedItems,
-  onRemoveItem,
-  onFinish,
+  addedItems, onRemoveItem, onFinish,
 }: {
   addedItems: InventoryAuditItem[]
   onRemoveItem: (id: string) => void
@@ -367,15 +317,61 @@ function AuditResumoView({ selectedSession }: { selectedSession: InventoryAuditE
   )
 }
 
-export function InventoryAuditTable({
-  mode = "history",
-  searchQuery = "",
-  onModeChange,
-  isFilterDrawerOpen = false,
-  onCloseFilterDrawer,
-}: InventoryAuditTableProps) {
-  const tenantCtx = useTenant()
-  const tenantId = tenantCtx?.currentTenant?.id || "demo-tenant"
+function formatAuditDateTime(now: Date): string {
+  const day = String(now.getDate()).padStart(2, "0")
+  const month = String(now.getMonth() + 1).padStart(2, "0")
+  const yr = String(now.getFullYear()).slice(-2)
+  const hr = String(now.getHours()).padStart(2, "0")
+  const min = String(now.getMinutes()).padStart(2, "0")
+  return `${day}/${month}/${yr} ${hr}:${min}`
+}
+
+function matchesSearchQuery(ses: InventoryAuditEntity, query: string): boolean {
+  if (!query) return true
+  const q = query.toLowerCase()
+  return ses.date.toLowerCase().includes(q) || ses.groups.toLowerCase().includes(q)
+}
+
+function filterAuditSessions(
+  allAudits: InventoryAuditEntity[],
+  statusFilters: { pendente: boolean; finalizado: boolean },
+  searchQuery: string
+): InventoryAuditEntity[] {
+  return allAudits.filter((ses) => {
+    if (!statusFilters.pendente && ses.status === "Pendente") return false
+    if (!statusFilters.finalizado && ses.status === "Finalizado") return false
+    return matchesSearchQuery(ses, searchQuery)
+  })
+}
+
+function filterAvailableProducts(products: Product[] | undefined, search: string): Product[] {
+  if (!products) return []
+  const q = search.toLowerCase()
+  return products.filter((p) => p.name.toLowerCase().includes(q) || (p.barcode && p.barcode.includes(q)))
+}
+
+async function finishAuditAndSync(
+  addedItems: InventoryAuditItem[],
+  dbProducts: Product[] | undefined,
+  tenantId: string
+): Promise<InventoryAuditEntity> {
+  const now = new Date()
+  const newAuditSession: InventoryAuditEntity = {
+    id: crypto.randomUUID(), company_id: tenantId, tenant_id: tenantId,
+    date: formatAuditDateTime(now), groups: UI_STRINGS.inventory.allGroupsSelected, status: "Finalizado",
+    items: addedItems, created_at: now.toISOString(),
+  }
+  await Promise.all(
+    addedItems.map(async (item) => {
+      const dbProd = dbProducts?.find((p) => p.id === item.productId)
+      if (dbProd) await dal.products.update({ ...dbProd, stock: item.countedStock })
+    })
+  )
+  await dal.inventoryAudits.create(newAuditSession)
+  return newAuditSession
+}
+
+function useInventoryAuditState(tenantId: string) {
   const dbProducts = useProducts(tenantId)
   const dbInventoryAudits = useInventoryAudits(tenantId)
 
@@ -398,89 +394,104 @@ export function InventoryAuditTable({
     }
   }, [dbInventoryAudits, tenantId])
 
-  const allAudits = dbInventoryAudits && dbInventoryAudits.length > 0 ? dbInventoryAudits : DEFAULT_SESSIONS
-
-  const filteredSessions = allAudits.filter((s) => {
-    if (!statusFilters.pendente && s.status === "Pendente") return false
-    if (!statusFilters.finalizado && s.status === "Finalizado") return false
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase()
-      if (!s.date.toLowerCase().includes(q) && !s.groups.toLowerCase().includes(q)) return false
+  const handleAddItem = () => {
+    if (!selectedProduct) return
+    const diff = countQuantity - selectedProduct.stock
+    const newItem: InventoryAuditItem = {
+      productId: selectedProduct.id, productName: selectedProduct.name, category: selectedProduct.category,
+      systemStock: selectedProduct.stock, countedStock: countQuantity, diff,
     }
-    return true
-  })
-
-  const handleFinishAudit = async () => {
-    if (addedItems.length === 0) return
-    const now = new Date()
-    const formattedDate = `${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${String(now.getFullYear()).slice(-2)} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
-
-    const newAuditSession: InventoryAuditEntity = {
-      id: crypto.randomUUID(), company_id: tenantId, tenant_id: tenantId,
-      date: formattedDate, groups: UI_STRINGS.inventory.allGroupsSelected, status: "Finalizado",
-      items: addedItems, created_at: now.toISOString(),
-    }
-
-    await Promise.all(
-      addedItems.map(async (item) => {
-        const dbProd = dbProducts?.find((p) => p.id === item.productId)
-        if (dbProd) await dal.products.update({ ...dbProd, stock: item.countedStock })
-      })
-    )
-
-    await dal.inventoryAudits.create(newAuditSession)
-    setSelectedSession(newAuditSession)
-    onModeChange?.("resumo")
+    setAddedItems((prev) => {
+      const idx = prev.findIndex((i) => i.productId === selectedProduct?.id)
+      if (idx >= 0) { const copy = [...prev]; copy[idx] = newItem; return copy }
+      return [...prev, newItem]
+    })
+    setSelectedProduct(null); setProductSearch(""); setCountQuantity(0)
   }
 
-  const availableProducts = (dbProducts || []).filter(
-    (p) => p.name.toLowerCase().includes(productSearch.toLowerCase()) || (p.barcode && p.barcode.includes(productSearch))
+  const handleSelectProduct = (p: Product) => {
+    setSelectedProduct({ id: p.id, name: p.name, category: p.category || "Geral", stock: p.stock ?? 0 })
+    setProductSearch(p.name); setCountQuantity(p.stock ?? 0); setIsDropdownOpen(false)
+  }
+
+  const handleResetNovoForm = () => {
+    setAddedItems([]); setProductSearch(""); setSelectedProduct(null); setCountQuantity(0)
+  }
+
+  return {
+    dbProducts, dbInventoryAudits, selectedSession, setSelectedSession,
+    selectedPeriod, setSelectedPeriod, startDate, setStartDate, endDate, setEndDate,
+    statusFilters, setStatusFilters, addedItems, setAddedItems, productSearch, setProductSearch,
+    isDropdownOpen, setIsDropdownOpen, selectedProduct, setSelectedProduct, countQuantity, setCountQuantity,
+    handleAddItem, handleSelectProduct, handleResetNovoForm,
+  }
+}
+
+interface AuditTableRouterProps {
+  mode: string
+  filteredSessions: InventoryAuditEntity[]
+  s: ReturnType<typeof useInventoryAuditState>
+  availableProducts: Product[]
+  isFilterDrawerOpen: boolean
+  onCloseFilterDrawer?: () => void
+  onModeChange?: (mode: "history" | "resumo" | "novo") => void
+  onFinishAudit: () => void
+}
+
+function AuditTableRouter(p: AuditTableRouterProps) {
+  if (p.mode === "novo") {
+    return (
+      <AuditNovoView
+        addedItems={p.s.addedItems} productSearch={p.s.productSearch} setProductSearch={p.s.setProductSearch}
+        isDropdownOpen={p.s.isDropdownOpen} setIsDropdownOpen={p.s.setIsDropdownOpen} selectedProduct={p.s.selectedProduct}
+        countQuantity={p.s.countQuantity} setCountQuantity={p.s.setCountQuantity} availableProducts={p.availableProducts}
+        onSelectProduct={p.s.handleSelectProduct} onAddItem={p.s.handleAddItem}
+        onRemoveItem={(id) => p.s.setAddedItems((prev) => prev.filter((i) => i.productId !== id))}
+        onFinish={p.onFinishAudit}
+      />
+    )
+  }
+  if (p.mode === "resumo") {
+    return <AuditResumoView selectedSession={p.s.selectedSession} />
+  }
+  return (
+    <AuditHistoryView
+      filteredSessions={p.filteredSessions} selectedPeriod={p.s.selectedPeriod} setSelectedPeriod={p.s.setSelectedPeriod}
+      startDate={p.s.startDate} setStartDate={p.s.setStartDate} endDate={p.s.endDate} setEndDate={p.s.setEndDate}
+      statusFilters={p.s.statusFilters} toggleStatus={(k) => p.s.setStatusFilters((prev) => ({ ...prev, [k]: !prev[k] }))}
+      isFilterDrawerOpen={p.isFilterDrawerOpen} onCloseFilterDrawer={p.onCloseFilterDrawer}
+      onOpenResumo={(ses) => { p.s.setSelectedSession(ses); p.onModeChange?.("resumo") }}
+      onOpenNovo={() => { p.s.handleResetNovoForm(); p.onModeChange?.("novo") }}
+    />
   )
+}
+
+export function InventoryAuditTable(props: InventoryAuditTableProps) {
+  const mode = props.mode || "history"
+  const searchQuery = props.searchQuery || ""
+  const isFilterDrawerOpen = props.isFilterDrawerOpen || false
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id || "demo-tenant"
+  const s = useInventoryAuditState(tenantId)
+
+  const allAudits = s.dbInventoryAudits && s.dbInventoryAudits.length > 0 ? s.dbInventoryAudits : DEFAULT_SESSIONS
+  const filteredSessions = React.useMemo(() => filterAuditSessions(allAudits, s.statusFilters, searchQuery), [allAudits, s.statusFilters, searchQuery])
+  const availableProducts = React.useMemo(() => filterAvailableProducts(s.dbProducts, s.productSearch), [s.dbProducts, s.productSearch])
+
+  const handleFinishAudit = async () => {
+    if (s.addedItems.length === 0) return
+    const session = await finishAuditAndSync(s.addedItems, s.dbProducts, tenantId)
+    s.setSelectedSession(session)
+    props.onModeChange?.("resumo")
+  }
 
   return (
     <Box position="relative" w="full" h="full" display="flex" direction="col" flex="1" minH="0">
-      {mode === "history" && (
-        <AuditHistoryView
-          filteredSessions={filteredSessions} selectedPeriod={selectedPeriod} setSelectedPeriod={setSelectedPeriod}
-          startDate={startDate} setStartDate={setStartDate} endDate={endDate} setEndDate={setEndDate}
-          statusFilters={statusFilters} toggleStatus={(k) => setStatusFilters((prev) => ({ ...prev, [k]: !prev[k] }))}
-          isFilterDrawerOpen={isFilterDrawerOpen} onCloseFilterDrawer={onCloseFilterDrawer}
-          onOpenResumo={(ses) => { setSelectedSession(ses); onModeChange?.("resumo") }}
-          onOpenNovo={() => { setAddedItems([]); setProductSearch(""); setSelectedProduct(null); setCountQuantity(0); onModeChange?.("novo") }}
-        />
-      )}
-      {mode === "novo" && (
-        <AuditNovoView
-          addedItems={addedItems} productSearch={productSearch} setProductSearch={setProductSearch}
-          isDropdownOpen={isDropdownOpen} setIsDropdownOpen={setIsDropdownOpen} selectedProduct={selectedProduct}
-          countQuantity={countQuantity} setCountQuantity={setCountQuantity} availableProducts={availableProducts}
-          onSelectProduct={(p) => {
-            setSelectedProduct({ id: p.id, name: p.name, category: p.category || "Geral", stock: p.stock ?? 0 })
-            setProductSearch(p.name); setCountQuantity(p.stock ?? 0); setIsDropdownOpen(false)
-          }}
-          onAddItem={() => {
-            if (!selectedProduct) return
-            const diff = countQuantity - selectedProduct.stock
-            const newItem: InventoryAuditItem = {
-              productId: selectedProduct.id, productName: selectedProduct.name, category: selectedProduct.category,
-              systemStock: selectedProduct.stock, countedStock: countQuantity, diff,
-            }
-            setAddedItems((prev) => {
-              const idx = prev.findIndex((i) => i.productId === selectedProduct.id)
-              if (idx >= 0) {
-                const copy = [...prev]
-                copy[idx] = newItem
-                return copy
-              }
-              return [...prev, newItem]
-            })
-            setSelectedProduct(null); setProductSearch(""); setCountQuantity(0)
-          }}
-          onRemoveItem={(id) => setAddedItems((prev) => prev.filter((i) => i.productId !== id))}
-          onFinish={handleFinishAudit}
-        />
-      )}
-      {mode === "resumo" && <AuditResumoView selectedSession={selectedSession} />}
+      <AuditTableRouter
+        mode={mode} filteredSessions={filteredSessions} s={s} availableProducts={availableProducts}
+        isFilterDrawerOpen={isFilterDrawerOpen} onCloseFilterDrawer={props.onCloseFilterDrawer}
+        onModeChange={props.onModeChange} onFinishAudit={handleFinishAudit}
+      />
     </Box>
   )
 }

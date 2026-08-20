@@ -106,8 +106,9 @@ export function ListSectionLayout<T>({
 
   React.useEffect(() => {
     setCustomTitleRef.current?.(title)
-    if (onBackToDashboardRef.current) {
-      setCustomBackRef.current?.(() => onBackToDashboardRef.current!)
+    const backFn = onBackToDashboardRef.current
+    if (backFn) {
+      setCustomBackRef.current?.(() => backFn)
     } else {
       setCustomBackRef.current?.(null)
     }

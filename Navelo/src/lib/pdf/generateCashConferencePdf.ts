@@ -2,7 +2,8 @@
  * generateCashConferencePdf.ts
  * Gerador de PDF client-side para o relatório de Conferência de Caixa (formato A4).
  */
-
+import type { jsPDF } from "jspdf"
+import type autoTableType from "jspdf-autotable"
 
 export interface CashConferenceOperation {
   date: string
@@ -40,24 +41,7 @@ function formatCurrentDateTime(): string {
   return `${day}/${month}/${year} ${hours}:${mins}`
 }
 
-export async function generateCashConferencePdf(
-  data: CashConferencePdfData,
-  company?: CompanyInfo
-): Promise<{ blob: Blob; base64: string; dataUrl: string }> {
-  const { default: jsPDF } = await import("jspdf")
-  const { default: autoTable } = await import("jspdf-autotable")
-
-  const doc = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4",
-  })
-
-  const pageWidth = 210
-  const margin = 14
-  const rightMargin = pageWidth - margin
-
-  // 1. Cabeçalho Superior Direito
+function renderCashConferenceHeader(doc: jsPDF, rightMargin: number, margin: number, company?: CompanyInfo) {
   const companyName = company?.trade_name || company?.name || "NAVELO PDV"
   doc.setFont("helvetica", "bold")
   doc.setFontSize(11)
@@ -67,34 +51,32 @@ export async function generateCashConferencePdf(
   doc.setFontSize(16)
   doc.text("Conferência de Caixa", rightMargin, 26, { align: "right" })
 
-  // Linha Divisória Superior
   doc.setDrawColor(0, 0, 0)
   doc.setLineWidth(0.6)
   doc.line(margin, 30, rightMargin, 30)
 
-  // Data de Impressão
   doc.setFont("helvetica", "normal")
   doc.setFontSize(8.5)
   doc.setTextColor(50, 50, 50)
   doc.text(`Data de impressão: ${formatCurrentDateTime()}`, rightMargin, 35, { align: "right" })
+}
 
-  // 2. Metadados do Relatório (Lado Esquerdo)
+function renderCashConferenceMeta(doc: jsPDF, margin: number, data: CashConferencePdfData) {
   doc.setTextColor(0, 0, 0)
   doc.setFontSize(9.5)
 
-  // Período
   doc.setFont("helvetica", "bold")
   doc.text("Período:", margin, 42)
   doc.setFont("helvetica", "normal")
   doc.text(data.periodText || "a partir de abertura do caixa", margin + 16, 42)
 
-  // Forma de Pagamento
   doc.setFont("helvetica", "bold")
   doc.text("Forma de Pagamento:", margin, 47)
   doc.setFont("helvetica", "normal")
   doc.text(data.paymentMethod, margin + 37, 47)
+}
 
-  // 3. Tabela de Operações
+function renderCashConferenceTable(doc: jsPDF, autoTable: typeof autoTableType, margin: number, data: CashConferencePdfData) {
   const tableRows = (data.operations || []).map((op) => [
     op.date,
     op.description,
@@ -145,6 +127,27 @@ export async function generateCashConferencePdf(
       2: { cellWidth: 42, halign: "right" },
     },
   })
+}
+
+export async function generateCashConferencePdf(
+  data: CashConferencePdfData,
+  company?: CompanyInfo
+): Promise<{ blob: Blob; base64: string; dataUrl: string }> {
+  const { default: jsPDF } = await import("jspdf")
+  const { default: autoTable } = await import("jspdf-autotable")
+
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+  })
+
+  const margin = 14
+  const rightMargin = 210 - margin
+
+  renderCashConferenceHeader(doc, rightMargin, margin, company)
+  renderCashConferenceMeta(doc, margin, data)
+  renderCashConferenceTable(doc, autoTable, margin, data)
 
   const blob = doc.output("blob")
   const dataUrl = doc.output("dataurlstring")

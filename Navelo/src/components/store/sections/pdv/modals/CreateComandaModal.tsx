@@ -6,7 +6,6 @@ import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
-import { FormActions } from "@/components/store/intermediary/FormActions"
 import { UI_STRINGS } from "@/constants/strings"
 
 interface CreateComandaModalProps {
@@ -23,6 +22,7 @@ export function CreateComandaModal({
   const [newComandaName, setNewComandaName] = React.useState("")
   const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen)
   const t = UI_STRINGS.tables
+  const c = UI_STRINGS.common
 
   if (isOpen !== prevIsOpen) {
     setPrevIsOpen(isOpen)
@@ -31,37 +31,31 @@ export function CreateComandaModal({
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault()
     if (!newComandaName.trim()) return
-    onSubmit(newComandaName)
+    onSubmit(newComandaName.trim())
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <Box padding={5} bg="bg-surface" radius="default">
-        <Stack gap={5}>
-          <Font variant="h3" text={t.newServiceTitle} />
-          <Box h="h-[2px]" bg="bg-border" w="full" />
-          <Box as="form" onSubmit={handleSubmit} w="full" padding={0}>
-            <Stack gap={5}>
-              <Stack gap={1}>
-                <Font variant="body-sm-semibold" text={t.comandaIdentifierLabel} />
-                <Input
-                  placeholder={t.comandaIdentifierPlaceholder}
-                  value={newComandaName}
-                  onChange={(e) => setNewComandaName(e.target.value)}
-                  autoFocus
-                />
-              </Stack>
-              <FormActions
-                confirmLabel={t.confirmAndOpenButton}
-                onConfirm={() => {}}
-                isSubmit={true}
-                onCancel={onClose}
-              />
-            </Stack>
-          </Box>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t.newServiceTitle}
+      showCancelButton={true}
+      cancelText={c.cancel}
+      successText={t.confirmAndOpenButton}
+      onSuccess={() => handleSubmit()}
+    >
+      <Box as="form" onSubmit={handleSubmit} w="full" padding={0}>
+        <Stack gap={1} w="full">
+          <Font variant="body-sm-semibold" text={t.comandaIdentifierLabel} />
+          <Input
+            placeholder={t.comandaIdentifierPlaceholder}
+            value={newComandaName}
+            onChange={(e) => setNewComandaName(e.target.value)}
+            autoFocus
+          />
         </Stack>
       </Box>
     </Modal>

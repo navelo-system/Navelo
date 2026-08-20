@@ -54,6 +54,10 @@ export const UI_STRINGS = {
     total: "Total",
     observation: "Observação",
     observationPlaceholder: "Digite a observação...",
+    discardTitle: "Descartar alterações e sair?",
+    discardSubtitle: "Existem alterações não salvas. Se você sair agora, todas as edições serão perdidas.",
+    discardConfirm: "Descartar e Sair",
+    discardCancel: "Continuar Editando",
   },
   dashboard: {
     title: "Painel Principal",
@@ -703,6 +707,12 @@ export const UI_STRINGS = {
     comandaIdentifierPlaceholder: "Ex: #mesa_14, #pedro...",
     confirmAndOpenButton: "Confirmar e Abrir",
     saveTabButton: "Salvar Comanda",
+    newComandaButton: "Nova Comanda",
+    identifierInputPlaceholder: "Identificador",
+    identifierInputHint: "[identificador] + [Enter]",
+    suggestionsHeader: "Sugestões encontradas:",
+    batchFinishButton: "F9 - Finalizar",
+    batchFinishTitle: "Finalizar atendimentos",
   },
   orderOptions: {
     title: "Opções de Pedido",
@@ -1057,6 +1067,9 @@ export const UI_STRINGS = {
     deleteProductTitle: "Excluir produto",
     saveProductButton: "Salvar Produto",
     searchByNamePlaceholder: "Buscar produto pelo nome...",
+    noCategory: "Geral",
+    stockDisplay: "{stock} {unit}",
+    fiscalConfigTitle: "Configurações Fiscais Padrão",
   },
   cashTotals: {
     title: "Totais em Caixa",

@@ -22,6 +22,7 @@ interface PdvSidebarDrawerProps {
   subtotal?: number
   onSyncClick?: () => void
   customerName?: string
+  observationText?: string
   showOutOfStockProducts?: boolean
   onToggleShowOutOfStock?: (val: boolean) => void
   hasCartItems?: boolean
@@ -107,6 +108,7 @@ function DrawerNegotiationSection({
 
 function DrawerDetailsSection({
   customerName,
+  observationText,
   discountPercentFormatted,
   onClose,
   onNavigate,
@@ -114,6 +116,7 @@ function DrawerDetailsSection({
   onOpenObservationModal,
 }: {
   customerName?: string
+  observationText?: string
   discountPercentFormatted: string
   onClose: () => void
   onNavigate: (v: "clientes" | "recebimentos" | "devolucao") => void
@@ -143,7 +146,16 @@ function DrawerDetailsSection({
         </Box>
         <Box h="h-[1px]" w="full" bg="bg-border" />
         <Box padding={2.5} w="full" cursor="pointer" hoverBg="secondary/10" onClick={() => { onClose(); onOpenObservationModal() }}>
-          <Font variant="body-sm-semibold" text={d.observation} align="left" />
+          <Stack direction="row" align="center" justify="between" w="full" gap={2.5}>
+            <Box shrink="0">
+              <Font variant="body-sm-semibold" text={d.observation} align="left" />
+            </Box>
+            {observationText ? (
+              <Box flex="1" minW="0" overflow="hidden" display="flex" justify="end">
+                <Font as="div" variant="body-sm-medium" color="muted" align="right" truncate={true} lineClamp={1} text={observationText} />
+              </Box>
+            ) : null}
+          </Stack>
         </Box>
         <Box h="h-[1px]" w="full" bg="bg-border" />
         <Box padding={2.5} w="full" cursor="pointer" hoverBg="secondary/10" onClick={() => { onClose(); onNavigate("recebimentos") }}>
@@ -164,8 +176,8 @@ function DrawerOperationsSection({
   onOpenSangriaModal,
 }: {
   onClose: () => void
-  onNavigate: (v: "sangrias-suprimentos" | "totais-em-caixa") => void
-  onOpenSangriaModal: (mode: "sangria" | "suprimento") => void
+  onNavigate: (v: "totais-em-caixa" | "sangrias-suprimentos") => void
+  onOpenSangriaModal: (mode?: "sangria" | "suprimento") => void
 }) {
   const d = UI_STRINGS.pdv.drawer
   return (
@@ -204,6 +216,7 @@ export function PdvSidebarDrawer({
   subtotal = 0,
   onSyncClick,
   customerName,
+  observationText,
   showOutOfStockProducts = true,
   onToggleShowOutOfStock,
   hasCartItems = false,
@@ -230,6 +243,7 @@ export function PdvSidebarDrawer({
         />
         <DrawerDetailsSection
           customerName={customerName}
+          observationText={observationText}
           discountPercentFormatted={discountPercentFormatted}
           onClose={onClose}
           onNavigate={onNavigate}

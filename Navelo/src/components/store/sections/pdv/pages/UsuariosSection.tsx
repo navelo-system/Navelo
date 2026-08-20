@@ -15,6 +15,7 @@ import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogTo
 import { useTenant } from "@/lib/context/TenantContext"
 import { useOperators, dal } from "@/lib/dal/hooks"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
+import { DiscardChangesModal } from "@/components/store/advanced/DiscardChangesModal"
 import { UI_STRINGS } from "@/constants/strings"
 
 interface UserItem {
@@ -43,42 +44,20 @@ const OPERATOR_ROLES_FULL = [
   { key: "TOTEM", label: "Totem Autoatendimento", description: "Modo exclusivo para autoatendimento do cliente" },
 ]
 
-function UserListItemRow({
-  user,
-  onEdit,
-  onDelete,
-}: {
-  user: UserItem
-  onEdit: () => void
-  onDelete: (id: string) => void
-}) {
-  const s = UI_STRINGS.settings.usuarios
-  const badgeVariant = user.role === "ADMIN" ? "primary" : user.role === "SUPERVISOR" ? "secondary" : "outline"
-
-  return (
-    <Box w="full" paddingY={2.5} paddingX={2.5} radius="none" hoverBg="primary/10" cursor="pointer" onClick={onEdit}>
-      <Stack direction="row" align="center" justify="between" w="full">
-        <Stack direction="row" align="center" gap={2.5} flex="1">
-          <Avatar fallback={user.name.substring(0, 2).toUpperCase()} />
-          <Stack gap={0} align="start">
-            <Stack direction="row" align="center" gap={2.5}>
-              <Font variant="body-bold" text={user.name} />
-              <Badge variant={badgeVariant} label={user.role} />
-            </Stack>
-            <Font variant="description" color="muted" text={`Login: ${user.email}`} />
-          </Stack>
-        </Stack>
-        <Button
-          type="button" variant="danger-icon-xs-confirm" confirmTitle={s.deleteUserTitle} confirmSubtitle={s.deleteUserTitle}
-          confirmParagraph="Tem certeza que deseja remover este usuário do sistema?" onConfirm={() => onDelete(user.id)}
-          disabled={user.isCurrent} title={user.isCurrent ? "Não é possível excluir o usuário ativo" : s.deleteUserTitle}
-        />
-      </Stack>
-    </Box>
-  )
+function mapOperatorItem(u: NonNullable<ReturnType<typeof useOperators>>[number], currentId?: string, currentName?: string): UserItem {
+  return {
+    id: u.id,
+    name: u.name,
+    role: u.role,
+    phone: "",
+    email: u.email || "",
+    password: u.password,
+    commission: (u as { commission?: string }).commission || "% 0,00",
+    isCurrent: currentId === u.id || currentName === u.name,
+  }
 }
 
-function UserRoleSelector({
+function OperatorRolesSelectCard({
   formRole,
   setFormRole,
 }: {
@@ -95,8 +74,14 @@ function UserRoleSelector({
             const isSelected = formRole === r.key
             return (
               <Box
-                key={r.key} padding={2.5} radius="default" border borderColor={isSelected ? "border-brand-primary" : "border-border"}
-                bg={isSelected ? "bg-brand-primary/5" : "bg-white"} cursor="pointer" onClick={() => setFormRole(r.key)}
+                key={r.key}
+                padding={2.5}
+                radius="default"
+                border
+                borderColor={isSelected ? "border-brand-primary" : "border-border"}
+                bg={isSelected ? "bg-brand-primary/5" : "bg-white"}
+                cursor="pointer"
+                onClick={() => setFormRole(r.key)}
               >
                 <Stack direction="row" align="center" justify="between" w="full">
                   <Stack gap={0} flex="1">
@@ -114,86 +99,126 @@ function UserRoleSelector({
   )
 }
 
+function UserListItemRow({
+  user,
+  onEdit,
+  onDelete,
+}: {
+  user: UserItem
+  onEdit: (u: UserItem) => void
+  onDelete: (id: string) => void
+}) {
+  const s = UI_STRINGS.settings.usuarios
+  const badgeVariant = user.role === "ADMIN" ? "primary" : user.role === "SUPERVISOR" ? "secondary" : "outline"
+
+  return (
+    <Box w="full" paddingY={2.5} paddingX={2.5} radius="none" hoverBg="primary/10" cursor="pointer" onClick={() => onEdit(user)}>
+      <Stack direction="row" align="center" justify="between" w="full">
+        <Stack direction="row" align="center" gap={2.5} flex="1">
+          <Avatar fallback={user.name.substring(0, 2).toUpperCase()} />
+          <Stack gap={0} align="start">
+            <Stack direction="row" align="center" gap={2.5}>
+              <Font variant="body-bold" text={user.name} />
+              <Badge variant={badgeVariant} label={user.role} />
+            </Stack>
+            <Font variant="description" color="muted" text={`Login: ${user.email}`} />
+          </Stack>
+        </Stack>
+
+        <Button
+          type="button"
+          variant="danger-icon-xs-confirm"
+          confirmTitle={s.deleteUserTitle}
+          confirmSubtitle={s.deleteUserTitle}
+          confirmParagraph="Tem certeza que deseja remover este usuário do sistema?"
+          onConfirm={() => onDelete(user.id)}
+          disabled={user.isCurrent}
+          title={user.isCurrent ? "Não é possível excluir o usuário ativo" : s.deleteUserTitle}
+        />
+      </Stack>
+    </Box>
+  )
+}
+
 function UserFormCard({
-  editingUser,
   formName, setFormName,
   formLogin, setFormLogin,
   formPassword, setFormPassword,
   formConfirmPassword, setFormConfirmPassword,
   formCommission, setFormCommission,
   formRole, setFormRole,
+  isEditing,
   onSubmit,
 }: {
-  editingUser: UserItem | null
   formName: string; setFormName: (v: string) => void
   formLogin: string; setFormLogin: (v: string) => void
   formPassword: string; setFormPassword: (v: string) => void
   formConfirmPassword: string; setFormConfirmPassword: (v: string) => void
   formCommission: string; setFormCommission: (v: string) => void
   formRole: string; setFormRole: (v: string) => void
+  isEditing: boolean
   onSubmit: (e: React.FormEvent) => void
 }) {
   const s = UI_STRINGS.settings.usuarios
   return (
     <Box as="form" onSubmit={onSubmit} bg="bg-white" border borderColor="border-border" radius="default" padding={5} w="full">
       <Stack gap={5} w="full">
-        <Input label={s.nameLabel} placeholder={s.namePlaceholder} value={formName} onChange={(e) => setFormName(e.target.value)} required />
-        <Input label={s.emailLabel} placeholder={s.emailPlaceholder} value={formLogin} onChange={(e) => setFormLogin(e.target.value)} required />
+        <Input label={s.nameLabel} placeholder={s.namePlaceholder} value={formName} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormName(e.target.value)} required />
+        <Input label={s.emailLabel} placeholder={s.emailPlaceholder} value={formLogin} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormLogin(e.target.value)} required />
         <Stack direction="col" mobileDirection="row" gap={2.5} w="full">
           <Box flex="1">
-            <Input label={s.passwordLabel} type="password" placeholder={s.passwordPlaceholder} value={formPassword} onChange={(e) => setFormPassword(e.target.value)} required={!editingUser} />
+            <Input label={s.passwordLabel} type="password" placeholder={s.passwordPlaceholder} value={formPassword} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormPassword(e.target.value)} required={!isEditing} />
           </Box>
           <Box flex="1">
-            <Input label={s.passwordLabel} type="password" placeholder={s.passwordPlaceholder} value={formConfirmPassword} onChange={(e) => setFormConfirmPassword(e.target.value)} required={!editingUser || Boolean(formPassword)} />
+            <Input label={s.passwordLabel} type="password" placeholder={s.passwordPlaceholder} value={formConfirmPassword} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormConfirmPassword(e.target.value)} required={!isEditing || Boolean(formPassword)} />
           </Box>
         </Stack>
-        <Input mask="percent" label={s.commissionLabel} placeholder={s.commissionPlaceholder} value={formCommission} onChange={(e) => setFormCommission(e.target.value)} />
-        <UserRoleSelector formRole={formRole} setFormRole={setFormRole} />
+        <Input mask="percent" label={s.commissionLabel} placeholder={s.commissionPlaceholder} value={formCommission} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormCommission(e.target.value)} />
+        <OperatorRolesSelectCard formRole={formRole} setFormRole={setFormRole} />
       </Stack>
     </Box>
   )
 }
 
-function UserListView({
-  filtered,
-  onEdit,
-  onDelete,
-  onAdd,
-}: {
-  filtered: UserItem[]
-  onEdit: (u: UserItem) => void
-  onDelete: (id: string) => void
-  onAdd: () => void
-}) {
-  const s = UI_STRINGS.settings.usuarios
-  return (
-    <Box position="relative" w="full">
-      {filtered.length > 0 ? (
-        <Box display="flex" direction="col" w="full">
-          {filtered.map((u, idx) => (
-            <Box key={u.id}>
-              <UserListItemRow user={u} onEdit={() => onEdit(u)} onDelete={onDelete} />
-              {idx < filtered.length - 1 && <Box borderBottom borderColor="border-border" w="full" />}
-            </Box>
-          ))}
-        </Box>
-      ) : (
-        <EmptyState icon={Search} title={s.emptyTitle} subtitle={s.emptySubtitle} />
-      )}
-      <Box position="fixed" bottom="24px" right="24px" zIndex="30">
-        <Button variant="secondary-pill-icon" icon={Plus} onClick={onAdd} title={s.newOperatorButton} />
-      </Box>
-    </Box>
-  )
+function buildDefaultAdminUser(tenantId: string): UserItem {
+  return {
+    id: `user-admin-${tenantId}`,
+    name: "Administrador",
+    role: "Administrador",
+    phone: "",
+    email: `admin@${tenantId}.app`,
+    password: "123456789",
+    commission: "% 0,00",
+    isCurrent: true,
+  }
 }
 
-function validateUserForm(name: string, login: string, pass: string, confirmPass: string): boolean {
-  if (!name || !login) return false
-  if (pass !== confirmPass) return false
-  return true
+function resolvePassword(pwd?: string, user?: UserItem | null): string {
+  if (pwd) return pwd
+  if (user?.password) return user.password
+  return "123456789"
 }
 
-function useUserFormData(tenantId: string) {
+function filterUsers(users: UserItem[], query: string): UserItem[] {
+  const q = query.toLowerCase()
+  return users.filter((u) => u.name.toLowerCase().includes(q) || u.role.toLowerCase().includes(q))
+}
+
+function checkUserFormDirty(
+  editingUser: UserItem | null,
+  formName: string,
+  formLogin: string,
+  formPassword: string
+): boolean {
+  if (editingUser) {
+    return formName !== editingUser.name ||
+      formLogin !== (editingUser.email || "") ||
+      formPassword !== (editingUser.password || "")
+  }
+  return Boolean(formName || formLogin || formPassword)
+}
+
+function useOperatorFormManager(tenantId: string) {
   const [editingUser, setEditingUser] = React.useState<UserItem | null>(null)
   const [formName, setFormName] = React.useState("")
   const [formLogin, setFormLogin] = React.useState("")
@@ -208,8 +233,7 @@ function useUserFormData(tenantId: string) {
   }
 
   const startEdit = (user: UserItem) => {
-    setEditingUser(user); setFormName(user.name)
-    setFormLogin(user.email || user.name.toLowerCase().replace(/\s+/g, "."))
+    setEditingUser(user); setFormName(user.name); setFormLogin(user.email || user.name.toLowerCase().replace(/\s+/g, "."))
     setFormPassword(user.password || ""); setFormConfirmPassword(user.password || "")
     setFormCommission(user.commission || "% 0,00")
     const roleObj = OPERATOR_ROLES_FULL.find((r) => r.label === user.role || r.key === user.role)
@@ -217,66 +241,106 @@ function useUserFormData(tenantId: string) {
   }
 
   const save = async () => {
-    if (!validateUserForm(formName, formLogin, formPassword, formConfirmPassword)) return
+    if (!formName || !formLogin || formPassword !== formConfirmPassword) return
     const roleObj = OPERATOR_ROLES_FULL.find((r) => r.key === formRole || r.label === formRole)
     const roleLabel = roleObj?.label || "Caixa"
+    const pwd = resolvePassword(formPassword, editingUser)
     const payload = {
-      id: editingUser ? editingUser.id : crypto.randomUUID(), company_id: tenantId, tenant_id: tenantId,
-      name: formName, email: formLogin, role: roleLabel, password: formPassword || editingUser?.password || "123456789",
-      commission: formCommission, active: true,
+      id: editingUser ? editingUser.id : crypto.randomUUID(),
+      company_id: tenantId, tenant_id: tenantId, name: formName, email: formLogin,
+      role: roleLabel, password: pwd, commission: formCommission, active: true,
     }
     if (editingUser) await dal.users.update(payload)
     else await dal.users.create(payload)
-    setEditingUser(null)
   }
 
+  const isDirty = checkUserFormDirty(editingUser, formName, formLogin, formPassword)
+
   return {
-    editingUser, setEditingUser, formName, setFormName, formLogin, setFormLogin,
+    editingUser, formName, setFormName, formLogin, setFormLogin,
     formPassword, setFormPassword, formConfirmPassword, setFormConfirmPassword,
-    formCommission, setFormCommission, formRole, setFormRole, startCreate, startEdit, save,
+    formCommission, setFormCommission, formRole, setFormRole,
+    startCreate, startEdit, save, isDirty,
   }
 }
 
-function syncUserFormHeader(
-  opts: {
-    setCustomBack?: (cb: (() => void) | null) => void
-    setCustomTitle?: (title: string | null) => void
-    setCustomActions?: (actions: React.ReactNode | null) => void
-    setMode: (m: "list" | "form") => void
-    editingUser: UserItem | null
-    onDelete: () => void
-    onSave: () => void
-  },
-  s: typeof UI_STRINGS.settings.usuarios
-) {
-  opts.setCustomBack?.(() => () => opts.setMode("list"))
-  opts.setCustomTitle?.(opts.editingUser ? s.editUserTitle : s.newUserTitle)
-  opts.setCustomActions?.(
+interface UserHeaderSyncOptions {
+  mode: "list" | "form"
+  formMgr: ReturnType<typeof useOperatorFormManager>
+  searchQuery: string
+  setSearchQuery: (q: string) => void
+  onCancel: () => void
+  tenantId: string
+  setCustomBack?: (cb: (() => void) | null) => void
+  setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
+  setMode?: (m: "list" | "form") => void
+  onRequestBack?: () => void
+}
+
+function renderUserHeaderActions(formMgr: ReturnType<typeof useOperatorFormManager>, tenantId: string, setMode?: (m: "list" | "form") => void) {
+  const isDeletable = formMgr.editingUser && !formMgr.editingUser.isCurrent
+  return (
     <Stack direction="row" align="center" gap={2.5}>
-      {opts.editingUser && !opts.editingUser.isCurrent && (
-        <Button type="button" variant="danger-icon" icon={Trash2} onClick={opts.onDelete} />
+      {isDeletable && (
+        <Button
+          type="button"
+          variant="danger-pill-icon-confirm"
+          icon={Trash2}
+          confirmModal={{
+            title: "Excluir Usuário",
+            subtitle: "Confirmar exclusão de operador",
+            paragraph: `Tem certeza de que deseja excluir o usuário "${formMgr.editingUser?.name}"? Esta ação não poderá ser desfeita.`,
+            icon: Trash2,
+            successText: "Confirmar Exclusão",
+          }}
+          onConfirm={async () => {
+            if (formMgr.editingUser) {
+              await dal.users.delete(formMgr.editingUser.id, tenantId)
+              setMode?.("list")
+            }
+          }}
+        />
       )}
-      <Button type="button" variant="primary-icon" icon={Check} onClick={opts.onSave} />
+      <Button
+        type="button"
+        variant="primary-icon"
+        icon={Check}
+        onClick={async () => {
+          await formMgr.save()
+          setMode?.("list")
+        }}
+      />
     </Stack>
   )
 }
 
-function syncUserListHeader(
-  opts: {
-    setCustomBack?: (cb: (() => void) | null) => void
-    setCustomTitle?: (title: string | null) => void
-    setCustomActions?: (actions: React.ReactNode | null) => void
-    onCancel: () => void
-    searchQuery: string
-    setSearchQuery: (q: string) => void
-  },
-  s: typeof UI_STRINGS.settings.usuarios
-) {
-  opts.setCustomBack?.(() => () => opts.onCancel())
-  opts.setCustomTitle?.(s.title)
-  opts.setCustomActions?.(
-    <MobileHeaderSearch searchQuery={opts.searchQuery} onSearchQueryChange={opts.setSearchQuery} placeholder={s.searchPlaceholder} />
-  )
+function useUserHeaderSync(opts: UserHeaderSyncOptions) {
+  const { mode, formMgr, searchQuery, setSearchQuery, onCancel, tenantId, setCustomBack, setCustomTitle, setCustomActions, setMode, onRequestBack } = opts
+  const s = UI_STRINGS.settings.usuarios
+
+  const onRequestBackRef = React.useRef(onRequestBack)
+  React.useEffect(() => {
+    onRequestBackRef.current = onRequestBack
+  })
+
+  React.useEffect(() => {
+    if (mode === "form") {
+      setCustomBack?.(() => () => onRequestBackRef.current?.())
+      setCustomTitle?.(formMgr.editingUser ? s.editUserTitle : s.newUserTitle)
+      setCustomActions?.(renderUserHeaderActions(formMgr, tenantId, setMode))
+    } else {
+      setCustomBack?.(() => () => onCancel())
+      setCustomTitle?.(s.title)
+      setCustomActions?.(<MobileHeaderSearch searchQuery={searchQuery} onSearchQueryChange={setSearchQuery} placeholder={s.searchPlaceholder} />)
+    }
+  }, [mode, formMgr, searchQuery, setSearchQuery, setCustomBack, setCustomTitle, setCustomActions, setMode, onCancel, s, tenantId])
+
+  React.useEffect(() => () => {
+    setCustomBack?.(null)
+    setCustomTitle?.(null)
+    setCustomActions?.(null)
+  }, [setCustomBack, setCustomTitle, setCustomActions])
 }
 
 export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
@@ -286,66 +350,80 @@ export const UsuariosSection: React.FC<UsuariosSectionProps> = ({
   setCustomActions,
 }) => {
   const tenantCtx = useTenant()
-  const activeTenant = tenantCtx?.currentTenant
-  const tenantId = activeTenant?.id || "demo-tenant"
+  const tenantId = tenantCtx?.currentTenant?.id || "demo-tenant"
   const currentUser = tenantCtx?.currentUser
   const s = UI_STRINGS.settings.usuarios
   const dbOperators = useOperators(tenantId)
-
   const [mode, setMode] = React.useState<"list" | "form">("list")
   const [searchQuery, setSearchQuery] = React.useState("")
-  const form = useUserFormData(tenantId)
+  const [isDiscardModalOpen, setIsDiscardModalOpen] = React.useState(false)
+  const formMgr = useOperatorFormManager(tenantId)
 
   const usersList: UserItem[] = React.useMemo(() => {
     if (!dbOperators || dbOperators.length === 0) {
-      return [{ id: `user-admin-${tenantId}`, name: "Administrador", role: "Administrador", phone: "", email: `admin@${tenantId}.app`, password: "123456789", commission: "% 0,00", isCurrent: true }]
+      return [buildDefaultAdminUser(tenantId)]
     }
-    return dbOperators.map((u) => ({
-      id: u.id, name: u.name, role: u.role, phone: "", email: u.email || "",
-      password: u.password, commission: (u as { commission?: string }).commission || "% 0,00",
-      isCurrent: currentUser?.id === u.id || currentUser?.name === u.name,
-    }))
+    return dbOperators.map((u) => mapOperatorItem(u, currentUser?.id, currentUser?.name))
   }, [dbOperators, tenantId, currentUser])
 
-  React.useEffect(() => {
-    if (mode === "form") {
-      const onDelete = async () => {
-        if (form.editingUser) {
-          await dal.users.delete(form.editingUser.id, tenantId)
-          setMode("list")
-        }
-      }
-      const onSave = async () => { await form.save(); setMode("list") }
-      syncUserFormHeader({ setCustomBack, setCustomTitle, setCustomActions, setMode, editingUser: form.editingUser, onDelete, onSave }, s)
+  const handleRequestBack = React.useCallback(() => {
+    if (formMgr.isDirty) {
+      setIsDiscardModalOpen(true)
     } else {
-      syncUserListHeader({ setCustomBack, setCustomTitle, setCustomActions, onCancel, searchQuery, setSearchQuery }, s)
+      setMode("list")
     }
-    return () => { setCustomBack?.(null); setCustomTitle?.(null); setCustomActions?.(null) }
-  }, [mode, form, searchQuery, setCustomBack, setCustomTitle, setCustomActions, onCancel, tenantId, s])
+  }, [formMgr.isDirty])
 
-  const filtered = usersList.filter((u) => u.name.toLowerCase().includes(searchQuery.toLowerCase()) || u.role.toLowerCase().includes(searchQuery.toLowerCase()))
+  useUserHeaderSync({
+    mode, formMgr, searchQuery, setSearchQuery, onCancel, tenantId,
+    setCustomBack, setCustomTitle, setCustomActions, setMode,
+    onRequestBack: handleRequestBack,
+  })
+
+  const filtered = React.useMemo(() => filterUsers(usersList, searchQuery), [usersList, searchQuery])
 
   return (
     <ViewTransition viewKey={mode} flex="1" minH="0">
       <Stack gap={5} w="full">
         {mode === "list" ? (
-          <UserListView
-            filtered={filtered}
-            onEdit={(u) => { form.startEdit(u); setMode("form") }}
-            onDelete={(id) => dal.users.delete(id, tenantId)}
-            onAdd={() => { form.startCreate(); setMode("form") }}
-          />
+          <Box position="relative" w="full">
+            {filtered.length > 0 ? (
+              <Box display="flex" direction="col" w="full">
+                {filtered.map((u, idx) => (
+                  <Box key={u.id}>
+                    <UserListItemRow user={u} onEdit={(user) => { formMgr.startEdit(user); setMode("form") }} onDelete={async (id) => { await dal.users.delete(id, tenantId); setMode("list") }} />
+                    {idx < filtered.length - 1 && <Box borderBottom borderColor="border-border" w="full" />}
+                  </Box>
+                ))}
+              </Box>
+            ) : (
+              <EmptyState icon={Search} title={s.emptyTitle} subtitle={s.emptySubtitle} />
+            )}
+            <Box position="fixed" bottom="24px" right="24px" zIndex="30">
+              <Button variant="secondary-pill-icon" icon={Plus} onClick={() => { formMgr.startCreate(); setMode("form") }} title={s.newOperatorButton} />
+            </Box>
+          </Box>
         ) : (
           <UserFormCard
-            editingUser={form.editingUser} formName={form.formName} setFormName={form.setFormName}
-            formLogin={form.formLogin} setFormLogin={form.setFormLogin} formPassword={form.formPassword} setFormPassword={form.setFormPassword}
-            formConfirmPassword={form.formConfirmPassword} setFormConfirmPassword={form.setFormConfirmPassword}
-            formCommission={form.formCommission} setFormCommission={form.setFormCommission}
-            formRole={form.formRole} setFormRole={form.setFormRole}
-            onSubmit={async (e) => { e.preventDefault(); await form.save(); setMode("list") }}
+            formName={formMgr.formName} setFormName={formMgr.setFormName}
+            formLogin={formMgr.formLogin} setFormLogin={formMgr.setFormLogin}
+            formPassword={formMgr.formPassword} setFormPassword={formMgr.setFormPassword}
+            formConfirmPassword={formMgr.formConfirmPassword} setFormConfirmPassword={formMgr.setFormConfirmPassword}
+            formCommission={formMgr.formCommission} setFormCommission={formMgr.setFormCommission}
+            formRole={formMgr.formRole} setFormRole={formMgr.setFormRole}
+            isEditing={Boolean(formMgr.editingUser)}
+            onSubmit={async (e) => { e.preventDefault(); await formMgr.save(); setMode("list") }}
           />
         )}
       </Stack>
+      <DiscardChangesModal
+        isOpen={isDiscardModalOpen}
+        onClose={() => setIsDiscardModalOpen(false)}
+        onConfirmDiscard={() => {
+          setIsDiscardModalOpen(false)
+          setMode("list")
+        }}
+      />
     </ViewTransition>
   )
 }

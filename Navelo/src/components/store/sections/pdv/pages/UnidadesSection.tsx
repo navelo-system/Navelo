@@ -10,6 +10,7 @@ import { CustomSelect, CustomSelectItem } from "@/components/store/base/CustomSe
 import { Trash2, Binary, Clipboard, Check, Scale } from "lucide-react"
 import { ListSectionLayout } from "@/components/store/intermediary/ListSectionLayout"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
+import { DiscardChangesModal } from "@/components/store/advanced/DiscardChangesModal"
 import { useUnits, dal } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
 import { UI_STRINGS } from "@/constants/strings"
@@ -78,6 +79,98 @@ function UnitListItem({ unit, onClick }: { unit: UnitItem; onClick: () => void }
   )
 }
 
+function checkUnitDirty(
+  editingUnit: UnitItem | null,
+  formName: string,
+  formDecimals: string
+): boolean {
+  if (editingUnit) {
+    return formName !== editingUnit.name || formDecimals !== String(editingUnit.decimals)
+  }
+  return Boolean(formName.trim() || (formDecimals !== "0" && formDecimals !== ""))
+}
+
+interface UnidadesHeaderSyncOpts {
+  mode: "list" | "form"
+  editingUnit: UnitItem | null
+  tenantId?: string
+  handleBack: () => void
+  setCustomBack?: (cb: (() => void) | null) => void
+  setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
+  setMode: (m: "list" | "form") => void
+  setEditingUnit: (u: UnitItem | null) => void
+}
+
+function useUnidadesHeaderSync(opts: UnidadesHeaderSyncOpts) {
+  const {
+    mode, editingUnit, tenantId, handleBack,
+    setCustomBack, setCustomTitle, setCustomActions, setMode, setEditingUnit,
+  } = opts
+  const s = UI_STRINGS.settings.unidades
+
+  React.useEffect(() => {
+    if (mode === "form") {
+      setCustomBack?.(() => handleBack)
+      setCustomTitle?.(editingUnit ? s.editUnitTitle : s.newUnitTitle)
+      setCustomActions?.(
+        <Stack direction="row" gap={2.5} align="center">
+          {editingUnit && (
+            <Button
+              type="button"
+              variant="danger-pill-icon-confirm"
+              icon={Trash2}
+              confirmModal={{
+                title: "Excluir Unidade",
+                subtitle: "Confirmar exclusão de unidade",
+                paragraph: `Tem certeza de que deseja excluir a unidade "${editingUnit.name}"? Esta ação não poderá ser desfeita.`,
+                icon: Trash2,
+                successText: "Confirmar Exclusão",
+              }}
+              onConfirm={async () => { await dal.units.delete(editingUnit.id, tenantId); setMode("list"); setEditingUnit(null) }}
+              title={s.deleteUnitTitle}
+            />
+          )}
+          <Button type="submit" form="unit-form" variant="primary-pill-icon" icon={Check} title={s.saveUnitTitle} />
+        </Stack>
+      )
+    }
+    return () => { setCustomBack?.(null); setCustomTitle?.(null); setCustomActions?.(null) }
+  }, [mode, editingUnit, tenantId, setCustomBack, setCustomTitle, setCustomActions, handleBack, s, setMode, setEditingUnit])
+}
+
+function UnidadesListView({
+  units, onAdd, onEdit, setCustomBack, setCustomTitle, setCustomActions, onBackToDashboard,
+}: {
+  units: UnitItem[]
+  onAdd: () => void
+  onEdit: (unit: UnitItem) => void
+  setCustomBack?: (cb: (() => void) | null) => void
+  setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
+  onBackToDashboard: () => void
+}) {
+  const s = UI_STRINGS.settings.unidades
+  return (
+    <ListSectionLayout<UnitItem>
+      title={s.title}
+      items={units}
+      searchPlaceholder={s.searchPlaceholder}
+      searchFilterFn={(u, q) => u.name.toLowerCase().includes(q.toLowerCase())}
+      emptyIcon={Scale}
+      emptyTitle={s.emptyTitle}
+      emptySubtitle={s.emptySubtitle}
+      onAdd={onAdd}
+      getItemKey={(u) => u.id}
+      setCustomBack={setCustomBack}
+      setCustomTitle={setCustomTitle}
+      setCustomActions={setCustomActions}
+      onBackToDashboard={onBackToDashboard}
+      renderItem={(unit) => <UnitListItem unit={unit} onClick={() => onEdit(unit)} />}
+    />
+  )
+}
+
 export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
   onCancel,
   setCustomBack,
@@ -86,12 +179,14 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
 }) => {
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id
-  const s = UI_STRINGS.settings.unidades
   const dbUnits = useUnits(tenantId)
   const [mode, setMode] = React.useState<"list" | "form">("list")
   const [editingUnit, setEditingUnit] = React.useState<UnitItem | null>(null)
   const [formName, setFormName] = React.useState("")
   const [formDecimals, setFormDecimals] = React.useState("0")
+  const [isDiscardModalOpen, setIsDiscardModalOpen] = React.useState(false)
+
+  const isDirty = checkUnitDirty(editingUnit, formName, formDecimals)
 
   const units: UnitItem[] = React.useMemo(() => {
     if (dbUnits && dbUnits.length > 0) {
@@ -101,24 +196,22 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
   }, [dbUnits])
 
   const handleBack = React.useCallback(() => {
-    if (mode === "form") { setMode("list"); setEditingUnit(null) }
-    else onCancel()
-  }, [mode, onCancel])
-
-  React.useEffect(() => {
     if (mode === "form") {
-      setCustomBack?.(() => handleBack)
-      setCustomTitle?.(editingUnit ? s.editUnitTitle : s.newUnitTitle)
-      setCustomActions?.(
-        <Stack direction="row" gap={2.5} align="center">
-          {editingUnit && (
-            <Button type="button" variant="danger-pill-icon" icon={Trash2} onClick={async () => { await dal.units.delete(editingUnit.id, tenantId); setMode("list"); setEditingUnit(null) }} title={s.deleteUnitTitle} />
-          )}
-          <Button type="submit" form="unit-form" variant="primary-pill-icon" icon={Check} title={s.saveUnitTitle} />
-        </Stack>
-      )
+      if (isDirty) {
+        setIsDiscardModalOpen(true)
+      } else {
+        setMode("list")
+        setEditingUnit(null)
+      }
+    } else {
+      onCancel()
     }
-  }, [mode, editingUnit, tenantId, setCustomBack, setCustomTitle, setCustomActions, handleBack, s])
+  }, [mode, isDirty, onCancel])
+
+  useUnidadesHeaderSync({
+    mode, editingUnit, tenantId, handleBack,
+    setCustomBack, setCustomTitle, setCustomActions, setMode, setEditingUnit,
+  })
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -140,25 +233,25 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
       {mode === "form" ? (
         <UnitFormCard formName={formName} setFormName={setFormName} formDecimals={formDecimals} setFormDecimals={setFormDecimals} onSubmit={handleSave} />
       ) : (
-        <ListSectionLayout<UnitItem>
-          title={s.title}
-          items={units}
-          searchPlaceholder={s.searchPlaceholder}
-          searchFilterFn={(u, q) => u.name.toLowerCase().includes(q.toLowerCase())}
-          emptyIcon={Scale}
-          emptyTitle={s.emptyTitle}
-          emptySubtitle={s.emptySubtitle}
+        <UnidadesListView
+          units={units}
           onAdd={() => { setEditingUnit(null); setFormName(""); setFormDecimals("0"); setMode("form") }}
-          getItemKey={(u) => u.id}
+          onEdit={(unit) => { setEditingUnit(unit); setFormName(unit.name); setFormDecimals(unit.decimals.toString()); setMode("form") }}
           setCustomBack={setCustomBack}
           setCustomTitle={setCustomTitle}
           setCustomActions={setCustomActions}
           onBackToDashboard={onCancel}
-          renderItem={(unit) => (
-            <UnitListItem unit={unit} onClick={() => { setEditingUnit(unit); setFormName(unit.name); setFormDecimals(unit.decimals.toString()); setMode("form") }} />
-          )}
         />
       )}
+      <DiscardChangesModal
+        isOpen={isDiscardModalOpen}
+        onClose={() => setIsDiscardModalOpen(false)}
+        onConfirmDiscard={() => {
+          setIsDiscardModalOpen(false)
+          setMode("list")
+          setEditingUnit(null)
+        }}
+      />
     </ViewTransition>
   )
 }

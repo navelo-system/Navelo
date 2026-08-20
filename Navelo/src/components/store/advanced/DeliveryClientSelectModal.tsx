@@ -33,20 +33,14 @@ function resolveInitialModalClient(initialClient?: DeliveryClientInfo | null) {
   if (initialClient.address && initialClient.address !== "Endereço não informado") {
     const parsed = parseAddressString(initialClient.address)
     addrs.push({
-      name: parsed.name,
-      street: parsed.street,
-      number: parsed.number,
-      complement: parsed.complement,
-      neighborhood: parsed.neighborhood,
-      city: parsed.city,
-      zip: parsed.zip,
+      name: parsed.name, street: parsed.street, number: parsed.number,
+      complement: parsed.complement, neighborhood: parsed.neighborhood,
+      city: parsed.city, zip: parsed.zip,
     })
   }
   return {
-    name: initialClient.name,
-    phone: initialClient.phone || "",
-    addresses: addrs,
-    selectedCustomerId: initialClient.customerId,
+    name: initialClient.name, phone: initialClient.phone || "",
+    addresses: addrs, selectedCustomerId: initialClient.customerId,
   }
 }
 
@@ -59,21 +53,12 @@ interface DeliveryClientSearchTabProps {
 }
 
 function DeliveryClientSearchTab({
-  searchQuery,
-  setSearchQuery,
-  filteredCustomers,
-  selectedCustomerId,
-  onSelectCustomer,
+  searchQuery, setSearchQuery, filteredCustomers, selectedCustomerId, onSelectCustomer,
 }: DeliveryClientSearchTabProps) {
   const d = UI_STRINGS.delivery
   return (
     <Stack gap={2.5} w="full">
-      <Input
-        placeholder={d.searchClientPlaceholder}
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        icon={Search}
-      />
+      <Input placeholder={d.searchClientPlaceholder} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} icon={Search} />
       <Box maxH="96" overflow="auto" w="full">
         <Stack gap={1} w="full">
           {filteredCustomers.length === 0 ? (
@@ -84,23 +69,15 @@ function DeliveryClientSearchTab({
               const addr = customerObj.addresses?.find((a) => a.isDefault) || customerObj.addresses?.[0]
               return (
                 <Box
-                  key={customerObj.id}
-                  padding={2.5}
-                  radius="default"
-                  border={true}
-                  borderColor={isSelected ? "border-brand-primary" : "border-border"}
-                  bg={isSelected ? "bg-brand-primary/5" : "bg-surface"}
-                  hoverBg="surface-sunken"
-                  cursor="pointer"
+                  key={customerObj.id} padding={2.5} radius="default" border borderColor={isSelected ? "border-brand-primary" : "border-border"}
+                  bg={isSelected ? "bg-brand-primary/5" : "bg-surface"} hoverBg="surface-sunken" cursor="pointer"
                   onClick={() => onSelectCustomer(customerObj)}
                 >
                   <Stack direction="row" justify="between" align="center" w="full">
                     <Stack gap={0} align="start">
                       <Font variant="body-bold" text={customerObj.name} />
                       <Font variant="sub-tiny" color="muted" text={customerObj.phone || "Sem telefone"} />
-                      {addr && (
-                        <Font variant="sub-tiny" color="muted" text={`${addr.street}, ${addr.number} - ${addr.neighborhood}`} />
-                      )}
+                      {addr && <Font variant="sub-tiny" color="muted" text={`${addr.street}, ${addr.number} - ${addr.neighborhood}`} />}
                     </Stack>
                     {isSelected && <Icon icon={Check} size={16} color="primary" />}
                   </Stack>
@@ -130,10 +107,7 @@ interface DeliveryClientFormTabProps {
 }
 
 function DeliveryClientFormTab({
-  name, setName,
-  email, setEmail,
-  document, setDocument,
-  phone, setPhone,
+  name, setName, email, setEmail, document, setDocument, phone, setPhone,
   addresses, onOpenNewAddress, onEditAddress, onDeleteAddress,
 }: DeliveryClientFormTabProps) {
   const cust = UI_STRINGS.customers
@@ -154,17 +128,14 @@ function DeliveryClientFormTab({
         {addresses.length > 0 && (
           <Stack gap={1} w="full">
             {addresses.map((addr, idx) => (
-              <Box key={idx} padding={2.5} bg="surface-sunken" radius="default" border={true} borderColor="border-border" w="full">
+              <Box key={idx} padding={2.5} bg="surface-sunken" radius="default" border borderColor="border-border" w="full">
                 <Stack direction="row" justify="between" align="center" w="full">
                   <Stack direction="row" gap={2.5} align="center">
-                    <Box shrink="0">
-                      <Icon icon={MapPin} size={16} color="primary" />
-                    </Box>
+                    <Box shrink="0"><Icon icon={MapPin} size={16} color="primary" /></Box>
                     <Stack gap={0} align="start">
                       <Font variant="body-sm-semibold" text={addr.name || `Endereço ${idx + 1}`} />
                       <Font
-                        variant="description"
-                        color="muted"
+                        variant="description" color="muted"
                         text={`${addr.street}${addr.number ? `, ${addr.number}` : ""}${addr.neighborhood ? ` - ${addr.neighborhood}` : ""}${addr.city ? `, ${addr.city}` : ""}`}
                       />
                     </Stack>
@@ -209,27 +180,13 @@ async function persistSelectedModalCustomer(params: PersistCustomerParams) {
   const newCustId = `cli-${Date.now()}`
   try {
     await dal.customers.create({
-      id: newCustId,
-      tenant_id: params.tenantId,
-      company_id: params.tenantId,
-      name: params.name.trim(),
-      phone: params.phone.trim(),
-      email: params.email.trim() || undefined,
-      document: params.document.trim() || "",
-      type: params.document.length > 14 ? "PJ" : "PF",
+      id: newCustId, tenant_id: params.tenantId, company_id: params.tenantId,
+      name: params.name.trim(), phone: params.phone.trim(), email: params.email.trim() || undefined,
+      document: params.document.trim() || "", type: params.document.length > 14 ? "PJ" : "PF",
       addresses: params.addresses.map((a, i) => ({
-        id: a.id || `addr-${Date.now()}-${i}`,
-        customerId: newCustId,
-        name: a.name,
-        street: a.street,
-        number: a.number,
-        complement: a.complement,
-        neighborhood: a.neighborhood,
-        city: a.city,
-        state: "",
-        zipCode: a.zip,
-        reference_point: a.reference_point,
-        isDefault: i === 0,
+        id: a.id || `addr-${Date.now()}-${i}`, customerId: newCustId, name: a.name, street: a.street,
+        number: a.number, complement: a.complement, neighborhood: a.neighborhood, city: a.city,
+        state: "", zipCode: a.zip, reference_point: a.reference_point, isDefault: i === 0,
       })),
     })
     return newCustId
@@ -239,18 +196,7 @@ async function persistSelectedModalCustomer(params: PersistCustomerParams) {
   }
 }
 
-export function DeliveryClientSelectModal({
-  isOpen,
-  onClose,
-  initialClient,
-  onSelectClient,
-}: DeliveryClientSelectModalProps) {
-  const tenantCtx = useTenant()
-  const tenantId = tenantCtx?.currentTenant?.id || "default"
-  const rawCustomers = useCustomers(tenantId)
-  const customers = React.useMemo(() => (Array.isArray(rawCustomers) ? rawCustomers : []), [rawCustomers])
-  const d = UI_STRINGS.delivery
-
+function useDeliveryClientSelectState(initialClient?: DeliveryClientInfo | null, isOpen?: boolean) {
   const init = resolveInitialModalClient(initialClient)
   const [tab, setTab] = React.useState<"search" | "form">("form")
   const [searchQuery, setSearchQuery] = React.useState("")
@@ -271,21 +217,10 @@ export function DeliveryClientSelectModal({
     setPrevInitialClient(initialClient)
     if (isOpen) {
       const next = resolveInitialModalClient(initialClient)
-      setName(next.name)
-      setPhone(next.phone)
-      setEmail("")
-      setDocument("")
-      setAddresses(next.addresses)
-      setSelectedCustomerId(next.selectedCustomerId)
+      setName(next.name); setPhone(next.phone); setEmail(""); setDocument("")
+      setAddresses(next.addresses); setSelectedCustomerId(next.selectedCustomerId)
     }
   }
-
-  const filteredCustomers = customers.filter(
-    (c: Customer) =>
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (c.phone && c.phone.includes(searchQuery)) ||
-      (c.document && c.document.includes(searchQuery))
-  )
 
   const handleSelectCustomer = (customer: Customer) => {
     setSelectedCustomerId(customer.id)
@@ -296,14 +231,11 @@ export function DeliveryClientSelectModal({
     const addrs = (customer.addresses || []).map((a) => {
       const p = parseAddressString(a.street)
       return {
-        id: a.id,
-        name: a.name || "Endereço",
-        street: p.street,
+        id: a.id, name: a.name || "Endereço", street: p.street,
         number: p.number !== "S/N" ? p.number : a.number,
         complement: p.complement || a.complement || "",
         neighborhood: p.neighborhood || a.neighborhood,
-        city: p.city || a.city,
-        zip: p.zip || a.zipCode,
+        city: p.city || a.city, zip: p.zip || a.zipCode,
         reference_point: a.reference_point || "",
       }
     })
@@ -311,81 +243,79 @@ export function DeliveryClientSelectModal({
     setTab("form")
   }
 
+  return {
+    tab, setTab, searchQuery, setSearchQuery, name, setName, email, setEmail,
+    document, setDocument, phone, setPhone, addresses, setAddresses,
+    selectedCustomerId, isAddressModalOpen, setIsAddressModalOpen,
+    editingAddressIndex, setEditingAddressIndex, handleSelectCustomer,
+  }
+}
+
+export function DeliveryClientSelectModal({
+  isOpen, onClose, initialClient, onSelectClient,
+}: DeliveryClientSelectModalProps) {
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id || "default"
+  const rawCustomers = useCustomers(tenantId)
+  const customers = React.useMemo(() => (Array.isArray(rawCustomers) ? rawCustomers : []), [rawCustomers])
+  const d = UI_STRINGS.delivery
+
+  const s = useDeliveryClientSelectState(initialClient, isOpen)
+
+  const filteredCustomers = customers.filter(
+    (c: Customer) => c.name.toLowerCase().includes(s.searchQuery.toLowerCase()) ||
+      (c.phone && c.phone.includes(s.searchQuery)) || (c.document && c.document.includes(s.searchQuery))
+  )
+
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
-    if (!name.trim()) return
-
-    const formattedAddress = formatClientSelectAddress(addresses)
+    if (!s.name.trim()) return
+    const formattedAddress = formatClientSelectAddress(s.addresses)
     const finalCustId = await persistSelectedModalCustomer({
-      tenantId, selectedCustomerId, name, phone, email, document, addresses,
+      tenantId, selectedCustomerId: s.selectedCustomerId, name: s.name,
+      phone: s.phone, email: s.email, document: s.document, addresses: s.addresses,
     })
-
-    onSelectClient({ name: name.trim(), phone: phone.trim(), address: formattedAddress, customerId: finalCustId })
+    onSelectClient({ name: s.name.trim(), phone: s.phone.trim(), address: formattedAddress, customerId: finalCustId })
     onClose()
   }
 
   return (
     <>
       <Modal
-        isOpen={isOpen}
-        onClose={onClose}
-        title={d.clientSelectModalTitle}
-        subtitle={d.clientSelectModalSubtitle}
-        icon={User}
-        successText={d.advanceToOrderButton}
-        onSuccess={handleSubmit}
-        showCancelButton={true}
+        isOpen={isOpen} onClose={onClose} title={d.clientSelectModalTitle}
+        subtitle={d.clientSelectModalSubtitle} icon={User} successText={d.advanceToOrderButton}
+        onSuccess={handleSubmit} showCancelButton={true}
       >
         <Stack gap={2.5} w="full">
           <Stack direction="row" gap={2.5} w="full">
-            <Button variant={tab === "search" ? "primary" : "secondary"} label={d.searchRegisteredTab} icon={Search} onClick={() => setTab("search")} />
-            <Button variant={tab === "form" ? "primary" : "secondary"} label={d.clientDataTab} icon={Plus} onClick={() => setTab("form")} />
+            <Button variant={s.tab === "search" ? "primary" : "secondary"} label={d.searchRegisteredTab} icon={Search} onClick={() => s.setTab("search")} />
+            <Button variant={s.tab === "form" ? "primary" : "secondary"} label={d.clientDataTab} icon={Plus} onClick={() => s.setTab("form")} />
           </Stack>
-
-          {tab === "search" ? (
-            <DeliveryClientSearchTab
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              filteredCustomers={filteredCustomers}
-              selectedCustomerId={selectedCustomerId}
-              onSelectCustomer={handleSelectCustomer}
-            />
+          {s.tab === "search" ? (
+            <DeliveryClientSearchTab searchQuery={s.searchQuery} setSearchQuery={s.setSearchQuery} filteredCustomers={filteredCustomers} selectedCustomerId={s.selectedCustomerId} onSelectCustomer={s.handleSelectCustomer} />
           ) : (
             <DeliveryClientFormTab
-              name={name} setName={setName}
-              email={email} setEmail={setEmail}
-              document={document} setDocument={setDocument}
-              phone={phone} setPhone={setPhone}
-              addresses={addresses}
-              onOpenNewAddress={() => {
-                setEditingAddressIndex(null)
-                setIsAddressModalOpen(true)
-              }}
-              onEditAddress={(idx) => {
-                setEditingAddressIndex(idx)
-                setIsAddressModalOpen(true)
-              }}
-              onDeleteAddress={(idx) => setAddresses((prev) => prev.filter((_, i) => i !== idx))}
+              name={s.name} setName={s.setName} email={s.email} setEmail={s.setEmail}
+              document={s.document} setDocument={s.setDocument} phone={s.phone} setPhone={s.setPhone}
+              addresses={s.addresses}
+              onOpenNewAddress={() => { s.setEditingAddressIndex(null); s.setIsAddressModalOpen(true) }}
+              onEditAddress={(idx) => { s.setEditingAddressIndex(idx); s.setIsAddressModalOpen(true) }}
+              onDeleteAddress={(idx) => s.setAddresses((prev) => prev.filter((_, i) => i !== idx))}
             />
           )}
         </Stack>
       </Modal>
-
       <ClientAddressFormModal
-        isOpen={isAddressModalOpen}
-        onClose={() => {
-          setIsAddressModalOpen(false)
-          setEditingAddressIndex(null)
-        }}
+        isOpen={s.isAddressModalOpen} onClose={() => { s.setIsAddressModalOpen(false); s.setEditingAddressIndex(null) }}
         onSave={(addrData) => {
-          if (editingAddressIndex !== null) {
-            setAddresses((prev) => prev.map((it, idx) => (idx === editingAddressIndex ? addrData : it)))
-            setEditingAddressIndex(null)
+          if (s.editingAddressIndex !== null) {
+            s.setAddresses((prev) => prev.map((it, idx) => (idx === s.editingAddressIndex ? addrData : it)))
+            s.setEditingAddressIndex(null)
           } else {
-            setAddresses((prev) => [...prev, addrData])
+            s.setAddresses((prev) => [...prev, addrData])
           }
         }}
-        initialData={editingAddressIndex !== null ? addresses[editingAddressIndex] : null}
+        initialData={s.editingAddressIndex !== null ? s.addresses[s.editingAddressIndex] : null}
       />
     </>
   )

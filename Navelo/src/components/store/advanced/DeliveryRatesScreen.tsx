@@ -12,6 +12,7 @@ import { Plus, Trash2, MapPin, DollarSign } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { useTenant } from "@/lib/context/TenantContext"
 import { useDeliveryRates, dal, DeliveryRate } from "@/lib/dal"
+import { DiscardChangesModal } from "@/components/store/advanced/DiscardChangesModal"
 import { UI_STRINGS } from "@/constants/strings"
 
 export interface DeliveryRatesScreenProps {
@@ -211,32 +212,35 @@ function useDeliveryRatesSync(params: RatesSyncParams) {
   }, [mode, searchQuery, editingRate, df, setMode, setSearchQuery])
 }
 
-export function DeliveryRatesScreen({
-  onBack,
-  onSelectRate,
-  setCustomBack,
-  setCustomTitle,
-  setCustomActions,
-}: DeliveryRatesScreenProps) {
-  const tenantCtx = useTenant()
-  const tenantId = tenantCtx?.currentTenant?.id || "default"
-  const dbRates = useDeliveryRates(tenantId)
-  const ratesList = React.useMemo(() => (Array.isArray(dbRates) ? dbRates : []), [dbRates])
+function checkRateDirty(
+  editingRate: DeliveryRate | null,
+  neighborhood: string,
+  fee: string
+): boolean {
+  if (editingRate) {
+    const origFeeStr = editingRate.fee !== undefined ? editingRate.fee.toString().replace(".", ",") : ""
+    return neighborhood !== (editingRate.neighborhood || "") || fee !== origFeeStr
+  }
+  return Boolean(neighborhood.trim() || fee.trim())
+}
 
+function useDeliveryRatesForm(tenantId: string, onSelectRate?: (rate: DeliveryRate) => void) {
   const [mode, setMode] = React.useState<"list" | "form">("list")
   const [editingRate, setEditingRate] = React.useState<DeliveryRate | null>(null)
-  const [searchQuery, setSearchQuery] = React.useState("")
   const [neighborhood, setNeighborhood] = React.useState("")
   const [fee, setFee] = React.useState("")
-
-  useDeliveryRatesSync({
-    mode, editingRate, searchQuery, setSearchQuery, setMode, onBack, setCustomBack, setCustomTitle, setCustomActions
-  })
 
   const handleEdit = (rate: DeliveryRate) => {
     setEditingRate(rate)
     setNeighborhood(rate.neighborhood || "")
     setFee(rate.fee !== undefined ? rate.fee.toString().replace(".", ",") : "")
+    setMode("form")
+  }
+
+  const handleCreateNew = () => {
+    setEditingRate(null)
+    setNeighborhood("")
+    setFee("")
     setMode("form")
   }
 
@@ -268,32 +272,79 @@ export function DeliveryRatesScreen({
     }
   }
 
+  const isDirty = checkRateDirty(editingRate, neighborhood, fee)
+
+  return {
+    mode, setMode, editingRate, setEditingRate, neighborhood, setNeighborhood,
+    fee, setFee, handleEdit, handleCreateNew, handleDelete, handleSubmit, isDirty,
+  }
+}
+
+export function DeliveryRatesScreen({
+  onBack,
+  onSelectRate,
+  setCustomBack,
+  setCustomTitle,
+  setCustomActions,
+}: DeliveryRatesScreenProps) {
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id || "default"
+  const dbRates = useDeliveryRates(tenantId)
+  const ratesList = React.useMemo(() => (Array.isArray(dbRates) ? dbRates : []), [dbRates])
+
+  const [searchQuery, setSearchQuery] = React.useState("")
+  const [isDiscardModalOpen, setIsDiscardModalOpen] = React.useState(false)
+
+  const form = useDeliveryRatesForm(tenantId, onSelectRate)
+
+  const handleRequestBack = React.useCallback(() => {
+    if (form.mode === "form") {
+      if (form.isDirty) {
+        setIsDiscardModalOpen(true)
+      } else {
+        form.setMode("list")
+        form.setEditingRate(null)
+      }
+    } else {
+      onBack()
+    }
+  }, [form, onBack])
+
+  useDeliveryRatesSync({
+    mode: form.mode, editingRate: form.editingRate, searchQuery, setSearchQuery,
+    setMode: form.setMode, onBack: handleRequestBack, setCustomBack, setCustomTitle, setCustomActions
+  })
+
   const filteredRates = React.useMemo(() => {
     if (!searchQuery.trim()) return ratesList
     const q = searchQuery.toLowerCase()
     return ratesList.filter((r) => r.neighborhood.toLowerCase().includes(q))
   }, [ratesList, searchQuery])
 
-  if (mode === "form") {
-    return (
-      <DeliveryRateFormView
-        editingRate={editingRate} neighborhood={neighborhood} setNeighborhood={setNeighborhood}
-        fee={fee} setFee={setFee} onSubmit={handleSubmit} onDelete={handleDelete}
-      />
-    )
-  }
-
   return (
-    <DeliveryRatesListView
-      filteredRates={filteredRates}
-      onSelectRate={onSelectRate}
-      onEdit={handleEdit}
-      onCreateNew={() => {
-        setEditingRate(null)
-        setNeighborhood("")
-        setFee("")
-        setMode("form")
-      }}
-    />
+    <Box display="flex" direction="col" flex="1" minH="0" overflow="auto" w="full" padding={0} position="relative">
+      {form.mode === "form" ? (
+        <DeliveryRateFormView
+          editingRate={form.editingRate} neighborhood={form.neighborhood} setNeighborhood={form.setNeighborhood}
+          fee={form.fee} setFee={form.setFee} onSubmit={form.handleSubmit} onDelete={form.handleDelete}
+        />
+      ) : (
+        <DeliveryRatesListView
+          filteredRates={filteredRates}
+          onSelectRate={onSelectRate}
+          onEdit={form.handleEdit}
+          onCreateNew={form.handleCreateNew}
+        />
+      )}
+      <DiscardChangesModal
+        isOpen={isDiscardModalOpen}
+        onClose={() => setIsDiscardModalOpen(false)}
+        onConfirmDiscard={() => {
+          setIsDiscardModalOpen(false)
+          form.setMode("list")
+          form.setEditingRate(null)
+        }}
+      />
+    </Box>
   )
 }

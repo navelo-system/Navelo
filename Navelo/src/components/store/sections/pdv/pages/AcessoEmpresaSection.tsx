@@ -206,7 +206,7 @@ export const AcessoEmpresaSection: React.FC<AcessoEmpresaSectionProps> = ({ onUn
   return (
     <Box w="full" h="screen" bg="bg-slate-900">
       <Stack w="full" h="full" align="center" justify="center" gap={5} paddingX={5}>
-        <Box w="w-full md:w-1/4 max-w-[450px]">
+        <Box w="w-full max-w-[540px]">
           <Stack gap={5} w="full" align="stretch">
             <RegistrySection variant="card" title={s.systemAccessTitle} description={s.systemAccessDesc} icon={Building}>
               <CompanyLoginForm

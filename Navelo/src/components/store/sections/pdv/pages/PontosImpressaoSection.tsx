@@ -16,6 +16,7 @@ import { Plus, Edit2, Trash2, Printer, LayoutGrid, ChevronRight, Check } from "l
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { PrintStatusModal } from "@/components/store/sections/pdv/modals/PrintStatusModal"
 import { FormActions } from "@/components/store/intermediary/FormActions"
+import { DiscardChangesModal } from "@/components/store/advanced/DiscardChangesModal"
 import { usePrintPoints, dal } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
 import { UI_STRINGS } from "@/constants/strings"
@@ -241,6 +242,19 @@ function PrintPointKitchenMonitorCard({
   )
 }
 
+function checkPrintPointDirty(
+  editingPoint: PrintPointItem | null,
+  curr: { name: string; serverIp: string; port: string; enabled: boolean }
+): boolean {
+  if (editingPoint) {
+    return curr.name !== editingPoint.name ||
+      curr.serverIp !== editingPoint.serverIp ||
+      curr.port !== editingPoint.port ||
+      curr.enabled !== editingPoint.enabled
+  }
+  return Boolean(curr.name.trim() || curr.serverIp.trim())
+}
+
 function usePrintPointForm(tenantId?: string) {
   const [editingPoint, setEditingPoint] = React.useState<PrintPointItem | null>(null)
   const [formName, setFormName] = React.useState("")
@@ -280,12 +294,16 @@ function usePrintPointForm(tenantId?: string) {
     setEditingPoint(null)
   }
 
+  const isDirty = checkPrintPointDirty(editingPoint, {
+    name: formName, serverIp: formServerIp, port: formPort, enabled: formEnabled,
+  })
+
   return {
     editingPoint, setEditingPoint, formName, setFormName, formEnabled, setFormEnabled,
     formServerIp, setFormServerIp, formPort, setFormPort, formBobbinSize, setFormBobbinSize,
     formIncreaseFont, setFormIncreaseFont, formColumns, setFormColumns,
     formKitchenEnabled, setFormKitchenEnabled, formLinkingCode, setFormLinkingCode,
-    startCreate, startEdit, save,
+    startCreate, startEdit, save, isDirty,
   }
 }
 
@@ -325,12 +343,76 @@ function PrintPointFormView({
           confirmLabel={form.editingPoint ? UI_STRINGS.pdv.cart.saveChangesButton : s.savePointTitle}
           onConfirm={() => { }} onCancel={onCancel} isSubmit
           leftAction={form.editingPoint ? (
-            <Button type="button" variant="outline" label={s.deletePointTitle} icon={Trash2} onClick={async () => { if (form.editingPoint) { await dal.printPoints.delete(form.editingPoint.id, tenantId); onCancel() } }} />
+            <Button
+              type="button"
+              variant="outline"
+              label={s.deletePointTitle}
+              icon={Trash2}
+              onClick={async () => {
+                if (form.editingPoint) {
+                  await dal.printPoints.delete(form.editingPoint.id, tenantId)
+                  onCancel()
+                }
+              }}
+            />
           ) : undefined}
         />
       </Stack>
     </Box>
   )
+}
+
+function PrintPointListView({
+  filtered, onNewPoint, onEdit, onDelete,
+}: {
+  filtered: PrintPointItem[]
+  onNewPoint: () => void
+  onEdit: (point: PrintPointItem) => void
+  onDelete: (id: string) => void
+}) {
+  const s = UI_STRINGS.printPoints
+  return (
+    <Stack gap={5} w="full">
+      <Stack direction="row" align="center" justify="end" w="full">
+        <Button variant="primary" label={s.newPointTitle} icon={Plus} onClick={onNewPoint} />
+      </Stack>
+      <PrintPointListCard
+        points={filtered}
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+    </Stack>
+  )
+}
+
+interface PrintPointHeaderSyncOpts {
+  mode: "list" | "form"
+  editingPoint: PrintPointItem | null
+  searchQuery: string
+  setSearchQuery: (q: string) => void
+  handleBack: () => void
+  setCustomBack?: (cb: (() => void) | null) => void
+  setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
+}
+
+function usePrintPointHeaderSync(opts: PrintPointHeaderSyncOpts) {
+  const {
+    mode, editingPoint, searchQuery, setSearchQuery, handleBack,
+    setCustomBack, setCustomTitle, setCustomActions,
+  } = opts
+  const s = UI_STRINGS.printPoints
+
+  React.useEffect(() => {
+    setCustomBack?.(() => handleBack)
+    setCustomTitle?.(mode === "form" ? (editingPoint ? s.editPointTitle : s.newPointTitle) : s.title)
+    if (mode === "list") {
+      setCustomActions?.(
+        <MobileHeaderSearch searchQuery={searchQuery} onSearchQueryChange={setSearchQuery} placeholder={s.searchPlaceholder} />
+      )
+    } else setCustomActions?.(null)
+    return () => { setCustomBack?.(null); setCustomTitle?.(null); setCustomActions?.(null) }
+  }, [mode, editingPoint, searchQuery, setSearchQuery, setCustomBack, setCustomTitle, setCustomActions, handleBack, s])
 }
 
 export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
@@ -342,11 +424,11 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
 }) => {
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id
-  const s = UI_STRINGS.printPoints
   const dbPoints = usePrintPoints(tenantId)
   const [mode, setMode] = React.useState<"list" | "form">("list")
   const [searchQuery, setSearchQuery] = React.useState("")
   const [modalMsg, setModalMsg] = React.useState<string | null>(null)
+  const [isDiscardModalOpen, setIsDiscardModalOpen] = React.useState(false)
 
   const form = usePrintPointForm(tenantId)
 
@@ -363,46 +445,53 @@ export const PontosImpressaoSection: React.FC<PontosImpressaoSectionProps> = ({
   }, [dbPoints])
 
   const handleBack = React.useCallback(() => {
-    if (mode === "form") { setMode("list"); form.setEditingPoint(null) }
-    else onCancel()
+    if (mode === "form") {
+      if (form.isDirty) {
+        setIsDiscardModalOpen(true)
+      } else {
+        setMode("list")
+        form.setEditingPoint(null)
+      }
+    } else {
+      onCancel()
+    }
   }, [mode, onCancel, form])
 
-  React.useEffect(() => {
-    setCustomBack?.(() => handleBack)
-    setCustomTitle?.(mode === "form" ? (form.editingPoint ? s.editPointTitle : s.newPointTitle) : s.title)
-    if (mode === "list") {
-      setCustomActions?.(
-        <MobileHeaderSearch searchQuery={searchQuery} onSearchQueryChange={setSearchQuery} placeholder={s.searchPlaceholder} />
-      )
-    } else setCustomActions?.(null)
-    return () => { setCustomBack?.(null); setCustomTitle?.(null); setCustomActions?.(null) }
-  }, [mode, form.editingPoint, searchQuery, setCustomBack, setCustomTitle, setCustomActions, handleBack, s])
+  usePrintPointHeaderSync({
+    mode, editingPoint: form.editingPoint, searchQuery, setSearchQuery, handleBack,
+    setCustomBack, setCustomTitle, setCustomActions,
+  })
 
   const filtered = points.filter((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
 
   return (
     <Box position="relative" w="full">
       {mode === "list" ? (
-        <Stack gap={5} w="full">
-          <Stack direction="row" align="center" justify="end" w="full">
-            <Button variant="primary" label={s.newPointTitle} icon={Plus} onClick={() => { form.startCreate(); setMode("form") }} />
-          </Stack>
-          <PrintPointListCard
-            points={filtered}
-            onEdit={(point) => { form.startEdit(point); setMode("form") }}
-            onDelete={(id) => dal.printPoints.delete(id, tenantId)}
-          />
-        </Stack>
+        <PrintPointListView
+          filtered={filtered}
+          onNewPoint={() => { form.startCreate(); setMode("form") }}
+          onEdit={(point) => { form.startEdit(point); setMode("form") }}
+          onDelete={(id) => dal.printPoints.delete(id, tenantId)}
+        />
       ) : (
         <PrintPointFormView
           form={form}
           tenantId={tenantId}
           onNavigate={onNavigate}
-          onCancel={() => setMode("list")}
+          onCancel={handleBack}
           setModalMsg={setModalMsg}
         />
       )}
       <PrintStatusModal isOpen={!!modalMsg} onClose={() => setModalMsg(null)} message={modalMsg || ""} />
+      <DiscardChangesModal
+        isOpen={isDiscardModalOpen}
+        onClose={() => setIsDiscardModalOpen(false)}
+        onConfirmDiscard={() => {
+          setIsDiscardModalOpen(false)
+          setMode("list")
+          form.setEditingPoint(null)
+        }}
+      />
     </Box>
   )
 }

@@ -2,7 +2,8 @@
  * generateReceivablesReportPdf.ts
  * Gerador de PDF client-side para o relatório de Contas a Receber (formato A4).
  */
-
+import type { jsPDF } from "jspdf"
+import type autoTableType from "jspdf-autotable"
 
 export interface ReceivableReportItem {
   client: string
@@ -50,24 +51,8 @@ function formatCurrentDateTime(): string {
   return `${day}/${month}/${year} ${hours}:${mins}`
 }
 
-export async function generateReceivablesReportPdf(
-  data: ReceivablesReportPdfData,
-  company?: CompanyInfo
-): Promise<{ blob: Blob; base64: string; dataUrl: string }> {
-  const { default: jsPDF } = await import("jspdf")
-  const { default: autoTable } = await import("jspdf-autotable")
-
-  const doc = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4",
-  })
-
-  const pageWidth = 210
-  const margin = 14
-  const rightMargin = pageWidth - margin
-
-  // 1. Cabeçalho Superior Direito
+function renderReceivablesHeader(doc: jsPDF, margin: number, company?: CompanyInfo, title?: string) {
+  const rightMargin = 210 - margin
   const companyName = company?.trade_name || company?.name || "NAVELO PDV"
   doc.setFont("helvetica", "bold")
   doc.setFontSize(11)
@@ -75,44 +60,41 @@ export async function generateReceivablesReportPdf(
   doc.text(companyName.toUpperCase(), rightMargin, 18, { align: "right" })
 
   doc.setFontSize(16)
-  doc.text(data.title || "Contas a Receber", rightMargin, 26, { align: "right" })
+  doc.text(title || "Contas a Receber", rightMargin, 26, { align: "right" })
 
-  // Linha Divisória Superior
   doc.setDrawColor(0, 0, 0)
   doc.setLineWidth(0.6)
   doc.line(margin, 30, rightMargin, 30)
 
-  // Data de Impressão
   doc.setFont("helvetica", "normal")
   doc.setFontSize(8.5)
   doc.setTextColor(50, 50, 50)
   doc.text(`Data de impressão: ${formatCurrentDateTime()}`, rightMargin, 35, { align: "right" })
+}
 
-  // 2. Metadados do Relatório (Lado Esquerdo)
+function renderReceivablesMeta(doc: jsPDF, margin: number, data: ReceivablesReportPdfData) {
   doc.setTextColor(0, 0, 0)
   doc.setFontSize(9.5)
 
-  // Período
   doc.setFont("helvetica", "bold")
   doc.text("Período:", margin, 42)
   doc.setFont("helvetica", "normal")
   doc.text(data.periodText || "Todos", margin + 16, 42)
 
-  // Tipo de Período
   doc.setFont("helvetica", "bold")
   doc.text("Tipo de período:", margin, 47)
   doc.setFont("helvetica", "normal")
   doc.text(data.periodType || "Emissão", margin + 30, 47)
 
-  // Cliente
   if (data.clientFilter) {
     doc.setFont("helvetica", "bold")
     doc.text("Cliente:", margin, 52)
     doc.setFont("helvetica", "normal")
     doc.text(data.clientFilter, margin + 16, 52)
   }
+}
 
-  // 3. Tabela de Contas a Receber
+function renderReceivablesTable(doc: jsPDF, autoTable: typeof autoTableType, margin: number, data: ReceivablesReportPdfData) {
   const tableRows = (data.items || []).map((it) => [
     `${it.client}\n${it.docNumber}`,
     it.issueDate,
@@ -124,6 +106,7 @@ export async function generateReceivablesReportPdf(
 
   const totalToReceiveFormatted = formatCurrency(data.totalToReceive)
   const totalSettledFormatted = formatCurrency(data.totalSettled)
+  const count = data.items?.length || 0
 
   autoTable(doc, {
     startY: data.clientFilter ? 57 : 52,
@@ -155,7 +138,7 @@ export async function generateReceivablesReportPdf(
     body: tableRows,
     foot: [
       [
-        `Total de registros: ${data.items?.length || 0}`,
+        `Total de registros: ${count}`,
         "",
         `Liquidado: ${totalSettledFormatted}`,
         "",
@@ -172,6 +155,26 @@ export async function generateReceivablesReportPdf(
       5: { cellWidth: 28, halign: "right" },
     },
   })
+}
+
+export async function generateReceivablesReportPdf(
+  data: ReceivablesReportPdfData,
+  company?: CompanyInfo
+): Promise<{ blob: Blob; base64: string; dataUrl: string }> {
+  const { default: jsPDF } = await import("jspdf")
+  const { default: autoTable } = await import("jspdf-autotable")
+
+  const doc = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+  })
+
+  const margin = 14
+
+  renderReceivablesHeader(doc, margin, company, data.title)
+  renderReceivablesMeta(doc, margin, data)
+  renderReceivablesTable(doc, autoTable, margin, data)
 
   const blob = doc.output("blob")
   const dataUrl = doc.output("dataurlstring")

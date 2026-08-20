@@ -1,130 +1,200 @@
 import { db } from './db';
 import { supabase } from '../supabase/client';
 
-/**
- * Sanitiza o payload para remover propriedades transientes incompatíveis antes de enviar ao Supabase
- */
-function sanitizePayloadForSupabase(table: string, rawPayload: Record<string, unknown>): Record<string, unknown> {
-  const payload = { ...rawPayload };
+export const SYNC_TABLES = [
+  'categories',
+  'products',
+  'branches',
+  'customers',
+  'sales',
+  'sale_items',
+  'tabs',
+  'delivery_orders',
+  'users',
+  'cash_registers',
+  'cash_movements',
+  'suppliers',
+  'units',
+  'print_points',
+  'riders',
+  'delivery_rates',
+  'restaurant_tables',
+] as const;
 
-  if (table === 'products') {
-    if (payload.image && !payload.image_url) {
-      payload.image_url = payload.image;
-    }
-    payload.type = payload.type || 'PRODUCT';
-    payload.unit = payload.unit || 'UN';
-    payload.unit_type = payload.unit_type || payload.unit || 'UNIT';
-    if (payload.price !== undefined) payload.price = Number(payload.price) || 0;
-    if (payload.stock !== undefined) payload.stock = Number(payload.stock) || 0;
-  } else if (table === 'users') {
-    delete payload.isCurrent;
-    payload.password_hash = (payload.password_hash as string) || (payload.password as string) || '123456789';
-    payload.password = (payload.password as string) || (payload.password_hash as string) || '123456789';
-  } else if (table === 'tabs') {
-    payload.identifier = payload.identifier || payload.code || payload.label || (payload.id as string);
-    payload.status = payload.status || 'OPEN';
-    if (payload.items && Array.isArray(payload.items)) {
-      payload.items = JSON.stringify(payload.items) as any;
-    }
-  } else if (table === 'sale_items') {
-    payload.product_name = payload.product_name || payload.name || 'Item';
-    payload.name = payload.name || payload.product_name || 'Item';
-    if (payload.unit_price !== undefined || payload.unitPrice !== undefined) {
-      payload.unit_price = Number(payload.unit_price ?? payload.unitPrice) || 0;
-    }
-    if (payload.total_price !== undefined || payload.totalPrice !== undefined) {
-      payload.total_price = Number(payload.total_price ?? payload.totalPrice) || 0;
-    }
-    if (payload.quantity !== undefined || payload.qty !== undefined) {
-      payload.quantity = Number(payload.quantity ?? payload.qty) || 1;
-    }
-  } else if (table === 'units') {
-    payload.symbol = payload.symbol || payload.abbreviation || 'UN';
-    payload.name = payload.name || 'Unidade';
-    payload.decimals = Number(payload.decimals) || 0;
-  } else if (table === 'riders') {
-    payload.active = payload.active !== false;
-    payload.conecta_enabled = Boolean(payload.conecta_enabled);
-    payload.conecta_code = (payload.conecta_code as string) || '';
-  } else if (table === 'print_points') {
-    payload.enabled = payload.enabled !== false;
-    if (payload.serverIp && !payload.server_ip) payload.server_ip = payload.serverIp;
-    if (payload.bobbinSize && !payload.bobbin_size) payload.bobbin_size = payload.bobbinSize;
-    if (payload.increaseFont !== undefined && payload.increase_font === undefined) {
-      payload.increase_font = Boolean(payload.increaseFont);
-    }
-    if (payload.kitchenMonitorEnabled !== undefined && payload.kitchen_monitor_enabled === undefined) {
-      payload.kitchen_monitor_enabled = Boolean(payload.kitchenMonitorEnabled);
-    }
-    if (payload.linkingCode && !payload.linking_code) payload.linking_code = payload.linkingCode;
-  } else if (table === 'cash_registers') {
-    if (payload.initial_balance !== undefined) payload.initial_balance = Number(payload.initial_balance) || 0;
-    if (payload.current_balance !== undefined) payload.current_balance = Number(payload.current_balance) || 0;
-  } else if (table === 'customers') {
-    if (payload.addresses && Array.isArray(payload.addresses)) {
-      delete payload.addresses;
-    }
-  } else if (table === 'delivery_orders' || table === 'sales') {
-    if (payload.items && Array.isArray(payload.items)) {
-      payload.items = JSON.stringify(payload.items) as any;
-    }
-  }
-
-  return payload;
+export interface SyncQueueItem {
+  id: string;
+  table: string;
+  action: 'INSERT' | 'UPDATE' | 'DELETE';
+  tenant_id: string;
+  payload: Record<string, unknown> & { id?: string };
+  created_at: string;
+  retries?: number;
 }
 
-/**
- * Envia todos os dados locais do Dexie para o Supabase (Cloud Push / Migration)
- */
+// ---------------- SANITIZADORES ESPECÍFICOS POR TABELA ----------------
+
+function extractProductFiscalData(p: Record<string, unknown>): Record<string, unknown> {
+  const fiscalData = (typeof p.fiscal_data === 'object' && p.fiscal_data !== null)
+    ? { ...(p.fiscal_data as Record<string, unknown>) }
+    : {};
+  if (p.multissabor_limit !== undefined) fiscalData.multissabor_limit = p.multissabor_limit;
+  if (p.multissabor_pricing_mode !== undefined) fiscalData.multissabor_pricing_mode = p.multissabor_pricing_mode;
+  if (p.plataformas_price_different !== undefined) fiscalData.plataformas_price_different = p.plataformas_price_different;
+  return fiscalData;
+}
+
+function sanitizeProductsPayload(p: Record<string, unknown>): Record<string, unknown> {
+  const image_url = (p.image && !p.image_url) ? p.image : p.image_url;
+  const clean: Record<string, unknown> = {
+    ...p,
+    image_url,
+    fiscal_data: extractProductFiscalData(p),
+    type: p.type || 'PRODUCT',
+    unit: p.unit || 'UN',
+    unit_type: p.unit_type || p.unit || 'UNIT',
+    price: Number(p.price) || 0,
+    stock: Number(p.stock) || 0,
+  };
+
+  delete clean.multissabor_limit;
+  delete clean.multissabor_pricing_mode;
+  delete clean.plataformas_price_different;
+  delete clean.updated_at;
+  delete clean.updatedAt;
+
+  return clean;
+}
+
+function sanitizeUsersPayload(p: Record<string, unknown>): Record<string, unknown> {
+  delete p.isCurrent;
+  const pwd = (p.password_hash as string) || (p.password as string) || '123456789';
+  p.password_hash = pwd;
+  p.password = pwd;
+  return p;
+}
+
+function sanitizeTabsPayload(p: Record<string, unknown>): Record<string, unknown> {
+  p.identifier = p.identifier || p.code || p.label || (p.id as string);
+  p.status = p.status || 'OPEN';
+  if (p.items && Array.isArray(p.items)) p.items = JSON.stringify(p.items);
+  if (p.observation !== undefined) delete p.observation;
+  return p;
+}
+
+function sanitizeSaleItemsPayload(p: Record<string, unknown>): Record<string, unknown> {
+  const name = p.product_name || p.name || 'Item';
+  const unit_price = Number(p.unit_price ?? p.unitPrice) || 0;
+  const total_price = Number(p.total_price ?? p.totalPrice) || 0;
+  const quantity = Number(p.quantity ?? p.qty) || 1;
+  return { ...p, product_name: name, name, unit_price, total_price, quantity };
+}
+
+function sanitizeUnitsPayload(p: Record<string, unknown>): Record<string, unknown> {
+  p.symbol = p.symbol || p.abbreviation || 'UN';
+  p.name = p.name || 'Unidade';
+  p.decimals = Number(p.decimals) || 0;
+  return p;
+}
+
+function sanitizeRidersPayload(p: Record<string, unknown>): Record<string, unknown> {
+  p.active = p.active !== false;
+  p.conecta_enabled = Boolean(p.conecta_enabled);
+  p.conecta_code = (p.conecta_code as string) || '';
+  return p;
+}
+
+function sanitizePrintPointsPayload(p: Record<string, unknown>): Record<string, unknown> {
+  const clean: Record<string, unknown> = {
+    ...p,
+    enabled: p.enabled !== false,
+    server_ip: p.server_ip || p.serverIp,
+    bobbin_size: p.bobbin_size || p.bobbinSize,
+    increase_font: Boolean(p.increase_font ?? p.increaseFont),
+    kitchen_monitor_enabled: Boolean(p.kitchen_monitor_enabled ?? p.kitchenMonitorEnabled),
+    linking_code: p.linking_code || p.linkingCode,
+  };
+  delete clean.serverIp;
+  delete clean.bobbinSize;
+  delete clean.increaseFont;
+  delete clean.kitchenMonitorEnabled;
+  delete clean.linkingCode;
+  return clean;
+}
+
+function sanitizeCashRegistersPayload(p: Record<string, unknown>): Record<string, unknown> {
+  if (p.initial_balance !== undefined) p.initial_balance = Number(p.initial_balance) || 0;
+  if (p.current_balance !== undefined) p.current_balance = Number(p.current_balance) || 0;
+  return p;
+}
+
+function sanitizeCustomersPayload(p: Record<string, unknown>): Record<string, unknown> {
+  if (p.addresses && Array.isArray(p.addresses)) delete p.addresses;
+  return p;
+}
+
+function sanitizeJsonItemsPayload(p: Record<string, unknown>): Record<string, unknown> {
+  if (p.items && Array.isArray(p.items)) p.items = JSON.stringify(p.items);
+  return p;
+}
+
+const TABLE_SANITIZERS: Record<string, (p: Record<string, unknown>) => Record<string, unknown>> = {
+  products: sanitizeProductsPayload,
+  users: sanitizeUsersPayload,
+  tabs: sanitizeTabsPayload,
+  sale_items: sanitizeSaleItemsPayload,
+  units: sanitizeUnitsPayload,
+  riders: sanitizeRidersPayload,
+  print_points: sanitizePrintPointsPayload,
+  cash_registers: sanitizeCashRegistersPayload,
+  customers: sanitizeCustomersPayload,
+  delivery_orders: sanitizeJsonItemsPayload,
+  sales: sanitizeJsonItemsPayload,
+};
+
+export function sanitizePayloadForSupabase(table: string, rawPayload: Record<string, unknown>): Record<string, unknown> {
+  const clone = { ...rawPayload };
+  const handler = TABLE_SANITIZERS[table];
+  return handler ? handler(clone) : clone;
+}
+
+// ---------------- CLOUD PUSH & LOCAL SYNC ----------------
+
+const LEGACY_TENANTS = new Set(['tenant-11111111111111', 'tenant-demo-001', 'demo-tenant']);
+
+function isLegacyTenant(id?: unknown): boolean {
+  return !id || typeof id !== 'string' || LEGACY_TENANTS.has(id);
+}
+
+function enrichRecordTenant(rec: Record<string, unknown>, activeTenant: string): Record<string, unknown> {
+  const defaultFallback = (rec.company_id as string) || activeTenant || 'tenant-36383365000190';
+  const targetTenant = activeTenant !== 'tenant-11111111111111' ? activeTenant : defaultFallback;
+  const isLegacy = isLegacyTenant(rec.company_id);
+  const resolved = isLegacy ? targetTenant : ((rec.company_id as string) || targetTenant);
+  return { ...rec, company_id: resolved, tenant_id: resolved };
+}
+
+async function syncLocalTableToCloud(table: string, activeTenant: string) {
+  try {
+    const localRecords = await db.table(table).toArray();
+    if (!localRecords || localRecords.length === 0) return;
+
+    const updatedLocals = localRecords.map((rec) => enrichRecordTenant(rec as Record<string, unknown>, activeTenant));
+    await Promise.all(
+      updatedLocals.map((rec) => {
+        const cleanPayload = sanitizePayloadForSupabase(table, rec);
+        return supabase.from(table).upsert(cleanPayload);
+      })
+    );
+    await db.table(table).bulkPut(updatedLocals);
+  } catch (err) {
+    console.warn(`[Sync] Aviso ao subir dados locais da tabela ${table}:`, err);
+  }
+}
+
 export async function pushLocalDataToCloud(tenantId?: string) {
   if (typeof navigator !== 'undefined' && !navigator.onLine) return;
   const activeTenant = tenantId || 'tenant-11111111111111';
-
-  const tables = [
-    'categories',
-    'products',
-    'branches',
-    'customers',
-    'sales',
-    'sale_items',
-    'tabs',
-    'delivery_orders',
-    'users',
-    'cash_registers',
-    'cash_movements',
-    'suppliers',
-    'units',
-    'print_points',
-    'riders',
-    'delivery_rates',
-    'restaurant_tables',
-  ];
-
-  for (const table of tables) {
-    try {
-      const localRecords = await db.table(table).toArray();
-      if (!localRecords || localRecords.length === 0) continue;
-
-      const updatedLocals: any[] = [];
-      for (const rec of localRecords) {
-        const isLegacy = !rec.company_id || rec.company_id === 'tenant-11111111111111' || rec.company_id === 'tenant-demo-001' || rec.company_id === 'demo-tenant';
-        const targetTenant = (activeTenant !== 'tenant-11111111111111' ? activeTenant : (rec.company_id || activeTenant)) || 'tenant-36383365000190';
-        const enriched = {
-          ...rec,
-          company_id: isLegacy ? targetTenant : (rec.company_id || targetTenant),
-          tenant_id: isLegacy ? targetTenant : (rec.tenant_id || targetTenant),
-        };
-        updatedLocals.push(enriched);
-        const cleanPayload = sanitizePayloadForSupabase(table, enriched);
-        await supabase.from(table).upsert(cleanPayload as any);
-      }
-      if (updatedLocals.length > 0) {
-        await db.table(table).bulkPut(updatedLocals);
-      }
-    } catch (err) {
-      console.warn(`[Sync] Aviso ao subir dados locais da tabela ${table}:`, err);
-    }
-  }
+  await Promise.all(SYNC_TABLES.map((t) => syncLocalTableToCloud(t, activeTenant)));
 }
 
 function normalizeIncomingRecord(record: Record<string, unknown>, activeTenant: string): Record<string, unknown> {
@@ -143,82 +213,56 @@ function normalizeIncomingRecord(record: Record<string, unknown>, activeTenant: 
   return normalized;
 }
 
-/**
- * Baixa os dados do Supabase para o Tenant especificado e salva no Dexie (IndexedDB)
- */
+async function fetchAndMergeTable(table: string, activeTenant: string) {
+  const { data, error } = await supabase
+    .from(table)
+    .select('*')
+    .or(`company_id.eq.${activeTenant},tenant_id.eq.${activeTenant},company_id.eq.tenant-36383365000190,tenant_id.eq.tenant-36383365000190,company_id.eq.tenant-11111111111111,tenant_id.eq.tenant-11111111111111,company_id.is.null`);
+
+  if (error) {
+    console.warn(`[Sync] Aviso ao buscar tabela ${table}:`, error.message);
+    return;
+  }
+  if (data && data.length > 0) {
+    const normalized = data.map((record) => normalizeIncomingRecord(record as Record<string, unknown>, activeTenant));
+    await db.table(table).bulkPut(normalized);
+  }
+}
+
+async function syncTenantCompanyRecord(activeTenant: string) {
+  const { data: company, error: cErr } = await supabase.from('companies').select('*').eq('id', activeTenant).maybeSingle();
+  if (!cErr && company) {
+    await db.companies.put(company);
+    return;
+  }
+  const localCompany = await db.companies.get(activeTenant);
+  if (localCompany) {
+    await supabase.from('companies').upsert({
+      id: activeTenant,
+      name: localCompany.name,
+      document: localCompany.document,
+      phone: localCompany.phone || '',
+      email: localCompany.email || '',
+      company_id: activeTenant,
+      tenant_id: activeTenant,
+    });
+  }
+}
+
 export async function initialSync(tenantId?: string) {
   try {
     const activeTenant = tenantId || 'tenant-11111111111111';
 
-    // 0. Processar a fila local de pendências primeiro
     await processSyncQueue();
-
-    // 0.1 Subir dados locais existentes no Dexie para o Supabase
     await pushLocalDataToCloud(activeTenant);
 
-    // 1. Puxar Configurações Globais da Plataforma
     const { data: platformSettings, error: pErr } = await supabase.from('platform_settings').select('*').maybeSingle();
     if (!pErr && platformSettings) {
       await db.platform_settings.put(platformSettings);
     }
 
-    // 2. Puxar Empresa / Tenant
-    const { data: company, error: cErr } = await supabase.from('companies').select('*').eq('id', activeTenant).maybeSingle();
-    if (!cErr && company) {
-      await db.companies.put(company);
-    } else {
-      const localCompany = await db.companies.get(activeTenant);
-      if (localCompany) {
-        await supabase.from('companies').upsert({
-          id: activeTenant,
-          name: localCompany.name,
-          document: localCompany.document,
-          phone: localCompany.phone || '',
-          email: localCompany.email || '',
-          company_id: activeTenant,
-          tenant_id: activeTenant,
-        } as any);
-      }
-    }
-
-    // 3 a 19. Puxar TODAS as 17 tabelas vinculadas ao Tenant (Fonte Primária Supabase -> Merge IndexedDB)
-    const tables = [
-      'categories',
-      'products',
-      'branches',
-      'customers',
-      'sales',
-      'sale_items',
-      'tabs',
-      'delivery_orders',
-      'users',
-      'cash_registers',
-      'cash_movements',
-      'suppliers',
-      'units',
-      'print_points',
-      'riders',
-      'delivery_rates',
-      'restaurant_tables',
-    ];
-
-    for (const table of tables) {
-      try {
-        const { data, error } = await supabase
-          .from(table)
-          .select('*')
-          .or(`company_id.eq.${activeTenant},tenant_id.eq.${activeTenant},company_id.eq.tenant-36383365000190,tenant_id.eq.tenant-36383365000190,company_id.eq.tenant-11111111111111,tenant_id.eq.tenant-11111111111111,company_id.is.null`);
-
-        if (error) {
-          console.warn(`[Sync] Aviso ao buscar tabela ${table}:`, error.message);
-        } else if (data && data.length > 0) {
-          const normalized = data.map((record) => normalizeIncomingRecord(record as Record<string, unknown>, activeTenant));
-          await db.table(table).bulkPut(normalized);
-        }
-      } catch (tableErr) {
-        console.warn(`[Sync] Exceção ao consultar tabela ${table}:`, tableErr);
-      }
-    }
+    await syncTenantCompanyRecord(activeTenant);
+    await Promise.all(SYNC_TABLES.map((table) => fetchAndMergeTable(table, activeTenant).catch((err) => console.warn(`[Sync] Exceção na tabela ${table}:`, err))));
 
     console.warn(`[Sync] Sincronização inicial da fonte primária (Supabase) concluída com sucesso para o tenant ${activeTenant}.`);
   } catch (err) {
@@ -226,9 +270,6 @@ export async function initialSync(tenantId?: string) {
   }
 }
 
-/**
- * Função genérica para realizar uma mutação Local-First vinculada ao Tenant.
- */
 export async function mutateLocalFirst<T extends { id: string; company_id?: string; tenant_id?: string }>(
   tableName: 'products' | 'categories' | 'sales' | 'sale_items' | 'customers' | 'users' | 'suppliers' | 'units' | 'print_points' | 'cash_registers' | 'cash_movements' | 'restaurant_tables' | 'tabs' | 'contingency_notes' | 'riders' | 'delivery_rates' | 'delivery_orders' | 'companies' | 'inventory_audits',
   payload: T,
@@ -239,83 +280,69 @@ export async function mutateLocalFirst<T extends { id: string; company_id?: stri
   const enrichedPayload = {
     ...payload,
     tenant_id: activeTenantId,
-    company_id: activeTenantId
+    company_id: activeTenantId,
   };
 
-  // 1. Atualiza localmente imediatamente (UI rápida)
   if (action === 'DELETE') {
     await db.table(tableName).delete(payload.id);
   } else {
     await db.table(tableName).put(enrichedPayload);
   }
 
-  // 2. Enfileira a mudança para a nuvem com tag de tenant_id
   await db.sync_queue.add({
     id: crypto.randomUUID(),
     table: tableName,
     action,
     tenant_id: activeTenantId,
-    payload: enrichedPayload,
-    created_at: new Date().toISOString()
+    payload: enrichedPayload as Record<string, unknown>,
+    created_at: new Date().toISOString(),
   });
 
-  // 3. Tenta processar a fila em background
   processSyncQueue();
 }
 
-/**
- * Processa a fila de sincronização enviando ao Supabase com sanitização e retenção segura em caso de erro
- */
+async function handleQueueItemError(item: SyncQueueItem): Promise<void> {
+  const currentRetries = ((item.retries as number) || 0) + 1;
+  if (currentRetries >= 5) {
+    console.warn(`[Sync] Item ${item.id} (${item.table}) expurgado da fila após 5 falhas.`);
+    await db.sync_queue.delete(item.id);
+  } else {
+    await db.sync_queue.update(item.id, { retries: currentRetries });
+  }
+}
+
+async function processSingleQueueItem(item: SyncQueueItem): Promise<void> {
+  try {
+    const isDelete = item.action === 'DELETE';
+    const result = isDelete
+      ? await supabase.from(item.table).delete().eq('id', (item.payload.id as string) || item.id)
+      : await supabase.from(item.table).upsert(sanitizePayloadForSupabase(item.table, item.payload));
+
+    if (result.error) {
+      console.warn(`[Sync] Erro Supabase (${item.table}):`, result.error.message);
+      await handleQueueItemError(item);
+      return;
+    }
+
+    await db.sync_queue.delete(item.id);
+  } catch (err) {
+    console.warn(`[Sync] Falha temporária ao sincronizar item ${item.id}:`, err);
+  }
+}
+
 export async function processSyncQueue() {
   if (typeof navigator !== 'undefined' && !navigator.onLine) return;
 
   try {
     const queue = await db.sync_queue.orderBy('created_at').toArray();
     if (!queue || queue.length === 0) return;
-    
-    for (const item of queue) {
-      try {
-        let hasError = false;
-        if (item.action === 'DELETE') {
-          const { error } = await supabase.from(item.table).delete().eq('id', item.payload.id as string);
-          if (error) {
-            console.warn(`[Sync] Erro Supabase DELETE (${item.table}):`, error.message);
-            hasError = true;
-          }
-        } else {
-          const cleanPayload = sanitizePayloadForSupabase(item.table, item.payload);
-          const { error } = await supabase.from(item.table).upsert(cleanPayload as any);
-          if (error) {
-            console.warn(`[Sync] Erro Supabase UPSERT (${item.table}):`, error.message);
-            hasError = true;
-          }
-        }
-        
-        if (hasError) {
-          const currentRetries = ((item.retries as number) || 0) + 1;
-          if (currentRetries >= 5) {
-            console.warn(`[Sync] Item ${item.id} (${item.table}) expurgado da fila após 5 falhas.`);
-            await db.sync_queue.delete(item.id);
-          } else {
-            await db.sync_queue.update(item.id, { retries: currentRetries });
-          }
-        } else {
-          // Remove da fila somente se enviado com sucesso ao Supabase
-          await db.sync_queue.delete(item.id);
-        }
-      } catch (err) {
-        console.warn(`[Sync] Falha temporária ao sincronizar item ${item.id}:`, err);
-        break;
-      }
-    }
+
+    await Promise.all(queue.map((item) => processSingleQueueItem(item as SyncQueueItem)));
   } catch (err) {
-    console.warn("[Sync] Erro ao ler fila de sincronização:", err);
+    console.warn('[Sync] Erro ao ler fila de sincronização:', err);
   }
 }
 
-/**
- * Subscrição em Tempo Real (Supabase Realtime) para refletir instantaneamente dados no Dexie entre dispositivos
- */
 export function subscribeToRealtimeSync(tenantId?: string) {
   const activeTenant = tenantId || 'tenant-11111111111111';
   if (typeof window === 'undefined') return () => {};
@@ -350,8 +377,6 @@ export function subscribeToRealtimeSync(tenantId?: string) {
   };
 }
 
-// Escutar eventos de conectividade para rodar a fila automaticamente
 if (typeof window !== 'undefined') {
   window.addEventListener('online', processSyncQueue);
 }
-

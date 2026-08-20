@@ -12,6 +12,7 @@ export {
   useUnits,
   usePrintPoints,
   useSales,
+  useCashMovements,
   useDeliveryOrders,
   useSyncStatus,
   useRiders,
@@ -30,8 +31,14 @@ export type {
   CashRegister,
   CashMovement,
   TableEntity,
+  Table,
   TabEntity,
+  Tab,
   DeliveryOrderEntity,
+  DeliveryOrder,
   Rider,
-  DeliveryRate
+  DeliveryRate,
+  Company,
+  UserEntity,
+  User
 } from './db';

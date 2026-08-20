@@ -69,8 +69,11 @@ export interface Product {
   image_url?: string;
   print_point?: string;
   multissabor_enabled?: boolean;
+  multissabor_limit?: number;
+  multissabor_pricing_mode?: "proporcional" | "maior";
   complementos_enabled?: boolean;
   plataformas_enabled?: boolean;
+  plataformas_price_different?: number;
   producao_propria?: boolean;
   ingredients?: string;
   preparation_mode?: string;
@@ -97,7 +100,7 @@ export interface Sale {
   payment_method?: string;
   customer_id?: string;
   customer_name?: string;
-  items?: any[];
+  items?: (SaleItem | Record<string, unknown>)[];
   cash_register_id?: string;
   operator_id?: string;
   created_at?: string;
@@ -194,7 +197,12 @@ export interface TabEntity {
   status: 'OPEN' | 'CLOSED';
   created_at: string;
   items?: Array<Record<string, unknown>>;
+  observation?: string;
+  is_fixed?: boolean;
 }
+
+export type Table = TableEntity;
+export type Tab = TabEntity;
 
 export interface Supplier {
   id: string;
@@ -306,6 +314,8 @@ export interface DeliveryOrderEntity {
   items?: Array<Record<string, unknown>>;
 }
 
+export type DeliveryOrder = DeliveryOrderEntity;
+
 export interface UserEntity {
   id: string;
   company_id: string;
@@ -316,6 +326,8 @@ export interface UserEntity {
   password: string;
   active: boolean;
 }
+
+export type User = UserEntity;
 
 export interface InventoryAuditItem {
   productId: string;

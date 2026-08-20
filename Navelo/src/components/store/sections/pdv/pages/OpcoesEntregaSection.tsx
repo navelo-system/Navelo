@@ -1,6 +1,5 @@
 "use client"
 
-
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -15,10 +14,78 @@ export interface OpcoesEntregaSectionProps {
   setCustomTitle?: (title: string | null) => void
 }
 
+function DeliveryModesCard({
+  retirada,
+  onToggleRetirada,
+  entrega,
+  onToggleEntrega,
+  consumirLocal,
+  onToggleConsumirLocal,
+}: {
+  retirada: boolean
+  onToggleRetirada: (val: boolean) => void
+  entrega: boolean
+  onToggleEntrega: (val: boolean) => void
+  consumirLocal: boolean
+  onToggleConsumirLocal: (val: boolean) => void
+}) {
+  const s = UI_STRINGS.deliveryOptions
+  return (
+    <Box bg="bg-white" border borderColor="border-border" radius="default" padding={5} w="full">
+      <Stack gap={5} w="full">
+        <Stack direction="row" align="start" gap={2.5} w="full">
+          <Checkbox checked={retirada} onChange={(e: React.ChangeEvent<HTMLInputElement>) => onToggleRetirada(e.target.checked)} />
+          <Stack gap={1} flex="1">
+            <Font variant="body-bold" text={s.pickupOptionLabel} />
+            <Font variant="description" text={s.pickupOptionDesc} color="muted" />
+          </Stack>
+        </Stack>
+        <Box h="h-[1px]" w="full" bg="bg-border" />
+        <Stack direction="row" align="start" gap={2.5} w="full">
+          <Checkbox checked={entrega} onChange={(e: React.ChangeEvent<HTMLInputElement>) => onToggleEntrega(e.target.checked)} />
+          <Stack gap={1} flex="1">
+            <Font variant="body-bold" text={s.deliveryOptionLabel} />
+            <Font variant="description" text={s.deliveryOptionDesc} color="muted" />
+          </Stack>
+        </Stack>
+        <Box h="h-[1px]" w="full" bg="bg-border" />
+        <Stack direction="row" align="start" gap={2.5} w="full">
+          <Checkbox checked={consumirLocal} onChange={(e: React.ChangeEvent<HTMLInputElement>) => onToggleConsumirLocal(e.target.checked)} />
+          <Stack gap={1} flex="1">
+            <Font variant="body-bold" text={s.dineInOptionLabel} />
+            <Font variant="description" text={s.dineInOptionDesc} color="muted" />
+          </Stack>
+        </Stack>
+      </Stack>
+    </Box>
+  )
+}
+
+function DeliveryFeesToggleCard({
+  taxasEntrega,
+  onToggleTaxasEntrega,
+}: {
+  taxasEntrega: boolean
+  onToggleTaxasEntrega: (val: boolean) => void
+}) {
+  const s = UI_STRINGS.deliveryOptions
+  return (
+    <Box bg="bg-white" border borderColor="border-border" radius="default" padding={5} w="full">
+      <Stack direction="row" align="start" gap={2.5} w="full">
+        <Checkbox checked={taxasEntrega} onChange={(e: React.ChangeEvent<HTMLInputElement>) => onToggleTaxasEntrega(e.target.checked)} />
+        <Stack gap={1} flex="1">
+          <Font variant="body-bold" text={UI_STRINGS.fees.deliveryFeeTitle} />
+          <Font variant="description" text={s.deliveryFeeNotice} color="muted" />
+        </Stack>
+      </Stack>
+    </Box>
+  )
+}
+
 export const OpcoesEntregaSection: React.FC<OpcoesEntregaSectionProps> = ({
   onCancel,
   setCustomBack,
-  setCustomTitle
+  setCustomTitle,
 }) => {
   const [retirada, setRetirada] = React.useState(true)
   const [entrega, setEntrega] = React.useState(true)
@@ -35,105 +102,23 @@ export const OpcoesEntregaSection: React.FC<OpcoesEntregaSectionProps> = ({
     }
   }, [setCustomBack, setCustomTitle, onCancel, s.title])
 
-  const handleSave = () => {
-    onCancel()
-  }
-
   return (
     <Stack gap={5} w="full">
-      {/* Card 1: Modos de Entrega */}
-      <Box
-        bg="bg-white"
-        border={true}
-        borderColor="border-border"
-        radius="default"
-        padding={5}
-        w="full"
-      >
-        <Stack gap={5} w="full">
-          {/* Retirada */}
-          <Stack direction="row" align="start" gap={2.5} w="full">
-            <Checkbox
-              checked={retirada}
-              onChange={(e) => setRetirada(e.target.checked)}
-            />
-            <Stack gap={1} flex="1">
-              <Font variant="body-bold" text={s.pickupOptionLabel} />
-              <Font
-                variant="description"
-                text={s.pickupOptionDesc}
-                color="muted"
-              />
-            </Stack>
-          </Stack>
-
-          <Box h="h-[1px]" w="full" bg="bg-border" />
-
-          {/* Entrega */}
-          <Stack direction="row" align="start" gap={2.5} w="full">
-            <Checkbox
-              checked={entrega}
-              onChange={(e) => setEntrega(e.target.checked)}
-            />
-            <Stack gap={1} flex="1">
-              <Font variant="body-bold" text={s.deliveryOptionLabel} />
-              <Font
-                variant="description"
-                text={s.deliveryOptionDesc}
-                color="muted"
-              />
-            </Stack>
-          </Stack>
-
-          <Box h="h-[1px]" w="full" bg="bg-border" />
-
-          {/* Consumir no local */}
-          <Stack direction="row" align="start" gap={2.5} w="full">
-            <Checkbox
-              checked={consumirLocal}
-              onChange={(e) => setConsumirLocal(e.target.checked)}
-            />
-            <Stack gap={1} flex="1">
-              <Font variant="body-bold" text={s.dineInOptionLabel} />
-              <Font
-                variant="description"
-                text={s.dineInOptionDesc}
-                color="muted"
-              />
-            </Stack>
-          </Stack>
-        </Stack>
-      </Box>
-
-      {/* Card 2: Taxas */}
-      <Box
-        bg="bg-white"
-        border={true}
-        borderColor="border-border"
-        radius="default"
-        padding={5}
-        w="full"
-      >
-        <Stack direction="row" align="start" gap={2.5} w="full">
-          <Checkbox
-            checked={taxasEntrega}
-            onChange={(e) => setTaxasEntrega(e.target.checked)}
-          />
-          <Stack gap={1} flex="1">
-            <Font variant="body-bold" text={UI_STRINGS.fees.deliveryFeeTitle} />
-            <Font
-              variant="description"
-              text={s.deliveryFeeNotice}
-              color="muted"
-            />
-          </Stack>
-        </Stack>
-      </Box>
-
-      {/* Botões de Ação */}
+      <DeliveryModesCard
+        retirada={retirada}
+        onToggleRetirada={setRetirada}
+        entrega={entrega}
+        onToggleEntrega={setEntrega}
+        consumirLocal={consumirLocal}
+        onToggleConsumirLocal={setConsumirLocal}
+      />
+      <DeliveryFeesToggleCard
+        taxasEntrega={taxasEntrega}
+        onToggleTaxasEntrega={setTaxasEntrega}
+      />
       <FormActions
         confirmLabel={UI_STRINGS.pdv.cart.saveChangesButton}
-        onConfirm={handleSave}
+        onConfirm={onCancel}
         onCancel={onCancel}
       />
     </Stack>

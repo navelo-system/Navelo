@@ -155,6 +155,10 @@ CREATE TABLE IF NOT EXISTS products (
 ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS company_id text;
 ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS tenant_id text;
 ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS type text DEFAULT 'PRODUCT';
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS multissabor_limit numeric DEFAULT 2;
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS multissabor_pricing_mode text DEFAULT 'proporcional';
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS plataformas_price_different numeric DEFAULT 0;
+ALTER TABLE IF EXISTS products ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now();
 ALTER TABLE IF EXISTS products ALTER COLUMN id TYPE text USING id::text;
 ALTER TABLE IF EXISTS products ALTER COLUMN company_id TYPE text USING company_id::text;
 ALTER TABLE IF EXISTS products ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
@@ -262,6 +266,7 @@ ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS time text;
 ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS total numeric DEFAULT 0;
 ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS status text DEFAULT 'OPEN';
 ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS items jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS observation text;
 ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
 ALTER TABLE IF EXISTS tabs ALTER COLUMN id TYPE text USING id::text;
 ALTER TABLE IF EXISTS tabs ALTER COLUMN company_id TYPE text USING company_id::text;

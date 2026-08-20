@@ -29,6 +29,7 @@ interface PdvModalsProps {
   onOpenObservationModal: () => void
   onOpenSangriaModal: (mode?: "sangria" | "suprimento") => void
   customerName?: string
+  observationText?: string
   showOutOfStockProducts?: boolean
   onToggleShowOutOfStock?: (val: boolean) => void
   hasCartItems?: boolean
@@ -57,6 +58,7 @@ export const PdvModals: React.FC<PdvModalsProps> = ({
   onOpenObservationModal,
   onOpenSangriaModal,
   customerName,
+  observationText,
   showOutOfStockProducts,
   onToggleShowOutOfStock,
   hasCartItems,
@@ -97,6 +99,7 @@ export const PdvModals: React.FC<PdvModalsProps> = ({
         discount={discount}
         subtotal={subtotal}
         customerName={customerName}
+        observationText={observationText}
         showOutOfStockProducts={showOutOfStockProducts}
         onToggleShowOutOfStock={onToggleShowOutOfStock}
         hasCartItems={hasCartItems}

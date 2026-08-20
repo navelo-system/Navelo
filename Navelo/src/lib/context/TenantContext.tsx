@@ -69,15 +69,16 @@ function getInitialUser(): User | null {
   return null
 }
 
-export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [platformSettings, setPlatformSettings] = React.useState<PlatformSettings>(getInitialPlatformSettings)
-  const [currentTenant, setCurrentTenant] = React.useState<Tenant | null>(getInitialTenant)
-  const [currentUser, setCurrentUser] = React.useState<User | null>(getInitialUser)
+function useTenantThemeController(
+  platformSettings: PlatformSettings,
+  setPlatformSettings: React.Dispatch<React.SetStateAction<PlatformSettings>>,
+  currentTenant: Tenant | null,
+  setCurrentTenant: React.Dispatch<React.SetStateAction<Tenant | null>>
+) {
   const [activeThemeMode, setActiveThemeMode] = React.useState<"platform" | "tenant">(() =>
     getInitialTenant() ? "tenant" : "platform"
   )
 
-  // Aplica o tema correto na montagem do cliente
   React.useEffect(() => {
     if (typeof window === "undefined") return
     if (currentTenant) {
@@ -96,15 +97,10 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [currentTenant, platformSettings.primaryColor, platformSettings.secondaryColor])
 
-  // Alterna o tema ativo no DOM
   const switchThemeMode = React.useCallback((mode: "platform" | "tenant") => {
     setActiveThemeMode(mode)
     if (mode === "platform" || !currentTenant) {
-      applyThemeColors({
-        ...DEFAULT_THEME,
-        primary: platformSettings.primaryColor,
-        secondary: platformSettings.secondaryColor,
-      })
+      applyThemeColors({ ...DEFAULT_THEME, primary: platformSettings.primaryColor, secondary: platformSettings.secondaryColor })
     } else {
       applyThemeColors({
         ...DEFAULT_THEME,
@@ -114,86 +110,64 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [platformSettings, currentTenant])
 
-  // Atualiza cores da plataforma SaaS (persistido em localStorage)
   const updatePlatformTheme = React.useCallback((primary: string, secondary: string, logoUrl?: string) => {
     setPlatformSettings((prev) => {
       const updated: PlatformSettings = {
-        ...prev,
-        primaryColor: primary,
-        secondaryColor: secondary,
+        ...prev, primaryColor: primary, secondaryColor: secondary,
         logoUrl: logoUrl !== undefined ? logoUrl : prev.logoUrl,
       }
-      if (typeof window !== "undefined") {
-        localStorage.setItem("navelo_platform_settings", JSON.stringify(updated))
-      }
-
-      if (activeThemeMode === "platform") {
-        applyThemeColors({ ...DEFAULT_THEME, primary, secondary })
-      }
+      if (typeof window !== "undefined") localStorage.setItem("navelo_platform_settings", JSON.stringify(updated))
+      if (activeThemeMode === "platform") applyThemeColors({ ...DEFAULT_THEME, primary, secondary })
       return updated
     })
-  }, [activeThemeMode])
+  }, [activeThemeMode, setPlatformSettings])
 
-  // Atualiza cores e identidade do Tenant específico (persistido no IndexedDB e localStorage)
   const updateTenantTheme = React.useCallback(async (primary: string, secondary: string, logoUrl?: string) => {
     if (!currentTenant) return
-
     setCurrentTenant((prev) => {
       if (!prev) return null
       const updated: Tenant = {
-        ...prev,
-        primaryColor: primary,
-        secondaryColor: secondary,
+        ...prev, primaryColor: primary, secondaryColor: secondary,
         logoUrl: logoUrl !== undefined ? logoUrl : prev.logoUrl,
       }
-
-      if (typeof window !== "undefined") {
-        localStorage.setItem("navelo_active_tenant", JSON.stringify(updated))
-      }
-
-      if (activeThemeMode === "tenant") {
-        applyThemeColors({ ...DEFAULT_THEME, primary, secondary })
-      }
-
+      if (typeof window !== "undefined") localStorage.setItem("navelo_active_tenant", JSON.stringify(updated))
+      if (activeThemeMode === "tenant") applyThemeColors({ ...DEFAULT_THEME, primary, secondary })
       try {
         db.companies.put({
-          id: prev.id,
-          name: prev.tradingName || prev.corporateName,
-          document: prev.cnpj,
-          email: "",
-          phone: "",
-          primary_color: primary,
-          secondary_color: secondary,
-          logo_url: logoUrl !== undefined ? logoUrl : prev.logoUrl,
+          id: prev.id, name: prev.tradingName || prev.corporateName, document: prev.cnpj, email: "", phone: "",
+          primary_color: primary, secondary_color: secondary, logo_url: logoUrl !== undefined ? logoUrl : prev.logoUrl,
         })
       } catch (err) {
         console.error("Erro ao persistir tema da empresa no IndexedDB:", err)
       }
-
       return updated
     })
-  }, [currentTenant, activeThemeMode])
+  }, [currentTenant, activeThemeMode, setCurrentTenant])
 
-  // Login de Sessão do Tenant
+  return { activeThemeMode, setActiveThemeMode, switchThemeMode, updatePlatformTheme, updateTenantTheme }
+}
+
+export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [platformSettings, setPlatformSettings] = React.useState<PlatformSettings>(getInitialPlatformSettings)
+  const [currentTenant, setCurrentTenant] = React.useState<Tenant | null>(getInitialTenant)
+  const [currentUser, setCurrentUser] = React.useState<User | null>(getInitialUser)
+
+  const themeCtrl = useTenantThemeController(platformSettings, setPlatformSettings, currentTenant, setCurrentTenant)
+
   const loginTenantSession = React.useCallback((user: User, tenant: Tenant) => {
-    setCurrentUser(user)
-    setCurrentTenant(tenant)
-    setActiveThemeMode("tenant")
-
+    setCurrentUser(user); setCurrentTenant(tenant); themeCtrl.setActiveThemeMode("tenant")
     if (typeof window !== "undefined") {
       sessionStorage.setItem("pdv-operator", user.name)
       sessionStorage.setItem("pdv-operator-data", JSON.stringify(user))
       localStorage.setItem("navelo_active_tenant", JSON.stringify(tenant))
     }
-
     applyThemeColors({
       ...DEFAULT_THEME,
       primary: tenant.primaryColor || platformSettings.primaryColor,
       secondary: tenant.secondaryColor || platformSettings.secondaryColor,
     })
-  }, [platformSettings])
+  }, [platformSettings, themeCtrl])
 
-  // Logout de Usuário/Operador
   const logoutUserSession = React.useCallback(() => {
     setCurrentUser(null)
     if (typeof window !== "undefined") {
@@ -202,40 +176,29 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [])
 
-  // Logout de Sessão Completa do Tenant
   const logoutTenantSession = React.useCallback(() => {
-    setCurrentUser(null)
-    setCurrentTenant(null)
-    setActiveThemeMode("platform")
-
+    setCurrentUser(null); setCurrentTenant(null); themeCtrl.setActiveThemeMode("platform")
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("pdv-operator")
       sessionStorage.removeItem("pdv-operator-data")
       localStorage.removeItem("navelo_active_tenant")
     }
-
     applyThemeColors({
       ...DEFAULT_THEME,
       primary: platformSettings.primaryColor,
       secondary: platformSettings.secondaryColor,
     })
-  }, [platformSettings])
+  }, [platformSettings, themeCtrl])
 
   return (
     <TenantContext.Provider
       value={{
-        platformSettings,
-        currentTenant,
-        currentUser,
-        activeThemeMode,
-        setCurrentTenant,
-        setCurrentUser,
-        updatePlatformTheme,
-        updateTenantTheme,
-        switchThemeMode,
-        loginTenantSession,
-        logoutTenantSession,
-        logoutUserSession,
+        platformSettings, currentTenant, currentUser, activeThemeMode: themeCtrl.activeThemeMode,
+        setCurrentTenant, setCurrentUser,
+        updatePlatformTheme: themeCtrl.updatePlatformTheme,
+        updateTenantTheme: themeCtrl.updateTenantTheme,
+        switchThemeMode: themeCtrl.switchThemeMode,
+        loginTenantSession, logoutTenantSession, logoutUserSession,
       }}
     >
       {children}

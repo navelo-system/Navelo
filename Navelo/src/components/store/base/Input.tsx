@@ -138,7 +138,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       <div className={cn(
         "relative flex items-center w-full",
         isOutlined && "rounded-[5px] border-2 border-border bg-white px-3 py-2.5 mt-2 transition-colors focus-within:border-brand-primary",
-        isBordered && "rounded-[5px] border border-border bg-white px-3.5 py-2.5 transition-colors focus-within:border-brand-primary"
+        isBordered && "rounded-[5px] border-2 border-border bg-surface px-5 py-2 min-h-[40px] transition-colors focus-within:border-brand-primary"
       )}>
         {isOutlined && label && (
           <span className="absolute -top-2.5 left-2.5 px-1 bg-white text-xs font-normal text-text-muted z-10 leading-none pointer-events-none">
