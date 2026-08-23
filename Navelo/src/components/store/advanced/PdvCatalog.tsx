@@ -125,8 +125,7 @@ function PdvCatalogListItem({
     <Box>
       <Box
         w="full"
-        paddingX={2.5}
-        paddingY={2.5}
+        padding={2.5}
         hoverBg="secondary/10"
         onClick={() => {
           if (qty === 0) onProductClick(prod)
@@ -292,7 +291,7 @@ export function PdvCatalog({
 
   return (
     <Stack gap={5} flex="1" minH="0">
-      <Box w="full" overflow="auto" paddingY={1} shrink="0">
+      <Box w="full" overflow="auto" shrink="0">
         <Tabs value={activeCategory} onValueChange={onActiveCategoryChange}>
           <Stack direction="row" gap={2.5}>
             {categories.map((cat) => (

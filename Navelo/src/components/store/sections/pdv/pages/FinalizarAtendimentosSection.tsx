@@ -55,10 +55,9 @@ function BatchComandaDropdownList({
         {suggestions.slice(0, 8).map((sug) => (
           <Box
             key={sug.id}
-            paddingX={5}
-            paddingY={2.5}
+            padding={2.5}
             cursor="pointer"
-            hoverBg="surface-sunken"
+            hoverBg="secondary/10"
             w="full"
             onClick={() => onSelectSuggestion(sug.id)}
           >
@@ -254,7 +253,7 @@ export const FinalizarAtendimentosSection: React.FC<FinalizarAtendimentosSection
           </Stack>
         </Stack>
       </Box>
-      <Box w="full" shrink="0" paddingY={2.5}>
+      <Box w="full" shrink="0">
         <Button
           variant="primary"
           fullWidth

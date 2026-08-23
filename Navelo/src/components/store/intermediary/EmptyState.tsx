@@ -11,17 +11,28 @@ export interface EmptyStateProps {
   title: string
   subtitle?: string
   variant?: "default" | "simple"
+  fullHeight?: boolean
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
   icon,
   title,
   subtitle,
-  variant = "default"
+  variant = "default",
+  fullHeight = false,
 }) => {
   if (variant === "simple") {
     return (
-      <Box padding={2.5} display="flex" justify="center" bg="transparent" w="full">
+      <Box
+        padding={2.5}
+        display="flex"
+        justify="center"
+        align="center"
+        bg="transparent"
+        w="full"
+        h={fullHeight ? "full" : undefined}
+        flex={fullHeight ? "1" : undefined}
+      >
         <Stack direction="row" align="center" justify="center" gap={2.5}>
           <Icon icon={icon} size={16} color="muted" />
           <Font variant="description" text={title} align="center" color="muted" />
@@ -31,8 +42,19 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   }
 
   return (
-    <Box padding={5} display="flex" justify="center" bg="bg-brand-primary/10" radius="default" w="full">
-      <Stack align="center" gap={2.5} w="full">
+    <Box
+      padding={5}
+      display="flex"
+      direction="col"
+      justify="center"
+      align="center"
+      bg="bg-brand-primary/10"
+      radius="default"
+      w="full"
+      h={fullHeight ? "full" : undefined}
+      flex={fullHeight ? "1" : undefined}
+    >
+      <Stack align="center" justify="center" gap={2.5} w="full">
         <CircularIcon icon={icon} size={32} variant="solid" />
         <Stack align="center" gap={1}>
           <Font variant="h3" text={title} align="center" />

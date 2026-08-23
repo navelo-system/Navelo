@@ -15,7 +15,6 @@ export interface StackProps extends React.HTMLAttributes<HTMLDivElement> {
   w?: "full" | "auto" | "fit-content" | string
   h?: "full" | "screen" | "auto" | "fit-content" | string
   maxWidth?: "5xl" | "full" | "none"
-  paddingX?: 5 | 12 | 2.5 | 0 | "5" | "12" | "2.5" | "0"
   flex?: "1" | "auto" | "none"
   minW?: "0"
   minH?: "0" | "full"
@@ -87,13 +86,6 @@ const maxWidthMap = {
   "none": "max-w-none",
 }
 
-const paddingXMap = {
-  "5": "px-6",
-  "12": "px-12",
-  "2.5": "px-2.5",
-  "0": "px-0",
-}
-
 const flexMap = {
   "1": "flex-1",
   "auto": "flex-auto",
@@ -115,7 +107,7 @@ const mdOrderMap = {
 }
 
 export const Stack = React.forwardRef<HTMLDivElement, StackProps>(
-  ({ className, direction = "col", mobileDirection, gap = 5, align, mobileAlign, justify, mobileJustify, wrap, w, h, maxWidth, paddingX, flex, minW, minH, overflow, order, mdOrder, cursor, ...props }, ref) => {
+  ({ className, direction = "col", mobileDirection, gap = 5, align, mobileAlign, justify, mobileJustify, wrap, w, h, maxWidth, flex, minW, minH, overflow, order, mdOrder, cursor, ...props }, ref) => {
     return (
       <div
         ref={ref}
@@ -132,7 +124,6 @@ export const Stack = React.forwardRef<HTMLDivElement, StackProps>(
           w && (widthMap[w] || w),
           h && (heightMap[h] || h),
           maxWidth && maxWidthMap[maxWidth],
-          paddingX && paddingXMap[paddingX],
           flex && flexMap[flex],
           minW && minWMap[minW],
           minH === "0" && "min-h-0",

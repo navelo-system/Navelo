@@ -118,9 +118,7 @@ function ContaDigitalChannelsCard({
             </Stack>
           </Stack>
           <Box h="h-[1px]" w="full" bg="bg-border" />
-          <Box paddingY={1}>
-            <Checkbox label={s.pixLabel} checked={config.caixaPix} onChange={(e) => setField("caixaPix")(e.target.checked)} disabled={!enabled} />
-          </Box>
+          <Checkbox label={s.pixLabel} checked={config.caixaPix} onChange={(e) => setField("caixaPix")(e.target.checked)} disabled={!enabled} />
         </Stack>
       </Box>
 
@@ -134,12 +132,10 @@ function ContaDigitalChannelsCard({
             </Stack>
           </Stack>
           <Box h="h-[1px]" w="full" bg="bg-border" />
-          <Box paddingY={2.5}>
-            <Stack gap={2.5}>
-              <Checkbox label={s.cardLabel} checked={config.catalogoCartao} onChange={(e) => setField("catalogoCartao")(e.target.checked)} disabled={!enabled} />
-              <Checkbox label={s.pixLabel} checked={config.catalogoPix} onChange={(e) => setField("catalogoPix")(e.target.checked)} disabled={!enabled} />
-            </Stack>
-          </Box>
+          <Stack gap={2.5}>
+            <Checkbox label={s.cardLabel} checked={config.catalogoCartao} onChange={(e) => setField("catalogoCartao")(e.target.checked)} disabled={!enabled} />
+            <Checkbox label={s.pixLabel} checked={config.catalogoPix} onChange={(e) => setField("catalogoPix")(e.target.checked)} disabled={!enabled} />
+          </Stack>
         </Stack>
       </Box>
 
@@ -153,9 +149,7 @@ function ContaDigitalChannelsCard({
             </Stack>
           </Stack>
           <Box h="h-[1px]" w="full" bg="bg-border" />
-          <Box paddingY={1}>
-            <Checkbox label={s.pixLabel} checked={config.entregadorPix} onChange={(e) => setField("entregadorPix")(e.target.checked)} disabled={!enabled} />
-          </Box>
+          <Checkbox label={s.pixLabel} checked={config.entregadorPix} onChange={(e) => setField("entregadorPix")(e.target.checked)} disabled={!enabled} />
         </Stack>
       </Box>
 
@@ -169,9 +163,7 @@ function ContaDigitalChannelsCard({
             </Stack>
           </Stack>
           <Box h="h-[1px]" w="full" bg="bg-border" />
-          <Box paddingY={1}>
-            <Checkbox label={s.pixLabel} checked={config.autoatendimentoPix} onChange={(e) => setField("autoatendimentoPix")(e.target.checked)} disabled={!enabled} />
-          </Box>
+          <Checkbox label={s.pixLabel} checked={config.autoatendimentoPix} onChange={(e) => setField("autoatendimentoPix")(e.target.checked)} disabled={!enabled} />
         </Stack>
       </Box>
     </>

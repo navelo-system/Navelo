@@ -93,7 +93,7 @@ function RiderFormView({
             </Stack>
           </Box>
 
-          <Box paddingY={2.5} w="full">
+          <Box w="full">
             <Stack direction="row" gap={2.5} w="full">
               {editingRider && (
                 <Button type="button" variant="danger-pill-icon" icon={Trash2} onClick={onDelete} title={d.deleteRiderTitle} />
@@ -134,10 +134,9 @@ function RidersListView({
               <Box key={rider.id}>
                 <Box
                   w="full"
-                  paddingY={2.5}
-                  paddingX={2.5}
+                  padding={2.5}
                   radius="none"
-                  hoverBg="primary/10"
+                  hoverBg="secondary/10"
                   cursor="pointer"
                   onClick={() => (onSelectRider ? onSelectRider(rider) : onEdit(rider))}
                 >

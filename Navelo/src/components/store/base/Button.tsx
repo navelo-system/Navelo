@@ -29,6 +29,7 @@ export type ButtonVariant =
   | "danger-icon"
   | "danger-icon-xs"
   | "danger-pill-icon"
+  | "danger-pill-icon-xs"
   | "danger-confirm"
   | "danger-confirm-sm"
   | "danger-confirm-xs"

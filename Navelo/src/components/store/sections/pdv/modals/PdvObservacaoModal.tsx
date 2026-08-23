@@ -5,7 +5,6 @@ import { Modal } from "@/components/store/base/Modal"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
-import { NotepadTextIcon, LucideIcon } from "lucide-react"
 import { UI_STRINGS } from "@/constants/strings"
 
 export interface PdvObservacaoModalProps {
@@ -14,7 +13,6 @@ export interface PdvObservacaoModalProps {
   title?: string
   description?: string
   placeholder?: string
-  icon?: LucideIcon
   initialObservation?: string
   onSaveObservation: (obs: string) => void
 }
@@ -25,7 +23,6 @@ export function PdvObservacaoModal({
   title,
   description,
   placeholder,
-  icon: IconComp = NotepadTextIcon,
   initialObservation = "",
   onSaveObservation,
 }: PdvObservacaoModalProps) {
@@ -54,7 +51,6 @@ export function PdvObservacaoModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      icon={IconComp}
       title={displayTitle}
       variant="default"
       showCancelButton={true}

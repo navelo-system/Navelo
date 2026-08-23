@@ -75,7 +75,6 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
 
           {!hideActions && (
             <>
-              <Box paddingY={1} />
 
               {onSaveDeliveryOrder ? (
                 <Button

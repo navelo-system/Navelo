@@ -26,6 +26,9 @@ export interface MobileHeaderSearchProps {
   onSearchQueryChange: (value: string) => void
   placeholder?: string
   children?: React.ReactNode
+  isOpen?: boolean
+  onOpenChange?: (open: boolean) => void
+  onClose?: () => void
 }
 
 interface ExpandableSearchOverlayProps {
@@ -63,7 +66,9 @@ function ExpandableSearchOverlay({
       h="h-10"
       bg="bg-background"
       animation="search-expand-in"
-      zIndex="20"
+      zIndex="30"
+      display="flex"
+      align="center"
     >
       <Stack direction="row" align="center" gap={2.5} w="full">
         <Box flex="1" padding={0} minW="min-w-0">
@@ -88,22 +93,46 @@ export const MobileHeaderSearch: React.FC<MobileHeaderSearchProps> = ({
   onSearchQueryChange,
   placeholder = "Pesquisar...",
   children,
+  isOpen: controlledIsOpen,
+  onOpenChange,
+  onClose: customOnClose,
 }) => {
-  const [isSearchOpen, setIsSearchOpen] = React.useState(false)
+  const [internalIsOpen, setInternalIsOpen] = React.useState(false)
+  const [prevQuery, setPrevQuery] = React.useState(searchQuery)
+
+  if (searchQuery !== prevQuery) {
+    setPrevQuery(searchQuery)
+    if (prevQuery && !searchQuery && internalIsOpen) {
+      setInternalIsOpen(false)
+    }
+  }
+
+  const isSearchOpen = controlledIsOpen !== undefined ? controlledIsOpen : internalIsOpen
+
+  const handleOpen = React.useCallback(() => {
+    if (onOpenChange) onOpenChange(true)
+    if (controlledIsOpen === undefined) setInternalIsOpen(true)
+  }, [onOpenChange, controlledIsOpen])
+
+  const handleClose = React.useCallback(() => {
+    if (onOpenChange) onOpenChange(false)
+    if (controlledIsOpen === undefined) setInternalIsOpen(false)
+    onSearchQueryChange("")
+    customOnClose?.()
+  }, [onOpenChange, controlledIsOpen, onSearchQueryChange, customOnClose])
 
   return (
-    <Box position="relative" w="full" h="h-10">
+    <>
       <Box
-        w="full"
         transition="opacity"
         opacity={isSearchOpen ? "0" : "100"}
         pointerEvents={isSearchOpen ? "none" : "auto"}
       >
-        <Stack direction="row" align="center" justify="end" w="full" gap={2.5}>
+        <Stack direction="row" align="center" justify="end" gap={2.5}>
           <Button
             variant="secondary-pill-icon"
             icon={Search}
-            onClick={() => setIsSearchOpen(true)}
+            onClick={handleOpen}
           />
           {children}
         </Stack>
@@ -114,9 +143,9 @@ export const MobileHeaderSearch: React.FC<MobileHeaderSearchProps> = ({
         placeholder={placeholder}
         searchQuery={searchQuery}
         onSearchQueryChange={onSearchQueryChange}
-        onClose={() => setIsSearchOpen(false)}
+        onClose={handleClose}
       />
-    </Box>
+    </>
   )
 }
 

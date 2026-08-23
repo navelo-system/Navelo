@@ -60,7 +60,7 @@ function CityListCard({
         {cities.map((city, idx) => (
           <React.Fragment key={city.id}>
             {idx > 0 && <Box h="h-[1px]" w="full" bg="bg-border" />}
-            <Box padding={5} hoverBg="primary/10" w="full">
+            <Box padding={5} hoverBg="secondary/10" w="full">
               <Stack direction="row" align="center" justify="between" w="full" gap={5}>
                 <Stack gap={1} flex="1">
                   <Font variant="body-bold" text={city.name} />

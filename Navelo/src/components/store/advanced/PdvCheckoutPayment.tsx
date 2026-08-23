@@ -9,15 +9,26 @@ import { Button } from "@/components/store/base/Button"
 import { Icon } from "@/components/store/base/Icon"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { Input } from "@/components/store/base/Input"
+import { Modal } from "@/components/store/base/Modal"
 import { CartItem } from "@/components/store/intermediary/CartItem"
 import { RemoveItemConfirmModal } from "@/components/store/sections/pdv/modals/RemoveItemConfirmModal"
-import { DollarSign, QrCode, CreditCard, Users, Pencil, Check, X, Minus } from "lucide-react"
+import { DollarSign, QrCode, CreditCard, Users, Minus, Calendar } from "lucide-react"
 import { UI_STRINGS } from "@/constants/strings"
 import { CartItemType } from "@/components/store/sections/pdv/pages/PdvSection"
+import { Numpad } from "@/components/store/intermediary/Numpad"
+import { DatePickerModal } from "@/components/store/base/DatePickerModal"
+
+export interface PdvPaymentItem {
+  method: string
+  amount: number
+  dueDate?: string
+  installment?: number
+  totalInstallments?: number
+}
 
 interface PdvCheckoutPaymentProps {
   cartItems: CartItemType[]
-  payments: { method: string; amount: number }[]
+  payments: PdvPaymentItem[]
   discount: number
   subtotal: number
   total: number
@@ -27,7 +38,7 @@ interface PdvCheckoutPaymentProps {
   onOpenDiscountModal: () => void
   onLaunchPayment: (method: string, amount: number) => void
   onRemovePayment: (idx: number) => void
-  onEditPayment?: (idx: number, newAmount: number) => void
+  onEditPayment?: (idx: number, newAmount: number, newDueDate?: string) => void
   onOpenChangeModal: () => void
   onOpenCardModal: () => void
   onFinalizeSale: () => void
@@ -39,30 +50,260 @@ interface PdvCheckoutPaymentProps {
   onDecreaseItem?: (id: string) => void
 }
 
-function MobilePaymentsList({
+function CrediarioActionMenu({
+  onOpenEditValue,
+  onOpenEditDueDate,
+}: {
+  onOpenEditValue: () => void
+  onOpenEditDueDate: () => void
+}) {
+  const ch = UI_STRINGS.pdv.checkout
+  return (
+    <Box
+      position="absolute"
+      top="100%"
+      left="20px"
+      zIndex="50"
+      bg="bg-surface"
+      radius="default"
+      shadow="default"
+      border
+      borderColor="border-border"
+      padding={2.5}
+      w="w-52"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <Stack gap={1} w="full">
+        <Box
+          padding={2.5}
+          hoverBg="secondary/10"
+          cursor="pointer"
+          radius="default"
+          onClick={onOpenEditValue}
+        >
+          <Stack direction="row" align="center" gap={2.5}>
+            <Icon icon={DollarSign} size={16} />
+            <Font variant="body" text={ch.changeValueOption} />
+          </Stack>
+        </Box>
+        <Box
+          padding={2.5}
+          hoverBg="secondary/10"
+          cursor="pointer"
+          radius="default"
+          onClick={onOpenEditDueDate}
+        >
+          <Stack direction="row" align="center" gap={2.5}>
+            <Icon icon={Calendar} size={16} />
+            <Font variant="body" text={ch.changeDueDateOption} />
+          </Stack>
+        </Box>
+      </Stack>
+    </Box>
+  )
+}
+
+function PaymentRowItem({
+  p,
+  idx,
+  formatPrice,
+  onRemovePayment,
+  onOpenEditValue,
+  onOpenEditDueDate,
+}: {
+  p: PdvPaymentItem
+  idx: number
+  formatPrice: (v: number) => string
+  onRemovePayment: (idx: number) => void
+  onOpenEditValue: (idx: number) => void
+  onOpenEditDueDate: (idx: number) => void
+}) {
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false)
+  const isCrediario = p.method === "Crediário"
+  const displayName = isCrediario
+    ? `Crediário ${p.installment || 1} / ${p.totalInstallments || 1}`
+    : p.method
+
+  return (
+    <Box
+      position="relative"
+      padding={2.5}
+      radius="default"
+      border
+      borderColor="border-border"
+      bg="bg-surface"
+      hoverBg="secondary/10"
+      cursor={isCrediario ? "pointer" : undefined}
+      onClick={() => isCrediario && setIsMenuOpen((prev) => !prev)}
+      w="full"
+    >
+      <Stack direction="row" justify="between" align="center" w="full">
+        <Stack gap={0} align="start">
+          <Font variant="body" text={displayName} />
+          {p.dueDate && (
+            <Font variant="auxiliary" color="muted" text={p.dueDate} />
+          )}
+        </Stack>
+        <Stack direction="row" align="center" gap={2.5}>
+          <Font variant="body" text={formatPrice(p.amount)} />
+          <Button
+            variant="ghost"
+            icon={Minus}
+            onClick={(e) => {
+              e.stopPropagation()
+              onRemovePayment(idx)
+            }}
+          />
+        </Stack>
+      </Stack>
+
+      {isMenuOpen && (
+        <CrediarioActionMenu
+          onOpenEditValue={() => {
+            setIsMenuOpen(false)
+            onOpenEditValue(idx)
+          }}
+          onOpenEditDueDate={() => {
+            setIsMenuOpen(false)
+            onOpenEditDueDate(idx)
+          }}
+        />
+      )}
+    </Box>
+  )
+}
+
+function EditInstallmentValueModal({
+  isOpen,
+  initialValue,
+  onClose,
+  onConfirm,
+}: {
+  isOpen: boolean
+  initialValue: number
+  onClose: () => void
+  onConfirm: (val: number) => void
+}) {
+  const ch = UI_STRINGS.pdv.checkout
+  const [digits, setDigits] = React.useState("")
+  const [prevIsOpen, setPrevIsOpen] = React.useState(isOpen)
+  const [prevInitialValue, setPrevInitialValue] = React.useState(initialValue)
+
+  if (isOpen !== prevIsOpen || initialValue !== prevInitialValue) {
+    setPrevIsOpen(isOpen)
+    setPrevInitialValue(initialValue)
+    if (isOpen) {
+      const cents = Math.round(initialValue * 100)
+      setDigits(cents > 0 ? String(cents) : "")
+    }
+  }
+
+  const handleKeyPress = (val: string) => {
+    if (val === "back") {
+      setDigits((prev) => prev.slice(0, -1))
+      return
+    }
+    if (val === "00") {
+      if (!digits) return
+      setDigits((prev) => (prev.length <= 6 ? prev + "00" : prev))
+      return
+    }
+    if (digits.length >= 8) return
+    setDigits((prev) => prev + val)
+  }
+
+  const numericValue = digits ? parseFloat(digits) / 100 : 0
+  const formattedValue = numericValue.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      icon={DollarSign}
+      title={ch.changeValueModalTitle}
+      subtitle={ch.changeValueModalSubtitle}
+      variant="default"
+      showCancelButton={true}
+      successText={UI_STRINGS.common.confirm}
+      onSuccess={() => {
+        if (numericValue > 0) {
+          onConfirm(numericValue)
+        }
+        onClose()
+      }}
+    >
+      <Stack gap={5} w="full" align="center">
+        <Stack gap={1} align="center" w="full">
+          <Font variant="description" text={ch.installmentValueInputLabel} color="muted" align="center" />
+          <Font variant="h1" text={`${UI_STRINGS.common.currencySymbol} ${formattedValue}`} color="primary" align="center" />
+        </Stack>
+        <Numpad onKeyPress={handleKeyPress} variant="ghost" />
+      </Stack>
+    </Modal>
+  )
+}
+
+function DesktopPaymentsList({
   payments,
   formatPrice,
   onRemovePayment,
+  onEditPayment,
 }: {
-  payments: { method: string; amount: number }[]
+  payments: PdvPaymentItem[]
   formatPrice: (v: number) => string
   onRemovePayment: (idx: number) => void
+  onEditPayment?: (idx: number, newAmount: number, newDueDate?: string) => void
 }) {
   const ch = UI_STRINGS.pdv.checkout
-  if (payments.length === 0) {
-    return <EmptyState variant="simple" icon={DollarSign} title={ch.noPaymentsTitle} />
+  const [valueModalIdx, setValueModalIdx] = React.useState<number | null>(null)
+  const [dateModalIdx, setDateModalIdx] = React.useState<number | null>(null)
+
+  const handleSaveValue = (newValue: number) => {
+    if (valueModalIdx !== null && onEditPayment) {
+      onEditPayment(valueModalIdx, newValue, payments[valueModalIdx].dueDate)
+    }
+    setValueModalIdx(null)
   }
+
+  const handleSaveDueDate = (formattedDate: string) => {
+    if (dateModalIdx !== null && onEditPayment) {
+      onEditPayment(dateModalIdx, payments[dateModalIdx].amount, formattedDate)
+    }
+    setDateModalIdx(null)
+  }
+
+  if (payments.length === 0) {
+    return <EmptyState icon={DollarSign} title={ch.emptyPaymentsTitle} subtitle={ch.emptyPaymentsSubtitle} />
+  }
+
   return (
     <Stack gap={2.5} w="full">
       {payments.map((p, idx) => (
-        <Stack key={idx} direction="row" justify="between" align="center" w="full">
-          <Font variant="body" text={p.method} />
-          <Stack direction="row" align="center" gap={2.5}>
-            <Font variant="body" text={formatPrice(p.amount)} />
-            <Button variant="ghost" icon={Minus} onClick={() => onRemovePayment(idx)} />
-          </Stack>
-        </Stack>
+        <PaymentRowItem
+          key={idx}
+          p={p}
+          idx={idx}
+          formatPrice={formatPrice}
+          onRemovePayment={onRemovePayment}
+          onOpenEditValue={(i) => setValueModalIdx(i)}
+          onOpenEditDueDate={(i) => setDateModalIdx(i)}
+        />
       ))}
+      <EditInstallmentValueModal
+        isOpen={valueModalIdx !== null}
+        initialValue={valueModalIdx !== null ? payments[valueModalIdx]?.amount || 0 : 0}
+        onClose={() => setValueModalIdx(null)}
+        onConfirm={handleSaveValue}
+      />
+      <DatePickerModal
+        isOpen={dateModalIdx !== null}
+        onClose={() => setDateModalIdx(null)}
+        initialDateString={dateModalIdx !== null ? payments[dateModalIdx]?.dueDate : undefined}
+        onSelectDate={handleSaveDueDate}
+      />
     </Stack>
   )
 }
@@ -189,6 +430,7 @@ function CheckoutMobileView({
   formatPrice,
   onLaunchPayment,
   onRemovePayment,
+  onEditPayment,
   onOpenChangeModal,
   onOpenCardModal,
   onFinalizeSale,
@@ -198,7 +440,7 @@ function CheckoutMobileView({
   onRequestRemoveItem,
 }: {
   cartItems: CartItemType[]
-  payments: { method: string; amount: number }[]
+  payments: PdvPaymentItem[]
   discount: number
   subtotal: number
   total: number
@@ -207,6 +449,7 @@ function CheckoutMobileView({
   formatPrice: (v: number) => string
   onLaunchPayment: (method: string, amount: number) => void
   onRemovePayment: (idx: number) => void
+  onEditPayment?: (idx: number, newAmount: number, newDueDate?: string) => void
   onOpenChangeModal: () => void
   onOpenCardModal: () => void
   onFinalizeSale: () => void
@@ -228,7 +471,7 @@ function CheckoutMobileView({
             />
             <Box h="h-[1px]" bg="bg-border" w="full" shrink="0" />
             <Box shrink="0" padding={0} maxH="96" overflow="auto" w="full">
-              <MobilePaymentsList payments={payments} formatPrice={formatPrice} onRemovePayment={onRemovePayment} />
+              <DesktopPaymentsList payments={payments} formatPrice={formatPrice} onRemovePayment={onRemovePayment} onEditPayment={onEditPayment} />
             </Box>
             <Box h="h-[1px]" bg="bg-border" w="full" shrink="0" />
             <Box shrink="0" w="full">
@@ -361,80 +604,6 @@ function DesktopSettlementHeader({
   )
 }
 
-function DesktopPaymentsList({
-  payments,
-  formatPrice,
-  onRemovePayment,
-  onEditPayment,
-}: {
-  payments: { method: string; amount: number }[]
-  formatPrice: (v: number) => string
-  onRemovePayment: (idx: number) => void
-  onEditPayment?: (idx: number, newAmount: number) => void
-}) {
-  const ch = UI_STRINGS.pdv.checkout
-  const [editingIdx, setEditingIdx] = React.useState<number | null>(null)
-  const [editInput, setEditInput] = React.useState("")
-
-  const confirmEdit = () => {
-    if (editingIdx !== null && onEditPayment) {
-      const parsed = parseFloat(editInput.replace(",", "."))
-      if (!isNaN(parsed) && parsed > 0) onEditPayment(editingIdx, parsed)
-    }
-    setEditingIdx(null)
-    setEditInput("")
-  }
-
-  if (payments.length === 0) {
-    return <EmptyState icon={DollarSign} title={ch.emptyPaymentsTitle} subtitle={ch.emptyPaymentsSubtitle} />
-  }
-
-  return (
-    <Stack gap={2.5}>
-      {payments.map((p, idx) => (
-        <Box key={idx} padding={2.5} radius="default" border borderColor="border-border">
-          {editingIdx === idx ? (
-            <Stack direction="row" justify="between" align="center" w="full">
-              <Stack direction="row" align="center" gap={2.5}>
-                <Icon icon={DollarSign} variant="circular-success" />
-                <Font variant="body-bold" text={p.method} />
-              </Stack>
-              <Stack direction="row" align="center" gap={2.5}>
-                <Box w="w-24">
-                  <Input value={editInput} onChange={(e) => setEditInput(e.target.value)} />
-                </Box>
-                <Button variant="primary-icon-xs" icon={Check} onClick={confirmEdit} />
-                <Button variant="danger-icon-xs" icon={X} onClick={() => setEditingIdx(null)} />
-              </Stack>
-            </Stack>
-          ) : (
-            <Stack direction="row" justify="between" align="center" w="full">
-              <Stack direction="row" align="center" gap={2.5}>
-                <Icon icon={DollarSign} variant="circular-success" />
-                <Font variant="body-bold" text={p.method} />
-              </Stack>
-              <Stack direction="row" align="center" gap={2.5}>
-                <Font variant="body-bold" text={formatPrice(p.amount)} />
-                <Button variant="primary-icon-xs" icon={Pencil} onClick={() => {
-                  setEditingIdx(idx)
-                  setEditInput(p.amount.toFixed(2).replace(".", ","))
-                }} />
-                <Button
-                  variant="danger-icon-xs-confirm"
-                  confirmTitle={ch.removePaymentTitle}
-                  confirmSubtitle={ch.removePaymentSubtitle}
-                  confirmParagraph={ch.removePaymentParagraph}
-                  onConfirm={() => onRemovePayment(idx)}
-                />
-              </Stack>
-            </Stack>
-          )}
-        </Box>
-      ))}
-    </Stack>
-  )
-}
-
 function CheckoutDesktopSettlement({
   payments,
   total,
@@ -451,14 +620,14 @@ function CheckoutDesktopSettlement({
   onChangePaymentAmountInput,
   launchAmount,
 }: {
-  payments: { method: string; amount: number }[]
+  payments: PdvPaymentItem[]
   total: number
   totalPaid: number
   amountDue: number
   formatPrice: (v: number) => string
   onLaunchPayment: (method: string, amount: number) => void
   onRemovePayment: (idx: number) => void
-  onEditPayment?: (idx: number, newAmount: number) => void
+  onEditPayment?: (idx: number, newAmount: number, newDueDate?: string) => void
   onOpenChangeModal: () => void
   onOpenCardModal: () => void
   onFinalizeSale: () => void
@@ -516,6 +685,7 @@ export function PdvCheckoutPayment(props: PdvCheckoutPaymentProps) {
         formatPrice={props.formatPrice}
         onLaunchPayment={props.onLaunchPayment}
         onRemovePayment={props.onRemovePayment}
+        onEditPayment={props.onEditPayment}
         onOpenChangeModal={props.onOpenChangeModal}
         onOpenCardModal={props.onOpenCardModal}
         onFinalizeSale={props.onFinalizeSale}

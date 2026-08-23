@@ -12,7 +12,7 @@ import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { FilterPanel } from "@/components/store/intermediary/FilterPanel"
 import { SaleExportModal } from "@/components/store/sections/pdv/modals/SaleExportModal"
 import { generateReceivablesReportPdf } from "@/lib/pdf/generateReceivablesReportPdf"
-import { useSales, useTabs, Sale, TabEntity } from "@/lib/dal"
+import { useSales, Sale, TabEntity, Customer } from "@/lib/dal"
 import { db } from "@/lib/dal/db"
 import { useLiveQuery } from "dexie-react-hooks"
 import { useTenant } from "@/lib/context/TenantContext"
@@ -29,12 +29,13 @@ export interface ContasAReceberSectionProps {
 interface ReceivableAccount {
   id: string
   saleId?: string
+  type: "TAB" | "CREDIARIO"
   client: string
-  docNumber: string
+  docNumber?: string
   issueDate: Date
   issueDateFormatted: string
-  dueDate: Date
-  dueDateFormatted: string
+  dueDate?: Date
+  dueDateFormatted?: string
   settlementDate?: Date | null
   settlementDateFormatted?: string
   value: number
@@ -141,9 +142,28 @@ function resolveReceivableDates(sale: Sale, extra: SaleExtraData) {
   return { issue, due, isSettled, settlement }
 }
 
-function resolveReceivableDocAndClient(sale: Sale, extra: SaleExtraData, idx: number, totalCount: number) {
-  const docNum = extra.doc_number || `019.${totalCount - idx}-1/1`
+function resolveCustomerDoc(sale: Sale, customerMap?: Map<string, Customer>): string {
+  if (sale.customer_id && customerMap?.has(sale.customer_id)) {
+    const cust = customerMap.get(sale.customer_id)
+    if (cust?.document) return cust.document
+  }
+  const extra = sale as unknown as SaleExtraData
+  return extra.doc_number || ""
+}
+
+interface ResolveReceivableDocParams {
+  sale: Sale
+  extra: SaleExtraData
+  idx: number
+  totalCount: number
+  customerMap?: Map<string, Customer>
+}
+
+function resolveReceivableDocAndClient(p: ResolveReceivableDocParams) {
+  const { sale, extra, idx, totalCount, customerMap } = p
   const clientName = sale.customer_name && sale.customer_name !== "Nao selecionado" ? sale.customer_name : "Cliente Avulso"
+  const custDoc = resolveCustomerDoc(sale, customerMap)
+  const docNum = custDoc || extra.doc_number || `019.${totalCount - idx}-1/1`
   return { docNum, clientName }
 }
 
@@ -154,21 +174,37 @@ function resolveReceivableSettlementDisplay(settlement: Date | null, isSettled: 
   return { settlementDateFormatted, toSettle, status }
 }
 
-function mapSaleToReceivable(sale: Sale, idx: number, totalCount: number): ReceivableAccount | null {
+function mapSaleToReceivable(
+  sale: Sale,
+  idx: number,
+  totalCount: number,
+  customerMap?: Map<string, Customer>
+): ReceivableAccount | null {
   if (!isSaleReceivable(sale)) return null
 
   const extra = sale as unknown as SaleExtraData
   const { issue, due, isSettled, settlement } = resolveReceivableDates(sale, extra)
-  const { docNum, clientName } = resolveReceivableDocAndClient(sale, extra, idx, totalCount)
+  const { docNum, clientName } = resolveReceivableDocAndClient({ sale, extra, idx, totalCount, customerMap })
   const { settlementDateFormatted, toSettle, status } = resolveReceivableSettlementDisplay(settlement, isSettled, sale.total || 0)
 
   return {
-    id: sale.id, saleId: sale.id, client: clientName, docNumber: docNum,
-    issueDate: issue, issueDateFormatted: formatDateBr(issue),
-    dueDate: due, dueDateFormatted: formatDateBr(due),
-    settlementDate: settlement, settlementDateFormatted,
-    value: sale.total || 0, fine: extra.fine || 0, interest: extra.interest || 0,
-    toSettle, status, device: extra.device || extra.terminal || "",
+    id: sale.id,
+    saleId: sale.id,
+    type: "CREDIARIO",
+    client: clientName,
+    docNumber: docNum,
+    issueDate: issue,
+    issueDateFormatted: formatDateBr(issue),
+    dueDate: due,
+    dueDateFormatted: formatDateBr(due),
+    settlementDate: settlement,
+    settlementDateFormatted,
+    value: sale.total || 0,
+    fine: extra.fine || 0,
+    interest: extra.interest || 0,
+    toSettle,
+    status,
+    device: extra.device || extra.terminal || "",
   }
 }
 
@@ -189,34 +225,66 @@ function matchDateRange(targetDate: Date | null, startObj: Date | null, endObj: 
 }
 
 function resolveTargetDate(acc: ReceivableAccount, periodType: "Emissão" | "Vencimento" | "Liquidação"): Date | null {
-  if (periodType === "Vencimento") return acc.dueDate
+  if (periodType === "Vencimento") return acc.dueDate || acc.issueDate
   if (periodType === "Liquidação") return acc.settlementDate || null
   return acc.issueDate
+}
+
+function isPendingAndFilteredToday(acc: ReceivableAccount, p: FilterParams): boolean {
+  if (acc.status !== "PENDING") return false
+  if (!p.startObj || !p.endObj) return false
+  return p.startObj.toDateString() === new Date().toDateString()
+}
+
+function matchTerms(acc: ReceivableAccount, clientTerm: string, deviceTerm: string): boolean {
+  if (clientTerm && !acc.client.toLowerCase().includes(clientTerm)) return false
+  if (deviceTerm && (!acc.device || !acc.device.toLowerCase().includes(deviceTerm))) return false
+  return true
 }
 
 function filterReceivable(acc: ReceivableAccount, p: FilterParams): boolean {
   const targetDate = resolveTargetDate(acc, p.periodType)
   if (p.periodType === "Liquidação" && !targetDate) return false
-  if (targetDate && !matchDateRange(targetDate, p.startObj, p.endObj)) return false
-  if (p.clientTerm && !acc.client.toLowerCase().includes(p.clientTerm)) return false
-  if (p.deviceTerm && (!acc.device || !acc.device.toLowerCase().includes(p.deviceTerm))) return false
-  return true
+  if (targetDate && !matchDateRange(targetDate, p.startObj, p.endObj) && !isPendingAndFilteredToday(acc, p)) {
+    return false
+  }
+  return matchTerms(acc, p.clientTerm, p.deviceTerm)
+}
+
+function formatTabIdentifier(tab: TabEntity): string {
+  const code = (tab.code || "").trim()
+  const label = (tab.label || "").trim()
+  if (code) return code.startsWith("#") ? code : `#${code}`
+  if (label) return label
+  return `#${tab.id}`
+}
+
+function resolveTabDisplayName(tab: TabEntity): string {
+  const identifier = formatTabIdentifier(tab)
+  const custName = tab.customer_name && tab.customer_name !== "Nao selecionado" ? tab.customer_name.trim() : ""
+  if (custName) {
+    return `Comanda ${identifier} • ${custName}`
+  }
+  return `Comanda ${identifier}`
+}
+
+function resolveTabDate(tab: TabEntity): Date {
+  if (tab.updated_at) return new Date(tab.updated_at)
+  if (tab.created_at) return new Date(tab.created_at)
+  return new Date()
 }
 
 function mapTabToReceivable(tab: TabEntity): ReceivableAccount {
-  const issue = tab.created_at ? new Date(tab.created_at) : new Date()
-  const clientName = tab.customer_name && tab.customer_name !== "Nao selecionado" ? tab.customer_name : (tab.label || tab.code || `Comanda #${tab.id}`)
-  const docNum = tab.code || tab.label || `CMD-${tab.id}`
+  const issue = resolveTabDate(tab)
+  const issueDateFormatted = formatDateBr(issue)
 
   return {
     id: `tab-${tab.id}`,
     saleId: `tab-${tab.id}`,
-    client: clientName,
-    docNumber: docNum,
+    type: "TAB",
+    client: resolveTabDisplayName(tab),
     issueDate: issue,
-    issueDateFormatted: formatDateBr(issue),
-    dueDate: issue,
-    dueDateFormatted: formatDateBr(issue),
+    issueDateFormatted,
     value: tab.total || 0,
     fine: 0,
     interest: 0,
@@ -226,12 +294,20 @@ function mapTabToReceivable(tab: TabEntity): ReceivableAccount {
   }
 }
 
-function useReceivablesData(dbSales?: Sale[], dbTabs?: TabEntity[]) {
+function useReceivablesData(dbSales?: Sale[], dbTabs?: TabEntity[], dbCustomers?: Customer[]) {
+  const customerMap = React.useMemo(() => {
+    const map = new Map<string, Customer>()
+    if (dbCustomers) {
+      dbCustomers.forEach((c) => { map.set(c.id, c) })
+    }
+    return map
+  }, [dbCustomers])
+
   const allAccounts: ReceivableAccount[] = React.useMemo(() => {
     const list: ReceivableAccount[] = []
     if (dbSales && dbSales.length > 0) {
       dbSales.forEach((sale, idx) => {
-        const mapped = mapSaleToReceivable(sale, idx, dbSales.length)
+        const mapped = mapSaleToReceivable(sale, idx, dbSales.length, customerMap)
         if (mapped) list.push(mapped)
       })
     }
@@ -243,30 +319,55 @@ function useReceivablesData(dbSales?: Sale[], dbTabs?: TabEntity[]) {
       })
     }
     return list
-  }, [dbSales, dbTabs])
+  }, [dbSales, dbTabs, customerMap])
 
   return { allAccounts }
 }
 
 function ReceivableRowItem({ acc }: { acc: ReceivableAccount }) {
   const s = UI_STRINGS.receivables
+
+  if (acc.type === "TAB") {
+    return (
+      <Box padding={2.5} w="full">
+        <Stack direction="row" justify="between" align="start" w="full">
+          <Stack gap={1} flex="1" minW="0">
+            <Font variant="body-sm-semibold" text={acc.client} />
+            <Stack direction="row" align="center" gap={1}>
+              <Icon icon={Calendar} size={12} color="muted" />
+              <Font variant="auxiliary" color="muted" text={`${s.issueDatePrefix}${acc.issueDateFormatted}`} />
+            </Stack>
+          </Stack>
+          <Stack align="end" gap={0}>
+            <Font variant="body-bold" text={formatPrice(acc.value)} />
+            <Font variant="auxiliary" color="muted" text={`${s.toSettlePrefix}${formatPrice(acc.toSettle)}`} />
+          </Stack>
+        </Stack>
+      </Box>
+    )
+  }
+
   return (
     <Box padding={2.5} w="full">
       <Stack direction="row" justify="between" align="start" w="full">
         <Stack gap={1} flex="1" minW="0">
           <Font variant="body-sm-semibold" text={acc.client} />
-          <Stack direction="row" align="center" gap={1}>
-            <Icon icon={FileText} size={12} color="muted" />
-            <Font variant="auxiliary" color="muted" text={`${s.docPrefix}${acc.docNumber}`} />
-          </Stack>
+          {acc.docNumber && (
+            <Stack direction="row" align="center" gap={1}>
+              <Icon icon={FileText} size={12} color="muted" />
+              <Font variant="auxiliary" color="muted" text={`${s.docPrefix}${acc.docNumber}`} />
+            </Stack>
+          )}
           <Stack direction="row" align="center" gap={1}>
             <Icon icon={Calendar} size={12} color="muted" />
             <Font variant="auxiliary" color="muted" text={`${s.issueDatePrefix}${acc.issueDateFormatted}`} />
           </Stack>
-          <Stack direction="row" align="center" gap={1}>
-            <Icon icon={Calendar} size={12} color="muted" />
-            <Font variant="auxiliary" color="muted" text={`${s.dueDatePrefix}${acc.dueDateFormatted}`} />
-          </Stack>
+          {acc.dueDateFormatted && (
+            <Stack direction="row" align="center" gap={1}>
+              <Icon icon={Calendar} size={12} color="muted" />
+              <Font variant="auxiliary" color="muted" text={`${s.dueDatePrefix}${acc.dueDateFormatted}`} />
+            </Stack>
+          )}
         </Stack>
         <Stack align="end" gap={0}>
           <Font variant="body-bold" text={formatPrice(acc.value)} />
@@ -366,9 +467,9 @@ function exportCsvFile(filteredAccounts: ReceivableAccount[]) {
   const headers = ["Cliente", "Documento", "Data Emissao", "Data Vencimento", "Data Liquidacao", "Valor (R$)", "Multa (R$)", "Juros (R$)", "Valor a Liquidar (R$)", "Situacao"]
   const rows = filteredAccounts.map((acc) => [
     `"${acc.client.replace(/"/g, '""')}"`,
-    acc.docNumber,
+    acc.docNumber || "-",
     acc.issueDateFormatted,
-    acc.dueDateFormatted,
+    acc.dueDateFormatted || "-",
     acc.settlementDateFormatted || "-",
     acc.value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     acc.fine.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
@@ -406,8 +507,8 @@ async function exportPdfReport(p: ExportPdfParams) {
     title: p.s.title, periodText: `${p.startDate} até ${p.endDate}`, periodType: p.periodType,
     clientFilter: p.cliente.trim() || undefined, deviceFilter: p.dispositivo.trim() || undefined,
     items: p.filteredAccounts.map((acc) => ({
-      client: acc.client, docNumber: acc.docNumber, issueDate: acc.issueDateFormatted,
-      dueDate: acc.dueDateFormatted, value: acc.value, fine: acc.fine, interest: acc.interest,
+      client: acc.client, docNumber: acc.docNumber || "-", issueDate: acc.issueDateFormatted,
+      dueDate: acc.dueDateFormatted || "-", value: acc.value, fine: acc.fine, interest: acc.interest,
       toSettle: acc.toSettle, status: acc.status === "SETTLED" ? "Liquidada" : "Pendente",
     })),
     totalToReceive: p.totalToReceive, totalSettled: p.totalSettled,
@@ -423,19 +524,7 @@ async function exportPdfReport(p: ExportPdfParams) {
   document.body.removeChild(link)
 }
 
-export const ContasAReceberSection: React.FC<ContasAReceberSectionProps> = ({
-  onBackToDashboard, setCustomBack, setCustomTitle, setCustomActions,
-}) => {
-  const tenantCtx = useTenant()
-  const tenantId = tenantCtx?.currentTenant?.id
-  const dbSales = useSales(tenantId)
-  const dbTabs = useTabs(tenantId)
-  const dbCompany = useLiveQuery(async () => {
-    if (!tenantId) return null
-    return await db.companies.get(tenantId)
-  }, [tenantId])
-
-  const s = UI_STRINGS.receivables
+function useReceivableFilterState() {
   const initialDates = React.useMemo(() => getPeriodDates("Hoje"), [])
   const [period, setPeriod] = React.useState("Hoje")
   const [periodType, setPeriodType] = React.useState<"Emissão" | "Vencimento" | "Liquidação">("Emissão")
@@ -444,40 +533,90 @@ export const ContasAReceberSection: React.FC<ContasAReceberSectionProps> = ({
   const [cliente, setCliente] = React.useState("")
   const [dispositivo, setDispositivo] = React.useState("")
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
-  const [isExportModalOpen, setIsExportModalOpen] = React.useState(false)
+
+  const [appliedFilters, setAppliedFilters] = React.useState({
+    periodType: "Emissão" as "Emissão" | "Vencimento" | "Liquidação",
+    startDate: initialDates.start,
+    endDate: initialDates.end,
+    cliente: "",
+    dispositivo: "",
+  })
 
   const handlePeriodChange = (newPeriod: string) => {
-    setPeriod(newPeriod); const { start, end } = getPeriodDates(newPeriod); setStartDate(start); setEndDate(end)
+    setPeriod(newPeriod)
+    const { start, end } = getPeriodDates(newPeriod)
+    setStartDate(start)
+    setEndDate(end)
   }
+
+  const handleApplyFilters = () => {
+    setAppliedFilters({
+      periodType,
+      startDate,
+      endDate,
+      cliente,
+      dispositivo,
+    })
+  }
+
+  return {
+    period, periodType, setPeriodType, startDate, setStartDate, endDate, setEndDate,
+    cliente, setCliente, dispositivo, setDispositivo, isFilterDrawerOpen, setIsFilterDrawerOpen,
+    appliedFilters, handlePeriodChange, handleApplyFilters,
+  }
+}
+
+export const ContasAReceberSection: React.FC<ContasAReceberSectionProps> = ({
+  setCustomBack, setCustomTitle, setCustomActions, onBackToDashboard,
+}) => {
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id || "default"
+  const dbSales = useSales(tenantId)
+  const dbTabs = useLiveQuery(async () => (tenantId ? await db.tabs.where("tenant_id").equals(tenantId).toArray() : []), [tenantId])
+  const dbCustomers = useLiveQuery(async () => (tenantId ? await db.customers.where("tenant_id").equals(tenantId).toArray() : []), [tenantId])
+  const dbCompany = useLiveQuery(async () => (tenantId ? await db.companies.get(tenantId) : null), [tenantId])
+
+  const s = UI_STRINGS.receivables
+  const f = useReceivableFilterState()
+  const [isExportModalOpen, setIsExportModalOpen] = React.useState(false)
 
   const onBackToDashboardRef = React.useRef(onBackToDashboard)
   React.useEffect(() => { onBackToDashboardRef.current = onBackToDashboard }, [onBackToDashboard])
+
+  const onFilterDrawerRef = React.useRef(() => f.setIsFilterDrawerOpen(true))
+  React.useEffect(() => { onFilterDrawerRef.current = () => f.setIsFilterDrawerOpen(true) })
 
   React.useEffect(() => {
     setCustomBack?.(() => () => onBackToDashboardRef.current())
     setCustomTitle?.(s.title)
     setCustomActions?.(
       <Box display="block md:hidden">
-        <Button variant="primary-pill-icon" icon={Filter} onClick={() => setIsFilterDrawerOpen(true)} />
+        <Button variant="primary-pill-icon" icon={Filter} onClick={() => onFilterDrawerRef.current()} />
       </Box>
     )
     return () => { setCustomBack?.(null); setCustomTitle?.(null); setCustomActions?.(null) }
   }, [setCustomBack, setCustomTitle, setCustomActions, s.title])
 
-  const { allAccounts } = useReceivablesData(dbSales, dbTabs)
+  const { allAccounts } = useReceivablesData(dbSales, dbTabs, dbCustomers)
 
   const filteredAccounts = React.useMemo(() => {
-    const clientTerm = cliente.trim().toLowerCase()
-    const deviceTerm = dispositivo.trim().toLowerCase()
-    const startObj = parseBrDateTime(startDate, false)
-    const endObj = parseBrDateTime(endDate, true)
-    return allAccounts.filter((acc) => filterReceivable(acc, { periodType, startObj, endObj, clientTerm, deviceTerm })).sort((a, b) => b.issueDate.getTime() - a.issueDate.getTime())
-  }, [allAccounts, cliente, dispositivo, startDate, endDate, periodType])
+    const clientTerm = f.appliedFilters.cliente.trim().toLowerCase()
+    const deviceTerm = f.appliedFilters.dispositivo.trim().toLowerCase()
+    const startObj = parseBrDateTime(f.appliedFilters.startDate, false)
+    const endObj = parseBrDateTime(f.appliedFilters.endDate, true)
+    return allAccounts
+      .filter((acc) => filterReceivable(acc, { periodType: f.appliedFilters.periodType, startObj, endObj, clientTerm, deviceTerm }))
+      .sort((a, b) => b.issueDate.getTime() - a.issueDate.getTime())
+  }, [allAccounts, f.appliedFilters])
 
   const totalToReceive = React.useMemo(() => filteredAccounts.filter((a) => a.status === "PENDING").reduce((acc, curr) => acc + curr.toSettle, 0), [filteredAccounts])
   const totalSettled = React.useMemo(() => filteredAccounts.filter((a) => a.status === "SETTLED").reduce((acc, curr) => acc + curr.value, 0), [filteredAccounts])
 
-  const handleExportPdf = () => exportPdfReport({ s, startDate, endDate, periodType, cliente, dispositivo, filteredAccounts, totalToReceive, totalSettled, dbCompany, tenantCtx })
+  const handleExportPdf = () => exportPdfReport({
+    s, startDate: f.appliedFilters.startDate, endDate: f.appliedFilters.endDate,
+    periodType: f.appliedFilters.periodType, cliente: f.appliedFilters.cliente,
+    dispositivo: f.appliedFilters.dispositivo, filteredAccounts, totalToReceive, totalSettled, dbCompany, tenantCtx,
+  })
 
   return (
     <>
@@ -489,14 +628,14 @@ export const ContasAReceberSection: React.FC<ContasAReceberSectionProps> = ({
           </Stack>
 
           <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
-            <FilterPanel title={s.filtersPanelTitle} selectedPeriod={period} onPeriodChange={handlePeriodChange} startDate={startDate} onStartDateChange={setStartDate} endDate={endDate} onEndDateChange={setEndDate} onFilter={() => {}}>
-              <ReceivableFilterInputs periodType={periodType} setPeriodType={setPeriodType} cliente={cliente} setCliente={setCliente} dispositivo={dispositivo} setDispositivo={setDispositivo} />
+            <FilterPanel title={s.filtersPanelTitle} selectedPeriod={f.period} onPeriodChange={f.handlePeriodChange} startDate={f.startDate} onStartDateChange={f.setStartDate} endDate={f.endDate} onEndDateChange={f.setEndDate} onFilter={f.handleApplyFilters}>
+              <ReceivableFilterInputs periodType={f.periodType} setPeriodType={f.setPeriodType} cliente={f.cliente} setCliente={f.setCliente} dispositivo={f.dispositivo} setDispositivo={f.setDispositivo} />
             </FilterPanel>
           </Box>
 
-          <Modal isOpen={isFilterDrawerOpen} onClose={() => setIsFilterDrawerOpen(false)} title={s.filtersPanelTitle} variant="sidebar">
-            <FilterPanel hideTitle borderless selectedPeriod={period} onPeriodChange={handlePeriodChange} startDate={startDate} onStartDateChange={setStartDate} endDate={endDate} onEndDateChange={setEndDate} onFilter={() => setIsFilterDrawerOpen(false)}>
-              <ReceivableFilterInputs periodType={periodType} setPeriodType={setPeriodType} cliente={cliente} setCliente={setCliente} dispositivo={dispositivo} setDispositivo={setDispositivo} />
+          <Modal isOpen={f.isFilterDrawerOpen} onClose={() => f.setIsFilterDrawerOpen(false)} title={s.filtersPanelTitle} variant="sidebar">
+            <FilterPanel hideTitle borderless selectedPeriod={f.period} onPeriodChange={f.handlePeriodChange} startDate={f.startDate} onStartDateChange={f.setStartDate} endDate={f.endDate} onEndDateChange={f.setEndDate} onFilter={() => { f.handleApplyFilters(); f.setIsFilterDrawerOpen(false) }}>
+              <ReceivableFilterInputs periodType={f.periodType} setPeriodType={f.setPeriodType} cliente={f.cliente} setCliente={f.setCliente} dispositivo={f.dispositivo} setDispositivo={f.setDispositivo} />
             </FilterPanel>
           </Modal>
         </Stack>

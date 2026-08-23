@@ -125,7 +125,7 @@ export const AdminHeaderSection: React.FC = () => {
 
   return (
     <>
-      <Box paddingY={5} paddingX={5} bg="bg-brand-primary" w="full" display="flex" direction="col">
+      <Box padding={5} bg="bg-brand-primary" w="full" display="flex" direction="col">
         <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={isDesktop || isBottomVisible ? 5 : 0}>
           <Stack gap={1} align="center" mobileAlign="start">
             <AdminHeaderLogo logoUrl={logoUrl} />

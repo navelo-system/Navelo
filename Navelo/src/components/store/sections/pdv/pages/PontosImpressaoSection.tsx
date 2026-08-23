@@ -58,7 +58,7 @@ function PrintPointListCard({
         {points.map((point, idx) => (
           <React.Fragment key={point.id}>
             {idx > 0 && <Box h="h-[1px]" w="full" bg="bg-border" />}
-            <Box padding={5} hoverBg="primary/10" w="full">
+            <Box padding={5} hoverBg="secondary/10" w="full">
               <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
                 <Stack direction="row" align="center" gap={5} flex="1" minW="0">
                   <Box w="w-10" h="h-10" bg="bg-brand-primary/10" radius="full" shrink="0">

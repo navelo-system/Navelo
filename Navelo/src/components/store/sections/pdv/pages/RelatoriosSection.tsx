@@ -271,7 +271,7 @@ function ReportCategoriesList({ onSelectReport }: { onSelectReport: (id: ReportT
               <Font variant="body-semibold" text={cat} />
               <Box direction="col" w="full" border borderColor="border-border" radius="lg" overflow="hidden" bg="bg-surface">
                 {filteredReports.map((rep) => (
-                  <Box key={rep.id} padding={5} cursor="pointer" hoverBg="primary/10" onClick={() => onSelectReport(rep.id)}>
+                  <Box key={rep.id} padding={5} cursor="pointer" hoverBg="secondary/10" onClick={() => onSelectReport(rep.id)}>
                     <Stack direction="row" align="center" justify="between" w="full">
                       <Stack gap={1}>
                         <Font variant="body-bold" text={rep.title} />
@@ -361,6 +361,7 @@ interface FilterFormState {
   device: string; setDevice: (dv: string) => void
   cost: "Vendido" | "Atual"; setCost: (c: "Vendido" | "Atual") => void
   order: "Descrição" | "Margem bruta"; setOrder: (o: "Descrição" | "Margem bruta") => void
+  onApplyFilters?: () => void
   onCloseDrawer?: () => void
 }
 
@@ -373,7 +374,10 @@ function ReportFilterPanel({ state, isDrawer = false }: { state: FilterFormState
       onPeriodChange={(p: string) => state.setPeriod(p as "Hoje" | "7D" | "1M" | "3M" | "6M" | "1A")}
       startDate={state.startDate} onStartDateChange={state.setStartDate}
       endDate={state.endDate} onEndDateChange={state.setEndDate}
-      onFilter={() => state.onCloseDrawer?.()}
+      onFilter={() => {
+        state.onApplyFilters?.()
+        state.onCloseDrawer?.()
+      }}
     >
       <Stack gap={2.5} w="full">
         <Input label={r.groupLabel} placeholder={r.groupPlaceholder} value={state.productGroup} onChange={(e: React.ChangeEvent<HTMLInputElement>) => state.setProductGroup(e.target.value)} iconRight={state.productGroup ? X : undefined} />
@@ -407,15 +411,7 @@ function ReportFilterPanel({ state, isDrawer = false }: { state: FilterFormState
   )
 }
 
-export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
-  setCustomBack,
-  setCustomTitle,
-  setCustomActions,
-}) => {
-  const [mode, setMode] = React.useState<"list" | "report">("list")
-  const [selectedReport, setSelectedReport] = React.useState<ReportType | null>(null)
-  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
-
+function useReportFilterState() {
   const [period, setPeriod] = React.useState<"Hoje" | "7D" | "1M" | "3M" | "6M" | "1A">("Hoje")
   const [startDate, setStartDate] = React.useState("")
   const [endDate, setEndDate] = React.useState("")
@@ -427,11 +423,44 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
   const [cost, setCost] = React.useState<"Vendido" | "Atual">("Vendido")
   const [order, setOrder] = React.useState<"Descrição" | "Margem bruta">("Descrição")
 
+  const [appliedFilters, setAppliedFilters] = React.useState({
+    period: "Hoje" as "Hoje" | "7D" | "1M" | "3M" | "6M" | "1A",
+    startDate: "",
+    endDate: "",
+    productGroup: "",
+    productSubgroup: "",
+    client: "",
+    user: "",
+    device: "",
+    cost: "Vendido" as "Vendido" | "Atual",
+    order: "Descrição" as "Descrição" | "Margem bruta",
+  })
+
+  const handleApplyFilters = () => {
+    setAppliedFilters({
+      period, startDate, endDate, productGroup, productSubgroup, client, user, device, cost, order,
+    })
+  }
+
   const filterState: FilterFormState = {
     period, setPeriod, startDate, setStartDate, endDate, setEndDate,
     productGroup, setProductGroup, productSubgroup, setProductSubgroup,
     client, setClient, user, setUser, device, setDevice, cost, setCost, order, setOrder,
+    onApplyFilters: handleApplyFilters,
   }
+
+  return { filterState, appliedFilters }
+}
+
+export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
+  setCustomBack,
+  setCustomTitle,
+  setCustomActions,
+}) => {
+  const [mode, setMode] = React.useState<"list" | "report">("list")
+  const [selectedReport, setSelectedReport] = React.useState<ReportType | null>(null)
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
+  const { filterState } = useReportFilterState()
 
   const reportDetails = selectedReport ? REPORT_DETAILS_MAP[selectedReport] : null
 

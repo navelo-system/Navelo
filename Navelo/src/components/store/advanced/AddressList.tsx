@@ -97,20 +97,34 @@ function AddressCardItem({ addr, isMultiple, onEdit, onDelete }: AddressCardItem
   )
 }
 
+export function safeParseCustomerAddresses(addrs: unknown): CustomerAddress[] {
+  if (Array.isArray(addrs)) return addrs
+  if (typeof addrs === "string" && addrs.trim().startsWith("[")) {
+    try {
+      const parsed = JSON.parse(addrs)
+      if (Array.isArray(parsed)) return parsed
+    } catch {
+      // ignore
+    }
+  }
+  return []
+}
+
 export function AddressList({ addresses, onEdit, onDelete }: AddressListProps) {
   const cust = UI_STRINGS.customers
+  const safeList = safeParseCustomerAddresses(addresses)
 
-  if (!addresses || addresses.length === 0) {
+  if (safeList.length === 0) {
     return <EmptyState icon={MapPin} title={cust.emptyAddressTitle} subtitle={cust.emptyAddressSubtitle} />
   }
 
   return (
     <Stack gap={2.5}>
-      {addresses.map((addr) => (
+      {safeList.map((addr) => (
         <AddressCardItem
           key={addr.id}
           addr={addr}
-          isMultiple={addresses.length > 1}
+          isMultiple={safeList.length > 1}
           onEdit={onEdit}
           onDelete={onDelete}
         />

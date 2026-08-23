@@ -140,7 +140,7 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
         {/* Grade dos Dias da Semana (D S T Q Q S S) */}
         <div className="grid grid-cols-7 gap-1.5 w-full text-center">
           {["D", "S", "T", "Q", "Q", "S", "S"].map((d, idx) => (
-            <Box key={idx} paddingY={1} align="center" justify="center" w="full">
+            <Box key={idx} padding={1} align="center" justify="center" w="full">
               <Font variant="auxiliary" color="muted" text={d} align="center" />
             </Box>
           ))}

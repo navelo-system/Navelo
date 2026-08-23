@@ -194,7 +194,7 @@ export const ImpressoraSection: React.FC<ImpressoraSectionProps> = ({
         onDrawerCommandChange={setComandoGaveta}
       />
 
-      <Box w="full" display="flex" justify="center" paddingY={2.5}>
+      <Box w="full" display="flex" justify="center">
         <Button type="button" variant="secondary" label={s.testPrintButton} icon={RefreshCw} onClick={() => setIsModalOpen(true)} />
       </Box>
 

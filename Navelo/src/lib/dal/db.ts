@@ -196,6 +196,7 @@ export interface TabEntity {
   total: number;
   status: 'OPEN' | 'CLOSED';
   created_at: string;
+  updated_at?: string;
   items?: Array<Record<string, unknown>>;
   observation?: string;
   is_fixed?: boolean;
@@ -213,6 +214,13 @@ export interface Supplier {
   document: string;
   phone?: string;
   email?: string;
+  state_registration?: string;
+  cep?: string;
+  street?: string;
+  number?: string;
+  complement?: string;
+  neighborhood?: string;
+  city?: string;
 }
 
 export interface Unit {
@@ -349,6 +357,51 @@ export interface InventoryAuditEntity {
   created_at?: string;
 }
 
+export interface ManualStockEntryItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  costPrice: number;
+  oldCostPrice?: number;
+  otherCosts?: number;
+  margin?: number;
+  salePrice?: number;
+  totalCost: number;
+  category?: string;
+  subgroup?: string;
+  imageUrl?: string;
+}
+
+export interface ManualStockEntryEntity {
+  id: string;
+  company_id: string;
+  tenant_id?: string;
+  date: string;
+  supplier_id?: string;
+  supplier_name?: string;
+  total: number;
+  status?: "Finalizado" | "Pendente";
+  items: ManualStockEntryItem[];
+  created_at?: string;
+}
+
+export interface ReceivableEntity {
+  id: string;
+  company_id: string;
+  tenant_id?: string;
+  customer_id?: string;
+  customer_name: string;
+  sale_id?: string;
+  doc_number: string;
+  due_date: string;
+  issue_date: string;
+  value: number;
+  fine: number;
+  interest: number;
+  status: 'PENDING' | 'PAID' | 'CANCELLED';
+  created_at?: string;
+}
+
 // Classe do Banco Local
 export class NaveloLocalDB extends Dexie {
   platform_settings!: EntityTable<PlatformSettingEntity, 'id'>;
@@ -373,6 +426,8 @@ export class NaveloLocalDB extends Dexie {
   audit_logs!: EntityTable<AuditLog, 'id'>;
   print_points!: EntityTable<PrintPoint, 'id'>;
   inventory_audits!: EntityTable<InventoryAuditEntity, 'id'>;
+  manual_stock_entries!: EntityTable<ManualStockEntryEntity, 'id'>;
+  receivables!: EntityTable<ReceivableEntity, 'id'>;
   
   // Fila de Sincronização (Sync Queue)
   sync_queue!: EntityTable<SyncQueueItem, 'id'>;
@@ -410,7 +465,18 @@ export class NaveloLocalDB extends Dexie {
     this.version(8).stores({
       inventory_audits: 'id, company_id, tenant_id, status, created_at'
     });
+
+    // Schema v9 com manual_stock_entries
+    this.version(9).stores({
+      manual_stock_entries: 'id, company_id, tenant_id, supplier_id, created_at'
+    });
+
+    // Schema v10 com receivables
+    this.version(10).stores({
+      receivables: 'id, company_id, tenant_id, customer_id, customer_name, status, due_date, created_at'
+    });
   }
 }
 
 export const db = new NaveloLocalDB();
+

@@ -200,8 +200,7 @@ function ThemeFieldsGrid({
                   border={true}
                   borderColor="border-border"
                   bg="bg-white"
-                  paddingX={1}
-                  paddingY={1}
+                  padding={1}
                 />
               </Stack>
             </Stack>
@@ -277,7 +276,7 @@ export function ThemeCustomizerModal({ isOpen, onClose }: ThemeCustomizerModalPr
         <ThemePresetsGrid colors={colors} onApplyPreset={handleApplyPreset} />
         <Box h="h-[1px]" bg="bg-border" w="full" />
         <ThemeFieldsGrid colors={colors} onColorChange={handleColorChange} />
-        <Box paddingY={2.5} w="full">
+        <Box w="full">
           <Button
             variant="outline"
             label={s.restoreButton}

@@ -28,10 +28,10 @@ function AutoatendimentoProductsCard({ onNavigate }: { onNavigate: (subView: str
   const s = UI_STRINGS.selfService
   return (
     <Box bg="bg-white" border borderColor="border-border" radius="default" overflow="hidden" w="full">
-      <Box padding={2.5} paddingX={5} bg="bg-surface" w="full">
+      <Box padding={2.5} bg="bg-surface" w="full">
         <Font variant="description" text={s.productsSectionTitle} color="muted" />
       </Box>
-      <Box padding={5} cursor="pointer" hoverBg="primary/10" onClick={() => onNavigate("catalogo-produtos")} w="full">
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={() => onNavigate("catalogo-produtos")} w="full">
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={2.5}>
             <Icon icon={LayoutGrid} size={20} color="primary" />
@@ -58,7 +58,7 @@ function AutoatendimentoPaymentsCard({ onNavigate }: { onNavigate: (subView: str
         </Stack>
       </Box>
       <Box h="h-[1px]" w="full" bg="bg-border" />
-      <Box padding={5} cursor="pointer" hoverBg="primary/10" onClick={() => onNavigate("autoatendimento-cartao")} w="full">
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={() => onNavigate("autoatendimento-cartao")} w="full">
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={2.5}>
             <Icon icon={CreditCard} size={20} color="primary" />
@@ -71,7 +71,7 @@ function AutoatendimentoPaymentsCard({ onNavigate }: { onNavigate: (subView: str
         </Stack>
       </Box>
       <Box h="h-[1px]" w="full" bg="bg-border" />
-      <Box padding={5} cursor="pointer" hoverBg="primary/10" onClick={() => onNavigate("autoatendimento-pix")} w="full">
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={() => onNavigate("autoatendimento-pix")} w="full">
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={2.5}>
             <Icon icon={QrCode} size={20} color="primary" />
@@ -99,10 +99,10 @@ function AutoatendimentoOptionsCard({
   const s = UI_STRINGS.selfService
   return (
     <Box bg="bg-white" border borderColor="border-border" radius="default" overflow="hidden" w="full">
-      <Box padding={2.5} paddingX={5} bg="bg-surface" w="full">
+      <Box padding={2.5} bg="bg-surface" w="full">
         <Font variant="description" text={s.optionsSectionTitle} color="muted" />
       </Box>
-      <Box padding={5} cursor="pointer" hoverBg="primary/10" onClick={() => onNavigate("autoatendimento-customizacao")} w="full">
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={() => onNavigate("autoatendimento-customizacao")} w="full">
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={2.5}>
             <Icon icon={Smartphone} size={20} color="primary" />
@@ -112,7 +112,7 @@ function AutoatendimentoOptionsCard({
         </Stack>
       </Box>
       <Box h="h-[1px]" w="full" bg="bg-border" />
-      <Box padding={5} cursor="pointer" hoverBg="primary/10" onClick={() => onNavigate("autoatendimento-numero")} w="full">
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={() => onNavigate("autoatendimento-numero")} w="full">
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={2.5}>
             <Icon icon={Hash} size={20} color="primary" />

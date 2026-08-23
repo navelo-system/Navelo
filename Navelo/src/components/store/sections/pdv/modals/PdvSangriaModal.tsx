@@ -5,9 +5,8 @@ import { Modal } from "@/components/store/base/Modal"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
-import { Button } from "@/components/store/base/Button"
-import { Grid } from "@/components/store/base/Grid"
-import { Delete, Banknote, Wallet } from "lucide-react"
+import { Numpad } from "@/components/store/intermediary/Numpad"
+import { Banknote, Wallet } from "lucide-react"
 import { UI_STRINGS } from "@/constants/strings"
 
 interface PdvSangriaModalProps {
@@ -16,27 +15,6 @@ interface PdvSangriaModalProps {
   cashAvailable?: number
   mode?: "sangria" | "suprimento"
   onConfirmSangria?: (amount: number, mode: "sangria" | "suprimento") => void
-}
-
-const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "00", "0", "back"]
-
-function SangriaKeypad({ onKeyPress }: { onKeyPress: (k: string) => void }) {
-  return (
-    <Box w="full">
-      <Grid cols={3} responsive={false} gap={2.5}>
-        {KEYS.map((k) => (
-          <Button
-            key={k}
-            variant="outline"
-            fullWidth
-            onClick={() => onKeyPress(k)}
-            icon={k === "back" ? Delete : undefined}
-            label={k !== "back" ? k : undefined}
-          />
-        ))}
-      </Grid>
-    </Box>
-  )
 }
 
 function getSangriaConfig(mode: "sangria" | "suprimento") {
@@ -108,9 +86,7 @@ export function PdvSangriaModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      icon={config.icon}
       title={config.titleText}
-      subtitle={config.subtitleText}
       variant="default"
       showCancelButton={true}
       successText={config.successLabel}
@@ -129,7 +105,7 @@ export function PdvSangriaModal({
           <Font variant="h1" text={`${config.valuePrefix} ${formattedValue}`} color="primary" align="center" />
         </Stack>
 
-        <SangriaKeypad onKeyPress={handleKeyPress} />
+        <Numpad onKeyPress={handleKeyPress} variant="ghost" />
       </Stack>
     </Modal>
   )

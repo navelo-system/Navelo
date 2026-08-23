@@ -71,7 +71,7 @@ function DeliveryRateFormView({
             </Stack>
           </Box>
 
-          <Box paddingY={2.5} w="full">
+          <Box w="full">
             <Stack direction="row" gap={2.5} w="full">
               {editingRate && (
                 <Button
@@ -123,10 +123,9 @@ function DeliveryRatesListView({
               <Box key={rate.id}>
                 <Box
                   w="full"
-                  paddingY={2.5}
-                  paddingX={2.5}
+                  padding={2.5}
                   radius="none"
-                  hoverBg="primary/10"
+                  hoverBg="secondary/10"
                   cursor="pointer"
                   onClick={() => (onSelectRate ? onSelectRate(rate) : onEdit(rate))}
                 >

@@ -305,7 +305,7 @@ function ConfiguracoesMenuGrid({ onSelectView }: { onSelectView: (v: string) => 
                 <React.Fragment key={item.id}>
                   {idx > 0 && <Box h="h-[1px]" w="full" bg="bg-border" />}
                   <Box
-                    padding={5} cursor="pointer" hoverBg="primary/10"
+                    padding={5} cursor="pointer" hoverBg="secondary/10"
                     onClick={() => onSelectView(item.id === "backup-config" ? "backup" : item.id)}
                   >
                     <Stack direction="row" align="center" gap={5} w="full">

@@ -80,8 +80,8 @@ function ConfirmationStatusSection({
                 padding={2.5}
                 cursor="pointer"
                 radius="default"
-                bg={currentStatus === st ? "primary/10" : "transparent"}
-                hoverBg="surface-sunken"
+                bg={currentStatus === st ? "secondary/10" : "transparent"}
+                hoverBg="secondary/10"
                 onClick={() => onSelectStatus(st)}
               >
                 <Stack direction="row" justify="between" align="center" w="full">
@@ -227,9 +227,9 @@ function ConfirmationPaymentMomentSection({
               radius="default"
               cursor="pointer"
               border={true}
-              borderColor={isSelected ? "border-brand-primary" : "border-border"}
-              bg={isSelected ? "bg-brand-primary/5" : "bg-transparent"}
-              hoverBg="surface-sunken"
+              borderColor={isSelected ? "border-brand-secondary" : "border-border"}
+              bg={isSelected ? "bg-brand-secondary/10" : "bg-transparent"}
+              hoverBg="secondary/10"
               onClick={() => onSelectPaymentMoment(opt.id)}
             >
               <Stack direction="row" gap={2.5} align="center" w="full">
@@ -286,9 +286,9 @@ function DeliveryTypeOptionsList({
               radius="default"
               cursor="pointer"
               border
-              borderColor={deliveryType === opt.id ? "border-brand-primary" : "border-border"}
-              bg={deliveryType === opt.id ? "bg-brand-primary/5" : "bg-transparent"}
-              hoverBg="surface-sunken"
+              borderColor={deliveryType === opt.id ? "border-brand-secondary" : "border-border"}
+              bg={deliveryType === opt.id ? "bg-brand-secondary/10" : "bg-transparent"}
+              hoverBg="secondary/10"
               onClick={() => setDeliveryType(opt.id)}
             >
               <Stack direction="row" gap={2.5} align="center" w="full">
@@ -377,7 +377,7 @@ export function DeliveryCheckoutConfirmation({
           />
 
           <ConfirmationPaymentMomentSection paymentMoment={paymentMoment} onSelectPaymentMoment={setPaymentMoment} />
-          <Box w="full" paddingY={2.5}>
+          <Box w="full">
             <Button variant="primary" label={d.confirmOrderF9} fullWidth onClick={handleConfirm} />
           </Box>
         </Stack>

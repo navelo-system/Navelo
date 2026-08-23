@@ -57,7 +57,7 @@ function MesasComandasEnableCard({
 function MesasComandasQuickLinksCard({ onNavigate }: { onNavigate: (v: string) => void }) {
   return (
     <Box bg="bg-white" border borderColor="border-border" radius="default" overflow="hidden" w="full">
-      <Box padding={5} cursor="pointer" hoverBg="primary/10" onClick={() => onNavigate("configurar-comandas")} w="full">
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={() => onNavigate("configurar-comandas")} w="full">
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={2.5} flex="1">
             <Icon icon={ClipboardList} size={20} color="primary" />
@@ -67,7 +67,7 @@ function MesasComandasQuickLinksCard({ onNavigate }: { onNavigate: (v: string) =
         </Stack>
       </Box>
       <Box h="h-[1px]" w="full" bg="bg-border" />
-      <Box padding={5} cursor="pointer" hoverBg="primary/10" onClick={() => onNavigate("taxas-servico")} w="full">
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={() => onNavigate("taxas-servico")} w="full">
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={2.5} flex="1">
             <Icon icon={Coins} size={20} color="primary" />

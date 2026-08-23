@@ -53,7 +53,7 @@ const ReceiptTotals: React.FC<{ subtotal: number; taxValue: number; paymentMetho
           <Font variant="body-xs" text={tr.approxTaxes} mono />
           <Font variant="body-xs" text={formatPrice(taxValue)} mono />
         </Stack>
-        <Box borderTop borderStyle="dashed" borderColor="border-border" paddingY={2.5}>
+        <Box borderTop borderStyle="dashed" borderColor="border-border" padding={2.5}>
           <Stack direction="row" justify="between">
             <Font variant="body-xs-bold" text={tr.totalValue} mono />
             <Font variant="body-xs-bold" text={formatPrice(subtotal)} mono />
@@ -61,7 +61,7 @@ const ReceiptTotals: React.FC<{ subtotal: number; taxValue: number; paymentMetho
         </Box>
       </Stack>
       <Box borderTop borderStyle="dashed" borderColor="border-border" w="full" />
-      <Box display="flex" direction="row" justify="between" paddingY={2.5}>
+      <Box display="flex" direction="row" justify="between" padding={2.5}>
         <Font variant="body-xs" text={tr.paymentMethod} mono />
         <Font variant="body-xs-bold" text={paymentMethod} mono />
       </Box>
@@ -135,7 +135,7 @@ export const ThermalReceiptPreview: React.FC<ThermalReceiptPreviewProps> = ({
 
             <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
 
-            <Box display="flex" direction="row" justify="between" paddingY={2.5}>
+            <Box display="flex" direction="row" justify="between" padding={2.5}>
               <Box w="1/2">
                 <Font variant="body-xs-bold" text={tr.itemHeader} mono />
               </Box>
@@ -153,7 +153,7 @@ export const ThermalReceiptPreview: React.FC<ThermalReceiptPreviewProps> = ({
               ))}
             </Stack>
 
-            <Box borderTop borderStyle="dashed" borderColor="border-border" w="full" paddingY={2.5} />
+            <Box borderTop borderStyle="dashed" borderColor="border-border" w="full" />
 
             <ReceiptTotals subtotal={subtotal} taxValue={taxValue} paymentMethod={paymentMethod} />
             <ReceiptFooter />

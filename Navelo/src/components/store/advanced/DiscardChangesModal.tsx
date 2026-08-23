@@ -41,13 +41,15 @@ export const DiscardChangesModal: React.FC<DiscardChangesModalProps> = ({
       cancelVariant="outline"
       variant="bottom"
     >
-      <Box>
-        <Font
-          variant="description"
-          color="muted"
-          text={description || c.discardSubtitle}
-        />
-      </Box>
+      {description ? (
+        <Box>
+          <Font
+            variant="description"
+            color="muted"
+            text={description}
+          />
+        </Box>
+      ) : null}
     </Modal>
   )
 }

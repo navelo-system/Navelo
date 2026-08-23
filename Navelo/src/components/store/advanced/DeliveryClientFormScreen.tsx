@@ -8,7 +8,7 @@ import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
 import { Switch } from "@/components/store/base/Switch"
 import { Avatar } from "@/components/store/base/Avatar"
-import { AddressList } from "@/components/store/advanced/AddressList"
+import { AddressList, safeParseCustomerAddresses } from "@/components/store/advanced/AddressList"
 import { ClientAddressFormModal, AddressFormData } from "@/components/store/advanced/ClientAddressFormModal"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
@@ -63,7 +63,7 @@ export function parseAddressString(address: string) {
 function resolveInitialCustomer(c: Customer) {
   return {
     name: c.name || "", email: c.email || "", document: c.document || "",
-    phone: c.phone || "", selectedCustomerId: c.id, addresses: c.addresses || [],
+    phone: c.phone || "", selectedCustomerId: c.id, addresses: safeParseCustomerAddresses(c.addresses),
   }
 }
 
@@ -101,8 +101,9 @@ function resolveInitialClientState(
 }
 
 function formatCustomerPrimaryAddress(clientAddresses: CustomerAddress[]): string {
-  if (clientAddresses.length === 0) return "Endereço não informado"
-  const a = clientAddresses.find((it) => it.isDefault) || clientAddresses[0]
+  const safeList = safeParseCustomerAddresses(clientAddresses)
+  if (safeList.length === 0) return "Endereço não informado"
+  const a = safeList.find((it) => it.isDefault) || safeList[0]
   if (a.street.includes("(CEP:") || (a.street.includes(" - ") && a.street.includes(","))) return a.street
   const segs = [a.street, a.number !== "S/N" ? a.number : "", a.complement, a.neighborhood, a.city].filter(Boolean)
   const base = segs.join(", ")
@@ -124,7 +125,7 @@ function DeliveryClientSearchResults({
     <Box display="flex" direction="col" w="full">
       {customers.map((client, idx) => (
         <Box key={client.id}>
-          <Box w="full" paddingY={2.5} paddingX={2.5} radius="none" hoverBg="primary/10" cursor="pointer" onClick={() => onSelectCustomer(client)}>
+          <Box w="full" padding={2.5} radius="none" hoverBg="secondary/10" cursor="pointer" onClick={() => onSelectCustomer(client)}>
             <Stack direction="row" align="center" justify="between" w="full">
               <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
                 <Avatar fallback={client.name ? client.name.charAt(0).toUpperCase() : "C"} />
@@ -325,7 +326,7 @@ function useDeliveryClientFormState(
 
   const handleSelectCustomer = (c: Customer) => {
     setSelectedCustomerId(c.id); setName(c.name); setPhone(c.phone || "")
-    setEmail(c.email || ""); setDocument(c.document || ""); setClientAddresses(c.addresses || [])
+    setEmail(c.email || ""); setDocument(c.document || ""); setClientAddresses(safeParseCustomerAddresses(c.addresses))
     setSearchQuery("")
   }
 
@@ -374,7 +375,7 @@ function DeliveryClientAddressBlock({
         )}
       </Stack>
       {clientAddresses.length > 0 && (
-        <Box paddingY={2.5} w="full">
+        <Box w="full">
           <AddressList
             addresses={clientAddresses} onEdit={onEditAddress}
             onDelete={(addr) => setClientAddresses((prev) => prev.filter((a) => a.id !== addr.id))}

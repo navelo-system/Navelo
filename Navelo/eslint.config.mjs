@@ -20,12 +20,12 @@ const designSystemSyntax = [
   },
   // 4. Prohibit directional padding/margin in layouts
   {
-    selector: "JSXAttribute[name.name=/^(paddingTop|paddingBottom|paddingLeft|paddingRight|px|py|pt|pb|pl|pr)$/]:not([value.type='JSXExpressionContainer']):not([value.value=/sidebar|sidebar-wide/])",
-    message: "Directional padding (paddingLeft, paddingTop, etc.) is prohibited in layouts. Use uniform padding={5} or authorized paddingY/paddingX in base components only."
+    selector: "JSXAttribute[name.name=/^(paddingTop|paddingBottom|paddingLeft|paddingRight|paddingX|paddingY|px|py|pt|pb|pl|pr)$/]:not([value.type='JSXExpressionContainer']):not([value.value=/sidebar|sidebar-wide/])",
+    message: "Directional padding (paddingX, paddingY, paddingTop, etc.) is prohibited. Use uniform padding={...} or gap for spacing between elements."
   },
   // 5. Strict Tokens Enforcement (Gaps e Paddings válidos)
   {
-    selector: "JSXAttribute[name.name=/^(gap|padding|paddingX|paddingY)$/] Literal:not([raw=/^(12\\.5|12|5|2\\.5|1|0|'section'|'title-content')$/])",
+    selector: "JSXAttribute[name.name=/^(gap|padding)$/] Literal:not([raw=/^(12\\.5|12|5|2\\.5|1|0|'section'|'title-content')$/])",
     message: "Raw string or number literals for gap/padding must follow the Design System tokens (5, 12, 2.5, 1, 0, 'section', 'title-content')."
   },
   // 6. Prohibit inline style Attribute

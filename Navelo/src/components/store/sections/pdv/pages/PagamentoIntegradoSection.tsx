@@ -39,7 +39,7 @@ function DeviceNameCard({
   return (
     <Box bg="bg-white" border borderColor="border-border" radius="default" padding={5} w="full">
       <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" gap={5} w="full">
-        <Box flex="1" w="full">
+        <Stack gap={1} flex="1" w="full">
           <Input
             label={s.terminalIdLabel}
             value={isEditing ? tempName : deviceName}
@@ -47,10 +47,8 @@ function DeviceNameCard({
             disabled={!isEditing}
             placeholder={s.terminalIdPlaceholder}
           />
-          <Box paddingY={1}>
-            <Font variant="description" text={UI_STRINGS.pagamentoIntegrado.deviceNameNote} align="left" />
-          </Box>
-        </Box>
+          <Font variant="description" text={UI_STRINGS.pagamentoIntegrado.deviceNameNote} align="left" />
+        </Stack>
         <Box shrink="0" w="full" display="flex">
           <Button variant="primary" label={isEditing ? UI_STRINGS.common.save : UI_STRINGS.common.edit} onClick={handleEditClick} />
         </Box>

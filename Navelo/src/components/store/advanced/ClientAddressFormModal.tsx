@@ -109,14 +109,14 @@ function AddressModalInputs({ fields }: AddressModalInputsProps) {
   const cust = UI_STRINGS.customers
   return (
     <Stack gap={2.5}>
-      <Input
-        label={cust.addressNameLabel}
-        placeholder={cust.addressNamePlaceholder}
-        value={fields.name}
-        onChange={(e) => fields.setName(e.target.value)}
-        required
-      />
       <Grid cols={2} gap={2.5}>
+        <Input
+          label={cust.addressNameLabel}
+          placeholder={cust.addressNamePlaceholder}
+          value={fields.name}
+          onChange={(e) => fields.setName(e.target.value)}
+          required
+        />
         <Input
           label={cust.cepLabel}
           variant="cep"

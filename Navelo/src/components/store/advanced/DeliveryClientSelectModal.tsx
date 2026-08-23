@@ -16,6 +16,7 @@ import { DeliveryClientInfo } from "./DeliveryCheckoutConfirmation"
 import { ClientAddressFormModal, AddressFormData } from "./ClientAddressFormModal"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { parseAddressString } from "./DeliveryClientFormScreen"
+import { safeParseCustomerAddresses } from "./AddressList"
 import { UI_STRINGS } from "@/constants/strings"
 
 export interface DeliveryClientSelectModalProps {
@@ -66,11 +67,12 @@ function DeliveryClientSearchTab({
           ) : (
             filteredCustomers.map((customerObj: Customer) => {
               const isSelected = customerObj.id === selectedCustomerId
-              const addr = customerObj.addresses?.find((a) => a.isDefault) || customerObj.addresses?.[0]
+              const safeAddrs = safeParseCustomerAddresses(customerObj.addresses)
+              const addr = safeAddrs.find((a) => a.isDefault) || safeAddrs[0]
               return (
                 <Box
-                  key={customerObj.id} padding={2.5} radius="default" border borderColor={isSelected ? "border-brand-primary" : "border-border"}
-                  bg={isSelected ? "bg-brand-primary/5" : "bg-surface"} hoverBg="surface-sunken" cursor="pointer"
+                  key={customerObj.id} padding={2.5} radius="default" border borderColor={isSelected ? "border-brand-secondary" : "border-border"}
+                  bg={isSelected ? "bg-brand-secondary/10" : "bg-surface"} hoverBg="secondary/10" cursor="pointer"
                   onClick={() => onSelectCustomer(customerObj)}
                 >
                   <Stack direction="row" justify="between" align="center" w="full">
@@ -228,7 +230,8 @@ function useDeliveryClientSelectState(initialClient?: DeliveryClientInfo | null,
     setPhone(customer.phone || "")
     setEmail(customer.email || "")
     setDocument(customer.document || "")
-    const addrs = (customer.addresses || []).map((a) => {
+    const safeAddrs = safeParseCustomerAddresses(customer.addresses)
+    const addrs = safeAddrs.map((a) => {
       const p = parseAddressString(a.street)
       return {
         id: a.id, name: a.name || "Endereço", street: p.street,

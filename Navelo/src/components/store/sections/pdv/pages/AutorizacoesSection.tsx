@@ -61,6 +61,79 @@ function AutorizacoesFilterInputs({
   )
 }
 
+function formatDateTimeBr(d: Date): string {
+  const day = String(d.getDate()).padStart(2, "0")
+  const month = String(d.getMonth() + 1).padStart(2, "0")
+  const year = d.getFullYear()
+  const hours = String(d.getHours()).padStart(2, "0")
+  const minutes = String(d.getMinutes()).padStart(2, "0")
+  return `${day}/${month}/${year} ${hours}:${minutes}`
+}
+
+function getPeriodDates(period: string): { start: string; end: string } {
+  const now = new Date()
+  const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59)
+  const monthsMap: Record<string, number> = { "1M": 1, "3M": 3, "6M": 6, "1A": 12 }
+  let start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0)
+
+  if (period === "7D") {
+    start = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    start.setHours(0, 0, 0, 0)
+  } else if (monthsMap[period]) {
+    start = new Date(now.getFullYear(), now.getMonth() - monthsMap[period], now.getDate(), 0, 0, 0)
+  }
+  return { start: formatDateTimeBr(start), end: formatDateTimeBr(end) }
+}
+
+function useAutorizacoesFilterState() {
+  const initialDates = React.useMemo(() => getPeriodDates("Hoje"), [])
+  const [period, setPeriod] = React.useState("Hoje")
+  const [dateStart, setDateStart] = React.useState(initialDates.start)
+  const [dateEnd, setDateEnd] = React.useState(initialDates.end)
+  const [operator, setOperator] = React.useState("")
+  const [authorizer, setAuthorizer] = React.useState("")
+  const [device, setDevice] = React.useState("")
+  const [showDenied, setShowDenied] = React.useState(false)
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
+
+  const [appliedFilters, setAppliedFilters] = React.useState({
+    period: "Hoje",
+    dateStart: initialDates.start,
+    dateEnd: initialDates.end,
+    operator: "",
+    authorizer: "",
+    device: "",
+    showDenied: false,
+  })
+
+  const handlePeriodChange = (newPeriod: string) => {
+    setPeriod(newPeriod)
+    const { start, end } = getPeriodDates(newPeriod)
+    setDateStart(start)
+    setDateEnd(end)
+  }
+
+  const handleApplyFilters = () => {
+    setAppliedFilters({
+      period,
+      dateStart,
+      dateEnd,
+      operator,
+      authorizer,
+      device,
+      showDenied,
+    })
+  }
+
+  return {
+    period, dateStart, setDateStart, dateEnd, setDateEnd,
+    operator, setOperator, authorizer, setAuthorizer,
+    device, setDevice, showDenied, setShowDenied,
+    isFilterDrawerOpen, setIsFilterDrawerOpen,
+    appliedFilters, handlePeriodChange, handleApplyFilters,
+  }
+}
+
 export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
   onCancel,
   setCustomBack,
@@ -68,40 +141,31 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
   setCustomActions,
 }) => {
   const s = UI_STRINGS.authorizations
-  const [operator, setOperator] = React.useState("")
-  const [authorizer, setAuthorizer] = React.useState("")
-  const [device, setDevice] = React.useState("")
-  const [showDenied, setShowDenied] = React.useState(false)
-  const [period, setPeriod] = React.useState("Hoje")
-  const [dateStart, setDateStart] = React.useState("01/01/2026 00:00")
-  const [dateEnd, setDateEnd] = React.useState("01/01/2026 23:59")
-  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
+  const f = useAutorizacoesFilterState()
+
+  const onCancelRef = React.useRef(onCancel)
+  React.useEffect(() => { onCancelRef.current = onCancel }, [onCancel])
+
+  const onFilterDrawerRef = React.useRef(() => f.setIsFilterDrawerOpen(true))
+  React.useEffect(() => { onFilterDrawerRef.current = () => f.setIsFilterDrawerOpen(true) })
 
   React.useEffect(() => {
-    setCustomBack?.(() => () => onCancel())
+    setCustomBack?.(() => () => onCancelRef.current())
     setCustomTitle?.(s.title)
     setCustomActions?.(
       <Box display="block md:hidden">
-        <Button variant="primary-pill-icon" icon={Filter} onClick={() => setIsFilterDrawerOpen(true)} />
+        <Button variant="primary-pill-icon" icon={Filter} onClick={() => onFilterDrawerRef.current()} />
       </Box>
     )
-    return () => {
-      setCustomBack?.(null)
-      setCustomTitle?.(null)
-      setCustomActions?.(null)
-    }
-  }, [setCustomBack, setCustomTitle, setCustomActions, onCancel, s.title])
+    return () => { setCustomBack?.(null); setCustomTitle?.(null); setCustomActions?.(null) }
+  }, [setCustomBack, setCustomTitle, setCustomActions, s.title])
 
   const filterInputs = (
     <AutorizacoesFilterInputs
-      operator={operator}
-      setOperator={setOperator}
-      authorizer={authorizer}
-      setAuthorizer={setAuthorizer}
-      device={device}
-      setDevice={setDevice}
-      showDenied={showDenied}
-      setShowDenied={setShowDenied}
+      operator={f.operator} setOperator={f.setOperator}
+      authorizer={f.authorizer} setAuthorizer={f.setAuthorizer}
+      device={f.device} setDevice={f.setDevice}
+      showDenied={f.showDenied} setShowDenied={f.setShowDenied}
     />
   )
 
@@ -115,29 +179,29 @@ export const AutorizacoesSection: React.FC<AutorizacoesSectionProps> = ({
         <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
           <FilterPanel
             title={UI_STRINGS.common.filter}
-            selectedPeriod={period}
-            onPeriodChange={setPeriod}
-            startDate={dateStart}
-            onStartDateChange={setDateStart}
-            endDate={dateEnd}
-            onEndDateChange={setDateEnd}
-            onFilter={() => {}}
+            selectedPeriod={f.period}
+            onPeriodChange={f.handlePeriodChange}
+            startDate={f.dateStart}
+            onStartDateChange={f.setDateStart}
+            endDate={f.dateEnd}
+            onEndDateChange={f.setDateEnd}
+            onFilter={f.handleApplyFilters}
           >
             {filterInputs}
           </FilterPanel>
         </Box>
 
-        <Modal isOpen={isFilterDrawerOpen} onClose={() => setIsFilterDrawerOpen(false)} title={UI_STRINGS.common.filter} variant="sidebar">
+        <Modal isOpen={f.isFilterDrawerOpen} onClose={() => f.setIsFilterDrawerOpen(false)} title={UI_STRINGS.common.filter} variant="sidebar">
           <FilterPanel
             hideTitle
             borderless
-            selectedPeriod={period}
-            onPeriodChange={setPeriod}
-            startDate={dateStart}
-            onStartDateChange={setDateStart}
-            endDate={dateEnd}
-            onEndDateChange={setDateEnd}
-            onFilter={() => setIsFilterDrawerOpen(false)}
+            selectedPeriod={f.period}
+            onPeriodChange={f.handlePeriodChange}
+            startDate={f.dateStart}
+            onStartDateChange={f.setDateStart}
+            endDate={f.dateEnd}
+            onEndDateChange={f.setDateEnd}
+            onFilter={() => { f.handleApplyFilters(); f.setIsFilterDrawerOpen(false) }}
           >
             {filterInputs}
           </FilterPanel>

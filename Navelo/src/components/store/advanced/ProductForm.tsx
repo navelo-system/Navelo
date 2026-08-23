@@ -285,7 +285,7 @@ function MultissaborAccordion({
   const pf = UI_STRINGS.products.form
   return (
     <Box border borderColor="border-border" radius="default" overflow="hidden" bg="bg-surface">
-      <Box padding={5} cursor="pointer" hoverBg="surface-sunken" onClick={onToggle}>
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={onToggle}>
         <Stack direction="row" align="center" justify="between" w="full">
           <Stack direction="row" align="center" gap={2.5}>
             <Icon icon={Package} size={20} color="primary" />
@@ -328,7 +328,7 @@ function ComplementosAccordion({
   const pf = UI_STRINGS.products.form
   return (
     <Box border borderColor="border-border" radius="default" overflow="hidden" bg="bg-surface">
-      <Box padding={5} cursor="pointer" hoverBg="surface-sunken" onClick={onToggle}>
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={onToggle}>
         <Stack direction="row" align="center" justify="between" w="full">
           <Stack direction="row" align="center" gap={2.5}>
             <Icon icon={Layers} size={20} color="primary" />
@@ -365,7 +365,7 @@ function PlataformasAccordion({
   const pf = UI_STRINGS.products.form
   return (
     <Box border borderColor="border-border" radius="default" overflow="hidden" bg="bg-surface">
-      <Box padding={5} cursor="pointer" hoverBg="surface-sunken" onClick={onToggle}>
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={onToggle}>
         <Stack direction="row" align="center" justify="between" w="full">
           <Stack direction="row" align="center" gap={2.5}>
             <Icon icon={Globe} size={20} color="primary" />
@@ -400,7 +400,7 @@ function BarcodesAccordion({
   const pf = UI_STRINGS.products.form
   return (
     <Box border borderColor="border-border" radius="default" overflow="hidden" bg="bg-surface">
-      <Box padding={5} cursor="pointer" hoverBg="surface-sunken" onClick={onToggle}>
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={onToggle}>
         <Stack direction="row" align="center" justify="between" w="full">
           <Stack direction="row" align="center" gap={2.5}>
             <Icon icon={Barcode} size={20} color="primary" />
@@ -450,7 +450,7 @@ function PrintAndProductionAccordions({
   return (
     <>
       <Box border borderColor="border-border" radius="default" overflow="hidden" bg="bg-surface">
-        <Box padding={5} cursor="pointer" hoverBg="surface-sunken" onClick={onTogglePrint}>
+        <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={onTogglePrint}>
           <Stack direction="row" align="center" justify="between" w="full">
             <Stack direction="row" align="center" gap={2.5}>
               <Icon icon={Printer} size={20} color="primary" />
@@ -472,7 +472,7 @@ function PrintAndProductionAccordions({
       </Box>
 
       <Box border borderColor="border-border" radius="default" overflow="hidden" bg="bg-surface">
-        <Box padding={5} cursor="pointer" hoverBg="surface-sunken" onClick={onToggleProd}>
+        <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={onToggleProd}>
           <Stack direction="row" align="center" justify="between" w="full">
             <Stack direction="row" align="center" gap={2.5}>
               <Icon icon={FileText} size={20} color="primary" />
@@ -513,7 +513,7 @@ function ProductFiscalAccordion(p: {
   const pf = UI_STRINGS.products.form
   return (
     <Box border borderColor="border-border" radius="default" overflow="hidden" bg="bg-surface">
-      <Box padding={5} cursor="pointer" hoverBg="surface-sunken" onClick={p.onToggle}>
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={p.onToggle}>
         <Stack direction="row" align="center" justify="between" w="full">
           <Stack direction="row" align="center" gap={2.5}>
             <Icon icon={FileSpreadsheet} size={20} color="primary" />
@@ -569,9 +569,7 @@ function ProductFiscalAccordion(p: {
               )}
             </Stack>
             {p.onAccessFiscalConfig && (
-              <Box paddingY={2.5}>
-                <Button variant="ghost-secondary" label={pf.accessFiscalConfigButton} onClick={p.onAccessFiscalConfig} type="button" />
-              </Box>
+              <Button variant="ghost-secondary" label={pf.accessFiscalConfigButton} onClick={p.onAccessFiscalConfig} type="button" />
             )}
           </Stack>
         </Box>
@@ -713,6 +711,20 @@ function ProductAdvancedTabContent({
   )
 }
 
+const calculateMarginFromPrice = (costNum: number, otherNum: number, priceNum: number): string => {
+  const totalCost = costNum * (1 + otherNum / 100)
+  if (totalCost <= 0 || priceNum <= 0) return ""
+  const margin = ((priceNum / totalCost) - 1) * 100
+  return formatBrDecimal(margin)
+}
+
+const calculatePriceFromMargin = (costNum: number, otherNum: number, marginNum: number): string => {
+  const totalCost = costNum * (1 + otherNum / 100)
+  if (totalCost <= 0) return ""
+  const salePrice = totalCost * (1 + marginNum / 100)
+  return formatBrDecimal(salePrice)
+}
+
 function ProductBasicTabContent({
   s, dbUnits, dbCategories,
 }: {
@@ -725,9 +737,41 @@ function ProductBasicTabContent({
     s.setCostPrice(formatted)
     const costNum = parseBrFloat(formatted)
     const otherNum = parseBrFloat(s.otherCosts)
+    const priceNum = parseBrFloat(s.price)
     const marginNum = parseBrFloat(s.profitMargin)
-    const totalCost = costNum > 0 ? costNum * (1 + otherNum / 100) : 0
-    if (totalCost > 0 && marginNum > 0) s.setPrice(formatBrDecimal(totalCost * (1 + marginNum / 100)))
+
+    if (priceNum > 0) {
+      s.setProfitMargin(calculateMarginFromPrice(costNum, otherNum, priceNum))
+    } else if (marginNum > 0) {
+      s.setPrice(calculatePriceFromMargin(costNum, otherNum, marginNum))
+    }
+  }
+
+  const handleOtherCostsChange = (val: string) => {
+    const formatted = maskCurrencyInput(val)
+    s.setOtherCosts(formatted)
+    const costNum = parseBrFloat(s.costPrice)
+    const otherNum = parseBrFloat(formatted)
+    const priceNum = parseBrFloat(s.price)
+    const marginNum = parseBrFloat(s.profitMargin)
+
+    if (priceNum > 0) {
+      s.setProfitMargin(calculateMarginFromPrice(costNum, otherNum, priceNum))
+    } else if (marginNum > 0) {
+      s.setPrice(calculatePriceFromMargin(costNum, otherNum, marginNum))
+    }
+  }
+
+  const handleMarginChange = (val: string) => {
+    const formatted = maskCurrencyInput(val)
+    s.setProfitMargin(formatted)
+    const costNum = parseBrFloat(s.costPrice)
+    const otherNum = parseBrFloat(s.otherCosts)
+    const marginNum = parseBrFloat(formatted)
+
+    if (costNum > 0) {
+      s.setPrice(calculatePriceFromMargin(costNum, otherNum, marginNum))
+    }
   }
 
   const handlePriceChange = (val: string) => {
@@ -736,8 +780,10 @@ function ProductBasicTabContent({
     const costNum = parseBrFloat(s.costPrice)
     const otherNum = parseBrFloat(s.otherCosts)
     const priceNum = parseBrFloat(formatted)
-    const totalCost = costNum > 0 ? costNum * (1 + otherNum / 100) : 0
-    if (totalCost > 0 && priceNum > 0) s.setProfitMargin(formatBrDecimal(((priceNum / totalCost) - 1) * 100))
+
+    if (costNum > 0 && priceNum > 0) {
+      s.setProfitMargin(calculateMarginFromPrice(costNum, otherNum, priceNum))
+    }
   }
 
   return (
@@ -757,8 +803,8 @@ function ProductBasicTabContent({
         stock={s.stock} setStock={s.setStock} minStock={s.minStock} setMinStock={s.setMinStock}
         costPrice={s.costPrice} otherCosts={s.otherCosts} profitMargin={s.profitMargin} price={s.price}
         onCostPriceChange={handleCostPriceChange}
-        onOtherCostsChange={(v) => s.setOtherCosts(maskCurrencyInput(v))}
-        onMarginChange={(v) => s.setProfitMargin(maskCurrencyInput(v))}
+        onOtherCostsChange={handleOtherCostsChange}
+        onMarginChange={handleMarginChange}
         onPriceChange={handlePriceChange}
       />
     </Stack>

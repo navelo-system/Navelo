@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils"
 import { LucideIcon } from "lucide-react"
 
 export interface BadgeProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children'> {
-  variant?: "default" | "primary" | "secondary" | "success" | "danger" | "outline" | "ghost"
+  variant?: "default" | "primary" | "secondary" | "success" | "danger" | "warning" | "outline" | "ghost"
   rounded?: "default" | "full"
   label: string
   icon?: LucideIcon
@@ -16,6 +16,7 @@ const variantStyles = {
   secondary: "bg-brand-secondary/20 text-brand-secondary border-none",
   success: "bg-brand-success/20 text-brand-success border-none",
   danger: "bg-brand-danger/20 text-brand-danger border-none",
+  warning: "bg-brand-warning/20 text-brand-warning border-none",
   outline: "text-foreground border-2 border-border bg-transparent",
   ghost: "bg-transparent text-foreground border-none",
 }

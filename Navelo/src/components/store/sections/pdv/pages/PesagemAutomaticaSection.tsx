@@ -57,7 +57,7 @@ function PesagemProductSettingsCard({
   const w = UI_STRINGS.weighing
   return (
     <Box bg="bg-white" border borderColor="border-border" radius="default" overflow="hidden" w="full">
-      <Box padding={5} cursor="pointer" hoverBg="primary/10" w="full">
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" w="full">
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={5}>
             <Icon icon={LayoutGrid} size={20} color="primary" />
@@ -81,7 +81,7 @@ function PesagemProductSettingsCard({
 
       <Box h="h-[1px]" w="full" bg="bg-border" />
 
-      <Box padding={5} cursor={buffetEnabled ? "pointer" : undefined} hoverBg={buffetEnabled ? "primary/10" : undefined} w="full" opacity={buffetEnabled ? "100" : "50"}>
+      <Box padding={5} cursor={buffetEnabled ? "pointer" : undefined} hoverBg={buffetEnabled ? "secondary/10" : undefined} w="full" opacity={buffetEnabled ? "100" : "50"}>
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={5}>
             <Icon icon={LayoutGrid} size={20} color={buffetEnabled ? "primary" : "muted"} />

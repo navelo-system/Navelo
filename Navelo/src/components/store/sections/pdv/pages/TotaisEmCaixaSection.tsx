@@ -266,7 +266,7 @@ function CashTotalsMainListView({
                     </Stack>
                   </Box>
                   {cat.subItems && (
-                    <Box paddingX={2.5} paddingY={1} bg="bg-surface">
+                    <Box padding={2.5} bg="bg-surface">
                       <Stack gap={1} w="full">
                         {cat.subItems.map((sub) => (
                           <Stack key={sub.name} direction="row" justify="between" align="center" w="full">

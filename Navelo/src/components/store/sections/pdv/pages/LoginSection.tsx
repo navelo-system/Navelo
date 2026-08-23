@@ -187,7 +187,7 @@ export const LoginSection: React.FC<LoginSectionProps> = ({ onLoginSuccess, onSw
 
   return (
     <Box w="full" h="screen" bg="bg-slate-900">
-      <Stack w="full" h="full" align="center" justify="center" gap={5} paddingX={5}>
+      <Stack w="full" h="full" align="center" justify="center" gap={5}>
         <Box w="w-full max-w-[540px]">
           <Stack gap={5} w="full" align="stretch">
             <LoginFormCard

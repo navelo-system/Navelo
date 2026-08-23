@@ -17,6 +17,9 @@ export {
   useSyncStatus,
   useRiders,
   useDeliveryRates,
+  useInventoryAudits,
+  useManualStockEntries,
+  useReceivables,
   dal
 } from './hooks';
 export type {
@@ -39,6 +42,12 @@ export type {
   Rider,
   DeliveryRate,
   Company,
+  Supplier,
   UserEntity,
-  User
+  User,
+  InventoryAuditEntity,
+  InventoryAuditItem,
+  ManualStockEntryEntity,
+  ManualStockEntryItem,
+  ReceivableEntity
 } from './db';

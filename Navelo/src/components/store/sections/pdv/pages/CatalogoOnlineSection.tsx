@@ -83,7 +83,7 @@ function CatalogoNavItem({
   return (
     <>
       <Box h="h-[1px]" w="full" bg="bg-border" />
-      <Box padding={5} cursor="pointer" hoverBg="primary/10" onClick={onClick} w="full">
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={onClick} w="full">
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={5} flex="1">
             <Icon icon={icon} size={20} color="primary" />

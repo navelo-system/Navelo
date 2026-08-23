@@ -105,7 +105,7 @@ function BalancaAdvancedSettingsAccordion({
   return (
     <Box opacity={enabled ? "100" : "50"} w="full">
       <Stack gap={2.5} w="full">
-        <Box cursor={enabled ? "pointer" : undefined} onClick={() => enabled && setShowAdvanced((prev) => !prev)} w="full" paddingY={2.5}>
+        <Box cursor={enabled ? "pointer" : undefined} onClick={() => enabled && setShowAdvanced((prev) => !prev)} w="full">
           <Stack direction="row" align="center" justify="between" gap={0} w="full">
             <Font variant="body-bold" text={s.advancedSettingsTitle} color={enabled ? "foreground" : "muted"} />
             <Icon icon={showAdvanced ? ChevronUp : ChevronDown} size={16} color="muted" />

@@ -215,7 +215,7 @@ export function DeliveryOrdersList({
 
   return (
     <Stack gap={2.5} w="full">
-      <Box paddingX={2.5} paddingY={2.5} w="full">
+      <Box padding={2.5} w="full">
         <Stack direction="row" align="center" justify="between" w="full">
           <Font variant="body-bold" text={d.ordersSectionTitle} />
           <Box position="relative">

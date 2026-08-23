@@ -9,8 +9,6 @@ type OverflowYToken = "auto" | "hidden" | "scroll" | "visible"
 export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as"> {
   as?: React.ElementType
   padding?: PaddingToken
-  paddingX?: PaddingToken
-  paddingY?: PaddingToken
   bg?: string
   bgGradient?: "fade-up"
   w?: WidthToken | string
@@ -31,6 +29,7 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   hoverBg?: "surface-sunken" | "primary/10" | "secondary/10"
   cursor?: "pointer"
   flex?: "1" | "auto" | "none"
+  mdFlex?: "1" | "auto" | "none"
   position?: "relative" | "absolute" | "fixed" | "sticky"
   top?: string | number
   left?: string | number
@@ -60,22 +59,6 @@ const paddingMap: Record<string, string> = {
   "2.5": "p-2.5",
   "1": "p-1",
   "0": "p-0",
-}
-
-const paddingXMap: Record<string, string> = {
-  "5": "px-6",
-  "12": "px-12",
-  "2.5": "px-2.5",
-  "1": "px-1",
-  "0": "px-0",
-}
-
-const paddingYMap: Record<string, string> = {
-  "5": "py-6",
-  "12": "py-12",
-  "2.5": "py-2.5",
-  "1": "py-1",
-  "0": "py-0",
 }
 
 const widthMap: Record<string, string> = {
@@ -161,6 +144,12 @@ const flexMap = {
   "none": "flex-none",
 }
 
+const mdFlexMap = {
+  "1": "md:flex-1",
+  "auto": "md:flex-auto",
+  "none": "md:flex-none",
+}
+
 const zIndexMap = {
   "0": "z-0",
   "10": "z-10",
@@ -181,12 +170,12 @@ const alignMap = {
 export const Box = React.forwardRef<HTMLElement, BoxProps>(
   ({ 
     as: Component = "div",
-    className, padding, paddingX, paddingY, bg, bgGradient, w, h, 
+    className, padding, bg, bgGradient, w, h, 
     display, direction, align, justify, radius, border,
     borderTop, borderBottom, borderLeft, borderRight,
     borderColor, 
     borderStyle, shadow, transition, opacity, maxH, animation,
-     overflow, hoverBg, cursor, flex, position, top, left, right, bottom, zIndex, pointerEvents, minW, minH, objectFit, shrink, overflowY,
+     overflow, hoverBg, cursor, flex, mdFlex, position, top, left, right, bottom, zIndex, pointerEvents, minW, minH, objectFit, shrink, overflowY,
     order, mdOrder, interactive, ...props 
   }, ref) => {
     return (
@@ -194,8 +183,6 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
         ref={ref}
         className={cn(
           padding !== undefined && paddingMap[String(padding)],
-          paddingX !== undefined && paddingXMap[String(paddingX)],
-          paddingY !== undefined && paddingYMap[String(paddingY)],
           w && (widthMap[w] || w),
           h && (heightMap[h] || h),
           display && displayMap[display],
@@ -220,6 +207,7 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
           hoverBg && hoverBgMap[hoverBg],
           cursor === "pointer" && "cursor-pointer",
           flex && flexMap[flex],
+          mdFlex && mdFlexMap[mdFlex],
           position,
           zIndex && zIndexMap[zIndex],
           minW,

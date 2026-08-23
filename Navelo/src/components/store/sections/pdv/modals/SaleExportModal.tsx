@@ -57,7 +57,7 @@ export const SaleExportModal: React.FC<SaleExportModalProps> = ({
           padding={5}
           radius="default"
           bg="bg-brand-primary/10"
-          hoverBg="primary/10"
+          hoverBg="secondary/10"
           cursor="pointer"
           onClick={handlePdfClick}
         >
@@ -76,7 +76,7 @@ export const SaleExportModal: React.FC<SaleExportModalProps> = ({
           padding={5}
           radius="default"
           bg="bg-brand-primary/10"
-          hoverBg="primary/10"
+          hoverBg="secondary/10"
           cursor="pointer"
           onClick={handleCsvClick}
         >

@@ -68,7 +68,7 @@ function MenuDigitalNavigationRows({ onNavigate }: { onNavigate: (subView: strin
   const s = UI_STRINGS.digitalMenu
   return (
     <>
-      <Box padding={5} cursor="pointer" hoverBg="primary/10" onClick={() => onNavigate("identificacao")} w="full">
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={() => onNavigate("identificacao")} w="full">
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={5}>
             <Icon icon={LayoutGrid} size={20} color="primary" />
@@ -81,7 +81,7 @@ function MenuDigitalNavigationRows({ onNavigate }: { onNavigate: (subView: strin
         </Stack>
       </Box>
       <Box h="h-[1px]" w="full" bg="bg-border" />
-      <Box padding={5} cursor="pointer" hoverBg="primary/10" onClick={() => onNavigate("catalogo-produtos")} w="full">
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={() => onNavigate("catalogo-produtos")} w="full">
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={5}>
             <Icon icon={LayoutGrid} size={20} color="primary" />
@@ -94,7 +94,7 @@ function MenuDigitalNavigationRows({ onNavigate }: { onNavigate: (subView: strin
         </Stack>
       </Box>
       <Box h="h-[1px]" w="full" bg="bg-border" />
-      <Box padding={5} cursor="pointer" hoverBg="primary/10" onClick={() => onNavigate("opcao-pedido-menu-digital")} w="full">
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={() => onNavigate("opcao-pedido-menu-digital")} w="full">
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={5}>
             <Icon icon={Settings} size={20} color="primary" />

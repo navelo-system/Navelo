@@ -54,7 +54,7 @@ export function Header() {
   const { isDesktop, isMobileButtonsVisible } = useHeaderScroll()
 
   return (
-    <Box paddingY={5} paddingX={5} bg="bg-brand-primary" w="full" border borderColor="border-brand-primary/10" display="flex" direction="col">
+    <Box padding={5} bg="bg-brand-primary" w="full" border borderColor="border-brand-primary/10" display="flex" direction="col">
       <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={isDesktop || isMobileButtonsVisible ? 5 : 0}>
         <Stack gap={1} align="center" mobileAlign="start">
           {logoUrl ? (

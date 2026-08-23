@@ -183,9 +183,33 @@ export function useInventoryAudits(tenantId?: string) {
   }, [tenantId]);
 }
 
+export function useManualStockEntries(tenantId?: string) {
+  return useLiveQuery(() => {
+    return db.manual_stock_entries
+      .filter((item) => matchesTenant(item, tenantId))
+      .reverse()
+      .sortBy('created_at');
+  }, [tenantId]);
+}
+
 export type DalPayload = { id: string; company_id?: string; tenant_id?: string };
 
 // Repositório Unificado da DAL (Local-First Mutate)
+export function useReceivables(tenantId?: string, customerName?: string) {
+  return useLiveQuery(() => {
+    return db.receivables
+      .filter((item) => {
+        const tenantOk = matchesTenant(item, tenantId);
+        if (!tenantOk) return false;
+        if (customerName && customerName !== 'Nao selecionado' && customerName !== 'Não selecionado') {
+          return item.customer_name.toLowerCase() === customerName.toLowerCase();
+        }
+        return true;
+      })
+      .toArray();
+  }, [tenantId, customerName]);
+}
+
 export const dal = {
   products: {
     getById: async (id: string) => db.products.get(id),
@@ -198,6 +222,28 @@ export const dal = {
     create: async <T extends DalPayload>(item: T) => mutateLocalFirst('inventory_audits', item, 'INSERT'),
     update: async <T extends DalPayload>(item: T) => mutateLocalFirst('inventory_audits', item, 'UPDATE'),
     delete: async (id: string, tenantId?: string) => mutateLocalFirst('inventory_audits', { id, company_id: tenantId, tenant_id: tenantId }, 'DELETE')
+  },
+  manualStockEntries: {
+    getById: async (id: string) => db.manual_stock_entries.get(id),
+    create: async <T extends DalPayload>(item: T) => mutateLocalFirst('manual_stock_entries', item, 'INSERT'),
+    update: async <T extends DalPayload>(item: T) => mutateLocalFirst('manual_stock_entries', item, 'UPDATE'),
+    delete: async (id: string, tenantId?: string) => mutateLocalFirst('manual_stock_entries', { id, company_id: tenantId, tenant_id: tenantId }, 'DELETE')
+  },
+  receivables: {
+    getById: async (id: string) => db.receivables.get(id),
+    create: async <T extends DalPayload>(item: T) => mutateLocalFirst('receivables', item, 'INSERT'),
+    update: async <T extends DalPayload>(item: T) => mutateLocalFirst('receivables', item, 'UPDATE'),
+    settle: async (ids: string[]) => {
+      await Promise.all(
+        ids.map(async (id) => {
+          const existing = await db.receivables.get(id);
+          if (existing) {
+            await mutateLocalFirst('receivables', { ...existing, status: 'PAID' }, 'UPDATE');
+          }
+        })
+      );
+    },
+    delete: async (id: string, tenantId?: string) => mutateLocalFirst('receivables', { id, company_id: tenantId, tenant_id: tenantId }, 'DELETE')
   },
   categories: {
     create: async <T extends DalPayload>(item: T) => mutateLocalFirst('categories', item, 'INSERT'),
@@ -233,6 +279,11 @@ export const dal = {
     create: async <T extends DalPayload>(item: T) => mutateLocalFirst('cash_registers', item, 'INSERT'),
     update: async <T extends DalPayload>(item: T) => mutateLocalFirst('cash_registers', item, 'UPDATE'),
     delete: async (id: string, tenantId?: string) => mutateLocalFirst('cash_registers', { id, company_id: tenantId, tenant_id: tenantId }, 'DELETE')
+  },
+  cashMovements: {
+    create: async <T extends DalPayload>(item: T) => mutateLocalFirst('cash_movements', item, 'INSERT'),
+    update: async <T extends DalPayload>(item: T) => mutateLocalFirst('cash_movements', item, 'UPDATE'),
+    delete: async (id: string, tenantId?: string) => mutateLocalFirst('cash_movements', { id, company_id: tenantId, tenant_id: tenantId }, 'DELETE')
   },
   tables: {
     create: async <T extends DalPayload>(item: T) => mutateLocalFirst('restaurant_tables', item, 'INSERT'),

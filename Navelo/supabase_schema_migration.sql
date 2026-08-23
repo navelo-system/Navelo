@@ -198,6 +198,18 @@ CREATE TABLE IF NOT EXISTS customers (
 );
 ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS company_id text;
 ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS name text;
+ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS document text;
+ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS phone text;
+ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS email text;
+ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS rg text;
+ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS ie text;
+ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS type text;
+ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS addresses jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS credit_limit numeric DEFAULT 0;
+ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS balance numeric DEFAULT 0;
+ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE IF EXISTS customers ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now();
 ALTER TABLE IF EXISTS customers ALTER COLUMN id TYPE text USING id::text;
 ALTER TABLE IF EXISTS customers ALTER COLUMN company_id TYPE text USING company_id::text;
 ALTER TABLE IF EXISTS customers ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
@@ -265,9 +277,10 @@ ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS customer_name text;
 ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS time text;
 ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS total numeric DEFAULT 0;
 ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS status text DEFAULT 'OPEN';
-ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS items jsonb DEFAULT '[]'::jsonb;
 ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS observation text;
+ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS is_fixed boolean DEFAULT false;
 ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE IF EXISTS tabs ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now();
 ALTER TABLE IF EXISTS tabs ALTER COLUMN id TYPE text USING id::text;
 ALTER TABLE IF EXISTS tabs ALTER COLUMN company_id TYPE text USING company_id::text;
 ALTER TABLE IF EXISTS tabs ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
@@ -377,6 +390,16 @@ ALTER TABLE IF EXISTS suppliers ADD COLUMN IF NOT EXISTS trade_name text;
 ALTER TABLE IF EXISTS suppliers ADD COLUMN IF NOT EXISTS document text;
 ALTER TABLE IF EXISTS suppliers ADD COLUMN IF NOT EXISTS email text;
 ALTER TABLE IF EXISTS suppliers ADD COLUMN IF NOT EXISTS phone text;
+ALTER TABLE IF EXISTS suppliers ADD COLUMN IF NOT EXISTS state_registration text;
+ALTER TABLE IF EXISTS suppliers ADD COLUMN IF NOT EXISTS cep text;
+ALTER TABLE IF EXISTS suppliers ADD COLUMN IF NOT EXISTS street text;
+ALTER TABLE IF EXISTS suppliers ADD COLUMN IF NOT EXISTS number text;
+ALTER TABLE IF EXISTS suppliers ADD COLUMN IF NOT EXISTS complement text;
+ALTER TABLE IF EXISTS suppliers ADD COLUMN IF NOT EXISTS neighborhood text;
+ALTER TABLE IF EXISTS suppliers ADD COLUMN IF NOT EXISTS city text;
+ALTER TABLE IF EXISTS suppliers ADD COLUMN IF NOT EXISTS active boolean DEFAULT true;
+ALTER TABLE IF EXISTS suppliers ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE IF EXISTS suppliers ADD COLUMN IF NOT EXISTS updated_at timestamp with time zone DEFAULT now();
 ALTER TABLE IF EXISTS suppliers ALTER COLUMN id TYPE text USING id::text;
 ALTER TABLE IF EXISTS suppliers ALTER COLUMN company_id TYPE text USING company_id::text;
 ALTER TABLE IF EXISTS suppliers ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
@@ -531,6 +554,39 @@ ALTER TABLE IF EXISTS restaurant_tables ALTER COLUMN id TYPE text USING id::text
 ALTER TABLE IF EXISTS restaurant_tables ALTER COLUMN company_id TYPE text USING company_id::text;
 ALTER TABLE IF EXISTS restaurant_tables ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
 
+-- 20. TABELA RECEIVABLES (CONTAS A RECEBER / CREDIÁRIO)
+CREATE TABLE IF NOT EXISTS receivables (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  customer_id text,
+  customer_name text,
+  sale_id text,
+  doc_number text,
+  due_date text,
+  issue_date text,
+  value numeric DEFAULT 0,
+  fine numeric DEFAULT 0,
+  interest numeric DEFAULT 0,
+  status text DEFAULT 'PENDING',
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS receivables ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS receivables ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS receivables ADD COLUMN IF NOT EXISTS customer_id text;
+ALTER TABLE IF EXISTS receivables ADD COLUMN IF NOT EXISTS customer_name text;
+ALTER TABLE IF EXISTS receivables ADD COLUMN IF NOT EXISTS sale_id text;
+ALTER TABLE IF EXISTS receivables ADD COLUMN IF NOT EXISTS doc_number text;
+ALTER TABLE IF EXISTS receivables ADD COLUMN IF NOT EXISTS due_date text;
+ALTER TABLE IF EXISTS receivables ADD COLUMN IF NOT EXISTS issue_date text;
+ALTER TABLE IF EXISTS receivables ADD COLUMN IF NOT EXISTS value numeric DEFAULT 0;
+ALTER TABLE IF EXISTS receivables ADD COLUMN IF NOT EXISTS fine numeric DEFAULT 0;
+ALTER TABLE IF EXISTS receivables ADD COLUMN IF NOT EXISTS interest numeric DEFAULT 0;
+ALTER TABLE IF EXISTS receivables ADD COLUMN IF NOT EXISTS status text DEFAULT 'PENDING';
+ALTER TABLE IF EXISTS receivables ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS receivables ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS receivables ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+
 -- ====================================================================
 -- HABILITAÇÃO E POLÍTICAS DE ROW LEVEL SECURITY (RLS) PARA A CHAVE ANON
 -- ====================================================================
@@ -553,6 +609,7 @@ ALTER TABLE IF EXISTS print_points ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS riders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS delivery_rates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS restaurant_tables ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS receivables ENABLE ROW LEVEL SECURITY;
 
 DO $$
 BEGIN
@@ -613,6 +670,9 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon restaurant_tables') THEN
     CREATE POLICY "Allow all for anon restaurant_tables" ON restaurant_tables FOR ALL USING (true) WITH CHECK (true);
   END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon receivables') THEN
+    CREATE POLICY "Allow all for anon receivables" ON receivables FOR ALL USING (true) WITH CHECK (true);
+  END IF;
 END $$;
 
 -- ====================================================================
@@ -625,7 +685,7 @@ DECLARE
     'products', 'categories', 'sales', 'sale_items', 'customers', 'users',
     'cash_registers', 'cash_movements', 'restaurant_tables', 'tabs',
     'suppliers', 'units', 'print_points', 'riders', 'delivery_rates',
-    'delivery_orders', 'companies'
+    'delivery_orders', 'companies', 'receivables'
   ];
 BEGIN
   FOREACH t IN ARRAY tbls LOOP

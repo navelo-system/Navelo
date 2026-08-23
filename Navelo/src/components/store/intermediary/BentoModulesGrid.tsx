@@ -16,11 +16,11 @@ function BentoCard({ title, description, href, icon }: BentoItem) {
       border
       borderColor="border-slate-200"
       cursor="pointer"
-      hoverBg="surface-sunken"
+      hoverBg="secondary/10"
       w="full"
     >
       <Stack gap={2.5} align="start" justify="start">
-        <Box w="w-12" h="h-12" radius="default" bg="bg-brand-primary/10">
+        <Box w="w-12" h="h-12" radius="default" bg="bg-brand-secondary/10">
           <Stack w="full" h="full" align="center" justify="center">
             <Icon icon={icon} size={24} color="primary" />
           </Stack>

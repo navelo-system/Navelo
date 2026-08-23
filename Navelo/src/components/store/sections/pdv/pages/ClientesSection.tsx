@@ -35,7 +35,7 @@ function ClientListItem({
     : s.noDocumentText
 
   return (
-    <Box w="full" padding={2.5} radius="none" hoverBg="primary/10" cursor="pointer" onClick={onClick}>
+    <Box w="full" padding={2.5} radius="none" hoverBg="secondary/10" cursor="pointer" onClick={onClick}>
       <Stack direction="row" align="center" justify="between" w="full">
         <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
           <Avatar fallback={client.name.substring(0, 2).toUpperCase()} />
@@ -52,20 +52,9 @@ function ClientListItem({
   )
 }
 
-export const ClientesSection: React.FC<ClientesSectionProps> = ({
-  onBackToDashboard,
-  setCustomBack,
-  setCustomTitle,
-  setCustomActions,
-  onBack,
-  onSelectClient,
-}) => {
-  const tenantCtx = useTenant()
-  const tenantId = tenantCtx?.currentTenant?.id
-  const s = UI_STRINGS.customers
+function useClientesSectionState(tenantId?: string) {
   const dbCustomers = useCustomers(tenantId)
   const clients = React.useMemo(() => (Array.isArray(dbCustomers) ? dbCustomers : []), [dbCustomers])
-
   const [modeHistory, setModeHistory] = React.useState<("list" | "form")[]>(["list"])
   const mode = modeHistory[modeHistory.length - 1] || "list"
   const [editingClient, setEditingClient] = React.useState<Customer | null>(null)
@@ -79,23 +68,47 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
     setModeHistory((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev))
   }, [])
 
+  return { clients, mode, editingClient, setEditingClient, pushMode, popMode }
+}
+
+export const ClientesSection: React.FC<ClientesSectionProps> = ({
+  onBackToDashboard, setCustomBack, setCustomTitle, setCustomActions, onBack, onSelectClient,
+}) => {
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id
+  const s = UI_STRINGS.customers
+  const state = useClientesSectionState(tenantId)
+
+  const handleSelect = (c: { customerId?: string; name: string; phone?: string; document?: string }) => {
+    if (onSelectClient) {
+      onSelectClient({
+        id: c.customerId || `cust-${Date.now()}`,
+        name: c.name,
+        document: c.document || "",
+        phone: c.phone || "",
+        company_id: tenantId || "11111111-1111-1111-1111-111111111111",
+        tenant_id: tenantId || "11111111-1111-1111-1111-111111111111",
+      })
+    } else state.popMode()
+  }
+
   return (
     <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
-      <ViewTransition viewKey={mode} flex="1" minH="0">
+      <ViewTransition viewKey={state.mode} flex="1" minH="0">
         <Stack gap={5} w="full" h="full">
-          {mode === "list" && (
+          {state.mode === "list" && (
             <ListSectionLayout<Customer>
               title={s.title}
-              items={clients}
+              items={state.clients}
               searchPlaceholder={s.searchPlaceholder}
               searchFilterFn={(c, query) => {
                 const q = query.toLowerCase()
-                return c.name.toLowerCase().includes(q) || (!!c.document && c.document.includes(q)) || (!!c.phone && c.phone.includes(q))
+                return c.name.toLowerCase().includes(q) || Boolean(c.document && c.document.includes(q)) || Boolean(c.phone && c.phone.includes(q))
               }}
               emptyIcon={UserX}
               emptyTitle={s.emptyTitle}
               emptySubtitle={s.emptySubtitle}
-              onAdd={() => { setEditingClient(null); pushMode("form") }}
+              onAdd={() => { state.setEditingClient(null); state.pushMode("form") }}
               getItemKey={(c) => c.id}
               setCustomBack={setCustomBack}
               setCustomTitle={setCustomTitle}
@@ -106,24 +119,25 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
                   client={client}
                   onClick={() => {
                     if (onSelectClient) onSelectClient(client)
-                    else { setEditingClient(client); pushMode("form") }
+                    else { state.setEditingClient(client); state.pushMode("form") }
                   }}
                 />
               )}
             />
           )}
 
-          {mode === "form" && (
+          {state.mode === "form" && (
             <DeliveryClientFormScreen
-              initialCustomer={editingClient || undefined}
-              onBack={popMode}
+              initialCustomer={state.editingClient || undefined}
+              onBack={state.popMode}
+              onSelectClient={handleSelect}
               setCustomTitle={setCustomTitle}
               setCustomBack={setCustomBack}
               setCustomActions={setCustomActions}
               showSkip={false}
               showSaveSwitch={false}
               showSearchInHeader={false}
-              title={editingClient ? "Editar Cliente" : "Novo Cliente"}
+              title={state.editingClient ? "Editar Cliente" : "Novo Cliente"}
             />
           )}
         </Stack>

@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
-import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
@@ -72,9 +71,6 @@ export const PdvCartDrawer: React.FC<PdvCartDrawerProps> = ({
             <Font variant="body-bold" text={cartStrings.total} />
             <Font variant="body-bold" color="success" text={formatPrice(total)} />
           </Stack>
-
-          <Box paddingY={1} />
-
           <Button
             variant="primary-lg"
             fullWidth

@@ -7,7 +7,7 @@ import { maskCPF, maskCNPJ, maskPhone, maskDate, maskCEP, maskCpfCnpj, maskCurre
 import { DatePickerModal } from "./DatePickerModal"
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  variant?: "default" | "cpf" | "cnpj" | "cpf-cnpj" | "phone" | "date" | "cep" | "email" | "image-upload" | "outlined-label" | "bordered" | "textarea" | "currency" | "percent"
+  variant?: "default" | "cpf" | "cnpj" | "cpf-cnpj" | "phone" | "date" | "cep" | "email" | "image-upload" | "outlined-label" | "outlined-label-centered" | "bordered" | "textarea" | "currency" | "percent"
   mask?: "cpf" | "cnpj" | "cpf-cnpj" | "phone" | "date" | "cep" | "currency" | "percent"
   hasError?: boolean
   label?: string
@@ -15,11 +15,12 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   error?: string
   icon?: LucideIcon
   iconRight?: LucideIcon
+  onIconRightClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
   rows?: number
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, variant = "default", mask, hasError, label, description, error, icon: IconComponent, iconRight: IconRightComponent, rows, onChange, onClick, ...props }, ref) => {
+  ({ className, type, variant = "default", mask, hasError, label, description, error, icon: IconComponent, iconRight: IconRightComponent, onIconRightClick, rows, onChange, onClick, ...props }, ref) => {
     
     const [showPassword, setShowPassword] = React.useState(false)
     const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false)
@@ -131,7 +132,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       onChange?.(syntheticEvent)
     }
 
-    const isOutlined = variant === "outlined-label"
+    const isOutlined = variant === "outlined-label" || variant === "outlined-label-centered"
+    const isCentered = variant === "outlined-label-centered"
     const isBordered = variant === "bordered"
 
     const inputElement = (
@@ -141,7 +143,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         isBordered && "rounded-[5px] border-2 border-border bg-surface px-5 py-2 min-h-[40px] transition-colors focus-within:border-brand-primary"
       )}>
         {isOutlined && label && (
-          <span className="absolute -top-2.5 left-2.5 px-1 bg-white text-xs font-normal text-text-muted z-10 leading-none pointer-events-none">
+          <span className={cn(
+            "absolute -top-2.5 px-1 bg-white text-xs font-normal text-text-muted z-10 leading-none pointer-events-none whitespace-nowrap select-none",
+            isCentered ? "left-1/2 -translate-x-1/2" : "left-2.5"
+          )}>
             {label}
           </span>
         )}
@@ -162,7 +167,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           }}
           className={cn(
             isOutlined
-              ? "flex h-6 w-full rounded-none border-0 bg-transparent px-1 text-sm text-foreground placeholder:text-text-muted focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
+              ? cn(
+                  "flex h-6 w-full rounded-none border-0 bg-transparent px-1 text-sm text-foreground placeholder:text-text-muted focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50",
+                  isCentered && "text-center"
+                )
               : isBordered
               ? "flex h-6 w-full rounded-none border-0 bg-transparent px-0 text-sm text-foreground placeholder:text-text-muted focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50"
               : "flex h-10 w-full rounded-none border-0 border-b-2 border-b-border bg-transparent px-1 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-text-muted focus:outline-none focus:border-b-brand-primary focus:ring-0 disabled:cursor-not-allowed disabled:opacity-50 transition-colors",
@@ -187,12 +195,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 setShowPassword(prev => !prev)
               } else if (variant === "date") {
                 setIsDatePickerOpen(true)
+              } else if (onIconRightClick) {
+                onIconRightClick(e)
               }
             }}
             className={cn(
               "absolute flex items-center justify-center text-text-muted hover:text-foreground focus:outline-none",
               (isOutlined || isBordered) ? "right-3" : "right-1",
-              (isPassword || variant === "date") ? "cursor-pointer" : "pointer-events-none"
+              (isPassword || variant === "date" || Boolean(onIconRightClick)) ? "cursor-pointer" : "pointer-events-none"
             )}
           >
             {isPassword ? (

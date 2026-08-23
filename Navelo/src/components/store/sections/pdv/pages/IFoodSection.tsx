@@ -91,27 +91,35 @@ function IFoodOptionsMenu({ enabled }: { enabled: boolean }) {
 }
 
 function IFoodNotificationSettings({
-  enabled, notification, setNotification, soundAlert, setSoundAlert, continuousSound, setContinuousSound,
+  enabled, notification, setNotification, soundAlert, setSoundAlert,
+  continuousSound, setContinuousSound,
 }: {
   enabled: boolean
-  notification: boolean; setNotification: (v: boolean) => void
-  soundAlert: boolean; setSoundAlert: (v: boolean) => void
-  continuousSound: boolean; setContinuousSound: (v: boolean) => void
+  notification: boolean
+  setNotification: (v: boolean) => void
+  soundAlert: boolean
+  setSoundAlert: (v: boolean) => void
+  continuousSound: boolean
+  setContinuousSound: (v: boolean) => void
 }) {
   const s = UI_STRINGS.ifood
   return (
     <Box w="full" opacity={enabled ? "100" : "50"}>
       <Stack gap={5} w="full">
-        <Checkbox label={s.notificationCheckboxLabel} checked={notification} onChange={(e) => setNotification(e.target.checked)} disabled={!enabled} />
-        <Box paddingX={5}><Font variant="description" text={s.notificationDesc} /></Box>
-        <Checkbox label={s.soundAlertCheckboxLabel} checked={soundAlert} onChange={(e) => setSoundAlert(e.target.checked)} disabled={!enabled} />
-        <Box paddingX={5}><Font variant="description" text={s.soundAlertDesc} /></Box>
-        <Box paddingX={5} opacity={enabled && soundAlert ? "100" : "50"}>
+        <Stack gap={1} w="full">
+          <Checkbox label={s.notificationCheckboxLabel} checked={notification} onChange={(e) => setNotification(e.target.checked)} disabled={!enabled} />
+          <Font variant="description" text={s.notificationDesc} />
+        </Stack>
+        <Stack gap={1} w="full">
+          <Checkbox label={s.soundAlertCheckboxLabel} checked={soundAlert} onChange={(e) => setSoundAlert(e.target.checked)} disabled={!enabled} />
+          <Font variant="description" text={s.soundAlertDesc} />
+        </Stack>
+        <Box opacity={enabled && soundAlert ? "100" : "50"} w="full">
           <Stack direction="row" gap={2.5} align="start" w="full">
             <Box w="[2px]" h="[32px]" bg="bg-border" shrink="0" />
             <Stack gap={1} flex="1">
               <Checkbox label={s.continuousSoundCheckboxLabel} checked={continuousSound} onChange={(e) => setContinuousSound(e.target.checked)} disabled={!enabled || !soundAlert} />
-              <Box paddingX={5}><Font variant="description" text={s.continuousSoundDesc} /></Box>
+              <Font variant="description" text={s.continuousSoundDesc} />
             </Stack>
           </Stack>
         </Box>

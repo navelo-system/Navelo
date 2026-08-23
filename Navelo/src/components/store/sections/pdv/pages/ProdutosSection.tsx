@@ -178,7 +178,7 @@ function ProductListItemRow({
   onClick: () => void
 }) {
   return (
-    <Box w="full" paddingY={2.5} paddingX={2.5} radius="none" hoverBg="primary/10" cursor="pointer" onClick={onClick}>
+    <Box w="full" padding={2.5} radius="none" hoverBg="secondary/10" cursor="pointer" onClick={onClick}>
       <Stack direction="row" align="center" justify="between" w="full">
         <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
           <Box w="w-10" h="h-10" bg="bg-surface-sunken" borderColor="border-border" border radius="default" shrink="0" overflow="hidden">

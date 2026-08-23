@@ -47,7 +47,7 @@ function CatalogProductRow({
   onToggle: () => void
 }) {
   return (
-    <Box padding={5} cursor="pointer" hoverBg="primary/10" w="full" onClick={onToggle}>
+    <Box padding={5} cursor="pointer" hoverBg="secondary/10" w="full" onClick={onToggle}>
       <Stack direction="row" align="center" justify="between" w="full" gap={5}>
         <Stack direction="row" align="center" gap={2.5}>
           <Checkbox checked={isSelected} onChange={onToggle} onClick={(e) => e.stopPropagation()} />

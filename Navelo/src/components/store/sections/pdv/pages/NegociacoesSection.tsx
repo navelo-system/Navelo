@@ -321,7 +321,7 @@ function SaleListItemRow({
   const saleCode = `Venda #${getSaleCode(sale)}`
 
   return (
-    <Box w="full" padding={2.5} hoverBg="primary/10" radius="default" cursor="pointer" border borderColor="border/40" onClick={onSelect}>
+    <Box w="full" padding={2.5} hoverBg="secondary/10" radius="default" cursor="pointer" border borderColor="border/40" onClick={onSelect}>
       <Stack direction="row" justify="between" align="start" w="full">
         <Stack gap={1} flex="1" minW="0">
           <Font variant="body-sm-semibold" color="muted" text={saleCode} />
@@ -400,7 +400,7 @@ function SaleDetailItemRow({ item, productMap }: { item: RawSaleItem; productMap
   const disp = resolveSaleItemDisplay(item, productMap)
 
   return (
-    <Box padding={2.5} bg="bg-brand-primary/10" hoverBg="primary/10" radius="none" w="full" cursor="pointer">
+    <Box padding={2.5} bg="bg-brand-primary/10" hoverBg="secondary/10" radius="none" w="full" cursor="pointer">
       <Stack direction="row" align="center" justify="between" w="full">
         <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
           <Box w="w-10" h="h-10" bg="bg-surface-sunken" borderColor="border-border" border radius="default" shrink="0" overflow="hidden">
@@ -760,6 +760,51 @@ function useSaleReceiptPdfManager(
   return { generatePdf, printSale }
 }
 
+function useNegotiationFilterState(initialClientFilter?: string) {
+  const initialPeriodDates = React.useMemo(() => getPeriodDates("Hoje"), [])
+  const [period, setPeriod] = React.useState("Hoje")
+  const [startDate, setStartDate] = React.useState(initialPeriodDates.start)
+  const [endDate, setEndDate] = React.useState(initialPeriodDates.end)
+  const [cliente, setCliente] = React.useState(initialClientFilter || "")
+  const [usuario, setUsuario] = React.useState("")
+  const [dispositivo, setDispositivo] = React.useState("")
+  const [mesa, setMesa] = React.useState("")
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
+
+  const [appliedFilters, setAppliedFilters] = React.useState({
+    cliente: initialClientFilter || "",
+    usuario: "",
+    dispositivo: "",
+    mesa: "",
+    startDate: initialPeriodDates.start,
+    endDate: initialPeriodDates.end,
+  })
+
+  const handlePeriodChange = (newPeriod: string) => {
+    setPeriod(newPeriod)
+    const { start, end } = getPeriodDates(newPeriod)
+    setStartDate(start)
+    setEndDate(end)
+  }
+
+  const handleApplyFilters = () => {
+    setAppliedFilters({
+      cliente,
+      usuario,
+      dispositivo,
+      mesa,
+      startDate,
+      endDate,
+    })
+  }
+
+  return {
+    period, startDate, setStartDate, endDate, setEndDate,
+    cliente, setCliente, usuario, setUsuario, dispositivo, setDispositivo, mesa, setMesa,
+    isFilterDrawerOpen, setIsFilterDrawerOpen, appliedFilters, handlePeriodChange, handleApplyFilters,
+  }
+}
+
 export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
   title, setCustomBack, setCustomTitle, setCustomActions, onBack, initialClientFilter, onDuplicateToCart,
 }) => {
@@ -776,15 +821,7 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
     return map
   }, [dbProducts])
 
-  const initialPeriodDates = React.useMemo(() => getPeriodDates("Hoje"), [])
-  const [period, setPeriod] = React.useState("Hoje")
-  const [startDate, setStartDate] = React.useState(initialPeriodDates.start)
-  const [endDate, setEndDate] = React.useState(initialPeriodDates.end)
-  const [cliente, setCliente] = React.useState(initialClientFilter || "")
-  const [usuario, setUsuario] = React.useState("")
-  const [dispositivo, setDispositivo] = React.useState("")
-  const [mesa, setMesa] = React.useState("")
-  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
+  const f = useNegotiationFilterState(initialClientFilter)
   const [selectedSale, setSelectedSale] = React.useState<Sale | null>(null)
   const [isAccordionOpen, setIsAccordionOpen] = React.useState(false)
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = React.useState(false)
@@ -795,15 +832,11 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
 
   const { generatePdf, printSale } = useSaleReceiptPdfManager(tenantId, dbCompany, productMap, setSelectedSale)
 
-  const handlePeriodChange = (newPeriod: string) => {
-    setPeriod(newPeriod); const { start, end } = getPeriodDates(newPeriod); setStartDate(start); setEndDate(end)
-  }
-
   const onBackRef = React.useRef(onBack)
   React.useEffect(() => { onBackRef.current = onBack }, [onBack])
 
-  const onFilterDrawerRef = React.useRef(() => setIsFilterDrawerOpen(true))
-  React.useEffect(() => { onFilterDrawerRef.current = () => setIsFilterDrawerOpen(true) })
+  const onFilterDrawerRef = React.useRef(() => f.setIsFilterDrawerOpen(true))
+  React.useEffect(() => { onFilterDrawerRef.current = () => f.setIsFilterDrawerOpen(true) })
 
   React.useEffect(() => {
     setCustomTitle?.(title || s.title)
@@ -816,8 +849,7 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
     return () => { setCustomTitle?.(null); setCustomBack?.(null); setCustomActions?.(null) }
   }, [setCustomBack, setCustomTitle, setCustomActions, title, s.title])
 
-  const filters = React.useMemo(() => ({ cliente, usuario, dispositivo, mesa, startDate, endDate }), [cliente, usuario, dispositivo, mesa, startDate, endDate])
-  const filteredSales = useFilteredSales(dbSales, filters)
+  const filteredSales = useFilteredSales(dbSales, f.appliedFilters)
   const totalFilteredSales = React.useMemo(() => filteredSales.reduce((acc: number, sale: Sale) => acc + (sale.total || 0), 0), [filteredSales])
 
   return (
@@ -826,19 +858,19 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
         <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" minH="0" h="full">
           <NegotiationsListView filteredSales={filteredSales} totalAmount={totalFilteredSales} onSelectSale={(sale: Sale) => { setSelectedSale(sale); setIsAccordionOpen(false) }} onOpenExport={() => setIsExportModalOpen(true)} />
           <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
-            <FilterPanel title={UI_STRINGS.common.filter} selectedPeriod={period} onPeriodChange={handlePeriodChange} startDate={startDate} onStartDateChange={setStartDate} endDate={endDate} onEndDateChange={setEndDate} onFilter={() => {}}>
-              <NegotiationFilterInputs cliente={cliente} setCliente={setCliente} usuario={usuario} setUsuario={setUsuario} dispositivo={dispositivo} setDispositivo={setDispositivo} mesa={mesa} setMesa={setMesa} />
+            <FilterPanel title={UI_STRINGS.common.filter} selectedPeriod={f.period} onPeriodChange={f.handlePeriodChange} startDate={f.startDate} onStartDateChange={f.setStartDate} endDate={f.endDate} onEndDateChange={f.setEndDate} onFilter={f.handleApplyFilters}>
+              <NegotiationFilterInputs cliente={f.cliente} setCliente={f.setCliente} usuario={f.usuario} setUsuario={f.setUsuario} dispositivo={f.dispositivo} setDispositivo={f.setDispositivo} mesa={f.mesa} setMesa={f.setMesa} />
             </FilterPanel>
           </Box>
-          <Modal isOpen={isFilterDrawerOpen} onClose={() => setIsFilterDrawerOpen(false)} title={UI_STRINGS.common.filter} variant="sidebar">
-            <FilterPanel hideTitle borderless selectedPeriod={period} onPeriodChange={handlePeriodChange} startDate={startDate} onStartDateChange={setStartDate} endDate={endDate} onEndDateChange={setEndDate} onFilter={() => setIsFilterDrawerOpen(false)}>
-              <NegotiationFilterInputs cliente={cliente} setCliente={setCliente} usuario={usuario} setUsuario={setUsuario} dispositivo={dispositivo} setDispositivo={setDispositivo} mesa={mesa} setMesa={setMesa} />
+          <Modal isOpen={f.isFilterDrawerOpen} onClose={() => f.setIsFilterDrawerOpen(false)} title={UI_STRINGS.common.filter} variant="sidebar">
+            <FilterPanel hideTitle borderless selectedPeriod={f.period} onPeriodChange={f.handlePeriodChange} startDate={f.startDate} onStartDateChange={f.setStartDate} endDate={f.endDate} onEndDateChange={f.setEndDate} onFilter={() => { f.handleApplyFilters(); f.setIsFilterDrawerOpen(false) }}>
+              <NegotiationFilterInputs cliente={f.cliente} setCliente={f.setCliente} usuario={f.usuario} setUsuario={f.setUsuario} dispositivo={f.dispositivo} setDispositivo={f.setDispositivo} mesa={f.mesa} setMesa={f.setMesa} />
             </FilterPanel>
           </Modal>
           <SaleDetailModal selectedSale={selectedSale} onClose={() => setSelectedSale(null)} productMap={productMap} isAccordionOpen={isAccordionOpen} onToggleAccordion={() => setIsAccordionOpen((prev) => !prev)} onDuplicate={() => { if (selectedSale && onDuplicateToCart) { const items = buildDuplicatedCartItems(selectedSale, productMap); if (items.length > 0) { onDuplicateToCart(items); setSelectedSale(null) } } }} onDeleteRequest={() => setIsDeleteConfirmOpen(true)} onShareRequest={() => setIsShareModalOpen(true)} onPrintRequest={() => printSale(selectedSale)} />
         </Stack>
       </Stack>
-      <NegotiationsModalsContainer selectedSale={selectedSale} setSelectedSale={setSelectedSale} isDeleteConfirmOpen={isDeleteConfirmOpen} setIsDeleteConfirmOpen={setIsDeleteConfirmOpen} isShareModalOpen={isShareModalOpen} setIsShareModalOpen={setIsShareModalOpen} isLinkModalOpen={isLinkModalOpen} setIsLinkModalOpen={setIsLinkModalOpen} linkModalUrl={linkModalUrl} setLinkModalUrl={setLinkModalUrl} isExportModalOpen={isExportModalOpen} setIsExportModalOpen={setIsExportModalOpen} onGeneratePdf={() => (selectedSale ? generatePdf(selectedSale) : Promise.resolve(null))} onExportPdf={() => exportSalesPdf({ filteredSales, totalAmount: totalFilteredSales, startDate, endDate, reportTitle: title || s.title, companyData: dbCompany })} onExportCsv={() => exportSalesCsv(filteredSales)} />
+      <NegotiationsModalsContainer selectedSale={selectedSale} setSelectedSale={setSelectedSale} isDeleteConfirmOpen={isDeleteConfirmOpen} setIsDeleteConfirmOpen={setIsDeleteConfirmOpen} isShareModalOpen={isShareModalOpen} setIsShareModalOpen={setIsShareModalOpen} isLinkModalOpen={isLinkModalOpen} setIsLinkModalOpen={setIsLinkModalOpen} linkModalUrl={linkModalUrl} setLinkModalUrl={setLinkModalUrl} isExportModalOpen={isExportModalOpen} setIsExportModalOpen={setIsExportModalOpen} onGeneratePdf={() => (selectedSale ? generatePdf(selectedSale) : Promise.resolve(null))} onExportPdf={() => exportSalesPdf({ filteredSales, totalAmount: totalFilteredSales, startDate: f.appliedFilters.startDate, endDate: f.appliedFilters.endDate, reportTitle: title || s.title, companyData: dbCompany })} onExportCsv={() => exportSalesCsv(filteredSales)} />
     </>
   )
 }

@@ -52,7 +52,7 @@ export const PdvHeaderSection: React.FC<PdvHeaderSectionProps> = ({
 
   return (
     <Stack gap={0} w="full">
-      <Box paddingX={5} paddingY={2.5} bg="bg-brand-primary" w="full">
+      <Box padding={2.5} bg="bg-brand-primary" w="full">
         <Stack direction="row" align="center" justify="between" w="full" gap={2.5}>
           {/* Lado Esquerdo: Identificação da Empresa e Operador */}
           <Box shrink="0">

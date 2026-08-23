@@ -38,7 +38,7 @@ function SyncSettingsCard({
 
         <Box h="h-[1px]" w="full" bg="bg-border" />
 
-        <Box padding={5} cursor="pointer" hoverBg="primary/10" onClick={() => {}}>
+        <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={() => {}}>
           <Stack direction="row" align="center" justify="between" w="full" gap={5}>
             <Stack direction="row" align="center" gap={5}>
               <Icon icon={Laptop} size={20} color="muted" />
@@ -53,7 +53,7 @@ function SyncSettingsCard({
 
         <Box h="h-[1px]" w="full" bg="bg-border" />
 
-        <Box padding={5} cursor="pointer" hoverBg="primary/10" onClick={() => {}}>
+        <Box padding={5} cursor="pointer" hoverBg="secondary/10" onClick={() => {}}>
           <Stack direction="row" align="center" justify="between" w="full" gap={5}>
             <Stack direction="row" align="center" gap={5}>
               <Icon icon={Server} size={20} color="muted" />

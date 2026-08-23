@@ -11,7 +11,7 @@ import { ExitConfirmModal } from "@/components/store/sections/pdv/modals/ExitCon
 import { PdvCartDrawer } from "@/components/store/sections/pdv/modals/PdvCartDrawer"
 
 import { PdvCatalog, MockProduct } from "@/components/store/advanced/PdvCatalog"
-import { PdvCheckoutPayment } from "@/components/store/advanced/PdvCheckoutPayment"
+import { PdvCheckoutPayment, PdvPaymentItem } from "@/components/store/advanced/PdvCheckoutPayment"
 import { PdvCheckoutReceipt } from "@/components/store/advanced/PdvCheckoutReceipt"
 import { PdvCheckoutSidebar } from "@/components/store/advanced/PdvCheckoutSidebar"
 import { PdvModals } from "@/components/store/advanced/PdvModals"
@@ -20,7 +20,8 @@ import { NegociacoesSection } from "@/components/store/sections/pdv/pages/Negoci
 import { ClientesSection } from "@/components/store/sections/pdv/pages/ClientesSection"
 import { DevolucaoSection } from "@/components/store/sections/pdv/pages/DevolucaoSection"
 import { TotaisEmCaixaSection } from "@/components/store/sections/pdv/pages/TotaisEmCaixaSection"
-import { ContasAReceberSection } from "@/components/store/sections/pdv/pages/ContasAReceberSection"
+import { RecebimentosSection } from "@/components/store/sections/pdv/pages/RecebimentosSection"
+import { SangriasSuprimentosSection } from "@/components/store/sections/pdv/pages/SangriasSuprimentosSection"
 import { PdvObservacaoModal } from "@/components/store/sections/pdv/modals/PdvObservacaoModal"
 import { PdvSangriaModal } from "@/components/store/sections/pdv/modals/PdvSangriaModal"
 import { SaleSuccessModal } from "@/components/store/sections/pdv/modals/SaleSuccessModal"
@@ -336,11 +337,49 @@ function usePdvCartManager(
   }
 }
 
+interface RenderPdvDeliverySubViewsOptions {
+  subView: PdvSubView
+  setSubView: (v: PdvSubView) => void
+  setSelectedRate: (r: DeliveryRate | null) => void
+  setSelectedRider: (r: Rider | null) => void
+  setCustomBack?: (cb: (() => void) | null) => void
+  setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
+}
+
+function renderPdvDeliverySubViews(opts: RenderPdvDeliverySubViewsOptions) {
+  const { subView, setSubView, setSelectedRate, setSelectedRider, setCustomBack, setCustomTitle, setCustomActions } = opts
+  if (subView === "rates-screen") {
+    return (
+      <DeliveryRatesScreen
+        setCustomBack={setCustomBack}
+        setCustomTitle={setCustomTitle}
+        setCustomActions={setCustomActions}
+        onBack={() => setSubView("none")}
+        onSelectRate={(r) => { setSelectedRate(r); setSubView("none") }}
+      />
+    )
+  }
+  if (subView === "riders-screen") {
+    return (
+      <DeliveryRidersScreen
+        setCustomBack={setCustomBack}
+        setCustomTitle={setCustomTitle}
+        setCustomActions={setCustomActions}
+        onBack={() => setSubView("none")}
+        onSelectRider={(r) => { setSelectedRider(r); setSubView("none") }}
+      />
+    )
+  }
+  return null
+}
+
 function PdvSubViewRouter({
   subView, setSubView, setCustomBack, setCustomTitle, setCustomActions,
   negociacoesClientFilter, setNegociacoesClientFilter, isSelectingClientForNegociacoes,
-  setIsSelectingClientForNegociacoes, setSelectedCustomerName, handleDuplicateToCart,
-  setSelectedRate, setSelectedRider,
+  setIsSelectingClientForNegociacoes, isSelectingClientForRecebimentos,
+  setIsSelectingClientForRecebimentos, selectedCustomerName, setSelectedCustomerName,
+  handleDuplicateToCart, setSelectedRate, setSelectedRider,
 }: {
   subView: PdvSubView
   setSubView: (v: PdvSubView) => void
@@ -351,11 +390,17 @@ function PdvSubViewRouter({
   setNegociacoesClientFilter: (v: string | null) => void
   isSelectingClientForNegociacoes: boolean
   setIsSelectingClientForNegociacoes: (v: boolean) => void
+  isSelectingClientForRecebimentos: boolean
+  setIsSelectingClientForRecebimentos: (v: boolean) => void
+  selectedCustomerName: string | null
   setSelectedCustomerName: (v: string | null) => void
   handleDuplicateToCart: (items: CartItemType[]) => void
   setSelectedRate: (r: DeliveryRate | null) => void
   setSelectedRider: (r: Rider | null) => void
 }) {
+  const deliveryView = renderPdvDeliverySubViews({ subView, setSubView, setSelectedRate, setSelectedRider, setCustomBack, setCustomTitle, setCustomActions })
+  if (deliveryView) return deliveryView
+
   if (subView === "negociacoes") {
     return (
       <NegociacoesSection
@@ -370,11 +415,17 @@ function PdvSubViewRouter({
     return (
       <ClientesSection
         setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions}
-        onBack={() => { setIsSelectingClientForNegociacoes(false); setSubView("none") }}
+        onBack={() => {
+          setIsSelectingClientForNegociacoes(false)
+          setIsSelectingClientForRecebimentos(false)
+          setSubView("none")
+        }}
         onSelectClient={(client) => {
           setSelectedCustomerName(client.name)
           if (isSelectingClientForNegociacoes) {
             setIsSelectingClientForNegociacoes(false); setNegociacoesClientFilter(client.name); setSubView("negociacoes")
+          } else if (isSelectingClientForRecebimentos) {
+            setIsSelectingClientForRecebimentos(false); setSubView("recebimentos")
           } else {
             setSubView("none")
           }
@@ -384,10 +435,18 @@ function PdvSubViewRouter({
   }
   if (subView === "devolucao") return <DevolucaoSection setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} onBack={() => setSubView("none")} />
   if (subView === "totais-em-caixa") return <TotaisEmCaixaSection setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} onBack={() => setSubView("none")} />
-  if (subView === "recebimentos") return <ContasAReceberSection onBackToDashboard={() => setSubView("none")} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
-  if (subView === "sangrias-suprimentos") return <NegociacoesSection title={UI_STRINGS.sangrias.sectionTitle} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} onBack={() => setSubView("none")} />
-  if (subView === "rates-screen") return <DeliveryRatesScreen setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} onBack={() => setSubView("none")} onSelectRate={(r) => { setSelectedRate(r); setSubView("none") }} />
-  if (subView === "riders-screen") return <DeliveryRidersScreen setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} onBack={() => setSubView("none")} onSelectRider={(r) => { setSelectedRider(r); setSubView("none") }} />
+  if (subView === "recebimentos") {
+    return (
+      <RecebimentosSection
+        clientName={selectedCustomerName || "Cliente"}
+        onBack={() => setSubView("none")}
+        setCustomBack={setCustomBack}
+        setCustomTitle={setCustomTitle}
+        setCustomActions={setCustomActions}
+      />
+    )
+  }
+  if (subView === "sangrias-suprimentos") return <SangriasSuprimentosSection setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} onBack={() => setSubView("none")} />
   return null
 }
 
@@ -810,6 +869,15 @@ function usePdvComandaTabSync(opts: PdvComandaTabSyncOptions) {
   }, [activeComandaId, dbTabs, setCartItems, setObservationText, setStep])
 }
 
+function getDefaultDueDate(): string {
+  const d = new Date()
+  d.setMonth(d.getMonth() + 1)
+  const dd = String(d.getDate()).padStart(2, "0")
+  const mm = String(d.getMonth() + 1).padStart(2, "0")
+  const yyyy = d.getFullYear()
+  return `${dd}/${mm}/${yyyy}`
+}
+
 function PdvStepContentRouter({
   step, setStep, deliveryContext, searchQuery, setSearchQuery, viewMode, setViewModeState,
   setIsCartDrawerOpen, catalogProducts, handleAddProduct, activeCategory, setActiveCategory,
@@ -836,11 +904,11 @@ function PdvStepContentRouter({
   setSubView: (v: PdvSubView) => void; setSelectedRider: (r: Rider | null) => void
   setSelectedRate: (r: DeliveryRate | null) => void
   setPendingDeliveryData: (p: DeliveryOrderPayload | null) => void
-  payments: { method: string; amount: number }[]; totalPaid: number
+  payments: PdvPaymentItem[]; totalPaid: number
   amountDue: number; setIsDiscountModalOpen: (v: boolean) => void
   handleLaunchPayment: (m: string, a: number) => void
   handleRemovePayment: (idx: number) => void
-  handleEditPayment: (idx: number, a: number) => void
+  handleEditPayment: (idx: number, a: number, dueDate?: string) => void
   setIsChangeModalOpen: (v: boolean) => void; setIsCardModalOpen: (v: boolean) => void
   handleFinalizeSale: () => void; paymentAmountInput: string
   setPaymentAmountInput: (v: string) => void; launchAmount: number
@@ -889,7 +957,7 @@ function PdvStepContentRouter({
 
 function usePdvPaymentStateManager(deliveryContext?: DeliveryContextData | null) {
   const [pendingDeliveryData, setPendingDeliveryData] = React.useState<DeliveryOrderPayload | null>(null)
-  const [payments, setPayments] = React.useState<{ method: string; amount: number }[]>([])
+  const [payments, setPayments] = React.useState<PdvPaymentItem[]>([])
   const [discount, setDiscount] = React.useState(deliveryContext?.initialDiscount || 0)
   const [paymentAmountInput, setPaymentAmountInput] = React.useState("")
   const [isChangeModalOpen, setIsChangeModalOpen] = React.useState(false)
@@ -961,6 +1029,44 @@ async function resetOrDeleteComanda(activeComandaId: string, tenantId: string) {
   await resetOrDeleteSingleTab(activeComandaId, tenantId)
 }
 
+interface SaveCrediarioReceivablesOptions {
+  crediarioPayments: PdvPaymentItem[]
+  saleId: string
+  saleNum: string
+  createdAt: string
+  tenantId: string
+  activeClientOrTitle: string
+}
+
+async function saveCrediarioReceivables(opts: SaveCrediarioReceivablesOptions) {
+  const { crediarioPayments, saleId, saleNum, createdAt, tenantId, activeClientOrTitle } = opts
+  if (crediarioPayments.length === 0) return
+  const todayFormatted = new Date().toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" })
+  const customerName = activeClientOrTitle !== "Nao selecionado" && activeClientOrTitle !== "Não selecionado" ? activeClientOrTitle : "Cliente Geral"
+
+  const promises = crediarioPayments.map((cp, i) => {
+    const recId = `rec-${Date.now()}-${i + 1}`
+    const installmentNum = cp.installment || (i + 1)
+    const totalInst = cp.totalInstallments || crediarioPayments.length
+    return dal.receivables.create({
+      id: recId,
+      company_id: tenantId,
+      tenant_id: tenantId,
+      customer_name: customerName,
+      sale_id: saleId,
+      doc_number: `${saleNum}.${installmentNum}-${installmentNum}/${totalInst}`,
+      due_date: cp.dueDate || getDefaultDueDate(),
+      issue_date: todayFormatted,
+      value: cp.amount,
+      fine: 0,
+      interest: 0,
+      status: "PENDING",
+      created_at: createdAt,
+    })
+  })
+  await Promise.all(promises)
+}
+
 function usePdvCheckoutOperations(params: PdvCheckoutOperationsParams) {
   const {
     tenantId, pm, cartItems, subtotal, total, totalPaid, activeClientOrTitle,
@@ -972,7 +1078,7 @@ function usePdvCheckoutOperations(params: PdvCheckoutOperationsParams) {
   const handleSaveComandaAndExit = async () => {
     if (activeComandaId && !activeComandaId.startsWith("avulso-") && !activeComandaId.startsWith("batch:")) {
       const existingTab = await db.tabs.get(activeComandaId)
-      if (existingTab) await dal.tabs.update({ ...existingTab, items: cartItems, total: subtotal, observation: observationText })
+      if (existingTab) await dal.tabs.update({ ...existingTab, items: cartItems, total: subtotal, observation: observationText, updated_at: new Date().toISOString() })
     }
     pm.setIsExitConfirmOpen(false); onBackToDashboardRef.current()
   }
@@ -1002,6 +1108,9 @@ function usePdvCheckoutOperations(params: PdvCheckoutOperationsParams) {
       deliveryContext.onConfirmDelivery({ ...pm.pendingDeliveryData, status: "Status do pedido: Aberto", paymentMoment: "advance", items: cartItems, total, subtotal, discount: pm.discount })
       pm.setPendingDeliveryData(null)
     }
+    const crediarioPayments = pm.payments.filter((p) => p.method === "Crediário")
+    await saveCrediarioReceivables({ crediarioPayments, saleId, saleNum, createdAt, tenantId, activeClientOrTitle })
+
     const calculatedChange = totalPaid > total ? totalPaid - total : 0
     pm.setLastCompletedSaleData({ total, change: calculatedChange, paymentMethod: paymentMethodsStr, customerName: activeClientOrTitle })
     pm.setIsSuccessModalOpen(true)
@@ -1052,6 +1161,7 @@ function usePdvNavigationState() {
   const [subView, setSubView] = React.useState<PdvSubView>("none")
   const [negociacoesClientFilter, setNegociacoesClientFilter] = React.useState<string | null>(null)
   const [isSelectingClientForNegociacoes, setIsSelectingClientForNegociacoes] = React.useState<boolean>(false)
+  const [isSelectingClientForRecebimentos, setIsSelectingClientForRecebimentos] = React.useState<boolean>(false)
   const [selectedRider, setSelectedRider] = React.useState<Rider | null>(null)
   const [selectedRate, setSelectedRate] = React.useState<DeliveryRate | null>(null)
   const [observationText, setObservationText] = React.useState("")
@@ -1060,6 +1170,7 @@ function usePdvNavigationState() {
   return {
     step, setStep, subView, setSubView, negociacoesClientFilter, setNegociacoesClientFilter,
     isSelectingClientForNegociacoes, setIsSelectingClientForNegociacoes,
+    isSelectingClientForRecebimentos, setIsSelectingClientForRecebimentos,
     selectedRider, setSelectedRider, selectedRate, setSelectedRate,
     observationText, setObservationText, selectedCustomerName, setSelectedCustomerName,
   }
@@ -1086,22 +1197,37 @@ function usePdvSangriaManager(
   return { handleSaveSangriaMovement }
 }
 
+function navigateWithClientCheck(
+  nav: ReturnType<typeof usePdvNavigationState>,
+  targetView: "negociacoes" | "recebimentos"
+) {
+  const hasClient = Boolean(nav.selectedCustomerName && nav.selectedCustomerName !== "Nao selecionado" && nav.selectedCustomerName !== "Venda Avulsa")
+  if (targetView === "negociacoes") {
+    nav.setNegociacoesClientFilter(hasClient ? nav.selectedCustomerName : null)
+    nav.setIsSelectingClientForNegociacoes(!hasClient)
+    nav.setIsSelectingClientForRecebimentos(false)
+  } else {
+    nav.setIsSelectingClientForRecebimentos(!hasClient)
+    nav.setIsSelectingClientForNegociacoes(false)
+  }
+  nav.setSubView(hasClient ? targetView : "clientes")
+}
+
 function usePdvSidebarNavigate(nav: ReturnType<typeof usePdvNavigationState>) {
   const handleSidebarNavigate = (view: "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos" | "ultimas-negociacoes") => {
     if (view === "ultimas-negociacoes") {
-      const hasClient = nav.selectedCustomerName && nav.selectedCustomerName !== "Nao selecionado" && nav.selectedCustomerName !== "Venda Avulsa"
-      nav.setNegociacoesClientFilter(hasClient ? nav.selectedCustomerName : null)
-      nav.setIsSelectingClientForNegociacoes(!hasClient)
-      nav.setSubView(hasClient ? "negociacoes" : "clientes")
+      navigateWithClientCheck(nav, "negociacoes")
+      return
+    }
+    if (view === "recebimentos") {
+      navigateWithClientCheck(nav, "recebimentos")
       return
     }
     if (view === "negociacoes") {
       nav.setNegociacoesClientFilter(null)
-      nav.setIsSelectingClientForNegociacoes(false)
-      nav.setSubView("negociacoes")
-      return
     }
     nav.setIsSelectingClientForNegociacoes(false)
+    nav.setIsSelectingClientForRecebimentos(false)
     nav.setSubView(view)
   }
   return { handleSidebarNavigate }
@@ -1134,7 +1260,7 @@ function PdvMobileBottomBar({
   if (step !== "negociacao") return null
   return (
     <Box display="block md:hidden" position="fixed" bottom={0} left={0} right={0} w="full" zIndex="20">
-      <Box w="full" bg="bg-background" paddingX={5} paddingY={2.5}>
+      <Box w="full" bg="bg-background" padding={2.5}>
         <Stack direction="row" gap={2.5} w="full">
           {deliveryContext?.isEditing && deliveryContext?.onSaveEdits ? (
             <Button variant="primary-lg" fullWidth label={UI_STRINGS.pdv.cart.saveChangesButton} disabled={cartItems.length === 0} onClick={() => deliveryContext.onSaveEdits?.(cartItems, subtotal, discount, total)} />
@@ -1192,7 +1318,7 @@ function PdvModalsBundle({
         handleSaveComandaAndExit={handleSaveComandaAndExit} isChangeModalOpen={pm.isChangeModalOpen}
         setIsChangeModalOpen={pm.setIsChangeModalOpen} amountDue={amountDue} setPayments={pm.setPayments}
         isCardModalOpen={pm.isCardModalOpen} setIsCardModalOpen={pm.setIsCardModalOpen}
-        handleLaunchPayment={(method: string, amount: number) => pm.setPayments((prev) => [...prev, { method, amount }])}
+        handleLaunchPayment={(method: string, amount: number) => pm.setPayments((prev) => [...prev, { method, amount, dueDate: method === "Crediário" ? getDefaultDueDate() : undefined, installment: 1, totalInstallments: 1 }])}
         isDiscountModalOpen={pm.isDiscountModalOpen} setIsDiscountModalOpen={pm.setIsDiscountModalOpen}
         setDiscount={pm.setDiscount} isSidebarOpen={pm.isSidebarOpen} setIsSidebarOpen={pm.setIsSidebarOpen}
         onBackToDashboard={onBackToDashboard} launchAmount={launchAmount} subtotal={subtotal}
@@ -1265,9 +1391,9 @@ function PdvViewBody({
           selectedRider={nav.selectedRider} selectedRate={nav.selectedRate} setSubView={nav.setSubView} setSelectedRider={nav.setSelectedRider}
           setSelectedRate={nav.setSelectedRate} setPendingDeliveryData={pm.setPendingDeliveryData} payments={pm.payments} totalPaid={totalPaid}
           amountDue={amountDue} setIsDiscountModalOpen={pm.setIsDiscountModalOpen}
-          handleLaunchPayment={(method: string, amount: number) => pm.setPayments((prev) => [...prev, { method, amount }])}
+          handleLaunchPayment={(method: string, amount: number) => pm.setPayments((prev) => [...prev, { method, amount, dueDate: method === "Crediário" ? getDefaultDueDate() : undefined, installment: 1, totalInstallments: 1 }])}
           handleRemovePayment={(idx: number) => pm.setPayments((prev) => prev.filter((_, i) => i !== idx))}
-          handleEditPayment={(idx: number, newAmount: number) => pm.setPayments((prev) => prev.map((p, i) => i === idx ? { ...p, amount: newAmount } : p))}
+          handleEditPayment={(idx: number, newAmount: number, newDueDate?: string) => pm.setPayments((prev) => prev.map((p, i) => i === idx ? { ...p, amount: newAmount, dueDate: newDueDate !== undefined ? newDueDate : p.dueDate } : p))}
           setIsChangeModalOpen={pm.setIsChangeModalOpen} setIsCardModalOpen={pm.setIsCardModalOpen} handleFinalizeSale={handleFinalizeSale}
           paymentAmountInput={pm.paymentAmountInput} setPaymentAmountInput={pm.setPaymentAmountInput} launchAmount={launchAmount}
         />
@@ -1342,7 +1468,8 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
         subView={nav.subView} setSubView={nav.setSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions}
         negociacoesClientFilter={nav.negociacoesClientFilter} setNegociacoesClientFilter={nav.setNegociacoesClientFilter}
         isSelectingClientForNegociacoes={nav.isSelectingClientForNegociacoes} setIsSelectingClientForNegociacoes={nav.setIsSelectingClientForNegociacoes}
-        setSelectedCustomerName={nav.setSelectedCustomerName} handleDuplicateToCart={handleDuplicateToCart}
+        isSelectingClientForRecebimentos={nav.isSelectingClientForRecebimentos} setIsSelectingClientForRecebimentos={nav.setIsSelectingClientForRecebimentos}
+        selectedCustomerName={nav.selectedCustomerName} setSelectedCustomerName={nav.setSelectedCustomerName} handleDuplicateToCart={handleDuplicateToCart}
         setSelectedRate={nav.setSelectedRate} setSelectedRider={nav.setSelectedRider}
       />
     )

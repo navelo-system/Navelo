@@ -23,9 +23,7 @@ export function Card({ title, subtitle, children, footer }: CardProps) {
         <Box>{children}</Box>
         {footer && (
           <>
-            <Box paddingY={2.5}>
-              <Box bg="bg-border" h="h-[2px]" w="full" />
-            </Box>
+            <Box bg="bg-border" h="h-[2px]" w="full" />
             <Box>{footer}</Box>
           </>
         )}

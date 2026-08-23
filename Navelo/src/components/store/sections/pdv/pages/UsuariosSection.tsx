@@ -78,8 +78,8 @@ function OperatorRolesSelectCard({
                 padding={2.5}
                 radius="default"
                 border
-                borderColor={isSelected ? "border-brand-primary" : "border-border"}
-                bg={isSelected ? "bg-brand-primary/5" : "bg-white"}
+                borderColor={isSelected ? "border-brand-secondary" : "border-border"}
+                bg={isSelected ? "bg-brand-secondary/10" : "bg-white"}
                 cursor="pointer"
                 onClick={() => setFormRole(r.key)}
               >
@@ -112,7 +112,7 @@ function UserListItemRow({
   const badgeVariant = user.role === "ADMIN" ? "primary" : user.role === "SUPERVISOR" ? "secondary" : "outline"
 
   return (
-    <Box w="full" paddingY={2.5} paddingX={2.5} radius="none" hoverBg="primary/10" cursor="pointer" onClick={() => onEdit(user)}>
+    <Box w="full" padding={2.5} radius="none" hoverBg="secondary/10" cursor="pointer" onClick={() => onEdit(user)}>
       <Stack direction="row" align="center" justify="between" w="full">
         <Stack direction="row" align="center" gap={2.5} flex="1">
           <Avatar fallback={user.name.substring(0, 2).toUpperCase()} />
@@ -316,31 +316,60 @@ function renderUserHeaderActions(formMgr: ReturnType<typeof useOperatorFormManag
 }
 
 function useUserHeaderSync(opts: UserHeaderSyncOptions) {
-  const { mode, formMgr, searchQuery, setSearchQuery, onCancel, tenantId, setCustomBack, setCustomTitle, setCustomActions, setMode, onRequestBack } = opts
+  const {
+    mode, formMgr, searchQuery, setSearchQuery, onCancel, tenantId,
+    setCustomBack, setCustomTitle, setCustomActions, setMode, onRequestBack,
+  } = opts
   const s = UI_STRINGS.settings.usuarios
 
   const onRequestBackRef = React.useRef(onRequestBack)
+  const onCancelRef = React.useRef(onCancel)
+  const formMgrRef = React.useRef(formMgr)
+  const setModeRef = React.useRef(setMode)
+  const setSearchQueryRef = React.useRef(setSearchQuery)
+  const setCustomBackRef = React.useRef(setCustomBack)
+  const setCustomTitleRef = React.useRef(setCustomTitle)
+  const setCustomActionsRef = React.useRef(setCustomActions)
+
   React.useEffect(() => {
     onRequestBackRef.current = onRequestBack
+    onCancelRef.current = onCancel
+    formMgrRef.current = formMgr
+    setModeRef.current = setMode
+    setSearchQueryRef.current = setSearchQuery
+    setCustomBackRef.current = setCustomBack
+    setCustomTitleRef.current = setCustomTitle
+    setCustomActionsRef.current = setCustomActions
   })
+
+  const editingUserId = formMgr.editingUser?.id
 
   React.useEffect(() => {
     if (mode === "form") {
-      setCustomBack?.(() => () => onRequestBackRef.current?.())
-      setCustomTitle?.(formMgr.editingUser ? s.editUserTitle : s.newUserTitle)
-      setCustomActions?.(renderUserHeaderActions(formMgr, tenantId, setMode))
+      setCustomBackRef.current?.(() => () => onRequestBackRef.current?.())
+      setCustomTitleRef.current?.(editingUserId ? s.editUserTitle : s.newUserTitle)
+      setCustomActionsRef.current?.(renderUserHeaderActions(formMgrRef.current, tenantId, (m) => setModeRef.current?.(m)))
     } else {
-      setCustomBack?.(() => () => onCancel())
-      setCustomTitle?.(s.title)
-      setCustomActions?.(<MobileHeaderSearch searchQuery={searchQuery} onSearchQueryChange={setSearchQuery} placeholder={s.searchPlaceholder} />)
+      setCustomBackRef.current?.(() => () => onCancelRef.current?.())
+      setCustomTitleRef.current?.(s.title)
+      setCustomActionsRef.current?.(
+        <MobileHeaderSearch
+          searchQuery={searchQuery}
+          onSearchQueryChange={(q) => setSearchQueryRef.current?.(q)}
+          placeholder={s.searchPlaceholder}
+        />
+      )
     }
-  }, [mode, formMgr, searchQuery, setSearchQuery, setCustomBack, setCustomTitle, setCustomActions, setMode, onCancel, s, tenantId])
+  }, [
+    mode, editingUserId, searchQuery, tenantId,
+    s.editUserTitle, s.newUserTitle, s.title, s.searchPlaceholder,
+  ])
 
   React.useEffect(() => () => {
-    setCustomBack?.(null)
-    setCustomTitle?.(null)
-    setCustomActions?.(null)
-  }, [setCustomBack, setCustomTitle, setCustomActions])
+    setCustomBackRef.current?.(null)
+    setCustomTitleRef.current?.(null)
+    setCustomActionsRef.current?.(null)
+  }, [])
 }
 
 export const UsuariosSection: React.FC<UsuariosSectionProps> = ({

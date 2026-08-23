@@ -31,7 +31,7 @@ export const ComandasMenuSidebar: React.FC<ComandasMenuSidebarProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title={c.menu} variant="sidebar">
       <Stack gap={5}>
         {/* Sincronizacao */}
-        <Box w="full" bg="bg-surface-sunken" padding={2.5} radius="default">
+        <Box w="full" bg="bg-brand-secondary/10" padding={2.5} radius="default">
           <Stack direction="row" align="center" justify="between" w="full">
             <Stack direction="row" align="center" gap={2.5}>
               <Icon icon={Cloud} size={16} color="primary" />
@@ -49,7 +49,7 @@ export const ComandasMenuSidebar: React.FC<ComandasMenuSidebarProps> = ({
               padding={2.5}
               w="full"
               cursor="pointer"
-              hoverBg="surface-sunken"
+              hoverBg="secondary/10"
               onClick={() => {
                 onClose()
                 if (onStartAvulsoService) {
@@ -66,7 +66,7 @@ export const ComandasMenuSidebar: React.FC<ComandasMenuSidebarProps> = ({
               padding={2.5}
               w="full"
               cursor="pointer"
-              hoverBg="surface-sunken"
+              hoverBg="secondary/10"
               onClick={() => { onClose(); onFinishAll() }}
             >
               <Font variant="body-sm-semibold" text={t.finishServices} align="left" />

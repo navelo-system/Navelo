@@ -33,7 +33,7 @@ function ShareOptionCard({ icon, color, title, subtitle, onClick }: ShareOptionC
       padding={5}
       radius="default"
       bg="bg-brand-primary/10"
-      hoverBg="primary/10"
+      hoverBg="secondary/10"
       cursor="pointer"
       onClick={onClick}
     >

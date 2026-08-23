@@ -1,6 +1,7 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 import { ChevronDown, LucideIcon } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
 export interface CustomSelectItemProps {
   value: string
@@ -52,17 +53,32 @@ export const CustomSelectItem: React.FC<CustomSelectItemProps> = ({
 CustomSelectItem.displayName = "CustomSelectItem"
 
 export interface CustomSelectProps {
-  children: React.ReactElement<CustomSelectItemProps> | React.ReactElement<CustomSelectItemProps>[]
+  children?: React.ReactNode
   value?: string
   onChange?: (value: string) => void
   placeholder?: string
   disabled?: boolean
   hasError?: boolean
   id?: string
+  emptyText?: string
+  emptyIcon?: LucideIcon
 }
 
 export const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
-  ({ children, value, onChange, placeholder = "Selecione...", disabled, hasError, id }, ref) => {
+  (
+    {
+      children,
+      value,
+      onChange,
+      placeholder = "Selecione...",
+      disabled,
+      hasError,
+      id,
+      emptyText,
+      emptyIcon: EmptyIcon,
+    },
+    ref
+  ) => {
     const [isOpen, setIsOpen] = React.useState(false)
     const containerRef = React.useRef<HTMLDivElement>(null)
 
@@ -144,7 +160,14 @@ export const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
               )}
             >
               <div className="max-h-60 overflow-y-auto">
-                {children}
+                {childrenArray.length > 0 ? (
+                  children
+                ) : (
+                  <div className="flex items-center justify-center gap-2.5 px-5 py-5 text-sm text-text-muted">
+                    {EmptyIcon && <EmptyIcon size={16} className="shrink-0 text-text-muted" />}
+                    <span>{emptyText || UI_STRINGS.common.noResultsFound}</span>
+                  </div>
+                )}
               </div>
             </div>
           )}

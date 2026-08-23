@@ -26,6 +26,7 @@ export type ModalProps =
     variant?: "default" | "bottom" | "sidebar"
     children: React.ReactNode
     footer?: React.ReactNode
+    customActions?: React.ReactNode
   }
   | {
     isOpen: boolean
@@ -43,6 +44,7 @@ export type ModalProps =
     variant?: "default" | "bottom" | "sidebar"
     children: React.ReactNode
     footer?: React.ReactNode
+    customActions?: React.ReactNode
   }
 
 interface SidebarContentProps {
@@ -115,6 +117,7 @@ interface BottomContentProps {
   children: React.ReactNode
   onClose: () => void
   onSuccess?: () => void
+  customActions?: React.ReactNode
 }
 
 function BottomModalContent({
@@ -129,6 +132,7 @@ function BottomModalContent({
   children,
   onClose,
   onSuccess,
+  customActions,
 }: BottomContentProps) {
   return (
     <div className="fixed inset-0 flex items-end justify-center" style={{ zIndex }}>
@@ -154,19 +158,25 @@ function BottomModalContent({
               <Font variant="body-bold" text={title ?? ""} color="muted" />
             </Box>
             <Stack direction="row" align="center" justify="center" w="full" mobileJustify="end" gap={5} className="md:w-auto">
-              {showCancelButton && (
-                <Button type="button" variant="ghost" label={cancelText} onClick={onClose} />
-              )}
-              {showCancelButton && successText && (
-                <Box h="h-6" w="w-[1px]" bg="bg-border" opacity="50" />
-              )}
-              {successText && (
-                <Button
-                  type={isSubmit ? "submit" : "button"}
-                  variant="ghost-secondary"
-                  label={successText}
-                  onClick={onSuccess}
-                />
+              {customActions ? (
+                customActions
+              ) : (
+                <>
+                  {showCancelButton && (
+                    <Button type="button" variant="ghost" label={cancelText} onClick={onClose} />
+                  )}
+                  {showCancelButton && successText && (
+                    <Box h="h-6" w="w-[1px]" bg="bg-border" opacity="50" />
+                  )}
+                  {successText && (
+                    <Button
+                      type={isSubmit ? "submit" : "button"}
+                      variant="ghost-secondary"
+                      label={successText}
+                      onClick={onSuccess}
+                    />
+                  )}
+                </>
               )}
             </Stack>
           </Stack>
@@ -341,6 +351,7 @@ export function Modal(props: ModalProps) {
     cancelVariant = "secondary",
     children,
     footer,
+    customActions,
   } = props
 
   const [shouldRender, setShouldRender] = React.useState(isOpen)
@@ -416,6 +427,7 @@ export function Modal(props: ModalProps) {
         isSubmit={isSubmit}
         onClose={handleClose}
         onSuccess={onSuccess}
+        customActions={customActions}
       >
         {children}
       </BottomModalContent>

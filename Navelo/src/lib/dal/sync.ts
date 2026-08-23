@@ -19,6 +19,7 @@ export const SYNC_TABLES = [
   'riders',
   'delivery_rates',
   'restaurant_tables',
+  'receivables',
 ] as const;
 
 export interface SyncQueueItem {
@@ -128,7 +129,9 @@ function sanitizeCashRegistersPayload(p: Record<string, unknown>): Record<string
 }
 
 function sanitizeCustomersPayload(p: Record<string, unknown>): Record<string, unknown> {
-  if (p.addresses && Array.isArray(p.addresses)) delete p.addresses;
+  if (p.addresses && Array.isArray(p.addresses)) {
+    p.addresses = JSON.stringify(p.addresses);
+  }
   return p;
 }
 
@@ -210,7 +213,41 @@ function normalizeIncomingRecord(record: Record<string, unknown>, activeTenant: 
       // ignore
     }
   }
+  if (typeof normalized.addresses === 'string') {
+    try {
+      normalized.addresses = JSON.parse(normalized.addresses as string);
+    } catch {
+      // ignore
+    }
+  }
+  if (normalized.addresses !== undefined && !Array.isArray(normalized.addresses)) {
+    normalized.addresses = [];
+  }
   return normalized;
+}
+
+function extractArrayAddresses(raw: unknown): unknown[] {
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === 'string' && raw.trim().startsWith('[')) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      // ignore
+    }
+  }
+  return [];
+}
+
+async function preserveCustomerAddressesIfNeeded(record: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const currentList = extractArrayAddresses(record.addresses);
+  if (currentList.length > 0 || !record.id) {
+    record.addresses = currentList;
+    return record;
+  }
+  const existing = await db.customers.get(record.id as string);
+  record.addresses = extractArrayAddresses(existing?.addresses);
+  return record;
 }
 
 async function fetchAndMergeTable(table: string, activeTenant: string) {
@@ -224,7 +261,15 @@ async function fetchAndMergeTable(table: string, activeTenant: string) {
     return;
   }
   if (data && data.length > 0) {
-    const normalized = data.map((record) => normalizeIncomingRecord(record as Record<string, unknown>, activeTenant));
+    const normalized = await Promise.all(
+      data.map(async (record) => {
+        let norm = normalizeIncomingRecord(record as Record<string, unknown>, activeTenant);
+        if (table === 'customers') {
+          norm = await preserveCustomerAddressesIfNeeded(norm);
+        }
+        return norm;
+      })
+    );
     await db.table(table).bulkPut(normalized);
   }
 }
@@ -271,7 +316,7 @@ export async function initialSync(tenantId?: string) {
 }
 
 export async function mutateLocalFirst<T extends { id: string; company_id?: string; tenant_id?: string }>(
-  tableName: 'products' | 'categories' | 'sales' | 'sale_items' | 'customers' | 'users' | 'suppliers' | 'units' | 'print_points' | 'cash_registers' | 'cash_movements' | 'restaurant_tables' | 'tabs' | 'contingency_notes' | 'riders' | 'delivery_rates' | 'delivery_orders' | 'companies' | 'inventory_audits',
+  tableName: 'products' | 'categories' | 'sales' | 'sale_items' | 'customers' | 'users' | 'suppliers' | 'units' | 'print_points' | 'cash_registers' | 'cash_movements' | 'restaurant_tables' | 'tabs' | 'contingency_notes' | 'riders' | 'delivery_rates' | 'delivery_orders' | 'companies' | 'inventory_audits' | 'manual_stock_entries' | 'receivables',
   payload: T,
   action: 'INSERT' | 'UPDATE' | 'DELETE' = 'UPDATE',
   tenantId?: string
@@ -343,6 +388,28 @@ export async function processSyncQueue() {
   }
 }
 
+async function handleRealtimePayload(
+  payload: { table: string; eventType: string; new: Record<string, unknown>; old: Record<string, unknown> },
+  activeTenant: string
+) {
+  const { table, eventType, new: newRecord, old: oldRecord } = payload;
+  try {
+    if (eventType === 'DELETE' && oldRecord?.id) {
+      await db.table(table).delete(oldRecord.id as string);
+      return;
+    }
+    if ((eventType === 'INSERT' || eventType === 'UPDATE') && newRecord?.id) {
+      let norm = normalizeIncomingRecord(newRecord, activeTenant);
+      if (table === 'customers') {
+        norm = await preserveCustomerAddressesIfNeeded(norm);
+      }
+      await db.table(table).put(norm);
+    }
+  } catch (err) {
+    console.warn(`[Realtime] Erro ao aplicar mudança na tabela ${table}:`, err);
+  }
+}
+
 export function subscribeToRealtimeSync(tenantId?: string) {
   const activeTenant = tenantId || 'tenant-11111111111111';
   if (typeof window === 'undefined') return () => {};
@@ -352,22 +419,11 @@ export function subscribeToRealtimeSync(tenantId?: string) {
     .on(
       'postgres_changes',
       { event: '*', schema: 'public' },
-      async (payload) => {
-        const table = payload.table;
-        const eventType = payload.eventType;
-        const newRecord = payload.new as Record<string, unknown>;
-        const oldRecord = payload.old as Record<string, unknown>;
-
-        try {
-          if (eventType === 'DELETE' && oldRecord?.id) {
-            await db.table(table).delete(oldRecord.id as string);
-          } else if ((eventType === 'INSERT' || eventType === 'UPDATE') && newRecord?.id) {
-            const normalizedRecord = normalizeIncomingRecord(newRecord, activeTenant);
-            await db.table(table).put(normalizedRecord);
-          }
-        } catch (err) {
-          console.warn(`[Realtime] Erro ao aplicar mudança na tabela ${table}:`, err);
-        }
+      (payload) => {
+        void handleRealtimePayload(
+          payload as unknown as { table: string; eventType: string; new: Record<string, unknown>; old: Record<string, unknown> },
+          activeTenant
+        );
       }
     )
     .subscribe();

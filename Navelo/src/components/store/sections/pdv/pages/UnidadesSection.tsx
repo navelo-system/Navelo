@@ -23,6 +23,7 @@ export interface UnitItem {
 
 export interface UnidadesSectionProps {
   onCancel: () => void
+  onSelectUnit?: (unit: UnitItem) => void
   setCustomBack?: (cb: (() => void) | null) => void
   setCustomTitle?: (title: string | null) => void
   setCustomActions?: (actions: React.ReactNode | null) => void
@@ -70,7 +71,7 @@ function UnitFormCard({
 
 function UnitListItem({ unit, onClick }: { unit: UnitItem; onClick: () => void }) {
   return (
-    <Box paddingY={2.5} paddingX={2.5} hoverBg="primary/10" w="full" cursor="pointer" onClick={onClick}>
+    <Box padding={2.5} hoverBg="secondary/10" w="full" cursor="pointer" onClick={onClick}>
       <Stack gap={1} w="full">
         <Font variant="body" text={unit.name} />
         <Font variant="auxiliary" text={getDecimalText(unit.decimals)} color="muted" />
@@ -109,11 +110,23 @@ function useUnidadesHeaderSync(opts: UnidadesHeaderSyncOpts) {
   } = opts
   const s = UI_STRINGS.settings.unidades
 
+  const setCustomBackRef = React.useRef(setCustomBack)
+  const setCustomTitleRef = React.useRef(setCustomTitle)
+  const setCustomActionsRef = React.useRef(setCustomActions)
+  const handleBackRef = React.useRef(handleBack)
+
+  React.useEffect(() => {
+    setCustomBackRef.current = setCustomBack
+    setCustomTitleRef.current = setCustomTitle
+    setCustomActionsRef.current = setCustomActions
+    handleBackRef.current = handleBack
+  })
+
   React.useEffect(() => {
     if (mode === "form") {
-      setCustomBack?.(() => handleBack)
-      setCustomTitle?.(editingUnit ? s.editUnitTitle : s.newUnitTitle)
-      setCustomActions?.(
+      setCustomBackRef.current?.(() => () => handleBackRef.current())
+      setCustomTitleRef.current?.(editingUnit ? s.editUnitTitle : s.newUnitTitle)
+      setCustomActionsRef.current?.(
         <Stack direction="row" gap={2.5} align="center">
           {editingUnit && (
             <Button
@@ -135,16 +148,24 @@ function useUnidadesHeaderSync(opts: UnidadesHeaderSyncOpts) {
         </Stack>
       )
     }
-    return () => { setCustomBack?.(null); setCustomTitle?.(null); setCustomActions?.(null) }
-  }, [mode, editingUnit, tenantId, setCustomBack, setCustomTitle, setCustomActions, handleBack, s, setMode, setEditingUnit])
+  }, [mode, editingUnit, tenantId, s, setMode, setEditingUnit])
+
+  React.useEffect(() => {
+    return () => {
+      setCustomBackRef.current?.(null)
+      setCustomTitleRef.current?.(null)
+      setCustomActionsRef.current?.(null)
+    }
+  }, [])
 }
 
 function UnidadesListView({
-  units, onAdd, onEdit, setCustomBack, setCustomTitle, setCustomActions, onBackToDashboard,
+  units, onAdd, onEdit, onSelectUnit, setCustomBack, setCustomTitle, setCustomActions, onBackToDashboard,
 }: {
   units: UnitItem[]
   onAdd: () => void
   onEdit: (unit: UnitItem) => void
+  onSelectUnit?: (unit: UnitItem) => void
   setCustomBack?: (cb: (() => void) | null) => void
   setCustomTitle?: (title: string | null) => void
   setCustomActions?: (actions: React.ReactNode | null) => void
@@ -166,19 +187,27 @@ function UnidadesListView({
       setCustomTitle={setCustomTitle}
       setCustomActions={setCustomActions}
       onBackToDashboard={onBackToDashboard}
-      renderItem={(unit) => <UnitListItem unit={unit} onClick={() => onEdit(unit)} />}
+      renderItem={(unit) => (
+        <UnitListItem
+          unit={unit}
+          onClick={() => (onSelectUnit ? onSelectUnit(unit) : onEdit(unit))}
+        />
+      )}
     />
   )
 }
 
-export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
-  onCancel,
-  setCustomBack,
-  setCustomTitle,
-  setCustomActions,
-}) => {
-  const tenantCtx = useTenant()
-  const tenantId = tenantCtx?.currentTenant?.id
+interface UseUnidadesSectionStateOpts {
+  tenantId?: string
+  onCancel: () => void
+  onSelectUnit?: (unit: UnitItem) => void
+  setCustomBack?: (cb: (() => void) | null) => void
+  setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
+}
+
+function useUnidadesSectionState(opts: UseUnidadesSectionStateOpts) {
+  const { tenantId, onCancel, onSelectUnit, setCustomBack, setCustomTitle, setCustomActions } = opts
   const dbUnits = useUnits(tenantId)
   const [mode, setMode] = React.useState<"list" | "form">("list")
   const [editingUnit, setEditingUnit] = React.useState<UnitItem | null>(null)
@@ -197,15 +226,9 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
 
   const handleBack = React.useCallback(() => {
     if (mode === "form") {
-      if (isDirty) {
-        setIsDiscardModalOpen(true)
-      } else {
-        setMode("list")
-        setEditingUnit(null)
-      }
-    } else {
-      onCancel()
-    }
+      if (isDirty) setIsDiscardModalOpen(true)
+      else { setMode("list"); setEditingUnit(null) }
+    } else onCancel()
   }, [mode, isDirty, onCancel])
 
   useUnidadesHeaderSync({
@@ -224,19 +247,36 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
     }
     if (editingUnit) await dal.units.update(unitPayload)
     else await dal.units.create(unitPayload)
-    setMode("list")
-    setEditingUnit(null)
+    if (!editingUnit && onSelectUnit) onSelectUnit({ id: unitPayload.id, name: unitPayload.name, decimals: unitPayload.decimals })
+    else { setMode("list"); setEditingUnit(null) }
   }
 
+  return {
+    units, mode, setMode, editingUnit, setEditingUnit,
+    formName, setFormName, formDecimals, setFormDecimals,
+    isDiscardModalOpen, setIsDiscardModalOpen, handleSave,
+    handleCreateNew: () => { setEditingUnit(null); setFormName(""); setFormDecimals("0"); setMode("form") },
+    handleEdit: (unit: UnitItem) => { setEditingUnit(unit); setFormName(unit.name); setFormDecimals(unit.decimals.toString()); setMode("form") },
+  }
+}
+
+export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
+  onCancel, onSelectUnit, setCustomBack, setCustomTitle, setCustomActions,
+}) => {
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id
+  const s = useUnidadesSectionState({ tenantId, onCancel, onSelectUnit, setCustomBack, setCustomTitle, setCustomActions })
+
   return (
-    <ViewTransition viewKey={mode} flex="1" minH="0">
-      {mode === "form" ? (
-        <UnitFormCard formName={formName} setFormName={setFormName} formDecimals={formDecimals} setFormDecimals={setFormDecimals} onSubmit={handleSave} />
+    <ViewTransition viewKey={s.mode} flex="1" minH="0">
+      {s.mode === "form" ? (
+        <UnitFormCard formName={s.formName} setFormName={s.setFormName} formDecimals={s.formDecimals} setFormDecimals={s.setFormDecimals} onSubmit={s.handleSave} />
       ) : (
         <UnidadesListView
-          units={units}
-          onAdd={() => { setEditingUnit(null); setFormName(""); setFormDecimals("0"); setMode("form") }}
-          onEdit={(unit) => { setEditingUnit(unit); setFormName(unit.name); setFormDecimals(unit.decimals.toString()); setMode("form") }}
+          units={s.units}
+          onAdd={s.handleCreateNew}
+          onEdit={s.handleEdit}
+          onSelectUnit={onSelectUnit}
           setCustomBack={setCustomBack}
           setCustomTitle={setCustomTitle}
           setCustomActions={setCustomActions}
@@ -244,12 +284,12 @@ export const UnidadesSection: React.FC<UnidadesSectionProps> = ({
         />
       )}
       <DiscardChangesModal
-        isOpen={isDiscardModalOpen}
-        onClose={() => setIsDiscardModalOpen(false)}
+        isOpen={s.isDiscardModalOpen}
+        onClose={() => s.setIsDiscardModalOpen(false)}
         onConfirmDiscard={() => {
-          setIsDiscardModalOpen(false)
-          setMode("list")
-          setEditingUnit(null)
+          s.setIsDiscardModalOpen(false)
+          s.setMode("list")
+          s.setEditingUnit(null)
         }}
       />
     </ViewTransition>
