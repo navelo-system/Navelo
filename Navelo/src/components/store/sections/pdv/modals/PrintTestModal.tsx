@@ -1,7 +1,6 @@
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
 import { Font } from "@/components/store/base/Font"
-import { Printer } from "lucide-react"
 import { UI_STRINGS } from "@/constants/strings"
 
 export interface PrintTestModalProps {
@@ -20,8 +19,6 @@ export const PrintTestModal: React.FC<PrintTestModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={p.testPrintTitle}
-      subtitle={p.simulationSubtitle}
-      icon={Printer}
       successText="OK"
       onSuccess={onClose}
       showCancelButton={false}

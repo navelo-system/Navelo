@@ -36,7 +36,7 @@ export const RegistryMain: React.FC<RegistryMainProps> = ({
   });
 
   return (
-    <Box padding={5} w="full" flex="1" bg="bg-background" direction="col" overflow="hidden" minH="0" {...props}>
+    <Box display="flex" padding={5} w="full" flex="1" bg="bg-background" direction="col" overflow="hidden" minH="0" {...props}>
       <Stack gap={5} w="full" flex="1" minH="0" overflow="hidden">
         {(onBack || customActions) && (
           <Box position="relative" w="full" shrink="0">

@@ -5,7 +5,7 @@ import { Font } from "@/components/store/base/Font"
 import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { Modal } from "@/components/store/base/Modal"
-import { ShoppingBag, Copy } from "lucide-react"
+import { Copy } from "lucide-react"
 import { UI_STRINGS } from "@/constants/strings"
 
 export interface IFoodActivationModalProps {
@@ -38,8 +38,6 @@ export const IFoodActivationModal: React.FC<IFoodActivationModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={s.activationModalTitle}
-      subtitle={s.activationModalSubtitle}
-      icon={ShoppingBag}
       successText={c.finish}
       onSuccess={handleConfirm}
     >

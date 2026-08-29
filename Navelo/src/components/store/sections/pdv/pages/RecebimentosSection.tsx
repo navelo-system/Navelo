@@ -237,8 +237,6 @@ function RecebimentoSuccessModal({
       isOpen={isOpen}
       onClose={onClose}
       title={r.successModalTitle}
-      subtitle={r.successModalSubtitle}
-      icon={Check}
       variant="default"
       successText={UI_STRINGS.common.confirm}
       onSuccess={onSuccess}

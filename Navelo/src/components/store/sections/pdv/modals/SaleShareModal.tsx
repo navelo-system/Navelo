@@ -95,8 +95,6 @@ export function SaleShareModal({
       onClose={onClose}
       variant="bottom"
       title={s.shareReceiptModalTitle}
-      subtitle={saleName}
-      icon={Share2}
       showCancelButton
     >
       <Stack direction="col" gap={2.5} w="full">

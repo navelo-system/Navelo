@@ -17,6 +17,7 @@ import { useTenant } from "@/lib/context/TenantContext"
 import { useDeliveryOrders, dal, Rider, DeliveryRate, DeliveryOrder as DalDeliveryOrder } from "@/lib/dal"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
 import { UI_STRINGS } from "@/constants/strings"
+import { useAppNavigation } from "@/lib/navigation/NavigationContext"
 
 export interface DeliverySectionProps {
   setCustomActions?: (actions: React.ReactNode) => void
@@ -246,6 +247,54 @@ function parseSingleDeliveryOrder(o: DalDeliveryOrder): ExtendedDeliveryOrder {
   }
 }
 
+function resolveCreatedDeliveryClientDetails(client: DeliveryClientInfo) {
+  return {
+    client_name: client.name,
+    client_document: client.document || "101.389.219-46",
+    client_phone: client.phone || "(41) 998364028",
+    address: client.address || "Endereço não informado",
+  }
+}
+
+function buildCreatedDeliveryPayload(
+  orderId: string,
+  tenantId: string,
+  orderData: {
+    status: string; deliveryType: string; paymentMoment: string
+    client: DeliveryClientInfo; rider?: Rider | null; rate?: DeliveryRate | null
+    items: CartItemType[]; total: number; subtotal: number; discount: number
+  }
+) {
+  const motoboyName = orderData.rider?.name || "Entregador não selecionado"
+  const deliveryFee = orderData.rate?.fee ?? 10.0
+  const finalTotal = Math.max(0, orderData.subtotal + deliveryFee - orderData.discount)
+  const paymentMoment = (orderData.paymentMoment as "on_delivery" | "advance") || "on_delivery"
+  const paymentMethod = paymentMoment === "advance" ? "Pagamento Antecipado" : "Cobrança na Entrega - Dinheiro"
+  const clientDetails = resolveCreatedDeliveryClientDetails(orderData.client)
+
+  return {
+    id: orderId, tenant_id: tenantId, company_id: tenantId,
+    ...clientDetails,
+    status: "confirmed" as const, estimated_time: "1 hora",
+    subtotal: orderData.subtotal, discount: orderData.discount, delivery_fee: deliveryFee, total: finalTotal, motoboy: motoboyName,
+    delivery_type: orderData.deliveryType || "Entrega no endereço",
+    payment_method: paymentMethod,
+    payment_moment: paymentMoment,
+    created_at: new Date().toISOString(),
+    items: orderData.items.map((it) => ({ id: it.id, name: it.name, quantity: it.quantity, unitPrice: it.unitPrice, totalPrice: it.quantity * it.unitPrice })),
+  }
+}
+
+async function decrementOrderedStock(items: CartItemType[]) {
+  await Promise.all(items.map(async (item) => {
+    const dbProduct = await dal.products.getById(item.id)
+    if (dbProduct) {
+      const currentStock = dbProduct.stock ?? 0
+      await dal.products.update({ ...dbProduct, stock: Math.max(0, currentStock - item.quantity) })
+    }
+  }))
+}
+
 function useDeliveryOrdersList(rawOrders?: DalDeliveryOrder[]) {
   const orders: ExtendedDeliveryOrder[] = React.useMemo(() => {
     if (!Array.isArray(rawOrders)) return []
@@ -319,25 +368,10 @@ function useDeliveryOperations(p: DeliveryOperationsParams) {
     items: CartItemType[]; total: number; subtotal: number; discount: number
   }) => {
     const orderId = Math.floor(1000 + Math.random() * 9000).toString()
-    const motoboyName = orderData.rider?.name || "Entregador não selecionado"
-    const deliveryFee = orderData.rate?.fee ?? 10.0
-    const finalTotal = Math.max(0, orderData.subtotal + deliveryFee - orderData.discount)
+    const payload = buildCreatedDeliveryPayload(orderId, tenantId, orderData)
 
-    await dal.deliveryOrders.create({
-      id: orderId, tenant_id: tenantId, company_id: tenantId, client_name: orderData.client.name,
-      client_document: orderData.client.document || "101.389.219-46", client_phone: orderData.client.phone || "(41) 998364028",
-      address: orderData.client.address || "Endereço não informado", status: "confirmed", estimated_time: "1 hora",
-      subtotal: orderData.subtotal, discount: orderData.discount, delivery_fee: deliveryFee, total: finalTotal, motoboy: motoboyName,
-      created_at: new Date().toISOString(), items: orderData.items.map((it) => ({ id: it.id, name: it.name, quantity: it.quantity, unitPrice: it.unitPrice, totalPrice: it.quantity * it.unitPrice })),
-    })
-
-    await Promise.all(orderData.items.map(async (item) => {
-      const dbProduct = await dal.products.getById(item.id)
-      if (dbProduct) {
-        const currentStock = dbProduct.stock ?? 0
-        await dal.products.update({ ...dbProduct, stock: Math.max(0, currentStock - item.quantity) })
-      }
-    }))
+    await dal.deliveryOrders.create(payload)
+    await decrementOrderedStock(orderData.items)
 
     setSelectedOrderId(orderId)
     setViewHistory(isDesktopRef.current ? ["list"] : ["list", "order-detail"])
@@ -443,20 +477,54 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
   const isDesktopRef = React.useRef(isDesktop)
   React.useEffect(() => { isDesktopRef.current = isDesktop }, [isDesktop])
 
-  const [viewHistory, setViewHistory] = React.useState<DeliveryView[]>(["list"])
-  const rawViewMode = viewHistory[viewHistory.length - 1] || "list"
-  const viewMode = isDesktop && rawViewMode === "order-detail" ? "list" : rawViewMode
+  const { currentRoute, navigate, goBack } = useAppNavigation()
+  const isNewOrder =
+    currentRoute.view === "novo-delivery" ||
+    (currentRoute.view === "delivery" && (currentRoute.subView === "novo-delivery" || currentRoute.action === "new" || currentRoute.action === "novo"))
+  const isRiders =
+    currentRoute.view === "entregadores" ||
+    currentRoute.view === "taxas-entrega" ||
+    (currentRoute.view === "delivery" && (currentRoute.subView === "entregadores" || currentRoute.subView === "taxas-entrega"))
+  const routeOrderId =
+    currentRoute.view === "delivery" && currentRoute.entityId && currentRoute.entityId !== "new" && currentRoute.entityId !== "novo"
+      ? currentRoute.entityId
+      : null
 
-  const pushView = React.useCallback((newView: DeliveryView) => { setViewHistory((prev) => [...prev, newView]) }, [])
-  const popView = React.useCallback(() => { setViewHistory((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev)) }, [])
+  const [internalView, setInternalView] = React.useState<DeliveryView>("list")
+  const viewMode: DeliveryView = isNewOrder
+    ? (internalView === "pos" ? "pos" : "client-form")
+    : isRiders
+    ? "riders-select"
+    : routeOrderId && !isDesktop
+    ? "order-detail"
+    : internalView === "pos"
+    ? "pos"
+    : "list"
 
-  const rawOrders = useDeliveryOrders(tenantId)
-  const { orders } = useDeliveryOrdersList(rawOrders)
+  const [selectedOrderIdState, setSelectedOrderIdState] = React.useState<string>("")
+  const selectedOrderId = routeOrderId || selectedOrderIdState
 
-  const [selectedOrderId, setSelectedOrderId] = React.useState<string>("")
   const [editingOrderId, setEditingOrderId] = React.useState<string | null>(null)
   const [searchQuery, setSearchQuery] = React.useState("")
   const [selectedClient, setSelectedClient] = React.useState<DeliveryClientInfo | null>(null)
+
+  const pushView = React.useCallback((newView: DeliveryView) => {
+    if (newView === "client-form") navigate("#novo-delivery")
+    else if (newView === "riders-select") navigate("#entregadores")
+    else if (newView === "pos") setInternalView("pos")
+    else if (newView === "order-detail" && selectedOrderId) navigate(`#delivery/${selectedOrderId}`)
+    else setInternalView(newView)
+  }, [navigate, selectedOrderId])
+
+  const popView = React.useCallback(() => {
+    if (internalView === "pos") {
+      setInternalView("list")
+    }
+    goBack("#delivery")
+  }, [goBack, internalView])
+
+  const rawOrders = useDeliveryOrders(tenantId)
+  const { orders } = useDeliveryOrdersList(rawOrders)
 
   const effectiveSelectedOrderId = React.useMemo(() => {
     if (orders.length === 0) return ""
@@ -466,12 +534,13 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
 
   const selectedOrder = orders.find((o) => o.id === effectiveSelectedOrderId)
   const handleSelectOrder = React.useCallback((id: string) => {
-    setSelectedOrderId(id); if (!isDesktopRef.current) pushView("order-detail")
-  }, [pushView])
+    setSelectedOrderIdState(id)
+    if (!isDesktopRef.current) navigate(`#delivery/${id}`)
+  }, [navigate])
 
   useDeliveryHeaderSync({
     viewMode, selectedOrder, searchQuery, setSearchQuery, isDesktop,
-    hasSelectedOrder: Boolean(effectiveSelectedOrderId), viewHistoryLength: viewHistory.length,
+    hasSelectedOrder: Boolean(effectiveSelectedOrderId), viewHistoryLength: viewMode === "list" ? 1 : 2,
     popView, onBackToDashboard, setCustomTitle, setCustomBack, setCustomActions,
   })
 
@@ -479,7 +548,7 @@ export const DeliverySection: React.FC<DeliverySectionProps> = ({
     handleUpdateStatus, handleAssignMotoboy, handleDeleteOrder, handleSaveOrderEdits, handleConfirmDeliveryOrder,
   } = useDeliveryOperations({
     tenantId, rawOrders, effectiveSelectedOrderId, editingOrderId, setEditingOrderId,
-    setSelectedOrderId, popView, pushView, setViewHistory, isDesktopRef, orders, viewMode,
+    setSelectedOrderId: setSelectedOrderIdState, popView, pushView, setViewHistory: () => {}, isDesktopRef, orders, viewMode,
   })
 
   return (

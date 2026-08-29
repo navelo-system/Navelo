@@ -3,6 +3,8 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Avatar } from "@/components/store/base/Avatar"
 import { Box } from "@/components/store/base/Box"
+import { Button } from "@/components/store/base/Button"
+import { Trash2 } from "lucide-react"
 import { QuantityControl } from "@/components/store/intermediary/QuantityControl"
 
 export interface CartItemProps {
@@ -10,6 +12,7 @@ export interface CartItemProps {
   name: string
   quantity: number
   unitPrice: number
+  unit?: string
   image?: string
   stock?: number
   isLast?: boolean
@@ -23,6 +26,7 @@ export const CartItem: React.FC<CartItemProps> = ({
   name,
   quantity,
   unitPrice,
+  unit,
   image,
   stock,
   isLast,
@@ -36,6 +40,12 @@ export const CartItem: React.FC<CartItemProps> = ({
       currency: "BRL",
     }).format(value)
   }
+
+  const isDecimalOrKg = (unit || "").trim().toUpperCase() === "KG" || !Number.isInteger(quantity)
+  const formattedWeight = quantity.toLocaleString("pt-BR", {
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3,
+  }) + (unit ? ` ${unit}` : "")
 
   return (
     <>
@@ -54,14 +64,25 @@ export const CartItem: React.FC<CartItemProps> = ({
           <Box shrink="0">
             <Stack direction="col" align="end" gap={1}>
               {/* Controls */}
-              <QuantityControl
-                quantity={quantity}
-                stock={stock}
-                onIncrease={() => onIncrease(id)}
-                onDecrease={() => onDecrease(id)}
-                onRemove={() => onRemove(id)}
-                stopPropagation={false}
-              />
+              {isDecimalOrKg ? (
+                <Stack direction="row" align="center" gap={2.5} justify="end">
+                  <Font variant="body-bold" text={formattedWeight} align="right" />
+                  <Button
+                    variant="danger-icon-xs"
+                    icon={Trash2}
+                    onClick={() => onRemove(id)}
+                  />
+                </Stack>
+              ) : (
+                <QuantityControl
+                  quantity={quantity}
+                  stock={stock}
+                  onIncrease={() => onIncrease(id)}
+                  onDecrease={() => onDecrease(id)}
+                  onRemove={() => onRemove(id)}
+                  stopPropagation={false}
+                />
+              )}
 
               {/* Line Total */}
               <Box padding={0} w="auto">

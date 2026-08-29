@@ -266,8 +266,6 @@ export function ThemeCustomizerModal({ isOpen, onClose }: ThemeCustomizerModalPr
       isOpen={isOpen}
       onClose={onClose}
       title={s.title}
-      subtitle={s.subtitle}
-      icon={Settings}
       successText={s.doneButton}
       onSuccess={onClose}
       showCancelButton={false}

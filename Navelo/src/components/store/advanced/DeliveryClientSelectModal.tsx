@@ -286,7 +286,7 @@ export function DeliveryClientSelectModal({
     <>
       <Modal
         isOpen={isOpen} onClose={onClose} title={d.clientSelectModalTitle}
-        subtitle={d.clientSelectModalSubtitle} icon={User} successText={d.advanceToOrderButton}
+        successText={d.advanceToOrderButton}
         onSuccess={handleSubmit} showCancelButton={true}
       >
         <Stack gap={2.5} w="full">

@@ -196,8 +196,6 @@ function NewTenantModal({
         isOpen={isOpen}
         onClose={onClose}
         title={tStrings.newCompanyModalTitle}
-        subtitle={tStrings.newCompanyModalSubtitle}
-        icon={Building2}
         successText={tStrings.saveCompanyButton}
         isSubmit
       >

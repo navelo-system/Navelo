@@ -294,7 +294,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       roundedStyles[isPill ? "full" : isGhost ? "full" : "default"],
       !isPill && !logicalSize.includes("icon") && logicalSize !== "ghost" && !fullWidth && "w-full md:w-auto",
       fullWidth && "w-full",
-      props.disabled && "!bg-surface-sunken !text-text-muted !opacity-40 !cursor-not-allowed pointer-events-none shadow-none grayscale",
+      props.disabled && !isGhost && "!bg-surface-sunken !text-text-muted !opacity-40 !cursor-not-allowed pointer-events-none shadow-none grayscale",
+      props.disabled && isGhost && "!bg-transparent !opacity-40 !cursor-not-allowed pointer-events-none",
       className
     )
 
@@ -348,8 +349,6 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
         title={modalTitle}
-        subtitle={modalSubtitle}
-        icon={modalIcon}
         successText={modalSuccessText}
         onSuccess={handleConfirmSuccess}
         showCancelButton={true}
@@ -364,8 +363,6 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         isOpen={isNoPrintOpen}
         onClose={() => setIsNoPrintOpen(false)}
         title="Ponto de impressão não encontrado"
-        subtitle="Impressora não configurada"
-        icon={Printer}
         showCancelButton={true}
         cancelVariant="secondary"
         cancelText="Continuar"

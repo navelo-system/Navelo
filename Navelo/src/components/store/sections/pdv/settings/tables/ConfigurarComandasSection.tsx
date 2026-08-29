@@ -1,0 +1,191 @@
+"use client"
+
+import * as React from "react"
+import { Box } from "@/components/store/base/Box"
+import { Stack } from "@/components/store/base/Stack"
+import { Font } from "@/components/store/base/Font"
+import { Input } from "@/components/store/base/Input"
+import { Button } from "@/components/store/base/Button"
+import { EmptyState } from "@/components/store/intermediary/EmptyState"
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/store/base/Table"
+import { Badge } from "@/components/store/base/Badge"
+import { Form } from "@/components/store/advanced/Form"
+import { Plus, Edit2, Receipt } from "lucide-react"
+import { FormActions } from "@/components/store/intermediary/FormActions"
+import { UI_STRINGS, formatString } from "@/constants/strings"
+
+export interface ComandaItem {
+  id: string
+  number: string
+  status: "available" | "busy"
+}
+
+export interface ConfigurarComandasSectionProps {
+  onCancel: () => void
+  setCustomBack?: (cb: (() => void) | null) => void
+  setCustomTitle?: (title: string | null) => void
+}
+
+const INITIAL_COMANDAS: ComandaItem[] = [
+  { id: "1", number: "01", status: "available" },
+  { id: "2", number: "02", status: "busy" },
+  { id: "3", number: "03", status: "available" },
+  { id: "4", number: "04", status: "available" },
+]
+
+function ComandasConfigFormCard({
+  editingComanda,
+  formNumber,
+  setFormNumber,
+  onSubmit,
+  onCancel,
+}: {
+  editingComanda: ComandaItem | null
+  formNumber: string
+  setFormNumber: (v: string) => void
+  onSubmit: (e: React.FormEvent) => void
+  onCancel: () => void
+}) {
+  const s = UI_STRINGS.tabsConfig
+  return (
+    <Box bg="bg-white" border borderColor="border-border" radius="default" padding={5} w="full">
+      <Form onSubmit={onSubmit}>
+        <Stack gap={5} w="full">
+          <Input label={s.tabNumberLabel} placeholder={s.tabNumberPlaceholder} value={formNumber} onChange={(e) => setFormNumber(e.target.value)} required />
+          <FormActions confirmLabel={editingComanda ? UI_STRINGS.common.save : s.addTabButton} onConfirm={() => {}} onCancel={onCancel} isSubmit={true} />
+        </Stack>
+      </Form>
+    </Box>
+  )
+}
+
+function ComandasConfigTableCard({
+  comandas,
+  onEdit,
+  onDelete,
+}: {
+  comandas: ComandaItem[]
+  onEdit: (c: ComandaItem) => void
+  onDelete: (id: string) => void
+}) {
+  const s = UI_STRINGS.tabsConfig
+  return (
+    <Box bg="bg-white" border borderColor="border-border" radius="default" w="full" overflow="hidden">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead text={s.identificationCol} />
+            <TableHead text={s.statusCol} />
+            <TableHead text={s.actionsCol} align="right" w="w-[100px]" />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {comandas.map((comanda) => (
+            <TableRow key={comanda.id}>
+              <TableCell>
+                <Font variant="body-bold" text={formatString(s.tabItemNameTemplate, { number: comanda.number })} />
+              </TableCell>
+              <TableCell>
+                <Badge
+                  variant={comanda.status === "available" ? "success" : "secondary"}
+                  label={comanda.status === "available" ? s.statusAvailable : s.statusInUse}
+                />
+              </TableCell>
+              <TableCell>
+                <Stack direction="row" gap={2.5} justify="end">
+                  <Button variant="ghost-primary" icon={Edit2} onClick={() => onEdit(comanda)} />
+                  <Button
+                    variant="danger-icon-xs-confirm"
+                    confirmTitle={s.deleteConfirmTitle}
+                    confirmSubtitle={s.deleteConfirmSubtitle}
+                    confirmParagraph={s.deleteConfirmParagraph}
+                    onConfirm={() => onDelete(comanda.id)}
+                  />
+                </Stack>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </Box>
+  )
+}
+
+export const ConfigurarComandasSection: React.FC<ConfigurarComandasSectionProps> = ({
+  onCancel,
+  setCustomBack,
+  setCustomTitle,
+}) => {
+  const [comandas, setComandas] = React.useState<ComandaItem[]>(INITIAL_COMANDAS)
+  const [mode, setMode] = React.useState<"list" | "form">("list")
+  const [editingComanda, setEditingComanda] = React.useState<ComandaItem | null>(null)
+  const [formNumber, setFormNumber] = React.useState("")
+  const s = UI_STRINGS.tabsConfig
+
+  const handleBack = React.useCallback(() => {
+    if (mode === "form") {
+      setMode("list")
+      setEditingComanda(null)
+    } else {
+      onCancel()
+    }
+  }, [mode, onCancel])
+
+  React.useEffect(() => {
+    setCustomBack?.(() => handleBack)
+    setCustomTitle?.(mode === "form" ? (editingComanda ? s.editTabTitle : s.newTabTitle) : s.title)
+    return () => {
+      setCustomBack?.(null)
+      setCustomTitle?.(null)
+    }
+  }, [setCustomBack, setCustomTitle, handleBack, mode, editingComanda, s.editTabTitle, s.newTabTitle, s.title])
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!formNumber.trim()) return
+    if (editingComanda) {
+      setComandas((prev) => prev.map((item) => (item.id === editingComanda.id ? { ...item, number: formNumber } : item)))
+    } else {
+      setComandas((prev) => [...prev, { id: Date.now().toString(), number: formNumber, status: "available" }])
+    }
+    setMode("list")
+    setEditingComanda(null)
+  }
+
+  if (mode === "form") {
+    return (
+      <Stack gap={5} w="full">
+        <ComandasConfigFormCard
+          editingComanda={editingComanda}
+          formNumber={formNumber} setFormNumber={setFormNumber}
+          onSubmit={handleSave} onCancel={() => { setMode("list"); setEditingComanda(null) }}
+        />
+      </Stack>
+    )
+  }
+
+  return (
+    <Stack gap={5} w="full">
+      {comandas.length === 0 ? (
+        <Box bg="bg-white" border borderColor="border-border" radius="default" padding={5} w="full">
+          <Stack gap={5} align="center" justify="center" w="full">
+            <EmptyState title={s.emptyTitle} subtitle={s.emptySubtitle} icon={Receipt} />
+            <Button variant="primary" label={s.addTabButton} icon={Plus} onClick={() => { setEditingComanda(null); setFormNumber(""); setMode("form") }} />
+          </Stack>
+        </Box>
+      ) : (
+        <Stack gap={5} w="full">
+          <Stack direction="row" align="center" justify="between" w="full">
+            <Font variant="body-bold" text={s.tabsTableTitle} />
+            <Button variant="primary" label={s.addTabButton} icon={Plus} onClick={() => { setEditingComanda(null); setFormNumber(""); setMode("form") }} />
+          </Stack>
+          <ComandasConfigTableCard
+            comandas={comandas}
+            onEdit={(comanda) => { setEditingComanda(comanda); setFormNumber(comanda.number); setMode("form") }}
+            onDelete={(id) => setComandas((prev) => prev.filter((item) => item.id !== id))}
+          />
+        </Stack>
+      )}
+    </Stack>
+  )
+}

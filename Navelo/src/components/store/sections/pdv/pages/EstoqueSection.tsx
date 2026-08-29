@@ -154,10 +154,33 @@ function EstoqueMenuGrid({
   )
 }
 
+import { useAppNavigation } from "@/lib/navigation/NavigationContext"
+
 export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
   setCustomBack, setCustomTitle, setCustomActions,
 }) => {
-  const [estoqueView, setEstoqueView] = React.useState<EstoqueView>("menu")
+  const { currentRoute, navigate, goBack } = useAppNavigation()
+
+  const resolveEstoqueViewFromRoute = (): EstoqueView => {
+    if (currentRoute.view === "auditoria" || (currentRoute.view === "estoque" && currentRoute.subView === "auditoria")) return "balanco"
+    if (currentRoute.view === "notas" || (currentRoute.view === "estoque" && currentRoute.subView === "notas")) return "notas"
+    if (currentRoute.view === "entradas" || (currentRoute.view === "estoque" && currentRoute.subView === "entradas")) return "entrada_manual"
+    return "menu"
+  }
+
+  const estoqueView = resolveEstoqueViewFromRoute()
+  const setEstoqueView = (v: EstoqueView) => {
+    if (v === "menu") {
+      goBack("#estoque")
+    } else if (v === "balanco") {
+      navigate("#auditoria")
+    } else if (v === "notas") {
+      navigate("#notas")
+    } else if (v === "entrada_manual") {
+      navigate("#entradas")
+    }
+  }
+
   const [balancoSubMode, setBalancoSubMode] = React.useState<BalancoSubMode>("history")
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
 
@@ -175,7 +198,7 @@ export const EstoqueSection: React.FC<EstoqueSectionProps> = ({
   })
 
   return (
-    <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
+    <Box display="flex" direction="col" flex="1" minH="0" h="full" overflowY={estoqueView === "balanco" && balancoSubMode === "novo" ? "hidden" : "auto"} w="full">
       <Stack gap={5} w="full" flex="1" minH="0" h="full">
         {estoqueView === "menu" && <EstoqueMenuGrid onSelectView={(v) => { setEstoqueView(v) }} />}
         {estoqueView === "balanco" && (

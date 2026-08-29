@@ -12,7 +12,7 @@ import { User as UserIcon, Lock, Building, ShieldCheck, Tv } from "lucide-react"
 import { useTenant } from "@/lib/context/TenantContext"
 import { useOperators, db, User as DalUser } from "@/lib/dal"
 import { UserRole, User, Tenant } from "@/src/types/domain"
-import { ROLE_CAN_LOGIN } from "@/lib/permissions"
+import { ROLE_CAN_LOGIN, normalizeUserRole } from "@/lib/permissions"
 import { UI_STRINGS } from "@/constants/strings"
 
 interface LoginSectionProps {
@@ -36,12 +36,18 @@ function useLoginOperatorsSeed(tenantId: string) {
     async function seedOperators() {
       if (!tenantId) return
       try {
-        const count = await db.users.where("company_id").equals(tenantId).or("tenant_id").equals(tenantId).count()
-        if (count === 0) {
+        const allUsers = await db.users.toArray()
+        const tenantUsers = allUsers.filter((u) => u.company_id === tenantId || u.tenant_id === tenantId)
+        if (tenantUsers.length === 0) {
           await db.users.put({
-            id: `user-admin-${tenantId}`, company_id: tenantId, tenant_id: tenantId,
-            name: "Administrador", email: `admin@${tenantId}.app`, role: "ADMIN",
-            password: "123456789", active: true,
+            id: `user-admin-${tenantId}`,
+            company_id: tenantId,
+            tenant_id: tenantId,
+            name: "Administrador",
+            email: `admin@${tenantId}.app`,
+            role: "ADMIN",
+            password: "123456789",
+            active: true,
           })
         }
       } catch (err) {
@@ -53,8 +59,9 @@ function useLoginOperatorsSeed(tenantId: string) {
 }
 
 function resolveOperatorIcon(role: string) {
-  if (role === "ADMIN") return ShieldCheck
-  if (role === "TOTEM") return Tv
+  const normalized = normalizeUserRole(role)
+  if (normalized === UserRole.ADMIN) return ShieldCheck
+  if (normalized === UserRole.TOTEM) return Tv
   return UserIcon
 }
 
@@ -62,7 +69,10 @@ function mapToOperatorOptions(dbOperators?: DalUser[]): OperatorOption[] {
   const rawList: OperatorOption[] = (dbOperators && dbOperators.length > 0)
     ? dbOperators.map((u) => ({ id: u.id, name: u.name, role: u.role, password: u.password }))
     : DEFAULT_OPERATORS
-  return rawList.filter((u) => ROLE_CAN_LOGIN[u.role] !== false)
+  return rawList.filter((u) => {
+    const normalized = normalizeUserRole(u.role)
+    return ROLE_CAN_LOGIN[normalized] !== false
+  })
 }
 
 function createTenantSessionUser(currentOp: OperatorOption, tenantToUse: Tenant): User {
@@ -71,7 +81,7 @@ function createTenantSessionUser(currentOp: OperatorOption, tenantToUse: Tenant)
     name: currentOp.name,
     email: `${currentOp.name.toLowerCase().replace(/\s+/g, ".")}@navelo.app`,
     passwordHash: currentOp.password || "",
-    role: (UserRole[currentOp.role as keyof typeof UserRole]) || UserRole.CASHIER,
+    role: normalizeUserRole(currentOp.role),
     tenantId: tenantToUse.id,
   }
 }

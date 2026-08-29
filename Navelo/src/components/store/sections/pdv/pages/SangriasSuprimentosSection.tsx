@@ -270,6 +270,69 @@ function useFilteredMovements(allMovements: CashMovement[] | undefined, userFilt
 
 // ─── Componente principal ─────────────────────────────────────────────────────
 
+function SangriasWorkspace({
+  filteredMovements,
+  totalBalance,
+  setSelectedMovement,
+  filterChildren,
+  f,
+}: {
+  filteredMovements: CashMovement[]
+  totalBalance: number
+  setSelectedMovement: (m: CashMovement | null) => void
+  filterChildren: React.ReactNode
+  f: ReturnType<typeof useSangriasFilterState>
+}) {
+  const s = UI_STRINGS.sangrias
+  return (
+    <Stack direction="col" mobileDirection="row" gap={5} w="full" h="full" align="stretch" flex="1" minH="0" overflow="hidden">
+      <Stack direction="col" flex="1" h="full" minH="0" gap={0} w="full">
+        <SangriasMovementsList
+          movements={filteredMovements}
+          totalBalance={totalBalance}
+          onSelectMovement={setSelectedMovement}
+        />
+      </Stack>
+      <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
+        <FilterPanel
+          title={s.filtersTitle}
+          periodOptions={PERIOD_OPTIONS}
+          selectedPeriod={f.period}
+          onPeriodChange={(p) => f.setPeriod(p as PeriodOption)}
+          startDate={f.startDate}
+          onStartDateChange={f.setStartDate}
+          endDate={f.endDate}
+          onEndDateChange={f.setEndDate}
+          onFilter={f.handleApplyFilters}
+        >
+          {filterChildren}
+        </FilterPanel>
+      </Box>
+      <Modal
+        isOpen={f.isFilterDrawerOpen}
+        onClose={() => f.setIsFilterDrawerOpen(false)}
+        title={s.filtersTitle}
+        variant="sidebar"
+      >
+        <FilterPanel
+          hideTitle
+          borderless
+          periodOptions={PERIOD_OPTIONS}
+          selectedPeriod={f.period}
+          onPeriodChange={(p) => f.setPeriod(p as PeriodOption)}
+          startDate={f.startDate}
+          onStartDateChange={f.setStartDate}
+          endDate={f.endDate}
+          onEndDateChange={f.setEndDate}
+          onFilter={() => { f.handleApplyFilters(); f.setIsFilterDrawerOpen(false) }}
+        >
+          {filterChildren}
+        </FilterPanel>
+      </Modal>
+    </Stack>
+  )
+}
+
 export const SangriasSuprimentosSection: React.FC<SangriasSuprimentosSectionProps> = ({
   tenantId, setCustomBack, setCustomTitle, setCustomActions, onBack,
 }) => {
@@ -277,7 +340,6 @@ export const SangriasSuprimentosSection: React.FC<SangriasSuprimentosSectionProp
   const allMovements = useCashMovements(tenantId)
   const [selectedMovement, setSelectedMovement] = React.useState<CashMovement | null>(null)
   const f = useSangriasFilterState()
-
   const onBackRef = React.useRef(onBack)
   const onFilterDrawerRef = React.useRef(() => f.setIsFilterDrawerOpen(true))
   React.useEffect(() => { onBackRef.current = onBack }, [onBack])
@@ -295,7 +357,6 @@ export const SangriasSuprimentosSection: React.FC<SangriasSuprimentosSectionProp
   }, [setCustomBack, setCustomTitle, setCustomActions, s.sectionTitle])
 
   const filteredMovements = useFilteredMovements(allMovements, f.appliedUserFilter)
-
   const totalBalance = React.useMemo(() => {
     return filteredMovements.reduce((acc, m) => {
       if (m.type === "SUPPLY") return acc + m.amount
@@ -303,11 +364,6 @@ export const SangriasSuprimentosSection: React.FC<SangriasSuprimentosSectionProp
       return acc
     }, 0)
   }, [filteredMovements])
-
-  const handleDeleteMovement = async (id: string) => {
-    await dal.cashMovements.delete(id, tenantId)
-    setSelectedMovement(null)
-  }
 
   const filterChildren = (
     <SangriasFilterChildren
@@ -322,62 +378,17 @@ export const SangriasSuprimentosSection: React.FC<SangriasSuprimentosSectionProp
 
   return (
     <>
-      <Stack direction="col" mobileDirection="row" gap={5} w="full" h="full" align="stretch" flex="1" minH="0" overflow="hidden">
-        {/* Lista — flex 1, 50% em desktop */}
-        <Stack direction="col" flex="1" h="full" minH="0" gap={0} w="full">
-          <SangriasMovementsList
-            movements={filteredMovements}
-            totalBalance={totalBalance}
-            onSelectMovement={setSelectedMovement}
-          />
-        </Stack>
-
-        {/* Painel de filtros — visível apenas em desktop (md+), largura fixa pelo FilterPanel */}
-        <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
-          <FilterPanel
-            title={s.filtersTitle}
-            periodOptions={PERIOD_OPTIONS}
-            selectedPeriod={f.period}
-            onPeriodChange={(p) => f.setPeriod(p as PeriodOption)}
-            startDate={f.startDate}
-            onStartDateChange={f.setStartDate}
-            endDate={f.endDate}
-            onEndDateChange={f.setEndDate}
-            onFilter={f.handleApplyFilters}
-          >
-            {filterChildren}
-          </FilterPanel>
-        </Box>
-
-        {/* Drawer de filtros para mobile */}
-        <Modal
-          isOpen={f.isFilterDrawerOpen}
-          onClose={() => f.setIsFilterDrawerOpen(false)}
-          title={s.filtersTitle}
-          variant="sidebar"
-        >
-          <FilterPanel
-            hideTitle
-            borderless
-            periodOptions={PERIOD_OPTIONS}
-            selectedPeriod={f.period}
-            onPeriodChange={(p) => f.setPeriod(p as PeriodOption)}
-            startDate={f.startDate}
-            onStartDateChange={f.setStartDate}
-            endDate={f.endDate}
-            onEndDateChange={f.setEndDate}
-            onFilter={() => { f.handleApplyFilters(); f.setIsFilterDrawerOpen(false) }}
-          >
-            {filterChildren}
-          </FilterPanel>
-        </Modal>
-      </Stack>
-
-      {/* Modal de detalhes do item */}
+      <SangriasWorkspace
+        filteredMovements={filteredMovements}
+        totalBalance={totalBalance}
+        setSelectedMovement={setSelectedMovement}
+        filterChildren={filterChildren}
+        f={f}
+      />
       <MovementDetailModal
         movement={selectedMovement}
         onClose={() => setSelectedMovement(null)}
-        onDelete={handleDeleteMovement}
+        onDelete={(id) => dal.cashMovements.delete(id, tenantId).then(() => setSelectedMovement(null))}
       />
     </>
   )

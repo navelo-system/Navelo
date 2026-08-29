@@ -4,9 +4,12 @@ import React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
+import { Icon } from "@/components/store/base/Icon"
 import { Product } from "@/src/types/domain"
 import { ProductCardQuantityFooter } from "@/components/store/advanced/ProductCardQuantityFooter"
+import { usePdvCustomization } from "@/lib/sync/pdvCustomizationSettings"
 import { UI_STRINGS } from "@/constants/strings"
+import { Package } from "lucide-react"
 
 export interface ProductCardProps {
   product: Product
@@ -47,8 +50,78 @@ function ProductImageThumbnail({ mainImage, name }: { mainImage?: string; name: 
     return <Box as="img" src={mainImage} alt={name} w="full" h="full" objectFit="cover" />
   }
   return (
-    <Stack align="center" justify="center" w="full" h="full">
-      <Font variant="auxiliary" color="muted" text={UI_STRINGS.products.noPhoto} />
+    <Stack align="center" justify="center" w="full" h="full" gap={1}>
+      <Icon icon={Package} size={32} color="primary" />
+      <Font variant="auxiliary" color="primary" text={UI_STRINGS.products.noPhoto} />
+    </Stack>
+  )
+}
+
+function useProductCardPulse() {
+  const [isPulsing, setIsPulsing] = React.useState(false)
+  const [pulseId, setPulseId] = React.useState(0)
+  const pulseTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
+
+  React.useEffect(() => {
+    return () => {
+      if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current)
+    }
+  }, [])
+
+  const triggerPulse = React.useCallback(() => {
+    if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current)
+    setIsPulsing(false)
+    requestAnimationFrame(() => {
+      setIsPulsing(true)
+      setPulseId((prev) => prev + 1)
+      pulseTimeoutRef.current = setTimeout(() => setIsPulsing(false), 450)
+    })
+  }, [])
+
+  return { isPulsing, pulseId, triggerPulse }
+}
+
+function ProductCardDetails({
+  name,
+  unitType,
+  sellingPrice,
+  stock,
+  showStockQty,
+}: {
+  name: string
+  unitType?: string
+  sellingPrice: number
+  stock?: number
+  showStockQty: boolean
+}) {
+  const formattedPrice = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
+    sellingPrice
+  )
+  const unitLabel = unitType || "UN"
+
+  return (
+    <Stack gap={1} w="full" flex="1" justify="between">
+      <Box w="full" flex="1">
+        <Font as="p" variant="body" text={name} align="center" lineClamp={2} />
+      </Box>
+      <Stack gap={0} align="center" w="full">
+        <Font
+          as="p"
+          variant="body-sm-semibold"
+          color="primary"
+          text={`${formattedPrice} / ${unitLabel}`}
+          align="center"
+        />
+        {showStockQty && stock !== undefined && (
+          <Font
+            as="p"
+            variant="auxiliary"
+            color="muted"
+            text={`Estoque: ${stock} ${unitLabel}`}
+            align="center"
+          />
+        )}
+      </Stack>
     </Stack>
   )
 }
@@ -61,67 +134,44 @@ export function ProductCard({
   onDecrease,
   onRemove,
 }: ProductCardProps) {
-  const [isPulsing, setIsPulsing] = React.useState(false)
-  const [pulseId, setPulseId] = React.useState(0)
-  const pulseTimeoutRef = React.useRef<NodeJS.Timeout | null>(null)
-
-  React.useEffect(() => {
-    return () => {
-      if (pulseTimeoutRef.current) {
-        clearTimeout(pulseTimeoutRef.current)
-      }
-    }
-  }, [])
+  const { isPulsing, pulseId, triggerPulse } = useProductCardPulse()
+  const pdvConfig = usePdvCustomization()
+  const isKg = (product.unitType || "").trim().toUpperCase() === "KG"
 
   const handleCardClick = () => {
-    if (quantity > 0) return
+    if (quantity > 0 && !isKg) return
     if (product.stock !== undefined && product.stock <= 0) {
-      if (pulseTimeoutRef.current) {
-        clearTimeout(pulseTimeoutRef.current)
-      }
-      setIsPulsing(false)
-      requestAnimationFrame(() => {
-        setIsPulsing(true)
-        setPulseId((prev) => prev + 1)
-        pulseTimeoutRef.current = setTimeout(() => setIsPulsing(false), 450)
-      })
+      triggerPulse()
       return
     }
     onClick?.(product)
   }
 
-  const formattedPrice = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
-    product.sellingPrice
-  )
-
   return (
-    <Stack gap={2.5} onClick={handleCardClick} cursor={quantity === 0 ? "pointer" : undefined} w="full" align="stretch" flex="1">
-      <Box position="relative" w="full" shrink="0" bg="bg-surface-sunken" radius="default" overflow="hidden" h="aspect-square">
+    <Stack gap={2.5} onClick={handleCardClick} cursor={quantity === 0 || isKg ? "pointer" : undefined} w="full" align="stretch" flex="1">
+      <Box position="relative" w="full" shrink="0" bg="bg-brand-primary/5" border borderColor="border-brand-primary/20" radius="default" overflow="hidden" h="aspect-square">
         <ProductImageThumbnail mainImage={product.mainImage} name={product.name} />
         <ProductImagePulseOverlay isPulsing={isPulsing} pulseId={pulseId} />
-        <ProductCardQuantityFooter
-          quantity={quantity}
-          stock={product.stock}
-          maxQuantity={product.stock}
-          isMaxReached={product.stock !== undefined && product.stock !== Infinity && quantity >= product.stock}
-          onIncrease={onIncrease}
-          onDecrease={onDecrease}
-          onRemove={onRemove}
-        />
+        {!isKg && (
+          <ProductCardQuantityFooter
+            quantity={quantity}
+            stock={product.stock}
+            maxQuantity={product.stock}
+            isMaxReached={product.stock !== undefined && product.stock !== Infinity && quantity >= product.stock}
+            onIncrease={onIncrease}
+            onDecrease={onDecrease}
+            onRemove={onRemove}
+          />
+        )}
       </Box>
 
-      <Stack gap={1} w="full" flex="1" justify="between">
-        <Box w="full" flex="1">
-          <Font as="p" variant="body" text={product.name} align="center" lineClamp={2} />
-        </Box>
-        <Font
-          as="p"
-          variant="body-sm-semibold"
-          color="primary"
-          text={`${formattedPrice} / ${product.unitType || "UN"}`}
-          align="center"
-        />
-      </Stack>
+      <ProductCardDetails
+        name={product.name}
+        unitType={product.unitType}
+        sellingPrice={product.sellingPrice}
+        stock={product.stock}
+        showStockQty={pdvConfig.stockQty}
+      />
     </Stack>
   )
 }

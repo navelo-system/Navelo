@@ -47,7 +47,7 @@ export const PdvCheckoutSidebar: React.FC<PdvCheckoutSidebarProps> = ({
   const c = UI_STRINGS.pdv.cart
 
   return (
-    <Stack gap={5} flex="1" minH="0">
+    <Stack gap={5} flex="1" minH="0" h="full" overflow="hidden">
       <CartList
         items={cartItems}
         onIncrease={onIncrease}

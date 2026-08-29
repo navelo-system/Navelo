@@ -6,20 +6,9 @@ import { Stack } from "@/components/store/base/Stack"
 import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { ViewModeToggle } from "@/components/store/intermediary/ViewModeToggle"
-import { Search, Camera, ShoppingCart, X } from "lucide-react"
-import { ProductBarcodeScannerModal } from "@/components/store/sections/pdv/modals/ProductBarcodeScannerModal"
-import { UI_STRINGS } from "@/constants/strings"
+import { Search, X, Camera, ShoppingCart } from "lucide-react"
 
 const SEARCH_ANIMATION_MS = 200
-
-export interface PdvCatalogToolbarProps {
-  searchQuery: string
-  onSearchQueryChange: (value: string) => void
-  viewMode: "grade" | "lista"
-  onViewModeChange: (mode: "grade" | "lista") => void
-  onOpenCart: () => void
-  onBarcodeScanned: (code: string) => void
-}
 
 export interface MobileHeaderSearchProps {
   searchQuery: string
@@ -149,64 +138,45 @@ export const MobileHeaderSearch: React.FC<MobileHeaderSearchProps> = ({
   )
 }
 
+export interface PdvCatalogToolbarProps {
+  viewMode: "grade" | "lista"
+  onViewModeChange: (mode: "grade" | "lista") => void
+  onOpenCart?: () => void
+  onOpenScanner?: () => void
+}
+
 export const PdvCatalogToolbar: React.FC<PdvCatalogToolbarProps> = ({
-  searchQuery,
-  onSearchQueryChange,
   viewMode,
   onViewModeChange,
   onOpenCart,
-  onBarcodeScanned,
+  onOpenScanner,
 }) => {
-  const [isSearchOpen, setIsSearchOpen] = React.useState(false)
-  const [isScannerOpen, setIsScannerOpen] = React.useState(false)
-
   return (
-    <>
-      <Box position="relative" w="full" h="h-10">
-        <Box
-          w="full"
-          transition="opacity"
-          opacity={isSearchOpen ? "0" : "100"}
-          pointerEvents={isSearchOpen ? "none" : "auto"}
-        >
-          <Stack direction="row" align="center" justify="between" w="full" gap={2.5}>
-            <Stack direction="row" align="center" gap={2.5}>
-              <ViewModeToggle value={viewMode} onChange={onViewModeChange} />
-            </Stack>
+    <Box position="relative" w="full" h="h-10">
+      <Stack direction="row" align="center" justify="between" w="full" gap={2.5}>
+        <ViewModeToggle value={viewMode} onChange={onViewModeChange} />
 
-            <Stack direction="row" align="center" gap={2.5}>
-              <Box display="block md:hidden">
-                <Button
-                  variant="secondary-pill-icon"
-                  icon={Camera}
-                  onClick={() => setIsScannerOpen(true)}
-                />
-              </Box>
-              <Box display="block md:hidden">
-                <Button
-                  variant="secondary-pill-icon"
-                  icon={ShoppingCart}
-                  onClick={onOpenCart}
-                />
-              </Box>
-            </Stack>
-          </Stack>
-        </Box>
-
-        <ExpandableSearchOverlay
-          isOpen={isSearchOpen}
-          placeholder={UI_STRINGS.pdv.catalog.searchProductsPlaceholder}
-          searchQuery={searchQuery}
-          onSearchQueryChange={onSearchQueryChange}
-          onClose={() => setIsSearchOpen(false)}
-        />
-      </Box>
-
-      <ProductBarcodeScannerModal
-        isOpen={isScannerOpen}
-        onClose={() => setIsScannerOpen(false)}
-        onScan={onBarcodeScanned}
-      />
-    </>
+        <Stack direction="row" align="center" gap={2.5}>
+          {onOpenScanner && (
+            <Box display="block md:hidden">
+              <Button
+                variant="secondary-pill-icon"
+                icon={Camera}
+                onClick={onOpenScanner}
+              />
+            </Box>
+          )}
+          {onOpenCart && (
+            <Box display="block md:hidden">
+              <Button
+                variant="secondary-pill-icon"
+                icon={ShoppingCart}
+                onClick={onOpenCart}
+              />
+            </Box>
+          )}
+        </Stack>
+      </Stack>
+    </Box>
   )
 }

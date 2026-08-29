@@ -2,8 +2,8 @@
 
 import * as React from "react"
 import { useLiveQuery } from "dexie-react-hooks"
-import { db, CashRegister, CashMovement, Sale } from "@/lib/dal/db"
-import { useSales } from "@/lib/dal/hooks"
+import { db, CashRegister, CashMovement, Sale, DeliveryOrder } from "@/lib/dal/db"
+import { useSales, useDeliveryOrders } from "@/lib/dal/hooks"
 import { useTenant } from "@/lib/context/TenantContext"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
@@ -19,6 +19,8 @@ import {
 } from "@/lib/pdf/generateCashConferencePdf"
 import { ChevronRight, Info, Share2, FileText } from "lucide-react"
 import { UI_STRINGS } from "@/constants/strings"
+import { useTenantRestrictions } from "@/lib/sync/restrictionsSettings"
+import { SupervisorAuthModal } from "@/components/store/sections/pdv/modals/SupervisorAuthModal"
 
 export interface TotaisEmCaixaSectionProps {
   onBackToDashboard?: () => void
@@ -78,25 +80,61 @@ function computeDinheiroSubItems(
   ]
 }
 
+function addMethodTotal(methodTotals: Record<string, number>, method: string, total: number) {
+  if (method.includes("Conta Digital") || method.includes("Asaas") || method.includes("Online")) {
+    methodTotals["Conta Digital"] = (methodTotals["Conta Digital"] || 0) + total
+  } else if (method.includes("Débito") || method.includes("Debito")) {
+    methodTotals["Cartão de Débito"] += total
+  } else if (method.includes("Crédito") || method.includes("Credito")) {
+    methodTotals["Cartão de Crédito"] += total
+  } else if (method.includes("PIX") || method.includes("Pix")) {
+    methodTotals["PIX"] += total
+  } else if (method.includes("Dinheiro")) {
+    methodTotals["Dinheiro"] += total
+  } else {
+    methodTotals["Outros"] += total
+  }
+}
+
+function getCategoryForMethod(pm: string): string {
+  const norm = pm.toLowerCase()
+  if (norm.includes("conta digital") || norm.includes("asaas") || norm.includes("online")) return "conta-digital"
+  if (norm.includes("débito") || norm.includes("debito")) return "debito"
+  if (norm.includes("crédito") || norm.includes("credito")) return "credito"
+  if (norm.includes("pix")) return "pix"
+  if (norm.includes("dinheiro")) return "dinheiro"
+  return "outros"
+}
+
+function matchCategoryMethod(pm: string, catId: string): boolean {
+  return getCategoryForMethod(pm) === catId
+}
+
 function buildCashCategoriesList(
   sales: Sale[],
-  movements: CashMovement[]
+  movements: CashMovement[],
+  deliveryOrders?: DeliveryOrder[],
+  openRegister?: CashRegister | null
 ): PaymentCategory[] {
   const methodTotals: Record<string, number> = {
     Dinheiro: 0,
     "Cartão de Débito": 0,
     "Cartão de Crédito": 0,
     PIX: 0,
+    "Conta Digital": 0,
     Outros: 0,
   }
 
   sales.forEach((sale) => {
-    const method = sale.payment_method || "Dinheiro"
-    if (method.includes("Débito")) methodTotals["Cartão de Débito"] += sale.total
-    else if (method.includes("Crédito")) methodTotals["Cartão de Crédito"] += sale.total
-    else if (method.includes("PIX")) methodTotals["PIX"] += sale.total
-    else if (method.includes("Dinheiro")) methodTotals["Dinheiro"] += sale.total
-    else methodTotals["Outros"] += sale.total
+    addMethodTotal(methodTotals, sale.payment_method || "Dinheiro", sale.total || 0)
+  })
+
+  ;(deliveryOrders || []).forEach((o) => {
+    if (o.status === "canceled") return
+    const isPaid = o.payment_moment === "advance" || o.status === "delivered"
+    if (isPaid && (o.total || 0) > 0) {
+      addMethodTotal(methodTotals, o.payment_method || "Dinheiro", o.total || 0)
+    }
   })
 
   let sangria = 0
@@ -106,15 +144,16 @@ function buildCashCategoriesList(
     else if (m.type === "SUPPLY") suprimento += m.amount
   })
 
-  const gaveta = methodTotals["Dinheiro"] + suprimento - sangria
+  const trocoVal = openRegister?.initial_balance ?? 0
+  const gaveta = methodTotals["Dinheiro"] + suprimento - sangria + trocoVal
 
-  return [
+  const categories: PaymentCategory[] = [
     {
       id: "dinheiro",
       name: "Dinheiro",
-      total: formatPrice(methodTotals["Dinheiro"]),
-      totalNumber: methodTotals["Dinheiro"],
-      subItems: computeDinheiroSubItems(sangria, suprimento, 0, gaveta),
+      total: formatPrice(gaveta),
+      totalNumber: gaveta,
+      subItems: computeDinheiroSubItems(sangria, suprimento, trocoVal, gaveta),
     },
     {
       id: "debito",
@@ -134,34 +173,41 @@ function buildCashCategoriesList(
       total: formatPrice(methodTotals["PIX"]),
       totalNumber: methodTotals["PIX"],
     },
-    {
-      id: "outros",
-      name: "Outros",
-      total: formatPrice(methodTotals["Outros"]),
-      totalNumber: methodTotals["Outros"],
-    },
   ]
+
+  if ((methodTotals["Conta Digital"] || 0) > 0) {
+    categories.push({
+      id: "conta-digital",
+      name: "Conta Digital (Asaas)",
+      total: formatPrice(methodTotals["Conta Digital"]),
+      totalNumber: methodTotals["Conta Digital"],
+    })
+  }
+
+  categories.push({
+    id: "outros",
+    name: "Outros",
+    total: formatPrice(methodTotals["Outros"]),
+    totalNumber: methodTotals["Outros"],
+  })
+
+  return categories
 }
 
 function useCashTotalsCategories(
   dbSales: Sale[] | undefined,
-  cashMovements: CashMovement[] | undefined
+  cashMovements: CashMovement[] | undefined,
+  dbDeliveryOrders: DeliveryOrder[] | undefined,
+  openRegister: CashRegister | null | undefined
 ): PaymentCategory[] {
   return React.useMemo(() => {
-    return buildCashCategoriesList(dbSales || [], cashMovements || [])
-  }, [dbSales, cashMovements])
+    return buildCashCategoriesList(dbSales || [], cashMovements || [], dbDeliveryOrders || [], openRegister)
+  }, [dbSales, cashMovements, dbDeliveryOrders, openRegister])
 }
 
 function filterSalesForCategory(sales: Sale[], catId: string): CashConferenceOperation[] {
   return sales
-    .filter((sale) => {
-      const pm = sale.payment_method || "Dinheiro"
-      if (catId === "debito") return pm.includes("Débito")
-      if (catId === "credito") return pm.includes("Crédito")
-      if (catId === "pix") return pm.includes("PIX")
-      if (catId === "dinheiro") return pm.includes("Dinheiro")
-      return !pm.includes("Débito") && !pm.includes("Crédito") && !pm.includes("PIX") && !pm.includes("Dinheiro")
-    })
+    .filter((sale) => matchCategoryMethod(sale.payment_method || "Dinheiro", catId))
     .map((sale) => ({
       date: sale.created_at ? formatTimeBr(new Date(sale.created_at)) : "",
       description: `Venda #${sale.id.slice(-4)}`,
@@ -169,28 +215,47 @@ function filterSalesForCategory(sales: Sale[], catId: string): CashConferenceOpe
     }))
 }
 
+function filterDeliveriesForCategory(deliveries: DeliveryOrder[], catId: string): CashConferenceOperation[] {
+  return deliveries
+    .filter((o) => {
+      if (o.status === "canceled") return false
+      const isPaid = o.payment_moment === "advance" || o.status === "delivered"
+      if (!isPaid) return false
+      return matchCategoryMethod(o.payment_method || "Dinheiro", catId)
+    })
+    .map((o) => ({
+      date: o.created_at ? formatTimeBr(new Date(o.created_at)) : "",
+      description: `Delivery #${o.id}${o.client_name ? ` • ${o.client_name}` : ""}`,
+      total: o.total || 0,
+    }))
+}
+
 function useCategoryOperations(
   selectedCategory: PaymentCategory | null,
   dbSales: Sale[] | undefined,
-  cashMovements: CashMovement[] | undefined
+  cashMovements: CashMovement[] | undefined,
+  dbDeliveryOrders: DeliveryOrder[] | undefined
 ): CashConferenceOperation[] {
   return React.useMemo(() => {
     if (!selectedCategory) return []
     const sales = dbSales || []
     const movements = cashMovements || []
+    const deliveries = dbDeliveryOrders || []
+
+    const sOps = filterSalesForCategory(sales, selectedCategory.id)
+    const dOps = filterDeliveriesForCategory(deliveries, selectedCategory.id)
 
     if (selectedCategory.id === "dinheiro") {
-      const sOps = filterSalesForCategory(sales, "dinheiro")
       const mOps = movements.map((m) => ({
         date: m.created_at ? formatTimeBr(new Date(m.created_at)) : "",
         description: `${m.type === "BLEED" ? "Sangria" : "Suprimento"} - ${m.description || "Sem motivo"}`,
         total: m.type === "BLEED" ? -m.amount : m.amount,
       }))
-      return [...sOps, ...mOps]
+      return [...sOps, ...dOps, ...mOps]
     }
 
-    return filterSalesForCategory(sales, selectedCategory.id)
-  }, [selectedCategory, dbSales, cashMovements])
+    return [...sOps, ...dOps]
+  }, [selectedCategory, dbSales, cashMovements, dbDeliveryOrders])
 }
 
 function CategoryDetailOperationsView({
@@ -406,6 +471,7 @@ function useTotaisHeaderSync({
 
 function useTotaisDbQueries(tenantId?: string) {
   const dbSales = useSales(tenantId)
+  const dbDeliveryOrders = useDeliveryOrders(tenantId)
   const dbCompany = useLiveQuery(async () => (tenantId ? await db.companies.get(tenantId) : null), [tenantId])
   const openRegister = useLiveQuery(async () => {
     if (!tenantId) return null
@@ -417,7 +483,101 @@ function useTotaisDbQueries(tenantId?: string) {
     return await db.cash_movements.filter((m: CashMovement) => m.company_id === tenantId || m.tenant_id === tenantId).toArray()
   }, [tenantId])
 
-  return { dbSales, dbCompany, openRegister, cashMovements }
+  return { dbSales, dbDeliveryOrders, dbCompany, openRegister, cashMovements }
+}
+
+function useCashTotalsPrintHandler({
+  selectedCategory,
+  restrictions,
+  isSupervisorOrAdmin,
+  openingTimeText,
+  categoryOperations,
+  dbCompany,
+}: {
+  selectedCategory: PaymentCategory | null
+  restrictions: ReturnType<typeof useTenantRestrictions>
+  isSupervisorOrAdmin: boolean
+  openingTimeText: string
+  categoryOperations: CashConferenceOperation[]
+  dbCompany?: CompanyInfo | null
+}) {
+  const [isSupervisorAuthOpen, setIsSupervisorAuthOpen] = React.useState(false)
+
+  const handlePrint = React.useCallback(() => {
+    if (!selectedCategory) return
+    if (!restrictions.reimpressao && !isSupervisorOrAdmin) {
+      setIsSupervisorAuthOpen(true)
+      return
+    }
+    printCashConferencePdf(selectedCategory, openingTimeText, categoryOperations, dbCompany)
+  }, [selectedCategory, openingTimeText, categoryOperations, dbCompany, restrictions.reimpressao, isSupervisorOrAdmin])
+
+  const handleAuthorized = React.useCallback(() => {
+    if (selectedCategory) {
+      printCashConferencePdf(selectedCategory, openingTimeText, categoryOperations, dbCompany)
+    }
+    setIsSupervisorAuthOpen(false)
+  }, [selectedCategory, openingTimeText, categoryOperations, dbCompany])
+
+  return { isSupervisorAuthOpen, setIsSupervisorAuthOpen, handlePrint, handleAuthorized }
+}
+
+function CashTotalsModalsBundle({
+  selectedCategory,
+  isShareModalOpen,
+  setIsShareModalOpen,
+  isLinkModalOpen,
+  setIsLinkModalOpen,
+  linkModalUrl,
+  setLinkModalUrl,
+  handleGeneratePdf,
+  isSupervisorAuthOpen,
+  setIsSupervisorAuthOpen,
+  handleAuthorized,
+  tenantId,
+  tenantCtx,
+}: {
+  selectedCategory: PaymentCategory
+  isShareModalOpen: boolean
+  setIsShareModalOpen: (v: boolean) => void
+  isLinkModalOpen: boolean
+  setIsLinkModalOpen: (v: boolean) => void
+  linkModalUrl: string
+  setLinkModalUrl: (v: string) => void
+  handleGeneratePdf: () => Promise<string | null>
+  isSupervisorAuthOpen: boolean
+  setIsSupervisorAuthOpen: (v: boolean) => void
+  handleAuthorized: () => void
+  tenantId?: string
+  tenantCtx?: ReturnType<typeof useTenant>
+}) {
+  return (
+    <>
+      <SaleShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        pdfUrl={null}
+        saleName={`Conferência - ${selectedCategory.name}`}
+        onGeneratePdf={handleGeneratePdf}
+        onOpenLinkModal={(url: string) => { setLinkModalUrl(url); setIsLinkModalOpen(true) }}
+      />
+      <SaleLinkModal
+        isOpen={isLinkModalOpen}
+        onClose={() => setIsLinkModalOpen(false)}
+        pdfUrl={linkModalUrl}
+        saleName={`Conferência - ${selectedCategory.name}`}
+      />
+      <SupervisorAuthModal
+        isOpen={isSupervisorAuthOpen}
+        onClose={() => setIsSupervisorAuthOpen(false)}
+        onAuthorized={handleAuthorized}
+        tenantId={tenantId}
+        operatorName={tenantCtx?.currentUser?.name || "Operador"}
+        actionTitle="Impressão de conferência de caixa"
+        resource="Totais em Caixa"
+      />
+    </>
+  )
 }
 
 export const TotaisEmCaixaSection: React.FC<TotaisEmCaixaSectionProps> = ({
@@ -429,9 +589,9 @@ export const TotaisEmCaixaSection: React.FC<TotaisEmCaixaSectionProps> = ({
 }) => {
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id
-  const { dbSales, dbCompany, openRegister, cashMovements } = useTotaisDbQueries(tenantId)
-
+  const { dbSales, dbDeliveryOrders, dbCompany, openRegister, cashMovements } = useTotaisDbQueries(tenantId)
   const s = UI_STRINGS.cashTotals
+
   const [selectedCategory, setSelectedCategory] = React.useState<PaymentCategory | null>(null)
   const [isShareModalOpen, setIsShareModalOpen] = React.useState(false)
   const [isLinkModalOpen, setIsLinkModalOpen] = React.useState(false)
@@ -439,34 +599,31 @@ export const TotaisEmCaixaSection: React.FC<TotaisEmCaixaSectionProps> = ({
 
   const handleBack = onBack || onBackToDashboard
   const openingTimeText = React.useMemo(() => {
-    if (openRegister?.opened_at) return `${s.openingTimePrefix}${formatDateTimeBr(new Date(openRegister.opened_at))}`
-    return `${s.openingTimePrefix}${formatDateTimeBr(new Date())}`
+    const time = openRegister?.opened_at ? new Date(openRegister.opened_at) : new Date()
+    return `${s.openingTimePrefix}${formatDateTimeBr(time)}`
   }, [openRegister, s.openingTimePrefix])
 
-  const categories = useCashTotalsCategories(dbSales, cashMovements)
+  const categories = useCashTotalsCategories(dbSales, cashMovements, dbDeliveryOrders, openRegister)
   const totalGeral = React.useMemo(() => categories.reduce((acc, cat) => acc + cat.totalNumber, 0), [categories])
-  const categoryOperations = useCategoryOperations(selectedCategory, dbSales, cashMovements)
+  const categoryOperations = useCategoryOperations(selectedCategory, dbSales, cashMovements, dbDeliveryOrders)
   const totalAmount = React.useMemo(() => categoryOperations.reduce((acc, op) => acc + op.total, 0), [categoryOperations])
 
   const handleGeneratePdf = useConferencePdfGenerator({ selectedCategory, openingTimeText, categoryOperations, totalAmount, dbCompany, tenantId })
+  const handleOpenShare = React.useCallback(() => { setIsShareModalOpen(true) }, [])
 
-  const handleOpenShare = React.useCallback(() => {
-    setIsShareModalOpen(true)
-  }, [])
+  const restrictions = useTenantRestrictions(tenantId)
+  const isSupervisorOrAdmin = React.useMemo(() => {
+    const role = (tenantCtx?.currentUser?.role || "").toUpperCase()
+    return role.includes("ADMIN") || role.includes("SUPERVISOR") || role.includes("GERENTE")
+  }, [tenantCtx?.currentUser?.role])
 
-  const handlePrint = React.useCallback(() => {
-    if (selectedCategory) printCashConferencePdf(selectedCategory, openingTimeText, categoryOperations, dbCompany)
-  }, [selectedCategory, openingTimeText, categoryOperations, dbCompany])
+  const { isSupervisorAuthOpen, setIsSupervisorAuthOpen, handlePrint, handleAuthorized } = useCashTotalsPrintHandler({
+    selectedCategory, restrictions, isSupervisorOrAdmin, openingTimeText, categoryOperations, dbCompany,
+  })
 
   useTotaisHeaderSync({
-    selectedCategoryName: selectedCategory?.name,
-    handleBack,
-    setSelectedCategory,
-    onShare: handleOpenShare,
-    onPrint: handlePrint,
-    setCustomTitle,
-    setCustomBack,
-    setCustomActions,
+    selectedCategoryName: selectedCategory?.name, handleBack, setSelectedCategory,
+    onShare: handleOpenShare, onPrint: handlePrint, setCustomTitle, setCustomBack, setCustomActions,
   })
 
   return (
@@ -474,31 +631,16 @@ export const TotaisEmCaixaSection: React.FC<TotaisEmCaixaSectionProps> = ({
       {selectedCategory ? (
         <CategoryDetailOperationsView categoryOperations={categoryOperations} />
       ) : (
-        <CashTotalsMainListView
-          openingTimeText={openingTimeText}
-          categories={categories}
-          totalGeral={totalGeral}
-          onSelectCategory={setSelectedCategory}
-        />
+        <CashTotalsMainListView openingTimeText={openingTimeText} categories={categories} totalGeral={totalGeral} onSelectCategory={setSelectedCategory} />
       )}
 
       {selectedCategory && (
-        <>
-          <SaleShareModal
-            isOpen={isShareModalOpen}
-            onClose={() => setIsShareModalOpen(false)}
-            pdfUrl={null}
-            saleName={`Conferência - ${selectedCategory.name}`}
-            onGeneratePdf={handleGeneratePdf}
-            onOpenLinkModal={(url: string) => { setLinkModalUrl(url); setIsLinkModalOpen(true) }}
-          />
-          <SaleLinkModal
-            isOpen={isLinkModalOpen}
-            onClose={() => setIsLinkModalOpen(false)}
-            pdfUrl={linkModalUrl}
-            saleName={`Conferência - ${selectedCategory.name}`}
-          />
-        </>
+        <CashTotalsModalsBundle
+          selectedCategory={selectedCategory} isShareModalOpen={isShareModalOpen} setIsShareModalOpen={setIsShareModalOpen}
+          isLinkModalOpen={isLinkModalOpen} setIsLinkModalOpen={setIsLinkModalOpen} linkModalUrl={linkModalUrl} setLinkModalUrl={setLinkModalUrl}
+          handleGeneratePdf={handleGeneratePdf} isSupervisorAuthOpen={isSupervisorAuthOpen} setIsSupervisorAuthOpen={setIsSupervisorAuthOpen}
+          handleAuthorized={handleAuthorized} tenantId={tenantId} tenantCtx={tenantCtx}
+        />
       )}
     </Box>
   )

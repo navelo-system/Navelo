@@ -2,12 +2,13 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 import { Font } from "./Font"
 import { Stack } from "./Stack"
-import { LucideIcon, Eye, EyeOff, Calendar } from "lucide-react"
+import { LucideIcon, Eye, EyeOff, Calendar, Minus, Plus } from "lucide-react"
 import { maskCPF, maskCNPJ, maskPhone, maskDate, maskCEP, maskCpfCnpj, maskCurrency, maskPercent } from "@/lib/masks"
 import { DatePickerModal } from "./DatePickerModal"
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  variant?: "default" | "cpf" | "cnpj" | "cpf-cnpj" | "phone" | "date" | "cep" | "email" | "image-upload" | "outlined-label" | "outlined-label-centered" | "bordered" | "textarea" | "currency" | "percent"
+  variant?: "default" | "cpf" | "cnpj" | "cpf-cnpj" | "phone" | "date" | "cep" | "email" | "image-upload" | "outlined-label" | "outlined-label-centered" | "outlined-counter" | "bordered" | "textarea" | "currency" | "percent"
+  shape?: "rectangle" | "circle"
   mask?: "cpf" | "cnpj" | "cpf-cnpj" | "phone" | "date" | "cep" | "currency" | "percent"
   hasError?: boolean
   label?: string
@@ -16,11 +17,13 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
   icon?: LucideIcon
   iconRight?: LucideIcon
   onIconRightClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
+  onIncrement?: () => void
+  onDecrement?: () => void
   rows?: number
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, variant = "default", mask, hasError, label, description, error, icon: IconComponent, iconRight: IconRightComponent, onIconRightClick, rows, onChange, onClick, ...props }, ref) => {
+  ({ className, type, variant = "default", shape = "rectangle", mask, hasError, label, description, error, icon: IconComponent, iconRight: IconRightComponent, onIconRightClick, onIncrement, onDecrement, rows, onChange, onClick, ...props }, ref) => {
     
     const [showPassword, setShowPassword] = React.useState(false)
     const [isDatePickerOpen, setIsDatePickerOpen] = React.useState(false)
@@ -53,16 +56,15 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     if (variant === "textarea") {
       const textareaElement = (
         <textarea
-          placeholder={placeholder}
-          rows={rows || 4}
-          onChange={onChange as unknown as React.ChangeEventHandler<HTMLTextAreaElement>}
+          rows={rows || 3}
           className={cn(
-            "flex w-full rounded-[5px] border-2 border-border bg-white p-3.5 text-sm text-foreground placeholder:text-text-muted focus:outline-none focus:border-brand-primary disabled:cursor-not-allowed disabled:opacity-50 transition-colors resize-none",
+            "w-full rounded-[5px] border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-text-muted focus:border-brand-primary focus:outline-none disabled:opacity-50",
             (hasError || error) && "border-brand-danger focus:border-brand-danger",
             className
           )}
-          ref={ref as unknown as React.Ref<HTMLTextAreaElement>}
-          {...(props as unknown as React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
+          onChange={onChange as any}
+          onClick={onClick as any}
+          {...(props as any)}
         />
       )
 
@@ -71,7 +73,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       }
 
       return (
-        <Stack gap={2.5} className="w-full">
+        <Stack gap={1} className="w-full">
           {(label || description) && (
             <Stack gap={1}>
               {label && <Font variant="sub-tiny-bold" text={label} />}
@@ -85,17 +87,28 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     }
 
     if (variant === "image-upload") {
+      const isCircle = shape === "circle"
+      const previewUrl = typeof props.value === "string" && props.value ? props.value : undefined
+      const { value: _unusedValue, defaultValue: _unusedDefaultValue, ...fileInputProps } = props
+
       const dropzoneElement = (
         <label className={cn(
-          "relative flex flex-col items-center justify-center w-full min-h-[120px] rounded-[5px] border-2 border-dashed border-brand-primary/30 bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 transition-colors cursor-pointer focus-within:outline-none focus-within:border-brand-primary",
+          "relative flex flex-col items-center justify-center w-full transition-colors cursor-pointer focus-within:outline-none overflow-hidden",
+          isCircle
+            ? "w-16 h-16 max-w-16 max-h-16 aspect-square shrink-0 rounded-full border-2 border-dashed border-brand-primary/30 bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20"
+            : "w-full h-[140px] max-h-[140px] shrink-0 rounded-t-[9px] rounded-b-none border-2 border-dashed border-brand-primary/30 bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20",
           (hasError || error) && "border-brand-danger text-brand-danger focus-within:border-brand-danger",
           className
         )}>
-          <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer outline-none" onChange={onChange} ref={ref} {...props} />
-          <Stack gap={2.5} align="center">
-            {IconComponent && <IconComponent size={24} className="text-brand-primary" />}
-            {placeholder && <Font variant="description" color="inherit" text={placeholder} />}
-          </Stack>
+          <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer outline-none z-10" onChange={onChange} ref={ref} {...fileInputProps} />
+          {previewUrl ? (
+            <img src={previewUrl} alt="Preview" className={cn("w-full h-full object-cover object-center", isCircle && "rounded-full aspect-square")} />
+          ) : (
+            <Stack gap={2.5} align="center">
+              {IconComponent && <IconComponent size={24} className="text-brand-primary" />}
+              {placeholder && <Font variant="description" color="inherit" text={placeholder} />}
+            </Stack>
+          )}
         </label>
       )
 
@@ -130,6 +143,43 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
         currentTarget: { value: formattedDate },
       } as React.ChangeEvent<HTMLInputElement>
       onChange?.(syntheticEvent)
+    }
+
+    if (variant === "outlined-counter") {
+      return (
+        <div
+          className={cn(
+            "relative flex items-center justify-between w-full rounded-[5px] border-2 border-border bg-white px-3 py-2 mt-2 min-h-[40px] transition-colors focus-within:border-brand-primary",
+            (hasError || error) && "border-brand-danger",
+            className
+          )}
+        >
+          {label && (
+            <span className="absolute -top-2.5 left-2.5 px-1 bg-white text-xs font-normal text-text-muted z-10 leading-none pointer-events-none select-none">
+              {label}
+            </span>
+          )}
+          <button
+            type="button"
+            onClick={onDecrement}
+            className="text-foreground hover:text-brand-primary transition-colors p-1 flex items-center justify-center focus:outline-none"
+            aria-label="Diminuir"
+          >
+            <Minus size={16} />
+          </button>
+          <span className="text-sm font-normal text-foreground text-center select-none flex-1">
+            {props.value ?? props.defaultValue ?? 0}
+          </span>
+          <button
+            type="button"
+            onClick={onIncrement}
+            className="text-foreground hover:text-brand-primary transition-colors p-1 flex items-center justify-center focus:outline-none"
+            aria-label="Aumentar"
+          >
+            <Plus size={16} />
+          </button>
+        </div>
+      )
     }
 
     const isOutlined = variant === "outlined-label" || variant === "outlined-label-centered"

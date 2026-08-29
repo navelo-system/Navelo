@@ -66,12 +66,7 @@ const domainSyntax = [
   }
 ];
 
-const pageSpecificSyntax = [
-  {
-    selector: "JSXOpeningElement[name.name=/^(Box|Stack|Font|Grid|Icon|Button|Input|Badge|Avatar|Table|Tabs|Switch|CustomSelect|Modal|Logo)$/]",
-    message: "Base components (Box, Stack, Font, etc) are prohibited directly in page.tsx. The page must only render RegistryMain and delegate content to *Section components."
-  }
-];
+
 
 const i18nSyntax = [
   // 1. Proibir texto solto direto em JSX (filhos literais de elementos JSX)
@@ -96,11 +91,13 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
   ]),
 
-  // BLOCO 1 — src components fora da pasta base (Todas as restrições + globals + domain + i18n)
+  // BLOCO 1 — src e app fora da pasta base (Todas as restrições + globals + domain + i18n)
   {
-    files: ["**/src/components/**/*.{ts,tsx}"],
+    files: ["**/src/**/*.{ts,tsx}", "**/app/**/*.{ts,tsx}"],
     ignores: [
-      "**/components/store/base/**"
+      "**/components/store/base/**",
+      "**/app/layout.tsx", // Permite tags html e body do Next.js Root Layout
+      "**/app/api/**"
     ],
     rules: {
       "no-restricted-syntax": [
@@ -128,31 +125,14 @@ const eslintConfig = defineConfig([
     }
   },
 
-  // BLOCO 3 — page.tsx (Todas as restrições + page specific + globals + domain)
+  // BLOCO 3 — layout.tsx do Next.js (Apenas globals + domain)
   {
-    files: ["**/app/**/page.tsx"],
-    ignores: [
-      "**/app/api/**",
-      "**/app/page.tsx"
-    ],
+    files: ["**/app/layout.tsx"],
     rules: {
       "no-restricted-syntax": [
         "error",
-        ...pageSpecificSyntax,
-        ...designSystemSyntax,
         ...nativeGlobalsSyntax,
         ...domainSyntax
-      ],
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              group: ["@/components/store/base/**", "../components/store/base/**"],
-              message: "Base components cannot be imported in page.tsx. Delegate your layout to a Section component."
-            }
-          ]
-        }
       ]
     }
   },

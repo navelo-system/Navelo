@@ -8,51 +8,60 @@ import { Icon } from "@/components/store/base/Icon"
 import { Badge } from "@/components/store/base/Badge"
 import { CompanyDataForm } from "@/components/store/advanced/CompanyDataForm"
 import { CompanySyncForm } from "@/components/store/advanced/CompanySyncForm"
-import { UsuariosSection } from "@/components/store/sections/pdv/pages/UsuariosSection"
-import { RestricoesSection } from "@/components/store/sections/pdv/pages/RestricoesSection"
-import { AutorizacoesSection } from "@/components/store/sections/pdv/pages/AutorizacoesSection"
-import { NotaFiscalSection } from "@/components/store/sections/pdv/pages/NotaFiscalSection"
-import { PagamentoIntegradoSection } from "@/components/store/sections/pdv/pages/PagamentoIntegradoSection"
 import { ContaDigitalSection } from "@/components/store/sections/pdv/pages/ContaDigitalSection"
-import { PixSection } from "@/components/store/sections/pdv/pages/PixSection"
-import { CrediarioSection } from "@/components/store/sections/pdv/pages/CrediarioSection"
-import { ConectaEntregadorSection } from "@/components/store/sections/pdv/pages/ConectaEntregadorSection"
-import { ConsultaPrecoSection } from "@/components/store/sections/pdv/pages/ConsultaPrecoSection"
-import { PesagemAutomaticaSection } from "@/components/store/sections/pdv/pages/PesagemAutomaticaSection"
-import { MenuDigitalSection } from "@/components/store/sections/pdv/pages/MenuDigitalSection"
-import { IdentificacaoSection } from "@/components/store/sections/pdv/pages/IdentificacaoSection"
-import { CatalogoProdutosSection } from "@/components/store/sections/pdv/pages/CatalogoProdutosSection"
-import { CatalogoOnlineSection } from "@/components/store/sections/pdv/pages/CatalogoOnlineSection"
-import { HorarioAtendimentoSection } from "@/components/store/sections/pdv/pages/HorarioAtendimentoSection"
-import { FormasPagamentoSection } from "@/components/store/sections/pdv/pages/FormasPagamentoSection"
-import { WhatsAppSection } from "@/components/store/sections/pdv/pages/WhatsAppSection"
-import { OpcoesEntregaSection } from "@/components/store/sections/pdv/pages/OpcoesEntregaSection"
-import { OpcoesPedidoSection } from "@/components/store/sections/pdv/pages/OpcoesPedidoSection"
-import { OpcoesPedidoMenuDigitalSection } from "@/components/store/sections/pdv/pages/OpcoesPedidoMenuDigitalSection"
-import { IFoodSection } from "@/components/store/sections/pdv/pages/IFoodSection"
-import { TaxaEntregaSection } from "@/components/store/sections/pdv/pages/TaxaEntregaSection"
-import { MesasComandasSection } from "@/components/store/sections/pdv/pages/MesasComandasSection"
-import { ConfigurarComandasSection } from "@/components/store/sections/pdv/pages/ConfigurarComandasSection"
-import { TaxaServicoSection } from "@/components/store/sections/pdv/pages/TaxaServicoSection"
-import { AutoatendimentoSection } from "@/components/store/sections/pdv/pages/AutoatendimentoSection"
-import { AutoatendimentoCustomizacaoSection } from "@/components/store/sections/pdv/pages/AutoatendimentoCustomizacaoSection"
-import { AutoatendimentoNumeroSection } from "@/components/store/sections/pdv/pages/AutoatendimentoNumeroSection"
-import { GruposSubgruposSection } from "@/components/store/sections/pdv/pages/GruposSubgruposSection"
-import { UnidadesSection } from "@/components/store/sections/pdv/pages/UnidadesSection"
-import { FornecedoresSection } from "@/components/store/sections/pdv/pages/FornecedoresSection"
-import { CidadesSection } from "@/components/store/sections/pdv/pages/CidadesSection"
-import { ImpressoraSection } from "@/components/store/sections/pdv/pages/ImpressoraSection"
-import { PontosImpressaoSection } from "@/components/store/sections/pdv/pages/PontosImpressaoSection"
-import { ComprovantesSection } from "@/components/store/sections/pdv/pages/ComprovantesSection"
-import { BalancaCheckoutSection } from "@/components/store/sections/pdv/pages/BalancaCheckoutSection"
-import { BalancaEtiquetadoraSection } from "@/components/store/sections/pdv/pages/BalancaEtiquetadoraSection"
-import { BackupSection } from "@/components/store/sections/pdv/pages/BackupSection"
+import {
+  loadContaDigitalSettings,
+  CONTA_DIGITAL_SETTINGS_EVENT,
+} from "@/lib/sync/contaDigitalSettings"
+import {
+  UsuariosSection,
+  RestricoesSection,
+  AutorizacoesSection,
+  NotaFiscalSection,
+  PagamentoIntegradoSection,
+  PixSection,
+  CrediarioSection,
+  FormasPagamentoSection,
+  CatalogoOnlineSection,
+  ConectaEntregadorSection,
+  IFoodSection,
+  TaxaEntregaSection,
+  WhatsAppSection,
+  OpcoesEntregaSection,
+  OpcoesPedidoSection,
+  OpcoesPedidoMenuDigitalSection,
+  ImpressoraSection,
+  PontosImpressaoSection,
+  ComprovantesSection,
+  BalancaCheckoutSection,
+  BalancaEtiquetadoraSection,
+  MesasComandasSection,
+  ConfigurarComandasSection,
+  TaxaServicoSection,
+  AutoatendimentoSection,
+  AutoatendimentoCustomizacaoSection,
+  AutoatendimentoNumeroSection,
+  GruposSubgruposSection,
+  UnidadesSection,
+  FornecedoresSection,
+  CidadesSection,
+  ConsultaPrecoSection,
+  PesagemAutomaticaSection,
+  MenuDigitalSection,
+  IdentificacaoSection,
+  CatalogoProdutosSection,
+  HorarioAtendimentoSection,
+  BackupSection,
+} from "@/components/store/sections/pdv/settings"
 import {
   Building, Cloud, Users, Lock, ClipboardList, ArrowLeftRight, CreditCard, Smartphone,
   Wallet, QrCode, Coins, Globe, Bike, Utensils, Truck, Barcode, Scale, BookOpen, Coffee,
   Layers, Box as BoxIcon, Package, MapPin, Printer, FileText, Tag, Database, Check, LucideIcon,
 } from "lucide-react"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
+import { useAppNavigation } from "@/lib/navigation/NavigationContext"
+import { UI_STRINGS } from "@/constants/strings"
+import { loadDeviceSyncSettings } from "@/lib/sync/deviceSyncSettings"
 
 interface ConfiguracoesSectionProps {
   onBackToDashboard: () => void
@@ -79,7 +88,7 @@ const SETTINGS_GROUPS: SettingGroup[] = [
     id: "empresa-sincronizacao",
     items: [
       { id: "dados-empresa", title: "Dados da empresa", icon: Building },
-      { id: "sincronizacao", title: "Sincronização", subtitle: "Habilitar sincronização entre dispositivos", icon: Cloud, badge: "habilitado" },
+      { id: "sincronizacao", title: "Sincronização", subtitle: "Habilitar sincronização entre dispositivos", icon: Cloud },
     ],
   },
   {
@@ -152,7 +161,7 @@ const SETTINGS_GROUPS: SettingGroup[] = [
   {
     id: "backup",
     items: [
-      { id: "backup-config", title: "Backup", icon: Database },
+      { id: "backup", title: "Backup", icon: Database },
     ],
   },
 ]
@@ -161,6 +170,11 @@ const TITLES_MAP: Record<string, string> = {
   "dados-empresa": "Dados da Empresa",
   "sincronizacao": "Sincronização",
   "usuarios": "Usuários",
+  "novo-usuario": "Novo Usuário",
+  "restricoes": "Restrições de Acesso",
+  "autorizacoes": "Registro de Autorizações",
+  "nota-fiscal": "Nota Fiscal",
+  "nota-fiscal-config": "Nota Fiscal",
   "pagamento-integrado": "Pagamento Integrado",
   "ordem-pagamento": "Ordem de Pagamento",
   "conta-digital": "Conta Digital",
@@ -199,6 +213,7 @@ const TITLES_MAP: Record<string, string> = {
   "balanca-checkout": "Balança checkout",
   "balanca-etiquetadora": "Balança etiquetadora",
   "backup": "Backup",
+  "backup-config": "Backup",
 }
 
 interface CommonRouterProps {
@@ -212,32 +227,32 @@ interface CommonRouterProps {
 
 function renderEmpresaAndAuthSubViews(p: CommonRouterProps): React.ReactNode {
   const { currentSubView, popSubView, setCustomBack, setCustomTitle, setCustomActions } = p
-  if (currentSubView === "dados-empresa") return <CompanyDataForm onCancel={popSubView} onSave={popSubView} />
-  if (currentSubView === "sincronizacao") return <CompanySyncForm onCancel={popSubView} />
+  if (currentSubView === "dados-empresa") return <CompanyDataForm onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
+  if (currentSubView === "sincronizacao") return <CompanySyncForm onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
   if (currentSubView === "usuarios") return <UsuariosSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
   if (currentSubView === "restricoes") return <RestricoesSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
-  if (currentSubView === "autorizacoes") return <AutorizacoesSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
-  if (currentSubView === "nota-fiscal-config") return <NotaFiscalSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
+  if (currentSubView === "autorizacoes") return <AutorizacoesSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
+  if (currentSubView === "nota-fiscal-config" || currentSubView === "nota-fiscal") return <NotaFiscalSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
   return null
 }
 
 function renderPagamentosSubViews(p: CommonRouterProps): React.ReactNode {
-  const { currentSubView, popSubView, setCustomBack, setCustomTitle } = p
-  if (currentSubView === "pagamento-integrado") return <PagamentoIntegradoSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
-  if (currentSubView === "ordem-pagamento") return <PagamentoIntegradoSection type="order" onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
-  if (currentSubView === "conta-digital") return <ContaDigitalSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
-  if (currentSubView === "pix") return <PixSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
-  if (currentSubView === "crediario") return <CrediarioSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
+  const { currentSubView, popSubView, setCustomBack, setCustomTitle, setCustomActions } = p
+  if (currentSubView === "pagamento-integrado") return <PagamentoIntegradoSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
+  if (currentSubView === "ordem-pagamento") return <PagamentoIntegradoSection type="order" onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
+  if (currentSubView === "conta-digital") return <ContaDigitalSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
+  if (currentSubView === "pix") return <PixSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
+  if (currentSubView === "crediario") return <CrediarioSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
   return null
 }
 
 function renderDeliverySubViews(p: CommonRouterProps): React.ReactNode {
-  const { currentSubView, popSubView, setCustomBack, setCustomTitle } = p
+  const { currentSubView, popSubView, setCustomBack, setCustomTitle, setCustomActions } = p
   if (currentSubView === "entregadores") return <ConectaEntregadorSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
   if (currentSubView === "ifood") return <IFoodSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
-  if (currentSubView === "taxa-entrega") return <TaxaEntregaSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
-  if (currentSubView === "consulta-preco") return <ConsultaPrecoSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
-  if (currentSubView === "pesagem-automatica") return <PesagemAutomaticaSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
+  if (currentSubView === "taxa-entrega") return <TaxaEntregaSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
+  if (currentSubView === "consulta-preco") return <ConsultaPrecoSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
+  if (currentSubView === "pesagem-automatica") return <PesagemAutomaticaSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
   return null
 }
 
@@ -245,30 +260,30 @@ function renderCatalogoSubViews(p: CommonRouterProps): React.ReactNode {
   const { currentSubView, popSubView, pushSubView, setCustomBack, setCustomTitle, setCustomActions } = p
   if (currentSubView === "menu-digital") return <MenuDigitalSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} onNavigate={pushSubView} />
   if (currentSubView === "catalogo-online") return <CatalogoOnlineSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} onNavigate={pushSubView} />
-  if (currentSubView === "identificacao") return <IdentificacaoSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
+  if (currentSubView === "identificacao") return <IdentificacaoSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
   if (currentSubView === "catalogo-produtos") return <CatalogoProdutosSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
-  if (currentSubView === "horario-atendimento") return <HorarioAtendimentoSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
-  if (currentSubView === "formas-pagamento") return <FormasPagamentoSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
-  if (currentSubView === "whatsapp") return <WhatsAppSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
+  if (currentSubView === "horario-atendimento") return <HorarioAtendimentoSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
+  if (currentSubView === "formas-pagamento") return <FormasPagamentoSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
+  if (currentSubView === "whatsapp") return <WhatsAppSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
   return null
 }
 
 function renderOpcoesPedidoSubViews(p: CommonRouterProps): React.ReactNode {
-  const { currentSubView, popSubView, setCustomBack, setCustomTitle } = p
-  if (currentSubView === "opcao-entrega") return <OpcoesEntregaSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
-  if (currentSubView === "opcao-pedido") return <OpcoesPedidoSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
-  if (currentSubView === "opcao-pedido-menu-digital") return <OpcoesPedidoMenuDigitalSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
+  const { currentSubView, popSubView, setCustomBack, setCustomTitle, setCustomActions } = p
+  if (currentSubView === "opcao-entrega") return <OpcoesEntregaSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
+  if (currentSubView === "opcao-pedido") return <OpcoesPedidoSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
+  if (currentSubView === "opcao-pedido-menu-digital") return <OpcoesPedidoMenuDigitalSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
   return null
 }
 
 function renderMesasAndAutoatendimentoSubViews(p: CommonRouterProps): React.ReactNode {
-  const { currentSubView, popSubView, pushSubView, setCustomBack, setCustomTitle } = p
+  const { currentSubView, popSubView, pushSubView, setCustomBack, setCustomTitle, setCustomActions } = p
   if (currentSubView === "mesas-comandas") return <MesasComandasSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} onNavigate={pushSubView} />
   if (currentSubView === "configurar-comandas") return <ConfigurarComandasSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
   if (currentSubView === "taxas-servico") return <TaxaServicoSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
   if (currentSubView === "autoatendimento") return <AutoatendimentoSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} onNavigate={pushSubView} />
-  if (currentSubView === "autoatendimento-cartao") return <PagamentoIntegradoSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} type="integrated" />
-  if (currentSubView === "autoatendimento-pix") return <ContaDigitalSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
+  if (currentSubView === "autoatendimento-cartao") return <PagamentoIntegradoSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} type="integrated" />
+  if (currentSubView === "autoatendimento-pix") return <ContaDigitalSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} />
   if (currentSubView === "autoatendimento-customizacao") return <AutoatendimentoCustomizacaoSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
   if (currentSubView === "autoatendimento-numero") return <AutoatendimentoNumeroSection onCancel={popSubView} setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} />
   return null
@@ -295,13 +310,39 @@ function renderHardwareSubViews(p: CommonRouterProps): React.ReactNode {
 }
 
 function ConfiguracoesMenuGrid({ onSelectView }: { onSelectView: (v: string) => void }) {
+  const syncEnabled = loadDeviceSyncSettings().enabled
+  const [contaDigitalEnabled, setContaDigitalEnabled] = React.useState(
+    () => loadContaDigitalSettings().enabled
+  )
+
+  React.useEffect(() => {
+    const handleSync = () => {
+      setContaDigitalEnabled(loadContaDigitalSettings().enabled)
+    }
+    window.addEventListener(CONTA_DIGITAL_SETTINGS_EVENT, handleSync)
+    return () => {
+      window.removeEventListener(CONTA_DIGITAL_SETTINGS_EVENT, handleSync)
+    }
+  }, [])
+
   return (
     <Box w="full">
       <Stack gap={5} w="full">
         {SETTINGS_GROUPS.map((group) => (
           <Box key={group.id} border borderColor="border-border" bg="bg-surface" radius="default" w="full" overflow="hidden">
             <Stack gap={0} w="full">
-              {group.items.map((item, idx) => (
+              {group.items.map((item, idx) => {
+                let showEnabledBadge = Boolean(item.badge)
+                let badgeLabel: string | undefined = item.badge
+                if (item.id === "sincronizacao") {
+                  showEnabledBadge = syncEnabled
+                  badgeLabel = UI_STRINGS.companySync.enabledBadge
+                } else if (item.id === "conta-digital") {
+                  showEnabledBadge = contaDigitalEnabled
+                  badgeLabel = "habilitado"
+                }
+
+                return (
                 <React.Fragment key={item.id}>
                   {idx > 0 && <Box h="h-[1px]" w="full" bg="bg-border" />}
                   <Box
@@ -313,14 +354,15 @@ function ConfiguracoesMenuGrid({ onSelectView }: { onSelectView: (v: string) => 
                       <Stack gap={1} align="stretch" flex="1">
                         <Stack direction="row" align="center" justify="between" w="full" gap={2.5}>
                           <Font variant="body-bold" text={item.title} align="left" />
-                          {item.badge && <Box><Badge variant="success" label={item.badge} icon={Check} /></Box>}
+                          {showEnabledBadge && badgeLabel && <Box><Badge variant="success" label={badgeLabel} icon={Check} /></Box>}
                         </Stack>
                         {item.subtitle && <Font variant="description" text={item.subtitle} align="left" />}
                       </Stack>
                     </Stack>
                   </Box>
                 </React.Fragment>
-              ))}
+                )
+              })}
             </Stack>
           </Box>
         ))}
@@ -360,23 +402,20 @@ function ConfiguracoesViewRouter(p: CommonRouterProps) {
 export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
   setCustomBack, setCustomTitle, setCustomActions,
 }) => {
-  const [currentSubView, setCurrentSubView] = React.useState<string | null>(null)
-  const [subViewHistory, setSubViewHistory] = React.useState<string[]>([])
+  const { currentRoute, navigate, goBack } = useAppNavigation()
+
+  const currentSubView =
+    currentRoute.view !== "configuracoes" && TITLES_MAP[currentRoute.view]
+      ? currentRoute.view
+      : null
 
   const pushSubView = React.useCallback((view: string) => {
-    setSubViewHistory((prev) => (currentSubView ? [...prev, currentSubView] : prev))
-    setCurrentSubView(view)
-  }, [currentSubView])
+    navigate(view.startsWith("#") ? view : `#${view}`)
+  }, [navigate])
 
   const popSubView = React.useCallback(() => {
-    setSubViewHistory((prev) => {
-      if (prev.length === 0) { setCurrentSubView(null); return [] }
-      const next = [...prev]
-      const last = next.pop()
-      setCurrentSubView(last || null)
-      return next
-    })
-  }, [])
+    goBack("#configuracoes")
+  }, [goBack])
 
   React.useEffect(() => {
     if (currentSubView) {
@@ -391,11 +430,9 @@ export const ConfiguracoesSection: React.FC<ConfiguracoesSectionProps> = ({
     return () => { setCustomBack?.(null); setCustomTitle?.(null); setCustomActions?.(null) }
   }, [currentSubView, setCustomBack, setCustomTitle, setCustomActions, popSubView])
 
-  const stackViewKey = React.useMemo(() => [...subViewHistory, currentSubView || "root"].join("/"), [subViewHistory, currentSubView])
-
   return (
     <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
-      <ViewTransition viewKey={stackViewKey} flex="1" minH="0">
+      <ViewTransition viewKey={currentSubView || "root"} flex="1" minH="0">
         <ConfiguracoesViewRouter
           currentSubView={currentSubView} popSubView={popSubView} pushSubView={pushSubView}
           setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions}

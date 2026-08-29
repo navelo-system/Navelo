@@ -7,7 +7,8 @@ import { Stack } from "@/components/store/base/Stack"
 import { Grid } from "@/components/store/base/Grid"
 import { KpiCard } from "@/components/store/intermediary/KpiCard"
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/store/base/Table"
-import { ArrowLeft, Download, BarChart3, PieChart } from "lucide-react"
+import { EmptyState } from "@/components/store/intermediary/EmptyState"
+import { ArrowLeft, Download, BarChart3, PieChart, FileSpreadsheet } from "lucide-react"
 import { Tenant, Plan } from "@/src/types/domain"
 import { UI_STRINGS } from "@/constants/strings"
 
@@ -22,6 +23,27 @@ const MOCK_REVENUE: TenantRevenueRow[] = [
   { tenant: { tradingName: "Padaria Delícia" }, plan: { name: "Free", price: 0 } },
 ]
 
+function exportCsvFile(reportTitle: string, rows: TenantRevenueRow[]) {
+  const headers = ["Empresa", "Plano", "Receita Anual", "Receita Mensal"]
+  const csvRows = rows.map(r => {
+    const annual = r.plan.price * 12
+    return [
+      `"${r.tenant.tradingName.replace(/"/g, '""')}"`,
+      `"${r.plan.name}"`,
+      annual === 0 ? "0,00" : annual.toLocaleString("pt-BR", { minimumFractionDigits: 2 }),
+      r.plan.price === 0 ? "0,00" : r.plan.price.toLocaleString("pt-BR", { minimumFractionDigits: 2 })
+    ].join(";")
+  })
+  const csvContent = "\uFEFF" + [headers.join(";"), ...csvRows].join("\n")
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
+  const link = document.createElement("a")
+  link.href = URL.createObjectURL(blob)
+  link.download = `Admin_${reportTitle.replace(/\s+/g, "_")}_${Date.now()}.csv`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
 function AdminMetricsKpiGrid({ hideValues, onToggleHide }: { hideValues: boolean; onToggleHide: () => void }) {
   const r = UI_STRINGS.admin.reports
   return (
@@ -35,6 +57,15 @@ function AdminMetricsKpiGrid({ hideValues, onToggleHide }: { hideValues: boolean
 
 function AdminRevenueTable({ rows }: { rows: TenantRevenueRow[] }) {
   const r = UI_STRINGS.admin.reports
+  if (rows.length === 0) {
+    return (
+      <EmptyState
+        icon={FileSpreadsheet}
+        title={UI_STRINGS.common.noResultsFound}
+        subtitle={UI_STRINGS.admin.audit.emptySubtitle}
+      />
+    )
+  }
   return (
     <Table>
       <TableHeader>
@@ -80,7 +111,7 @@ export function RelatoriosSection() {
         title={r.metricsTitle}
         description={r.metricsDescription}
         icon={BarChart3}
-        action={<Button variant="primary" label={r.exportPdfButton} icon={Download} onClick={() => {}} />}
+        action={<Button variant="primary" label={UI_STRINGS.reports.exportCsvButton} icon={Download} onClick={() => exportCsvFile("Métricas_MRR", MOCK_REVENUE)} />}
       >
         <AdminMetricsKpiGrid hideValues={hideValues} onToggleHide={() => setHideValues((prev) => !prev)} />
       </RegistrySection>

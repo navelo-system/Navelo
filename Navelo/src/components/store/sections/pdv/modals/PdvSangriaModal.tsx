@@ -5,6 +5,7 @@ import { Modal } from "@/components/store/base/Modal"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
+import { Button } from "@/components/store/base/Button"
 import { Numpad } from "@/components/store/intermediary/Numpad"
 import { Banknote, Wallet } from "lucide-react"
 import { UI_STRINGS } from "@/constants/strings"
@@ -83,30 +84,46 @@ export function PdvSangriaModal({
   const config = getSangriaConfig(mode)
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={config.titleText}
-      variant="default"
-      showCancelButton={true}
-      successText={config.successLabel}
-      onSuccess={handleConfirm}
-    >
-      <Stack gap={5} w="full" align="center">
-        <Box w="full" bg="bg-surface-sunken" padding={2.5} radius="default" border borderColor="border-border">
+    <Modal isOpen={isOpen} onClose={onClose} variant="numpad">
+      <Box padding={5} w="full">
+        <Stack gap={5} w="full">
+          {/* Cabeçalho */}
           <Stack direction="row" align="center" justify="between" w="full">
-            <Font variant="body-sm-medium" color="muted" text={UI_STRINGS.cashManagement.availableInCash} />
-            <Font variant="body-bold" text={`R$ ${formattedAvailable}`} />
+            <Stack gap={1}>
+              <Font variant="body-bold" text={config.titleText} />
+              <Font variant="description" color="muted" text={config.subtitleText} />
+            </Stack>
           </Stack>
-        </Box>
 
-        <Stack gap={1} align="center" w="full">
-          <Font variant="description" text={config.titleText} color="muted" align="center" />
-          <Font variant="h1" text={`${config.valuePrefix} ${formattedValue}`} color="primary" align="center" />
+          {/* Saldo disponível */}
+          <Box w="full" bg="bg-surface-sunken" padding={2.5} radius="default" border borderColor="border-border">
+            <Stack direction="row" align="center" justify="between" w="full">
+              <Font variant="body-sm-medium" color="muted" text={UI_STRINGS.cashManagement.availableInCash} />
+              <Font variant="body-bold" text={`R$ ${formattedAvailable}`} />
+            </Stack>
+          </Box>
+
+          {/* Valor em destaque */}
+          <Stack gap={1} align="center" w="full">
+            <Font variant="description" text={config.titleText} color="muted" align="center" />
+            <Font variant="h1" text={`${config.valuePrefix} ${formattedValue}`} color="primary" align="center" />
+          </Stack>
+
+          {/* Teclado */}
+          <Numpad onKeyPress={handleKeyPress} variant="ghost" />
+
+          {/* Rodapé */}
+          <Stack direction="row" justify="end" align="center" gap={2.5} w="full">
+            <Button variant="ghost" label={UI_STRINGS.common.cancel} onClick={onClose} />
+            <Button
+              variant="ghost-primary"
+              label={config.successLabel}
+              onClick={handleConfirm}
+              disabled={numericValue <= 0}
+            />
+          </Stack>
         </Stack>
-
-        <Numpad onKeyPress={handleKeyPress} variant="ghost" />
-      </Stack>
+      </Box>
     </Modal>
   )
 }

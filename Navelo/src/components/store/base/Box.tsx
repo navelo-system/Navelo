@@ -38,7 +38,8 @@ export interface BoxProps extends Omit<React.AllHTMLAttributes<HTMLElement>, "as
   zIndex?: "0" | "10" | "20" | "30" | "40" | "50" | "auto"
   pointerEvents?: "none" | "auto"
   minW?: string
-  minH?: "0" | "full"
+  minH?: "0" | "full" | "screen"
+  maxW?: "820" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl" | "4xl" | "full" | "none" | string
   objectFit?: "contain" | "cover" | "fill" | "none" | "scale-down"
   borderStyle?: "solid" | "dashed"
   shadow?: "default" | "inner" | "none"
@@ -175,7 +176,7 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
     borderTop, borderBottom, borderLeft, borderRight,
     borderColor, 
     borderStyle, shadow, transition, opacity, maxH, animation,
-     overflow, hoverBg, cursor, flex, mdFlex, position, top, left, right, bottom, zIndex, pointerEvents, minW, minH, objectFit, shrink, overflowY,
+     overflow, hoverBg, cursor, flex, mdFlex, position, top, left, right, bottom, zIndex, pointerEvents, minW, minH, maxW, objectFit, shrink, overflowY,
     order, mdOrder, interactive, ...props 
   }, ref) => {
     return (
@@ -213,6 +214,17 @@ export const Box = React.forwardRef<HTMLElement, BoxProps>(
           minW,
           minH === "0" && "min-h-0",
           minH === "full" && "min-h-full",
+          minH === "screen" && "min-h-screen",
+          maxW === "820" && "max-w-[820px]",
+          maxW === "sm" && "max-w-sm",
+          maxW === "md" && "max-w-md",
+          maxW === "lg" && "max-w-lg",
+          maxW === "xl" && "max-w-xl",
+          maxW === "2xl" && "max-w-2xl",
+          maxW === "3xl" && "max-w-3xl",
+          maxW === "4xl" && "max-w-4xl",
+          maxW === "full" && "max-w-full",
+          maxW && !["820", "sm", "md", "lg", "xl", "2xl", "3xl", "4xl", "full"].includes(maxW) && `max-w-[${maxW}]`,
           objectFit && {
             "contain": "object-contain",
             "cover": "object-cover",

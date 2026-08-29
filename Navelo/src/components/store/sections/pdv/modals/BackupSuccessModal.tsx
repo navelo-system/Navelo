@@ -3,8 +3,6 @@
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
 import { Font } from "@/components/store/base/Font"
-import { Cloud } from "lucide-react"
-
 import { UI_STRINGS } from "@/constants/strings"
 
 interface BackupSuccessModalProps {
@@ -23,8 +21,6 @@ export const BackupSuccessModal: React.FC<BackupSuccessModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={s.backupSuccessTitle}
-      subtitle={s.backupSuccessSubtitle}
-      icon={Cloud}
       successText="Ok"
       onSuccess={onClose}
       showCancelButton={false}

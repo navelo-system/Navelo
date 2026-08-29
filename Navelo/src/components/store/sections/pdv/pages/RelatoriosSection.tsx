@@ -3,18 +3,15 @@
 import * as React from "react"
 import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
-import { Grid } from "@/components/store/base/Grid"
 import { Font } from "@/components/store/base/Font"
-import { Icon } from "@/components/store/base/Icon"
 import { Button } from "@/components/store/base/Button"
-import { Input } from "@/components/store/base/Input"
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/store/base/Table"
-import { KpiCard } from "@/components/store/intermediary/KpiCard"
-import { Badge } from "@/components/store/base/Badge"
-import { FilterPanel } from "@/components/store/intermediary/FilterPanel"
-import { Modal } from "@/components/store/base/Modal"
-import { Download, ChevronRight, X, FileSpreadsheet, Filter } from "lucide-react"
-import { UI_STRINGS } from "@/constants/strings"
+import { Icon } from "@/components/store/base/Icon"
+import { ChevronRight, Filter } from "lucide-react"
+import { useSales, useCashMovements, useReceivables, useDeliveryOrders } from "@/lib/dal"
+import { useTenant } from "@/lib/context/TenantContext"
+import { useAppNavigation } from "@/lib/navigation/NavigationContext"
+import { computeReportDetails, ReportDetails, ReportAppliedFilters } from "@/components/store/sections/pdv/pages/relatoriosReportData"
+import { ReportDetailScreen, FilterFormState, ReportType } from "@/components/store/sections/pdv/reports/ReportDetailScreen"
 
 interface RelatoriosSectionProps {
   onBackToDashboard: () => void
@@ -23,33 +20,11 @@ interface RelatoriosSectionProps {
   setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
-export type ReportType =
-  | "comissoes"
-  | "deliveries"
-  | "evolucao"
-  | "extrato"
-  | "margem"
-  | "taxas"
-  | "vendas-produto"
-  | "crediario"
-  | "caixa-totais"
-  | "caixa-pagamentos"
-  | "xml-export"
-  | "nf-sales"
-
 interface ReportDefinition {
   id: ReportType
   title: string
   subtitle: string
   category: "Comercial" | "Controle de Crediário" | "Operações de Caixa" | "Fiscal"
-}
-
-interface ReportDetails {
-  title: string
-  description: string
-  kpis: Array<{ title: string; value: string; subtitle: string }>
-  headers: string[]
-  rows: string[][]
 }
 
 const REPORTS_LIST: ReportDefinition[] = [
@@ -60,7 +35,7 @@ const REPORTS_LIST: ReportDefinition[] = [
   { id: "margem", title: "Margem bruta de vendas", subtitle: "Diferença entre valor de venda e custo de produtos", category: "Comercial" },
   { id: "taxas", title: "Taxas de serviço", subtitle: "Para mesas e comandas", category: "Comercial" },
   { id: "vendas-produto", title: "Vendas por produto", subtitle: "", category: "Comercial" },
-  { id: "crediario", title: "Contas a receber", subtitle: "Ativas e liquidadas", category: "Controle de Crediário" },
+  { id: "relatorio-crediario", title: "Contas a receber", subtitle: "Ativas e liquidadas", category: "Controle de Crediário" },
   { id: "caixa-totais", title: "Totais em caixa", subtitle: "Fechamentos de caixa • Negociação • Sangria • Suprimento", category: "Operações de Caixa" },
   { id: "caixa-pagamentos", title: "Totais por forma de pagamento", subtitle: "Negociação • Sangria • Suprimento", category: "Operações de Caixa" },
   { id: "xml-export", title: "Exportar XML das notas fiscais", subtitle: "NFC-e • NF-e", category: "Fiscal" },
@@ -104,54 +79,53 @@ const REPORT_DETAILS_MAP: Record<ReportType, ReportDetails> = {
     title: "Evolução de vendas",
     description: "Análise histórica comparativa de vendas faturadas",
     kpis: [
-      { title: "Pico de Faturamento", value: "R$ 2.450,00", subtitle: "12:00 às 14:00" },
-      { title: "Crescimento", value: "+14.2%", subtitle: "Comparado ao período anterior" },
-      { title: "Vendas Totais", value: "145", subtitle: "Pedidos emitidos" },
+      { title: "Mês Atual", value: "R$ 48.250,00", subtitle: "+12% comparado ao anterior" },
+      { title: "Pico de Horário", value: "19h - 21h", subtitle: "Maior volume de clientes" },
+      { title: "Melhor Dia", value: "Sexta-feira", subtitle: "Média R$ 3.200,00/dia" },
     ],
-    headers: ["Período / Hora", "Quantidade Vendas", "Valor Faturado", "Ticket Médio"],
+    headers: ["Período / Intervalo", "Vendas Concluídas", "Ticket Médio", "Total Faturado"],
     rows: [
-      ["08:00 - 10:00", "12", "R$ 240,00", "R$ 20,00"],
-      ["10:00 - 12:00", "34", "R$ 1.850,00", "R$ 54,40"],
-      ["12:00 - 14:00", "65", "R$ 6.450,00", "R$ 99,20"],
-      ["14:00 - 16:00", "34", "R$ 4.300,00", "R$ 126,40"],
+      ["Manhã (08h - 12h)", "120", "R$ 25,00", "R$ 3.000,00"],
+      ["Tarde (12h - 18h)", "340", "R$ 45,00", "R$ 15.300,00"],
+      ["Noite (18h - 23h)", "510", "R$ 58,00", "R$ 29.580,00"],
     ],
   },
   extrato: {
     title: "Extrato de vendas",
-    description: "Listagem corrida de todas as movimentações de venda efetuadas",
+    description: "Espelho detalhado de todas as operações emitidas no caixa",
     kpis: [
-      { title: "Faturamento Bruto", value: "R$ 12.840,50", subtitle: "Vendas totais" },
-      { title: "Vendas Dinheiro", value: "R$ 2.450,00", subtitle: "Em espécie" },
-      { title: "Vendas Pix", value: "R$ 4.580,00", subtitle: "Transferência instantânea" },
+      { title: "Total de Operações", value: "145", subtitle: "No período selecionado" },
+      { title: "Cancelamentos", value: "2", subtitle: "Taxa de 1.3%" },
+      { title: "Faturamento Líquido", value: "R$ 12.840,50", subtitle: "Total líquido" },
     ],
-    headers: ["Código", "Data / Hora", "Cliente", "Forma de Pagamento", "Valor"],
+    headers: ["Venda #", "Data / Hora", "Operador", "Forma Pagamento", "Valor Líquido"],
     rows: [
-      ["#1024", "08/07/2026 14:32", "Consumidor Final", "Pix", "R$ 45,00"],
-      ["#1025", "08/07/2026 13:15", "Marcos Silva", "Cartão Crédito", "R$ 120,00"],
-      ["#1026", "08/07/2026 10:45", "Consumidor Final", "Dinheiro", "R$ 15,50"],
-      ["#1027", "08/07/2026 09:20", "Ana Souza", "Pix", "R$ 310,00"],
+      ["#1001", "08/07/2026 14:32", "Admin", "Pix", "R$ 45,00"],
+      ["#1002", "08/07/2026 14:15", "Admin", "Cartão Crédito", "R$ 120,00"],
+      ["#1003", "08/07/2026 13:50", "Admin", "Dinheiro", "R$ 15,50"],
+      ["#1004", "08/07/2026 13:20", "Admin", "Pix", "R$ 310,00"],
     ],
   },
   margem: {
     title: "Margem bruta de vendas",
-    description: "Relação de custos, receitas e rentabilidade por produto",
+    description: "Lucratividade estimada baseada no CMV cadastrado",
     kpis: [
-      { title: "Faturamento", value: "R$ 10.000,00", subtitle: "Soma de vendas" },
-      { title: "Custo de Mercadoria", value: "R$ 4.000,00", subtitle: "Soma dos custos de compra" },
-      { title: "Margem Bruta Média", value: "60.0%", subtitle: "Percentual médio de lucro" },
+      { title: "Margem Média", value: "54.2%", subtitle: "Retorno bruto geral" },
+      { title: "Lucro Bruto", value: "R$ 6.950,00", subtitle: "Sobre o faturamento" },
+      { title: "Custo Mercadorias (CMV)", value: "R$ 5.890,50", subtitle: "Custo total dos itens" },
     ],
-    headers: ["Produto", "Qtd Vendida", "Valor Venda", "Custo Unitário", "Margem Bruta (%)"],
+    headers: ["Categoria", "Faturamento", "Custo (CMV)", "Lucro Bruto", "Margem (%)"],
     rows: [
-      ["COCA-COLA LATA 350ML", "45 UN", "R$ 270,00", "R$ 2,50", "58.3%"],
-      ["HAMBÚRGUER CLÁSSICO", "12 UN", "R$ 346,80", "R$ 12,00", "58.4%"],
-      ["ÁGUA MINERAL SEM GÁS", "15 UN", "R$ 67,55", "R$ 1,20", "73.3%"],
+      ["Bebidas", "R$ 4.200,00", "R$ 1.890,00", "R$ 2.310,00", "55.0%"],
+      ["Lanches", "R$ 6.100,00", "R$ 2.745,00", "R$ 3.355,00", "55.0%"],
+      ["Sobremesas", "R$ 2.540,50", "R$ 1.255,50", "R$ 1.285,00", "50.5%"],
     ],
   },
   taxas: {
     title: "Taxas de serviço",
-    description: "Arrecadação de taxa de serviço por comanda e mesa",
+    description: "Apuração das gorjetas e taxas opcionais de atendimento",
     kpis: [
-      { title: "Total Taxas", value: "R$ 420,00", subtitle: "Soma arrecadada" },
+      { title: "Total em Gorjetas", value: "R$ 420,00", subtitle: "Taxas arrecadadas" },
       { title: "Comandas Com Taxa", value: "45", subtitle: "Comandas participantes" },
       { title: "Média por Comanda", value: "R$ 9,33", subtitle: "Média de comissões" },
     ],
@@ -179,7 +153,7 @@ const REPORT_DETAILS_MAP: Record<ReportType, ReportDetails> = {
       ["REFRIGERANTE LATA", "Bebidas", "32 UN", "R$ 208,00"],
     ],
   },
-  crediario: {
+  "relatorio-crediario": {
     title: "Contas a receber",
     description: "Controle de saldos pendentes em contas de clientes (crediário)",
     kpis: [
@@ -256,165 +230,78 @@ const REPORT_DETAILS_MAP: Record<ReportType, ReportDetails> = {
   },
 }
 
+function useReportData(
+  selectedReport: ReportType | null,
+  appliedFilters: ReportAppliedFilters,
+  tenantId: string,
+  fallbackMap: Record<ReportType, ReportDetails>
+): ReportDetails | null {
+  const dbSales = useSales(tenantId)
+  const dbCash = useCashMovements(tenantId)
+  const dbReceivables = useReceivables(tenantId)
+  const dbDelivery = useDeliveryOrders(tenantId)
+
+  return React.useMemo(() => {
+    if (!selectedReport) return null
+    return computeReportDetails({
+      selectedReport,
+      filters: appliedFilters,
+      sales: dbSales || [],
+      cash: dbCash || [],
+      receivables: dbReceivables || [],
+      deliveries: dbDelivery || [],
+      defaultMock: fallbackMap[selectedReport],
+    })
+  }, [selectedReport, appliedFilters, dbSales, dbCash, dbReceivables, dbDelivery, fallbackMap])
+}
+
 function ReportCategoriesList({ onSelectReport }: { onSelectReport: (id: ReportType) => void }) {
   const categories = ["Comercial", "Controle de Crediário", "Operações de Caixa", "Fiscal"] as const
-
   return (
-    <Stack gap={5} w="full">
+    <Stack gap={12} w="full">
       {categories.map((cat) => {
-        const filteredReports = REPORTS_LIST.filter((r) => r.category === cat)
-        if (filteredReports.length === 0) return null
-
+        const reportsInCat = REPORTS_LIST.filter((r) => r.category === cat)
+        if (reportsInCat.length === 0) return null
         return (
-          <Box key={cat} border borderColor="border-border" padding={5} bg="bg-surface" radius="default">
-            <Stack gap={2.5} w="full">
-              <Font variant="body-semibold" text={cat} />
-              <Box direction="col" w="full" border borderColor="border-border" radius="lg" overflow="hidden" bg="bg-surface">
-                {filteredReports.map((rep) => (
-                  <Box key={rep.id} padding={5} cursor="pointer" hoverBg="secondary/10" onClick={() => onSelectReport(rep.id)}>
-                    <Stack direction="row" align="center" justify="between" w="full">
-                      <Stack gap={1}>
-                        <Font variant="body-bold" text={rep.title} />
-                        {rep.subtitle && <Font variant="description" text={rep.subtitle} />}
-                      </Stack>
-                      <Icon icon={ChevronRight} size={18} color="muted" />
+          <Stack key={cat} gap={2.5} w="full">
+            <Font variant="body-sm-semibold" color="muted" text={cat.toUpperCase()} />
+            <Box border borderColor="border-border" radius="default" overflow="hidden" w="full" bg="bg-surface">
+              {reportsInCat.map((item, idx) => (
+                <Box
+                  key={item.id}
+                  padding={5}
+                  borderBottom={idx < reportsInCat.length - 1}
+                  borderColor="border-border"
+                  cursor="pointer"
+                  hoverBg="secondary/10"
+                  onClick={() => onSelectReport(item.id)}
+                >
+                  <Stack direction="row" justify="between" align="center" w="full">
+                    <Stack gap={1} flex="1">
+                      <Font variant="body" text={item.title} />
+                      {item.subtitle && <Font variant="description" text={item.subtitle} />}
                     </Stack>
-                  </Box>
-                ))}
-              </Box>
-            </Stack>
-          </Box>
+                    <Icon icon={ChevronRight} size={18} color="muted" />
+                  </Stack>
+                </Box>
+              ))}
+            </Box>
+          </Stack>
         )
       })}
     </Stack>
   )
 }
 
-function ReportDetailTable({ headers, rows }: { headers: string[]; rows: string[][] }) {
-  return (
-    <Box radius="default" bg="bg-surface" overflow="auto" w="full">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            {headers.map((h, i) => (
-              <TableHead key={i} text={h} />
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map((row, rIdx) => (
-            <TableRow key={rIdx}>
-              {row.map((cell, cIdx) => {
-                const isStatus = cell === "Concluída" || cell === "Pendente" || cell === "Atrasado" || cell === "Autorizada" || cell === "Finalizado"
-                const badgeVariant = cell === "Concluída" || cell === "Autorizada" || cell === "Finalizado" ? "success" : cell === "Atrasado" ? "danger" : "default"
-                return (
-                  <TableCell key={cIdx}>
-                    {isStatus ? <Badge variant={badgeVariant} label={cell} /> : cell}
-                  </TableCell>
-                )
-              })}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </Box>
-  )
-}
+export function useReportFilterState() {
+  const now = new Date()
+  const pad = (n: number) => String(n).padStart(2, "0")
+  const todayStart = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} 00:00`
+  const todayEnd = `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()} 23:59`
 
-function ReportDetailView({ selectedReport, details }: { selectedReport: ReportType; details: ReportDetails }) {
-  return (
-    <Stack gap={5} w="full">
-      {details.kpis.length > 0 && (
-        <Grid cols={details.kpis.length as 1 | 2 | 3 | 4 | 5 | 6 | 12} gap={5}>
-          {details.kpis.map((kpi, idx) => (
-            <KpiCard key={idx} title={kpi.title} value={kpi.value} subtitle={kpi.subtitle} />
-          ))}
-        </Grid>
-      )}
-      {selectedReport === "xml-export" ? (
-        <Box border borderColor="border-border" padding={5} bg="bg-surface" radius="default" w="full">
-          <Stack align="center" justify="center" gap={5} w="full">
-            <Icon icon={FileSpreadsheet} size={48} color="primary" />
-            <Stack align="center" gap={1} maxWidth="5xl">
-              <Font variant="h3" text={UI_STRINGS.reports.xmlExportTitle} align="center" />
-              <Font variant="description" text={UI_STRINGS.reports.xmlExportDesc} align="center" />
-            </Stack>
-            <Button variant="primary" label={UI_STRINGS.reports.generateZipButton} icon={Download} onClick={() => { }} />
-          </Stack>
-        </Box>
-      ) : (
-        details.headers.length > 0 && <ReportDetailTable headers={details.headers} rows={details.rows} />
-      )}
-    </Stack>
-  )
-}
-
-interface FilterFormState {
-  period: "Hoje" | "7D" | "1M" | "3M" | "6M" | "1A"
-  setPeriod: (p: "Hoje" | "7D" | "1M" | "3M" | "6M" | "1A") => void
-  startDate: string; setStartDate: (d: string) => void
-  endDate: string; setEndDate: (d: string) => void
-  productGroup: string; setProductGroup: (g: string) => void
-  productSubgroup: string; setProductSubgroup: (sg: string) => void
-  client: string; setClient: (c: string) => void
-  user: string; setUser: (u: string) => void
-  device: string; setDevice: (dv: string) => void
-  cost: "Vendido" | "Atual"; setCost: (c: "Vendido" | "Atual") => void
-  order: "Descrição" | "Margem bruta"; setOrder: (o: "Descrição" | "Margem bruta") => void
-  onApplyFilters?: () => void
-  onCloseDrawer?: () => void
-}
-
-function ReportFilterPanel({ state, isDrawer = false }: { state: FilterFormState; isDrawer?: boolean }) {
-  const r = UI_STRINGS.reports
-  return (
-    <FilterPanel
-      hideTitle={isDrawer} borderless={isDrawer}
-      selectedPeriod={state.period}
-      onPeriodChange={(p: string) => state.setPeriod(p as "Hoje" | "7D" | "1M" | "3M" | "6M" | "1A")}
-      startDate={state.startDate} onStartDateChange={state.setStartDate}
-      endDate={state.endDate} onEndDateChange={state.setEndDate}
-      onFilter={() => {
-        state.onApplyFilters?.()
-        state.onCloseDrawer?.()
-      }}
-    >
-      <Stack gap={2.5} w="full">
-        <Input label={r.groupLabel} placeholder={r.groupPlaceholder} value={state.productGroup} onChange={(e: React.ChangeEvent<HTMLInputElement>) => state.setProductGroup(e.target.value)} iconRight={state.productGroup ? X : undefined} />
-        <Input label={r.subgroupLabel} placeholder={r.subgroupPlaceholder} value={state.productSubgroup} onChange={(e: React.ChangeEvent<HTMLInputElement>) => state.setProductSubgroup(e.target.value)} iconRight={state.productSubgroup ? X : undefined} />
-      </Stack>
-      <Input label={r.clientLabel} placeholder={r.clientPlaceholder} value={state.client} onChange={(e: React.ChangeEvent<HTMLInputElement>) => state.setClient(e.target.value)} iconRight={state.client ? X : undefined} />
-      <Input label={r.userLabel} placeholder={r.userPlaceholder} value={state.user} onChange={(e: React.ChangeEvent<HTMLInputElement>) => state.setUser(e.target.value)} iconRight={state.user ? X : undefined} />
-      <Input label={r.deviceLabel} placeholder={r.devicePlaceholder} value={state.device} onChange={(e: React.ChangeEvent<HTMLInputElement>) => state.setDevice(e.target.value)} iconRight={state.device ? X : undefined} />
-
-      <Stack gap={2.5} w="full">
-        <Font variant="body-sm-semibold" color="muted" text={r.costLabel} />
-        <Grid cols={2} gap={2.5} w="full">
-          {(["Vendido", "Atual"] as const).map((c) => (
-            <Button key={c} variant={state.cost === c ? "primary-pill-xs" : "outline-pill-xs"} label={c} onClick={() => state.setCost(c)} type="button" fullWidth />
-          ))}
-        </Grid>
-      </Stack>
-
-      <Stack gap={2.5} w="full">
-        <Stack direction="row" justify="between" align="center" w="full">
-          <Font variant="body-sm-semibold" color="muted" text={r.orderLabel} />
-          <Button variant="ghost" label={r.azSortButton} />
-        </Stack>
-        <Grid cols={2} gap={2.5} w="full">
-          {(["Descrição", "Margem bruta"] as const).map((o) => (
-            <Button key={o} variant={state.order === o ? "primary-pill-xs" : "outline-pill-xs"} label={o} onClick={() => state.setOrder(o)} type="button" fullWidth />
-          ))}
-        </Grid>
-      </Stack>
-    </FilterPanel>
-  )
-}
-
-function useReportFilterState() {
   const [period, setPeriod] = React.useState<"Hoje" | "7D" | "1M" | "3M" | "6M" | "1A">("Hoje")
-  const [startDate, setStartDate] = React.useState("")
-  const [endDate, setEndDate] = React.useState("")
+  const [startDate, setStartDate] = React.useState(todayStart)
+  const [endDate, setEndDate] = React.useState(todayEnd)
   const [productGroup, setProductGroup] = React.useState("")
   const [productSubgroup, setProductSubgroup] = React.useState("")
   const [client, setClient] = React.useState("")
@@ -425,8 +312,8 @@ function useReportFilterState() {
 
   const [appliedFilters, setAppliedFilters] = React.useState({
     period: "Hoje" as "Hoje" | "7D" | "1M" | "3M" | "6M" | "1A",
-    startDate: "",
-    endDate: "",
+    startDate: todayStart,
+    endDate: todayEnd,
     productGroup: "",
     productSubgroup: "",
     client: "",
@@ -436,6 +323,10 @@ function useReportFilterState() {
     order: "Descrição" as "Descrição" | "Margem bruta",
   })
 
+  const handlePeriodChange = (p: "Hoje" | "7D" | "1M" | "3M" | "6M" | "1A") => {
+    setPeriod(p)
+  }
+
   const handleApplyFilters = () => {
     setAppliedFilters({
       period, startDate, endDate, productGroup, productSubgroup, client, user, device, cost, order,
@@ -443,7 +334,7 @@ function useReportFilterState() {
   }
 
   const filterState: FilterFormState = {
-    period, setPeriod, startDate, setStartDate, endDate, setEndDate,
+    period, setPeriod: handlePeriodChange, startDate, setStartDate, endDate, setEndDate,
     productGroup, setProductGroup, productSubgroup, setProductSubgroup,
     client, setClient, user, setUser, device, setDevice, cost, setCost, order, setOrder,
     onApplyFilters: handleApplyFilters,
@@ -457,16 +348,22 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
   setCustomTitle,
   setCustomActions,
 }) => {
-  const [mode, setMode] = React.useState<"list" | "report">("list")
-  const [selectedReport, setSelectedReport] = React.useState<ReportType | null>(null)
-  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
-  const { filterState } = useReportFilterState()
+  const { currentRoute, navigate, goBack } = useAppNavigation()
+  const selectedReport: ReportType | null =
+    currentRoute.view !== "relatorios" && (REPORT_DETAILS_MAP as Record<string, unknown>)[currentRoute.view]
+      ? (currentRoute.view as ReportType)
+      : null
+  const mode: "list" | "report" = selectedReport ? "report" : "list"
 
-  const reportDetails = selectedReport ? REPORT_DETAILS_MAP[selectedReport] : null
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = React.useState(false)
+  const { filterState, appliedFilters } = useReportFilterState()
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id || "default"
+  const reportDetails = useReportData(selectedReport, appliedFilters, tenantId, REPORT_DETAILS_MAP)
 
   React.useEffect(() => {
     if (mode === "report") {
-      setCustomBack?.(() => () => { setMode("list"); setSelectedReport(null) })
+      setCustomBack?.(() => () => goBack("#relatorios"))
       setCustomTitle?.(reportDetails?.title || "Relatório")
       setCustomActions?.(
         <Box display="block md:hidden">
@@ -479,38 +376,21 @@ export const RelatoriosSection: React.FC<RelatoriosSectionProps> = ({
       setCustomActions?.(null)
     }
     return () => { setCustomBack?.(null); setCustomTitle?.(null); setCustomActions?.(null) }
-  }, [mode, setCustomBack, setCustomTitle, setCustomActions, reportDetails?.title])
+  }, [mode, setCustomBack, setCustomTitle, setCustomActions, reportDetails?.title, goBack])
 
   return (
     <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
       <Stack gap={5} w="full" flex="1" minH="0" h="full">
         {mode === "list" ? (
-          <ReportCategoriesList onSelectReport={(id) => { setSelectedReport(id); setMode("report") }} />
+          <ReportCategoriesList onSelectReport={(id) => navigate(`#${id}`)} />
         ) : (
-          <Stack direction="col" gap={5} w="full" flex="1" minH="0" h="full" overflow="hidden">
-            <Box shrink="0" w="full">
-              <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" w="full" gap={2.5}>
-                <Stack gap={1} flex="1" minW="0">
-                  <Font variant="h3" text={reportDetails?.title || UI_STRINGS.reports.title} align="left" />
-                  <Font variant="description" text={reportDetails?.description || ""} align="left" />
-                </Stack>
-                <Box shrink="0">
-                  <Button variant="secondary" label={UI_STRINGS.reports.exportCsvButton} icon={Download} onClick={() => { }} />
-                </Box>
-              </Stack>
-            </Box>
-            <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" minH="0" overflow="hidden">
-              <Box flex="1" w="full" h="full" minH="0" overflow="x-hidden y-auto">
-                {selectedReport && reportDetails && <ReportDetailView selectedReport={selectedReport} details={reportDetails} />}
-              </Box>
-              <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
-                <ReportFilterPanel state={filterState} />
-              </Box>
-              <Modal isOpen={isFilterDrawerOpen} onClose={() => setIsFilterDrawerOpen(false)} title={UI_STRINGS.common.filter} variant="sidebar">
-                <ReportFilterPanel state={{ ...filterState, onCloseDrawer: () => setIsFilterDrawerOpen(false) }} isDrawer />
-              </Modal>
-            </Stack>
-          </Stack>
+          <ReportDetailScreen
+            selectedReport={selectedReport}
+            reportDetails={reportDetails}
+            filterState={filterState}
+            isFilterDrawerOpen={isFilterDrawerOpen}
+            setIsFilterDrawerOpen={setIsFilterDrawerOpen}
+          />
         )}
       </Stack>
     </Box>

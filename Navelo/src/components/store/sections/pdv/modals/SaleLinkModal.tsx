@@ -163,8 +163,6 @@ export function SaleLinkModal({
       isOpen={isOpen}
       onClose={onClose}
       title={s.sendLinkModalTitle}
-      subtitle={saleName}
-      icon={Link2}
       variant="default"
       showCancelButton
     >

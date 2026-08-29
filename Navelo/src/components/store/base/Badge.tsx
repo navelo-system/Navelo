@@ -28,13 +28,15 @@ const roundedStyles = {
 
 export const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
   ({ className, variant = "default", rounded = "default", label, icon: Icon, ...props }, ref) => {
+    const isIconOnly = !label && !!Icon
     return (
       <div
         ref={ref}
         className={cn(
-          "inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase whitespace-nowrap flex-shrink-0 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2",
+          "inline-flex items-center justify-center text-[10px] font-semibold tracking-wider uppercase whitespace-nowrap flex-shrink-0 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2",
+          isIconOnly ? "w-6 h-6 p-0 rounded-full" : "gap-1.5 px-2.5 py-0.5",
           variantStyles[variant],
-          roundedStyles[rounded],
+          !isIconOnly && roundedStyles[rounded],
           className
         )}
         {...props}

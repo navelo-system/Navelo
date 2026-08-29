@@ -284,6 +284,7 @@ export interface AuditLog {
   company_id: string;
   tenant_id?: string;
   operator_name: string;
+  authorizer_name?: string;
   action: string;
   resource: string;
   status: 'ALLOWED' | 'DENIED';
@@ -308,7 +309,7 @@ export interface DeliveryOrderEntity {
   client_document?: string;
   client_phone?: string;
   address: string;
-  status: 'confirmed' | 'preparing' | 'ready' | 'dispatched' | 'delivered';
+  status: 'confirmed' | 'preparing' | 'ready' | 'dispatched' | 'delivered' | 'canceled';
   estimated_time?: string;
   total: number;
   subtotal?: number;
@@ -319,6 +320,7 @@ export interface DeliveryOrderEntity {
   origin?: string;
   delivery_type?: string;
   payment_method?: string;
+  payment_moment?: 'on_delivery' | 'advance';
   items?: Array<Record<string, unknown>>;
 }
 

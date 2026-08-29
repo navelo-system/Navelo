@@ -8,7 +8,7 @@ import { Button } from "@/components/store/base/Button"
 import { Input } from "@/components/store/base/Input"
 import { Avatar } from "@/components/store/base/Avatar"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
-import { Plus, Trash2, MapPin, DollarSign } from "lucide-react"
+import { Plus, Trash2, MapPin, DollarSign, Check } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { useTenant } from "@/lib/context/TenantContext"
 import { useDeliveryRates, dal, DeliveryRate } from "@/lib/dal"
@@ -24,23 +24,19 @@ export interface DeliveryRatesScreenProps {
 }
 
 interface DeliveryRateFormViewProps {
-  editingRate: DeliveryRate | null
   neighborhood: string
   setNeighborhood: (v: string) => void
   fee: string
   setFee: (v: string) => void
   onSubmit: (e: React.FormEvent) => void
-  onDelete: () => void
 }
 
 function DeliveryRateFormView({
-  editingRate,
   neighborhood,
   setNeighborhood,
   fee,
   setFee,
   onSubmit,
-  onDelete,
 }: DeliveryRateFormViewProps) {
   const df = UI_STRINGS.deliveryFees
   return (
@@ -68,28 +64,6 @@ function DeliveryRateFormView({
                   required
                 />
               </Stack>
-            </Stack>
-          </Box>
-
-          <Box w="full">
-            <Stack direction="row" gap={2.5} w="full">
-              {editingRate && (
-                <Button
-                  type="button"
-                  variant="danger-pill-icon"
-                  icon={Trash2}
-                  onClick={onDelete}
-                  title={df.deleteRateTitle}
-                />
-              )}
-              <Box flex="1">
-                <Button
-                  variant="primary"
-                  label={df.saveRateButton}
-                  type="submit"
-                  fullWidth={true}
-                />
-              </Box>
             </Stack>
           </Box>
         </Stack>
@@ -166,21 +140,24 @@ interface RatesSyncParams {
   setSearchQuery: (v: string) => void
   setMode: (m: "list" | "form") => void
   onBack: () => void
+  handleDelete: () => Promise<void>
   setCustomBack?: (cb: (() => void) | null) => void
   setCustomTitle?: (t: string | null) => void
   setCustomActions?: (a: React.ReactNode | null) => void
 }
 
 function useDeliveryRatesSync(params: RatesSyncParams) {
-  const { mode, editingRate, searchQuery, setSearchQuery, setMode, onBack, setCustomBack, setCustomTitle, setCustomActions } = params
+  const { mode, editingRate, searchQuery, setSearchQuery, setMode, onBack, handleDelete, setCustomBack, setCustomTitle, setCustomActions } = params
   const df = UI_STRINGS.deliveryFees
   const onBackRef = React.useRef(onBack)
+  const handleDeleteRef = React.useRef(handleDelete)
   const setCustomBackRef = React.useRef(setCustomBack)
   const setCustomTitleRef = React.useRef(setCustomTitle)
   const setCustomActionsRef = React.useRef(setCustomActions)
 
   React.useEffect(() => {
     onBackRef.current = onBack
+    handleDeleteRef.current = handleDelete
     setCustomBackRef.current = setCustomBack
     setCustomTitleRef.current = setCustomTitle
     setCustomActionsRef.current = setCustomActions
@@ -196,9 +173,29 @@ function useDeliveryRatesSync(params: RatesSyncParams) {
 
   React.useEffect(() => {
     if (mode === "form") {
-      setCustomBackRef.current?.(() => () => setMode("list"))
+      setCustomBackRef.current?.(() => () => onBackRef.current())
       setCustomTitleRef.current?.(editingRate ? "Editar Taxa de Entrega" : "Nova Taxa de Entrega")
-      setCustomActionsRef.current?.(null)
+      setCustomActionsRef.current?.(
+        <Stack direction="row" gap={2.5} align="center">
+          {editingRate ? (
+            <Button
+              type="button"
+              variant="danger-pill-icon-confirm"
+              icon={Trash2}
+              confirmModal={{
+                title: df.deleteRateTitle,
+                subtitle: UI_STRINGS.common.notice,
+                paragraph: `Tem certeza que deseja excluir a taxa "${editingRate.neighborhood}"? Esta ação não poderá ser desfeita.`,
+                icon: Trash2,
+                successText: UI_STRINGS.common.delete,
+              }}
+              onConfirm={async () => { await handleDeleteRef.current() }}
+              title={df.deleteRateTitle}
+            />
+          ) : null}
+          <Button type="submit" form="rate-form" variant="primary-pill-icon" icon={Check} title={df.saveRateButton} />
+        </Stack>
+      )
     } else {
       setCustomBackRef.current?.(() => () => onBackRef.current?.())
       setCustomTitleRef.current?.("Taxas de Entrega")
@@ -311,7 +308,8 @@ export function DeliveryRatesScreen({
 
   useDeliveryRatesSync({
     mode: form.mode, editingRate: form.editingRate, searchQuery, setSearchQuery,
-    setMode: form.setMode, onBack: handleRequestBack, setCustomBack, setCustomTitle, setCustomActions
+    setMode: form.setMode, onBack: handleRequestBack, handleDelete: form.handleDelete,
+    setCustomBack, setCustomTitle, setCustomActions
   })
 
   const filteredRates = React.useMemo(() => {
@@ -324,8 +322,8 @@ export function DeliveryRatesScreen({
     <Box display="flex" direction="col" flex="1" minH="0" overflow="auto" w="full" padding={0} position="relative">
       {form.mode === "form" ? (
         <DeliveryRateFormView
-          editingRate={form.editingRate} neighborhood={form.neighborhood} setNeighborhood={form.setNeighborhood}
-          fee={form.fee} setFee={form.setFee} onSubmit={form.handleSubmit} onDelete={form.handleDelete}
+          neighborhood={form.neighborhood} setNeighborhood={form.setNeighborhood}
+          fee={form.fee} setFee={form.setFee} onSubmit={form.handleSubmit}
         />
       ) : (
         <DeliveryRatesListView

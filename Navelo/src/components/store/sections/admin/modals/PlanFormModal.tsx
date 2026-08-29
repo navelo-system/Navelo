@@ -51,8 +51,6 @@ export const PlanFormModal: React.FC<PlanFormModalProps> = ({ isOpen, onClose, p
         isOpen={isOpen}
         onClose={onClose}
         title={plan ? p.editPlanTitle : p.createPlanTitle}
-        subtitle={p.planModalSubtitle}
-        icon={CreditCard}
         successText={plan ? p.saveChangesButton : p.savePlanButton}
         isSubmit={true}
       >

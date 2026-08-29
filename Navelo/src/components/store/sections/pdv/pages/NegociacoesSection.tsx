@@ -8,21 +8,20 @@ import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
 import { Modal } from "@/components/store/base/Modal"
 import { Icon } from "@/components/store/base/Icon"
-import { Avatar } from "@/components/store/base/Avatar"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { FilterPanel } from "@/components/store/intermediary/FilterPanel"
-import { FileText, Filter, Calendar, User, DollarSign, Share2, Trash2, ChevronDown, ChevronUp, Package, FileSpreadsheet } from "lucide-react"
-import { useSales, useProducts, Sale, Product, dal } from "@/lib/dal"
+import { FileText, Filter, Calendar, User, DollarSign, FileSpreadsheet } from "lucide-react"
+import { useSales, useDeliveryOrders, useProducts, Sale, Product, DeliveryOrder, dal } from "@/lib/dal"
 import { db } from "@/lib/dal/db"
 import { useLiveQuery } from "dexie-react-hooks"
 import { useTenant } from "@/lib/context/TenantContext"
 import { CartItemType } from "@/components/store/sections/pdv/pages/PdvSection"
-import { SaleShareModal } from "@/components/store/sections/pdv/modals/SaleShareModal"
-import { SaleLinkModal } from "@/components/store/sections/pdv/modals/SaleLinkModal"
-import { SaleExportModal } from "@/components/store/sections/pdv/modals/SaleExportModal"
 import { generateSaleReceiptPdf, sanitizeSaleFileName } from "@/lib/pdf/generateSaleReceipt"
 import { generateSalesReportPdf } from "@/lib/pdf/generateSalesReportPdf"
 import { UI_STRINGS } from "@/constants/strings"
+import { useTenantRestrictions } from "@/lib/sync/restrictionsSettings"
+import { SupervisorAuthModal } from "@/components/store/sections/pdv/modals/SupervisorAuthModal"
+import { useAppNavigation } from "@/lib/navigation/NavigationContext"
 
 export interface NegociacoesSectionProps {
   title?: string
@@ -34,56 +33,14 @@ export interface NegociacoesSectionProps {
   onDuplicateToCart?: (items: CartItemType[]) => void
 }
 
-interface RawSaleItem {
-  id?: string
-  product_id?: string
-  productId?: string
-  product_name?: string
-  name?: string
-  title?: string
-  productName?: string
-  description?: string
-  unit_price?: number
-  unitPrice?: number
-  price?: number
-  unit_val?: number
-  quantity?: number
-  qty?: number
-  amount?: number
-  count?: number
-  total_price?: number
-  totalPrice?: number
-  total?: number
-  image?: string
-  image_url?: string
-  imageUrl?: string
-  unit?: string
-  unidade?: string
-  category?: string
-  product?: { id?: string; name?: string; product_name?: string; price?: number; unit_price?: number; image_url?: string; unit?: string }
-}
-
-interface SaleItemDisplay {
-  name: string
-  unitPrice: number
-  qty: number
-  totalPrice: number
-  image?: string
-  unit: string
-}
-
-function parseSaleItems(items: unknown): RawSaleItem[] {
-  if (Array.isArray(items)) return items as RawSaleItem[]
-  if (typeof items === "string") {
-    try {
-      const parsed = JSON.parse(items)
-      if (Array.isArray(parsed)) return parsed as RawSaleItem[]
-    } catch {
-      return []
-    }
-  }
-  return []
-}
+import {
+  RawSaleItem,
+  parseSaleItems,
+  getSaleCode,
+  resolveSaleItemDisplay,
+  SaleDetailModal,
+  NegotiationsModalsContainer,
+} from "@/components/store/sections/pdv/sales/SaleDetailModal"
 
 function formatPrice(val: number): string {
   return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val)
@@ -142,16 +99,7 @@ function getPeriodDates(period: string): { start: string; end: string } {
   return { start: formatDateTimeBr(start), end: formatDateTimeBr(end) }
 }
 
-function getSaleCode(sale: Sale): string {
-  const customCode = (sale as unknown as { code?: string | number }).code
-  if (customCode) return String(customCode).padStart(4, "0")
-  if (sale.id) {
-    const parts = sale.id.split("-")
-    const last = parts[parts.length - 1]
-    return last.slice(-4).toUpperCase()
-  }
-  return "0001"
-}
+
 
 interface SaleFilters {
   cliente: string
@@ -203,9 +151,49 @@ function matchSaleFilter(sale: Sale, filters: SaleFilters, startObj: Date | null
   return matchTableFilter(sale, filters.mesa)
 }
 
-function useFilteredSales(dbSales: ReturnType<typeof useSales>, filters: SaleFilters) {
+function resolveDeliveryPaymentMethod(o: DeliveryOrder): string {
+  if (o.payment_method) return o.payment_method
+  return o.payment_moment === "advance" ? "Pagamento Antecipado" : "Cobrança na Entrega"
+}
+
+function resolveDeliverySaleStatus(o: DeliveryOrder): "COMPLETED" | "PENDING" {
+  if (o.payment_moment === "advance" || o.status === "delivered") return "COMPLETED"
+  return "PENDING"
+}
+
+function mapDeliveryToSale(o: DeliveryOrder): Sale {
+  return {
+    id: `delivery-${o.id}`,
+    company_id: o.company_id,
+    tenant_id: o.tenant_id,
+    customer_name: o.client_name || "Cliente Delivery",
+    total: o.total || 0,
+    subtotal: o.subtotal ?? o.total ?? 0,
+    discount: o.discount ?? 0,
+    payment_method: resolveDeliveryPaymentMethod(o),
+    status: resolveDeliverySaleStatus(o),
+    created_at: o.created_at || new Date().toISOString(),
+    items: (o.items || []) as unknown as Sale["items"],
+  }
+}
+
+function useCombinedSales(dbSales?: Sale[], dbDeliveryOrders?: DeliveryOrder[]): Sale[] {
   return React.useMemo(() => {
-    if (!dbSales || dbSales.length === 0) return []
+    const list: Sale[] = [...(dbSales || [])]
+    ;(dbDeliveryOrders || []).forEach((o) => {
+      if (o.status === "canceled") return
+      const isCompleted = o.payment_moment === "advance" || o.status === "delivered"
+      if (isCompleted) {
+        list.push(mapDeliveryToSale(o))
+      }
+    })
+    return list
+  }, [dbSales, dbDeliveryOrders])
+}
+
+function useFilteredSales(salesList: Sale[], filters: SaleFilters) {
+  return React.useMemo(() => {
+    if (!salesList || salesList.length === 0) return []
     const startObj = parseBrDateTime(filters.startDate, false)
     const endObj = parseBrDateTime(filters.endDate, true)
     const clientTerm = filters.cliente.trim().toLowerCase()
@@ -214,80 +202,13 @@ function useFilteredSales(dbSales: ReturnType<typeof useSales>, filters: SaleFil
     const mesaTerm = filters.mesa.trim().toLowerCase()
     const normalizedFilters = { cliente: clientTerm, usuario: userTerm, dispositivo: deviceTerm, mesa: mesaTerm, startDate: filters.startDate, endDate: filters.endDate }
 
-    return dbSales
+    return salesList
       .filter((s: Sale) => matchSaleFilter(s, normalizedFilters, startObj, endObj))
       .sort((a: Sale, b: Sale) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
-  }, [dbSales, filters])
+  }, [salesList, filters])
 }
 
-function resolveItemName(item: RawSaleItem, matchedProd?: Product | null): string {
-  if (item.product_name) return item.product_name
-  if (item.name) return item.name
-  if (item.title) return item.title
-  if (item.productName) return item.productName
-  if (item.description) return item.description
-  return matchedProd?.name || "Item"
-}
 
-function resolveItemPrice(item: RawSaleItem, matchedProd?: Product | null): number {
-  if (item.unit_price !== undefined) return item.unit_price
-  if (item.unitPrice !== undefined) return item.unitPrice
-  if (item.price !== undefined) return item.price
-  if (item.unit_val !== undefined) return item.unit_val
-  return matchedProd?.price || 0
-}
-
-function resolveItemQuantity(item: RawSaleItem): number {
-  if (item.quantity !== undefined) return item.quantity
-  if (item.qty !== undefined) return item.qty
-  if (item.amount !== undefined) return item.amount
-  if (item.count !== undefined) return item.count
-  return 1
-}
-
-function resolveItemImage(item: RawSaleItem, matchedProd?: Product | null): string | undefined {
-  if (item.image) return item.image
-  if (item.image_url) return item.image_url
-  if (item.imageUrl) return item.imageUrl
-  return matchedProd?.image_url
-}
-
-function resolveItemUnit(item: RawSaleItem, matchedProd?: Product | null): string {
-  if (item.unit) return item.unit
-  if (item.unidade) return item.unidade
-  return matchedProd?.unit || "UN"
-}
-
-function getItemProductId(item: RawSaleItem): string {
-  if (item.product_id) return item.product_id
-  if (item.productId) return item.productId
-  if (item.id) return item.id
-  return item.product?.id || ""
-}
-
-function resolveMatchedProduct(item: RawSaleItem, productMap: Map<string, Product>): Product | null {
-  const pId = getItemProductId(item)
-  if (pId && productMap.has(pId)) {
-    return productMap.get(pId) || null
-  }
-  const rawName = item.product_name || item.name || ""
-  if (rawName) {
-    return productMap.get(rawName.toLowerCase().trim()) || null
-  }
-  return null
-}
-
-function resolveSaleItemDisplay(item: RawSaleItem, productMap: Map<string, Product>): SaleItemDisplay {
-  const matchedProd = resolveMatchedProduct(item, productMap)
-  const name = resolveItemName(item, matchedProd)
-  const unitPrice = resolveItemPrice(item, matchedProd)
-  const qty = resolveItemQuantity(item)
-  const totalPrice = item.total_price ?? item.totalPrice ?? item.total ?? (unitPrice * qty)
-  const image = resolveItemImage(item, matchedProd)
-  const unit = resolveItemUnit(item, matchedProd)
-
-  return { name, unitPrice, qty, totalPrice, image, unit }
-}
 
 function NegotiationFilterInputs({
   cliente, setCliente,
@@ -396,100 +317,7 @@ function NegotiationsListView({
   )
 }
 
-function SaleDetailItemRow({ item, productMap }: { item: RawSaleItem; productMap: Map<string, Product> }) {
-  const disp = resolveSaleItemDisplay(item, productMap)
 
-  return (
-    <Box padding={2.5} bg="bg-brand-primary/10" hoverBg="secondary/10" radius="none" w="full" cursor="pointer">
-      <Stack direction="row" align="center" justify="between" w="full">
-        <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
-          <Box w="w-10" h="h-10" bg="bg-surface-sunken" borderColor="border-border" border radius="default" shrink="0" overflow="hidden">
-            {disp.image ? (
-              <Box as="img" src={disp.image} alt={disp.name} w="full" h="full" objectFit="cover" />
-            ) : (
-              <Stack w="full" h="full" align="center" justify="center">
-                <Icon icon={Package} size={20} color="muted" />
-              </Stack>
-            )}
-          </Box>
-          <Stack gap={1} align="start" flex="1" minW="0">
-            <Font variant="body" text={disp.name} />
-            <Font variant="auxiliary" color="muted" truncate text={`${disp.qty} ${disp.unit} x ${formatPrice(disp.unitPrice)}`} />
-          </Stack>
-        </Stack>
-        <Box shrink="0">
-          <Font variant="body" text={formatPrice(disp.totalPrice)} />
-        </Box>
-      </Stack>
-    </Box>
-  )
-}
-
-function SaleDetailCustomerBox({ customerName }: { customerName?: string }) {
-  const s = UI_STRINGS.negotiations
-  if (!customerName || customerName === "Nao selecionado" || customerName === "Venda Avulsa") return null
-  return (
-    <Box padding={2.5} bg="bg-brand-primary/10" radius="none" w="full">
-      <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
-        <Avatar fallback={customerName.substring(0, 2).toUpperCase()} />
-        <Stack gap={1} align="start" flex="1" minW="0">
-          <Font variant="body" text={customerName} />
-          <Font variant="auxiliary" color="muted" text={s.registeredCustomerLabel} />
-        </Stack>
-      </Stack>
-    </Box>
-  )
-}
-
-function SaleDetailAccordionBox({
-  sale,
-  isAccordionOpen,
-  onToggleAccordion,
-}: {
-  sale: Sale
-  isAccordionOpen: boolean
-  onToggleAccordion: () => void
-}) {
-  const s = UI_STRINGS.negotiations
-  const saleItems = parseSaleItems(sale.items)
-  const totalItemsCount = saleItems.reduce((acc: number, it: RawSaleItem) => acc + (it.quantity || it.qty || it.amount || 1), 0)
-
-  return (
-    <Box padding={2.5} bg="bg-brand-primary/10" radius="none" w="full" cursor="pointer" onClick={onToggleAccordion}>
-      <Stack gap={2.5} w="full">
-        <Stack direction="row" justify="between" align="center" w="full">
-          <Stack gap={0}>
-            <Font variant="auxiliary" color="muted" text={UI_STRINGS.pdv.cart.total} />
-            <Font variant="auxiliary" color="muted" text={`Itens: ${totalItemsCount}`} />
-          </Stack>
-          <Stack direction="row" align="center" gap={2.5}>
-            <Font variant="body-bold" color="primary" text={formatPrice(sale.total)} />
-            <Icon icon={isAccordionOpen ? ChevronUp : ChevronDown} size={16} color="primary" />
-          </Stack>
-        </Stack>
-        {isAccordionOpen && (
-          <Box padding={1} w="full">
-            <Stack gap={2.5} w="full">
-              <Box border borderColor="border/30" w="full" />
-              <Stack direction="row" justify="between" align="center" w="full">
-                <Font variant="body-sm-medium" color="muted" text={s.saleLabel} />
-                <Font variant="body-sm-medium" text={formatPrice(sale.total)} />
-              </Stack>
-              <Stack direction="row" justify="between" align="center" w="full">
-                <Font variant="body-sm-medium" color="muted" text={`${sale.payment_method || UI_STRINGS.common.confirm}:`} />
-                <Font variant="body-sm-medium" text={formatPrice(sale.total)} />
-              </Stack>
-              <Stack direction="row" justify="between" align="center" w="full">
-                <Font variant="body-sm-medium" color="muted" text={s.totalPaidLabel} />
-                <Font variant="body-sm-medium" text={formatPrice(sale.total)} />
-              </Stack>
-            </Stack>
-          </Box>
-        )}
-      </Stack>
-    </Box>
-  )
-}
 
 function buildDuplicatedCartItems(sale: Sale, productMap: Map<string, Product>): CartItemType[] {
   const saleItems = parseSaleItems(sale.items)
@@ -597,135 +425,7 @@ async function uploadPdfReceipt(base64: string, fileName: string, tenantId: stri
   }
 }
 
-function SaleDetailModal({
-  selectedSale,
-  onClose,
-  productMap,
-  isAccordionOpen,
-  onToggleAccordion,
-  onDuplicate,
-  onDeleteRequest,
-  onShareRequest,
-  onPrintRequest,
-}: {
-  selectedSale: Sale | null
-  onClose: () => void
-  productMap: Map<string, Product>
-  isAccordionOpen: boolean
-  onToggleAccordion: () => void
-  onDuplicate: () => void
-  onDeleteRequest: () => void
-  onShareRequest: () => void
-  onPrintRequest: () => void
-}) {
-  const s = UI_STRINGS.negotiations
-  if (!selectedSale) return null
 
-  const parsedItems = parseSaleItems(selectedSale.items)
-
-  return (
-    <Modal
-      isOpen={Boolean(selectedSale)} onClose={onClose}
-      title={`Venda #${getSaleCode(selectedSale)}`}
-      subtitle={s.detailSubtitle} icon={FileText} variant="default" showCancelButton
-      successText="Duplicar pedido" onSuccess={onDuplicate}
-    >
-      <Stack gap={5} w="full">
-        <SaleDetailCustomerBox customerName={selectedSale.customer_name} />
-        <SaleDetailAccordionBox sale={selectedSale} isAccordionOpen={isAccordionOpen} onToggleAccordion={onToggleAccordion} />
-        <Stack gap={2.5} w="full">
-          <Font variant="body-bold" color="primary" text={s.productsInOrderTitle} />
-          <Box maxH="240px" overflow="auto" w="full">
-            <Stack gap={2.5} w="full">
-              {parsedItems.length === 0 ? (
-                <EmptyState icon={Package} title={s.noItemsDetailedTitle} subtitle={s.noItemsDetailedSubtitle} />
-              ) : (
-                parsedItems.map((item: RawSaleItem, idx: number) => (
-                  <SaleDetailItemRow key={`${item.product_id || item.id || idx}-${idx}`} item={item} productMap={productMap} />
-                ))
-              )}
-            </Stack>
-          </Box>
-        </Stack>
-        <Stack direction="row" justify="center" align="center" gap={5} w="full">
-          <Button variant="danger-pill-icon" icon={Trash2} onClick={onDeleteRequest} title={s.deleteNegotiationTitle} />
-          <Button variant="secondary-pill-icon" icon={Share2} onClick={onShareRequest} title={s.shareNegotiationTitle} />
-          <Button variant="primary-pill-icon-print" onClick={onPrintRequest} title={s.printReceiptTitle} />
-        </Stack>
-      </Stack>
-    </Modal>
-  )
-}
-
-function NegotiationsModalsContainer({
-  selectedSale,
-  setSelectedSale,
-  isDeleteConfirmOpen,
-  setIsDeleteConfirmOpen,
-  isShareModalOpen,
-  setIsShareModalOpen,
-  isLinkModalOpen,
-  setIsLinkModalOpen,
-  linkModalUrl,
-  setLinkModalUrl,
-  isExportModalOpen,
-  setIsExportModalOpen,
-  onGeneratePdf,
-  onExportPdf,
-  onExportCsv,
-}: {
-  selectedSale: Sale | null
-  setSelectedSale: (s: Sale | null) => void
-  isDeleteConfirmOpen: boolean
-  setIsDeleteConfirmOpen: (v: boolean) => void
-  isShareModalOpen: boolean
-  setIsShareModalOpen: (v: boolean) => void
-  isLinkModalOpen: boolean
-  setIsLinkModalOpen: (v: boolean) => void
-  linkModalUrl: string
-  setLinkModalUrl: (u: string) => void
-  isExportModalOpen: boolean
-  setIsExportModalOpen: (v: boolean) => void
-  onGeneratePdf: () => Promise<string | null>
-  onExportPdf: () => void
-  onExportCsv: () => void
-}) {
-  const s = UI_STRINGS.negotiations
-  return (
-    <>
-      <Modal
-        isOpen={isDeleteConfirmOpen} onClose={() => setIsDeleteConfirmOpen(false)}
-        title={s.deleteNegotiationTitle} subtitle={s.confirmDeleteNegotiationSubtitle}
-        icon={Trash2} successText={s.confirmDeleteButton}
-        onSuccess={async () => {
-          setIsDeleteConfirmOpen(false)
-          if (selectedSale) { await dal.sales.delete(selectedSale.id); setSelectedSale(null) }
-        }}
-        showCancelButton
-      >
-        <Font variant="body-sm-medium" text={s.deleteNegotiationParagraph} />
-      </Modal>
-
-      {selectedSale && (
-        <SaleShareModal
-          isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)}
-          pdfUrl={selectedSale.pdf_url || null} saleName={`Venda #${getSaleCode(selectedSale)}`}
-          onGeneratePdf={onGeneratePdf}
-          onOpenLinkModal={(url: string) => { setLinkModalUrl(url); setIsLinkModalOpen(true) }}
-        />
-      )}
-
-      {selectedSale && (
-        <SaleLinkModal
-          isOpen={isLinkModalOpen} onClose={() => setIsLinkModalOpen(false)}
-          pdfUrl={linkModalUrl || selectedSale.pdf_url || ""} saleName={`Venda #${getSaleCode(selectedSale)}`}
-        />
-      )}
-
-      <SaleExportModal isOpen={isExportModalOpen} onClose={() => setIsExportModalOpen(false)} onExportPdf={onExportPdf} onExportCsv={onExportCsv} />
-    </>
-  )
-}
 
 function useSaleReceiptPdfManager(
   tenantId: string,
@@ -805,22 +505,113 @@ function useNegotiationFilterState(initialClientFilter?: string) {
   }
 }
 
-export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
-  title, setCustomBack, setCustomTitle, setCustomActions, onBack, initialClientFilter, onDuplicateToCart,
-}) => {
-  const tenantCtx = useTenant()
-  const tenantId = tenantCtx?.currentTenant?.id || "default"
+interface NegSupervisorOptions {
+  restrictions: ReturnType<typeof useTenantRestrictions>
+  isSupervisorOrAdmin: boolean
+  printSale: (s: Sale | null) => void
+  selectedSale: Sale | null
+  setIsDeleteConfirmOpen: (v: boolean) => void
+}
+
+function useNegotiationsSupervisorActions(opts: NegSupervisorOptions) {
+  const { restrictions, isSupervisorOrAdmin, printSale, selectedSale, setIsDeleteConfirmOpen } = opts
+  const [isSupervisorAuthOpen, setIsSupervisorAuthOpen] = React.useState(false)
+  const [pendingSupervisorAction, setPendingSupervisorAction] = React.useState<{ action: () => void; title: string } | null>(null)
+
+  const handlePrintRequest = () => {
+    if (!restrictions.reimpressao && !isSupervisorOrAdmin) {
+      setPendingSupervisorAction({ action: () => printSale(selectedSale), title: "Reimpressão de ticket" })
+      setIsSupervisorAuthOpen(true)
+      return
+    }
+    printSale(selectedSale)
+  }
+
+  const handleDeleteRequest = () => {
+    if (restrictions.cancelamento && !isSupervisorOrAdmin) {
+      setPendingSupervisorAction({ action: () => setIsDeleteConfirmOpen(true), title: "Exclusão de negociação" })
+      setIsSupervisorAuthOpen(true)
+      return
+    }
+    setIsDeleteConfirmOpen(true)
+  }
+
+  const handleAuthorized = () => {
+    if (pendingSupervisorAction) pendingSupervisorAction.action()
+    setIsSupervisorAuthOpen(false)
+    setPendingSupervisorAction(null)
+  }
+
+  const handleCloseSupervisor = () => {
+    setIsSupervisorAuthOpen(false)
+    setPendingSupervisorAction(null)
+  }
+
+  return {
+    isSupervisorAuthOpen,
+    pendingSupervisorAction,
+    handlePrintRequest,
+    handleDeleteRequest,
+    handleAuthorized,
+    handleCloseSupervisor,
+  }
+}
+
+function useNegotiationQueries(tenantId: string) {
   const dbSales = useSales(tenantId)
+  const dbDeliveryOrders = useDeliveryOrders(tenantId)
   const dbProducts = useProducts(tenantId)
   const dbCompany = useLiveQuery(async () => (tenantId ? await db.companies.get(tenantId) : null), [tenantId])
-  const s = UI_STRINGS.negotiations
 
   const productMap = React.useMemo(() => {
     const map = new Map<string, Product>()
-    if (dbProducts?.length) dbProducts.forEach((p: Product) => { if (p.id) map.set(p.id, p); if (p.name) map.set(p.name.toLowerCase().trim(), p) })
+    if (dbProducts?.length) {
+      dbProducts.forEach((p: Product) => {
+        if (p.id) map.set(p.id, p)
+        if (p.name) map.set(p.name.toLowerCase().trim(), p)
+      })
+    }
     return map
   }, [dbProducts])
 
+  return { dbSales, dbDeliveryOrders, dbCompany, productMap }
+}
+
+function useNegotiationsHeaderSync({
+  title,
+  sTitle,
+  onBack,
+  onOpenFilterDrawer,
+  setCustomBack,
+  setCustomTitle,
+  setCustomActions,
+}: {
+  title?: string
+  sTitle: string
+  onBack?: () => void
+  onOpenFilterDrawer: () => void
+  setCustomBack?: (cb: (() => void) | null) => void
+  setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
+}) {
+  const onBackRef = React.useRef(onBack)
+  React.useEffect(() => { onBackRef.current = onBack }, [onBack])
+  const onFilterDrawerRef = React.useRef(onOpenFilterDrawer)
+  React.useEffect(() => { onFilterDrawerRef.current = onOpenFilterDrawer })
+
+  React.useEffect(() => {
+    setCustomTitle?.(title || sTitle)
+    setCustomBack?.(() => () => onBackRef.current?.())
+    setCustomActions?.(
+      <Box display="block md:hidden">
+        <Button variant="primary-pill-icon" icon={Filter} onClick={() => onFilterDrawerRef.current()} />
+      </Box>
+    )
+    return () => { setCustomTitle?.(null); setCustomBack?.(null); setCustomActions?.(null) }
+  }, [setCustomBack, setCustomTitle, setCustomActions, title, sTitle])
+}
+
+function useNegotiationsStateBundle(initialClientFilter?: string) {
   const f = useNegotiationFilterState(initialClientFilter)
   const [selectedSale, setSelectedSale] = React.useState<Sale | null>(null)
   const [isAccordionOpen, setIsAccordionOpen] = React.useState(false)
@@ -830,47 +621,208 @@ export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
   const [linkModalUrl, setLinkModalUrl] = React.useState("")
   const [isExportModalOpen, setIsExportModalOpen] = React.useState(false)
 
-  const { generatePdf, printSale } = useSaleReceiptPdfManager(tenantId, dbCompany, productMap, setSelectedSale)
+  return {
+    f,
+    selectedSale, setSelectedSale,
+    isAccordionOpen, setIsAccordionOpen,
+    isDeleteConfirmOpen, setIsDeleteConfirmOpen,
+    isShareModalOpen, setIsShareModalOpen,
+    isLinkModalOpen, setIsLinkModalOpen,
+    linkModalUrl, setLinkModalUrl,
+    isExportModalOpen, setIsExportModalOpen,
+  }
+}
 
-  const onBackRef = React.useRef(onBack)
-  React.useEffect(() => { onBackRef.current = onBack }, [onBack])
+function isUserSupervisorOrAdmin(role?: string) {
+  if (!role) return false
+  const r = role.toUpperCase()
+  return r.includes("ADMIN") || r.includes("SUPERVISOR") || r.includes("GERENTE")
+}
 
-  const onFilterDrawerRef = React.useRef(() => f.setIsFilterDrawerOpen(true))
-  React.useEffect(() => { onFilterDrawerRef.current = () => f.setIsFilterDrawerOpen(true) })
+function NegotiationsMainLayout({
+  filteredSales,
+  totalFilteredSales,
+  f,
+  selectedSale,
+  setSelectedSale,
+  isAccordionOpen,
+  setIsAccordionOpen,
+  setIsShareModalOpen,
+  setIsExportModalOpen,
+  productMap,
+  handleDuplicate,
+  sup,
+}: {
+  filteredSales: Sale[]
+  totalFilteredSales: number
+  f: ReturnType<typeof useNegotiationFilterState>
+  selectedSale: Sale | null
+  setSelectedSale: (s: Sale | null) => void
+  isAccordionOpen: boolean
+  setIsAccordionOpen: React.Dispatch<React.SetStateAction<boolean>>
+  setIsShareModalOpen: (v: boolean) => void
+  setIsExportModalOpen: (v: boolean) => void
+  productMap: Map<string, Product>
+  handleDuplicate: () => void
+  sup: ReturnType<typeof useNegotiationsSupervisorActions>
+}) {
+  return (
+    <Stack direction="col" gap={5} w="full" flex="1" minH="0">
+      <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" minH="0" h="full">
+        <NegotiationsListView filteredSales={filteredSales} totalAmount={totalFilteredSales} onSelectSale={(sale: Sale) => { setSelectedSale(sale); setIsAccordionOpen(false) }} onOpenExport={() => setIsExportModalOpen(true)} />
+        <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
+          <FilterPanel title={UI_STRINGS.common.filter} selectedPeriod={f.period} onPeriodChange={f.handlePeriodChange} startDate={f.startDate} onStartDateChange={f.setStartDate} endDate={f.endDate} onEndDateChange={f.setEndDate} onFilter={f.handleApplyFilters}>
+            <NegotiationFilterInputs cliente={f.cliente} setCliente={f.setCliente} usuario={f.usuario} setUsuario={f.setUsuario} dispositivo={f.dispositivo} setDispositivo={f.setDispositivo} mesa={f.mesa} setMesa={f.setMesa} />
+          </FilterPanel>
+        </Box>
+        <Modal isOpen={f.isFilterDrawerOpen} onClose={() => f.setIsFilterDrawerOpen(false)} title={UI_STRINGS.common.filter} variant="sidebar">
+          <FilterPanel hideTitle borderless selectedPeriod={f.period} onPeriodChange={f.handlePeriodChange} startDate={f.startDate} onStartDateChange={f.setStartDate} endDate={f.endDate} onEndDateChange={f.setEndDate} onFilter={() => { f.handleApplyFilters(); f.setIsFilterDrawerOpen(false) }}>
+            <NegotiationFilterInputs cliente={f.cliente} setCliente={f.setCliente} usuario={f.usuario} setUsuario={f.setUsuario} dispositivo={f.dispositivo} setDispositivo={f.setDispositivo} mesa={f.mesa} setMesa={f.setMesa} />
+          </FilterPanel>
+        </Modal>
+        <SaleDetailModal selectedSale={selectedSale} onClose={() => setSelectedSale(null)} productMap={productMap} isAccordionOpen={isAccordionOpen} onToggleAccordion={() => setIsAccordionOpen((prev) => !prev)} onDuplicate={handleDuplicate} onDeleteRequest={sup.handleDeleteRequest} onShareRequest={() => setIsShareModalOpen(true)} onPrintRequest={sup.handlePrintRequest} />
+      </Stack>
+    </Stack>
+  )
+}
 
-  React.useEffect(() => {
-    setCustomTitle?.(title || s.title)
-    setCustomBack?.(() => () => onBackRef.current?.())
-    setCustomActions?.(
-      <Box display="block md:hidden">
-        <Button variant="primary-pill-icon" icon={Filter} onClick={() => onFilterDrawerRef.current()} />
-      </Box>
-    )
-    return () => { setCustomTitle?.(null); setCustomBack?.(null); setCustomActions?.(null) }
-  }, [setCustomBack, setCustomTitle, setCustomActions, title, s.title])
+function useNegotiationsModalsActions({
+  selectedSale,
+  generatePdf,
+  filteredSales,
+  totalFilteredSales,
+  appliedFilters,
+  reportTitle,
+  dbCompany,
+}: {
+  selectedSale: Sale | null
+  generatePdf: (s: Sale) => Promise<string | null>
+  filteredSales: Sale[]
+  totalFilteredSales: number
+  appliedFilters: { startDate: string; endDate: string }
+  reportTitle: string
+  dbCompany: unknown
+}) {
+  const handleGeneratePdf = React.useCallback(() => (selectedSale ? generatePdf(selectedSale) : Promise.resolve(null)), [selectedSale, generatePdf])
+  const handleExportPdf = React.useCallback(() => {
+    exportSalesPdf({ filteredSales, totalAmount: totalFilteredSales, startDate: appliedFilters.startDate, endDate: appliedFilters.endDate, reportTitle, companyData: dbCompany })
+  }, [filteredSales, totalFilteredSales, appliedFilters, reportTitle, dbCompany])
+  const handleExportCsv = React.useCallback(() => { exportSalesCsv(filteredSales) }, [filteredSales])
 
-  const filteredSales = useFilteredSales(dbSales, f.appliedFilters)
-  const totalFilteredSales = React.useMemo(() => filteredSales.reduce((acc: number, sale: Sale) => acc + (sale.total || 0), 0), [filteredSales])
+  return { handleGeneratePdf, handleExportPdf, handleExportCsv }
+}
+
+function NegotiationsModalsBundle({
+  state,
+  tenantId,
+  tenantCtx,
+  actions,
+  sup,
+}: {
+  state: ReturnType<typeof useNegotiationsStateBundle>
+  tenantId: string
+  tenantCtx?: ReturnType<typeof useTenant>
+  actions: ReturnType<typeof useNegotiationsModalsActions>
+  sup: ReturnType<typeof useNegotiationsSupervisorActions>
+}) {
+  const { selectedSale, setSelectedSale, isDeleteConfirmOpen, setIsDeleteConfirmOpen, isShareModalOpen, setIsShareModalOpen, isLinkModalOpen, setIsLinkModalOpen, linkModalUrl, setLinkModalUrl, isExportModalOpen, setIsExportModalOpen } = state
+  const opName = tenantCtx?.currentUser?.name || "Operador"
+  const actTitle = sup.pendingSupervisorAction?.title || "Reimpressão / Exclusão"
 
   return (
     <>
-      <Stack direction="col" gap={5} w="full" flex="1" minH="0">
-        <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" minH="0" h="full">
-          <NegotiationsListView filteredSales={filteredSales} totalAmount={totalFilteredSales} onSelectSale={(sale: Sale) => { setSelectedSale(sale); setIsAccordionOpen(false) }} onOpenExport={() => setIsExportModalOpen(true)} />
-          <Box display="hidden md:flex" direction="col" h="full" minH="0" shrink="0">
-            <FilterPanel title={UI_STRINGS.common.filter} selectedPeriod={f.period} onPeriodChange={f.handlePeriodChange} startDate={f.startDate} onStartDateChange={f.setStartDate} endDate={f.endDate} onEndDateChange={f.setEndDate} onFilter={f.handleApplyFilters}>
-              <NegotiationFilterInputs cliente={f.cliente} setCliente={f.setCliente} usuario={f.usuario} setUsuario={f.setUsuario} dispositivo={f.dispositivo} setDispositivo={f.setDispositivo} mesa={f.mesa} setMesa={f.setMesa} />
-            </FilterPanel>
-          </Box>
-          <Modal isOpen={f.isFilterDrawerOpen} onClose={() => f.setIsFilterDrawerOpen(false)} title={UI_STRINGS.common.filter} variant="sidebar">
-            <FilterPanel hideTitle borderless selectedPeriod={f.period} onPeriodChange={f.handlePeriodChange} startDate={f.startDate} onStartDateChange={f.setStartDate} endDate={f.endDate} onEndDateChange={f.setEndDate} onFilter={() => { f.handleApplyFilters(); f.setIsFilterDrawerOpen(false) }}>
-              <NegotiationFilterInputs cliente={f.cliente} setCliente={f.setCliente} usuario={f.usuario} setUsuario={f.setUsuario} dispositivo={f.dispositivo} setDispositivo={f.setDispositivo} mesa={f.mesa} setMesa={f.setMesa} />
-            </FilterPanel>
-          </Modal>
-          <SaleDetailModal selectedSale={selectedSale} onClose={() => setSelectedSale(null)} productMap={productMap} isAccordionOpen={isAccordionOpen} onToggleAccordion={() => setIsAccordionOpen((prev) => !prev)} onDuplicate={() => { if (selectedSale && onDuplicateToCart) { const items = buildDuplicatedCartItems(selectedSale, productMap); if (items.length > 0) { onDuplicateToCart(items); setSelectedSale(null) } } }} onDeleteRequest={() => setIsDeleteConfirmOpen(true)} onShareRequest={() => setIsShareModalOpen(true)} onPrintRequest={() => printSale(selectedSale)} />
-        </Stack>
-      </Stack>
-      <NegotiationsModalsContainer selectedSale={selectedSale} setSelectedSale={setSelectedSale} isDeleteConfirmOpen={isDeleteConfirmOpen} setIsDeleteConfirmOpen={setIsDeleteConfirmOpen} isShareModalOpen={isShareModalOpen} setIsShareModalOpen={setIsShareModalOpen} isLinkModalOpen={isLinkModalOpen} setIsLinkModalOpen={setIsLinkModalOpen} linkModalUrl={linkModalUrl} setLinkModalUrl={setLinkModalUrl} isExportModalOpen={isExportModalOpen} setIsExportModalOpen={setIsExportModalOpen} onGeneratePdf={() => (selectedSale ? generatePdf(selectedSale) : Promise.resolve(null))} onExportPdf={() => exportSalesPdf({ filteredSales, totalAmount: totalFilteredSales, startDate: f.appliedFilters.startDate, endDate: f.appliedFilters.endDate, reportTitle: title || s.title, companyData: dbCompany })} onExportCsv={() => exportSalesCsv(filteredSales)} />
+      <NegotiationsModalsContainer
+        selectedSale={selectedSale} setSelectedSale={setSelectedSale} isDeleteConfirmOpen={isDeleteConfirmOpen}
+        setIsDeleteConfirmOpen={setIsDeleteConfirmOpen} isShareModalOpen={isShareModalOpen} setIsShareModalOpen={setIsShareModalOpen}
+        isLinkModalOpen={isLinkModalOpen} setIsLinkModalOpen={setIsLinkModalOpen} linkModalUrl={linkModalUrl} setLinkModalUrl={setLinkModalUrl}
+        isExportModalOpen={isExportModalOpen} setIsExportModalOpen={setIsExportModalOpen} onGeneratePdf={actions.handleGeneratePdf}
+        onExportPdf={actions.handleExportPdf} onExportCsv={actions.handleExportCsv}
+      />
+      <SupervisorAuthModal
+        isOpen={sup.isSupervisorAuthOpen} onClose={sup.handleCloseSupervisor} onAuthorized={sup.handleAuthorized}
+        tenantId={tenantId} operatorName={opName} actionTitle={actTitle} resource="Negociações"
+      />
+    </>
+  )
+}
+
+export const NegociacoesSection: React.FC<NegociacoesSectionProps> = ({
+  title, setCustomBack, setCustomTitle, setCustomActions, onBack, initialClientFilter, onDuplicateToCart,
+}) => {
+  const tenantCtx = useTenant()
+  const tenantId = tenantCtx?.currentTenant?.id || "default"
+  const { dbSales, dbDeliveryOrders, dbCompany, productMap } = useNegotiationQueries(tenantId)
+  const s = UI_STRINGS.negotiations
+
+  const { currentRoute, navigate, goBack } = useAppNavigation()
+  const routeSaleId = currentRoute.view === "vendas" && currentRoute.entityId ? currentRoute.entityId : null
+
+  const state = useNegotiationsStateBundle(initialClientFilter)
+  const { f, setSelectedSale, isAccordionOpen, setIsAccordionOpen, setIsShareModalOpen, setIsExportModalOpen } = state
+
+  const allSales = useCombinedSales(dbSales, dbDeliveryOrders)
+
+  const selectedSale = React.useMemo(() => {
+    if (routeSaleId && allSales.length > 0) {
+      return allSales.find((s) => s.id === routeSaleId) || state.selectedSale
+    }
+    return state.selectedSale
+  }, [routeSaleId, allSales, state.selectedSale])
+
+  const handleSetSelectedSale: React.Dispatch<React.SetStateAction<Sale | null>> = React.useCallback(
+    (action: React.SetStateAction<Sale | null>) => {
+      setSelectedSale((prev) => {
+        const next = typeof action === "function" ? action(prev) : action
+        if (next) {
+          navigate(`#vendas/${next.id}`)
+        } else if (routeSaleId) {
+          goBack("#vendas")
+        }
+        return next
+      })
+    },
+    [navigate, goBack, routeSaleId, setSelectedSale]
+  )
+
+  const { generatePdf, printSale } = useSaleReceiptPdfManager(tenantId, dbCompany, productMap, setSelectedSale)
+
+  useNegotiationsHeaderSync({
+    title, sTitle: s.title, onBack, onOpenFilterDrawer: () => f.setIsFilterDrawerOpen(true),
+    setCustomBack, setCustomTitle, setCustomActions,
+  })
+
+  const filteredSales = useFilteredSales(allSales, f.appliedFilters)
+  const totalFilteredSales = React.useMemo(() => filteredSales.reduce((acc: number, sale: Sale) => acc + (sale.total || 0), 0), [filteredSales])
+
+  const restrictions = useTenantRestrictions(tenantId)
+  const isSupervisorOrAdmin = React.useMemo(() => isUserSupervisorOrAdmin(tenantCtx?.currentUser?.role), [tenantCtx?.currentUser?.role])
+
+  const sup = useNegotiationsSupervisorActions({
+    restrictions, isSupervisorOrAdmin, printSale, selectedSale, setIsDeleteConfirmOpen: state.setIsDeleteConfirmOpen,
+  })
+
+  const handleDuplicate = React.useCallback(() => {
+    if (!selectedSale || !onDuplicateToCart) return
+    const items = buildDuplicatedCartItems(selectedSale, productMap)
+    if (items.length > 0) {
+      onDuplicateToCart(items)
+      handleSetSelectedSale(null)
+    }
+  }, [selectedSale, onDuplicateToCart, productMap, handleSetSelectedSale])
+
+  const actions = useNegotiationsModalsActions({
+    selectedSale, generatePdf, filteredSales, totalFilteredSales, appliedFilters: f.appliedFilters, reportTitle: title || s.title, dbCompany,
+  })
+
+  return (
+    <>
+      <NegotiationsMainLayout
+        filteredSales={filteredSales} totalFilteredSales={totalFilteredSales} f={f}
+        selectedSale={selectedSale} setSelectedSale={handleSetSelectedSale} isAccordionOpen={isAccordionOpen}
+        setIsAccordionOpen={setIsAccordionOpen} setIsShareModalOpen={setIsShareModalOpen}
+        setIsExportModalOpen={setIsExportModalOpen} productMap={productMap} handleDuplicate={handleDuplicate} sup={sup}
+      />
+      <NegotiationsModalsBundle state={{ ...state, selectedSale, setSelectedSale: handleSetSelectedSale }} tenantId={tenantId} tenantCtx={tenantCtx} actions={actions} sup={sup} />
     </>
   )
 }

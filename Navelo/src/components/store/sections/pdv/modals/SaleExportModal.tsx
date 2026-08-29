@@ -46,8 +46,6 @@ export const SaleExportModal: React.FC<SaleExportModalProps> = ({
       onClose={onClose}
       variant="bottom"
       title={s.exportSalesModalTitle}
-      subtitle={s.exportSalesModalSubtitle}
-      icon={Download}
       showCancelButton
     >
       <Stack direction="col" gap={2.5} w="full">

@@ -62,8 +62,16 @@ export const QuantityControl: React.FC<QuantityControlProps> = ({
         />
       )}
 
-      <Box padding={0} w="w-4">
-        <Font variant="body-bold" text={String(quantity)} align="center" />
+      <Box padding={0} minW="min-w-[16px]">
+        <Font
+          variant="body-bold"
+          text={
+            Number.isInteger(quantity)
+              ? String(quantity)
+              : quantity.toLocaleString("pt-BR", { maximumFractionDigits: 3 })
+          }
+          align="center"
+        />
       </Box>
 
       <Button

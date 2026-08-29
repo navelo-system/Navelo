@@ -12,7 +12,7 @@ import { Input } from "@/components/store/base/Input"
 import { Modal } from "@/components/store/base/Modal"
 import { CartItem } from "@/components/store/intermediary/CartItem"
 import { RemoveItemConfirmModal } from "@/components/store/sections/pdv/modals/RemoveItemConfirmModal"
-import { DollarSign, QrCode, CreditCard, Users, Minus, Calendar } from "lucide-react"
+import { DollarSign, QrCode, CreditCard, Users, Minus, Calendar, ShoppingCart } from "lucide-react"
 import { UI_STRINGS } from "@/constants/strings"
 import { CartItemType } from "@/components/store/sections/pdv/pages/PdvSection"
 import { Numpad } from "@/components/store/intermediary/Numpad"
@@ -219,29 +219,41 @@ function EditInstallmentValueModal({
   })
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      icon={DollarSign}
-      title={ch.changeValueModalTitle}
-      subtitle={ch.changeValueModalSubtitle}
-      variant="default"
-      showCancelButton={true}
-      successText={UI_STRINGS.common.confirm}
-      onSuccess={() => {
-        if (numericValue > 0) {
-          onConfirm(numericValue)
-        }
-        onClose()
-      }}
-    >
-      <Stack gap={5} w="full" align="center">
-        <Stack gap={1} align="center" w="full">
-          <Font variant="description" text={ch.installmentValueInputLabel} color="muted" align="center" />
-          <Font variant="h1" text={`${UI_STRINGS.common.currencySymbol} ${formattedValue}`} color="primary" align="center" />
+    <Modal isOpen={isOpen} onClose={onClose} variant="numpad">
+      <Box padding={5} w="full">
+        <Stack gap={5} w="full">
+          {/* Cabeçalho */}
+          <Stack gap={1}>
+            <Font variant="body-bold" text={ch.changeValueModalTitle} />
+            <Font variant="description" color="muted" text={ch.changeValueModalSubtitle} />
+          </Stack>
+
+          {/* Valor em destaque */}
+          <Stack gap={1} align="center" w="full">
+            <Font variant="description" text={ch.installmentValueInputLabel} color="muted" align="center" />
+            <Font variant="h1" text={`${UI_STRINGS.common.currencySymbol} ${formattedValue}`} color="primary" align="center" />
+          </Stack>
+
+          {/* Teclado */}
+          <Numpad onKeyPress={handleKeyPress} variant="ghost" />
+
+          {/* Rodapé */}
+          <Stack direction="row" justify="end" align="center" gap={2.5} w="full">
+            <Button variant="ghost" label={UI_STRINGS.common.cancel} onClick={onClose} />
+            <Button
+              variant="ghost-primary"
+              label={UI_STRINGS.common.confirm}
+              onClick={() => {
+                if (numericValue > 0) {
+                  onConfirm(numericValue)
+                }
+                onClose()
+              }}
+              disabled={numericValue <= 0}
+            />
+          </Stack>
         </Stack>
-        <Numpad onKeyPress={handleKeyPress} variant="ghost" />
-      </Stack>
+      </Box>
     </Modal>
   )
 }
@@ -319,6 +331,11 @@ function MobileCartItemsList({
   onDecreaseItem?: (id: string) => void
   onRequestRemoveItem: (item: CartItemType) => void
 }) {
+  const ch = UI_STRINGS.pdv.checkout
+  if (cartItems.length === 0) {
+    return <EmptyState icon={ShoppingCart} title={ch.emptyCartTitle} subtitle={ch.emptyCartSubtitle} />
+  }
+
   return (
     <Box flex="1" overflow="auto" padding={0} minH="0" w="full">
       <Stack gap={2.5} w="full">
@@ -403,19 +420,21 @@ function MobilePaymentActions({
 }) {
   const ch = UI_STRINGS.pdv.checkout
   return (
-    <>
-      <Box shrink="0">
-        <Grid cols={4} gap={2.5}>
-          <Button variant="outline" icon={DollarSign} label={ch.moneyOptionShort} disabled={amountDue <= 0} onClick={onOpenChangeModal} fullWidth />
-          <Button variant="outline" icon={CreditCard} label={ch.cardOptionShort} disabled={amountDue <= 0} onClick={onOpenCardModal} fullWidth />
-          <Button variant="outline" icon={Users} label={ch.creditOptionShort} disabled={amountDue <= 0} onClick={() => onLaunchPayment("Crediário", launchAmount)} fullWidth />
-          <Button variant="outline" icon={QrCode} label={ch.pixOptionShort} disabled={amountDue <= 0} onClick={() => onLaunchPayment("Pix", launchAmount)} fullWidth />
-        </Grid>
-      </Box>
-      <Box shrink="0">
-        <Button variant="primary-lg" fullWidth label={ch.finalizeMobileButton} disabled={amountDue > 0 || total === 0} onClick={onFinalizeSale} />
-      </Box>
-    </>
+    <Box shrink="0" w="full">
+      <Stack gap={2.5} w="full">
+        <Box shrink="0" w="full">
+          <Grid cols={4} gap={2.5}>
+            <Button variant="outline" icon={DollarSign} label={ch.moneyOptionShort} disabled={amountDue <= 0} onClick={onOpenChangeModal} fullWidth />
+            <Button variant="outline" icon={CreditCard} label={ch.cardOptionShort} disabled={amountDue <= 0} onClick={onOpenCardModal} fullWidth />
+            <Button variant="outline" icon={Users} label={ch.creditOptionShort} disabled={amountDue <= 0} onClick={() => onLaunchPayment("Crediário", launchAmount)} fullWidth />
+            <Button variant="outline" icon={QrCode} label={ch.pixOptionShort} disabled={amountDue <= 0} onClick={() => onLaunchPayment("Pix", launchAmount)} fullWidth />
+          </Grid>
+        </Box>
+        <Box shrink="0" w="full">
+          <Button variant="primary-lg" fullWidth label={ch.finalizeMobileButton} disabled={amountDue > 0 || total === 0} onClick={onFinalizeSale} />
+        </Box>
+      </Stack>
+    </Box>
   )
 }
 
@@ -460,19 +479,21 @@ function CheckoutMobileView({
 }) {
   return (
     <Box display="flex md:hidden" direction="col" w="full" flex="1" overflow="hidden" minH="0" h="full">
-      <Stack gap={2.5} w="full" flex="1" minH="0" h="full">
-        <Box bg="bg-surface" padding={5} radius="default" w="full" flex="1" direction="col" overflow="hidden" minH="0">
-          <Stack gap={2.5} flex="1" minH="0" h="full" w="full">
-            <MobileCartItemsList
-              cartItems={cartItems}
-              onIncreaseItem={onIncreaseItem}
-              onDecreaseItem={onDecreaseItem}
-              onRequestRemoveItem={onRequestRemoveItem}
-            />
-            <Box h="h-[1px]" bg="bg-border" w="full" shrink="0" />
-            <Box shrink="0" padding={0} maxH="96" overflow="auto" w="full">
-              <DesktopPaymentsList payments={payments} formatPrice={formatPrice} onRemovePayment={onRemovePayment} onEditPayment={onEditPayment} />
-            </Box>
+      <Stack gap={2.5} w="full" flex="1" minH="0" h="full" justify="between">
+        <Box bg="bg-surface" padding={5} radius="default" w="full" flex="1" direction="col" overflow="hidden" minH="0" display="flex">
+          <Stack gap={2.5} flex="1" minH="0" h="full" w="full" justify="between">
+            <Stack gap={2.5} flex="1" minH="0" overflow="auto" w="full">
+              <MobileCartItemsList
+                cartItems={cartItems}
+                onIncreaseItem={onIncreaseItem}
+                onDecreaseItem={onDecreaseItem}
+                onRequestRemoveItem={onRequestRemoveItem}
+              />
+              <Box h="h-[1px]" bg="bg-border" w="full" shrink="0" />
+              <Box shrink="0" padding={0} maxH="96" overflow="auto" w="full">
+                <DesktopPaymentsList payments={payments} formatPrice={formatPrice} onRemovePayment={onRemovePayment} onEditPayment={onEditPayment} />
+              </Box>
+            </Stack>
             <Box h="h-[1px]" bg="bg-border" w="full" shrink="0" />
             <Box shrink="0" w="full">
               <MobileTotalsSummary subtotal={subtotal} discount={discount} total={total} totalPaid={totalPaid} amountDue={amountDue} formatPrice={formatPrice} />
@@ -523,22 +544,26 @@ function CheckoutDesktopSummary({
           </Stack>
         </Box>
         <Box flex="1" overflow="auto" padding={0} minH="0">
-          <Stack gap={2.5}>
-            {cartItems.map((item, idx) => (
-              <CartItem
-                key={item.id}
-                id={item.id}
-                name={item.name}
-                quantity={item.quantity}
-                unitPrice={item.unitPrice}
-                image={item.image}
-                isLast={idx === cartItems.length - 1}
-                onIncrease={onIncreaseItem || (() => {})}
-                onDecrease={onDecreaseItem || (() => {})}
-                onRemove={() => onRequestRemoveItem(item)}
-              />
-            ))}
-          </Stack>
+          {cartItems.length === 0 ? (
+            <EmptyState icon={ShoppingCart} title={ch.emptyCartTitle} subtitle={ch.emptyCartSubtitle} />
+          ) : (
+            <Stack gap={2.5}>
+              {cartItems.map((item, idx) => (
+                <CartItem
+                  key={item.id}
+                  id={item.id}
+                  name={item.name}
+                  quantity={item.quantity}
+                  unitPrice={item.unitPrice}
+                  image={item.image}
+                  isLast={idx === cartItems.length - 1}
+                  onIncrease={onIncreaseItem || (() => {})}
+                  onDecrease={onDecreaseItem || (() => {})}
+                  onRemove={() => onRequestRemoveItem(item)}
+                />
+              ))}
+            </Stack>
+          )}
         </Box>
         <Box h="h-[2px]" bg="bg-border" w="full" shrink="0" />
         <Box shrink="0" w="full">
@@ -673,7 +698,7 @@ export function PdvCheckoutPayment(props: PdvCheckoutPaymentProps) {
   const [itemToRemove, setItemToRemove] = React.useState<CartItemType | null>(null)
 
   return (
-    <Box w="full" flex="1" direction="col" minH="0">
+    <Box w="full" flex="1" direction="col" minH="0" h="full" display="flex">
       <CheckoutMobileView
         cartItems={props.cartItems}
         payments={props.payments}

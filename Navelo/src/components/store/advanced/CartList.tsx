@@ -12,6 +12,7 @@ export interface CartListItemType {
   name: string
   quantity: number
   unitPrice: number
+  unit?: string
   image?: string
   stock?: number
 }
@@ -36,17 +37,17 @@ export const CartList: React.FC<CartListProps> = ({
   const cartStrings = UI_STRINGS.pdv.cart
 
   return (
-    <Box padding={0} bg="bg-surface" radius="default" flex="1" display="flex" direction="col" overflow="hidden" minH="0">
+    <Box padding={0} bg="bg-surface" radius="default" flex="1" display="flex" direction="col" overflow="hidden" minH="0" h="full">
       {!hideHeader && (
         <>
-          <Box padding={5} bg="bg-surface">
+          <Box padding={5} bg="bg-surface" shrink="0">
             <Font variant="h3" text={cartStrings.title} />
           </Box>
-          <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" />
+          <Box h="h-[2px]" w="full" bg="bg-border" opacity="25" shrink="0" />
         </>
       )}
 
-      <Box flex="1" overflow="x-hidden y-auto" minH="0" padding={flushContent ? 0 : 5}>
+      <Box flex="1" overflowY="auto" minH="0" padding={flushContent ? 0 : 5}>
         <Stack gap={5}>
           {items.length === 0 ? (
             <EmptyState

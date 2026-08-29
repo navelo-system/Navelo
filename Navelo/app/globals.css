@@ -29,6 +29,19 @@
   /* Red default */
 }
 
+.dark {
+  --background: #18181b; /* zinc-900 */
+  --surface: #27272a; /* zinc-800 */
+  --surface-raised: #3f3f46; /* zinc-700 */
+  --surface-sunken: #09090b; /* zinc-950 */
+  --border: #3f3f46; /* zinc-700 */
+
+  --foreground: #ffffff; /* branco */
+  --text-secondary: #e4e4e7; /* zinc-200 */
+  --text-muted: #a1a1aa; /* zinc-400 */
+  --text-dim: #71717a; /* zinc-500 */
+}
+
 
 
 @theme {

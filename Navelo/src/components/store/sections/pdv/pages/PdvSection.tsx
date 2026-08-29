@@ -5,9 +5,11 @@ import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Button } from "@/components/store/base/Button"
 import { PdvCatalogToolbar, MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
+import { ProductBarcodeScannerModal } from "@/components/store/sections/pdv/modals/ProductBarcodeScannerModal"
 import { Menu } from "lucide-react"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
 import { ExitConfirmModal } from "@/components/store/sections/pdv/modals/ExitConfirmModal"
+import { SupervisorAuthModal } from "@/components/store/sections/pdv/modals/SupervisorAuthModal"
 import { PdvCartDrawer } from "@/components/store/sections/pdv/modals/PdvCartDrawer"
 
 import { PdvCatalog, MockProduct } from "@/components/store/advanced/PdvCatalog"
@@ -22,6 +24,8 @@ import { DevolucaoSection } from "@/components/store/sections/pdv/pages/Devoluca
 import { TotaisEmCaixaSection } from "@/components/store/sections/pdv/pages/TotaisEmCaixaSection"
 import { RecebimentosSection } from "@/components/store/sections/pdv/pages/RecebimentosSection"
 import { SangriasSuprimentosSection } from "@/components/store/sections/pdv/pages/SangriasSuprimentosSection"
+import { NumeroAtendimentoSection } from "@/components/store/sections/pdv/pages/NumeroAtendimentoSection"
+import { PdvCustomizacaoSection } from "@/components/store/sections/pdv/pages/PdvCustomizacaoSection"
 import { PdvObservacaoModal } from "@/components/store/sections/pdv/modals/PdvObservacaoModal"
 import { PdvSangriaModal } from "@/components/store/sections/pdv/modals/PdvSangriaModal"
 import { SaleSuccessModal } from "@/components/store/sections/pdv/modals/SaleSuccessModal"
@@ -35,6 +39,9 @@ import { Rider, DeliveryRate, useProducts, useCategories, useTabs, useDeliveryOr
 import { useLiveQuery } from "dexie-react-hooks"
 import { generateSaleReceiptPdf, sanitizeSaleFileName } from "@/lib/pdf/generateSaleReceipt"
 import { useTenant } from "@/lib/context/TenantContext"
+import { useTenantRestrictions } from "@/lib/sync/restrictionsSettings"
+import { usePdvCustomization } from "@/lib/sync/pdvCustomizationSettings"
+import { useAppNavigation } from "@/lib/navigation/NavigationContext"
 
 export interface CartItemType {
   id: string
@@ -77,7 +84,7 @@ interface PdvSectionProps {
   deliveryContext?: DeliveryContextData | null
 }
 
-export type PdvSubView = "none" | "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos" | "rates-screen" | "riders-screen"
+export type PdvSubView = "none" | "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos" | "rates-screen" | "riders-screen" | "pdv-customizacao" | "numero-atendimento"
 
 interface StockCommittedItem {
   id?: string
@@ -257,6 +264,32 @@ function duplicateSingleCartItem(next: CartItemType[], item: CartItemType, catal
   }
 }
 
+export function isKgProduct(prod?: MockProduct | null): boolean {
+  if (!prod) return false
+  const u = (prod.unit || "").trim().toUpperCase()
+  return u === "KG" || u === "QUILO" || u === "KILO" || u === "KG."
+}
+
+function addProductToCart(
+  prev: CartItemType[],
+  prod: MockProduct,
+  qty: number,
+  effectiveStock: number | undefined
+): CartItemType[] {
+  const existing = prev.find((item) => item.id === prod.id)
+  const currentQty = existing ? existing.quantity : 0
+  const newQty = currentQty + qty
+  if (effectiveStock !== undefined && effectiveStock !== Infinity && newQty > effectiveStock) {
+    return prev
+  }
+  if (existing) {
+    return prev.map((item) =>
+      item.id === prod.id ? { ...item, quantity: item.quantity + qty } : item
+    )
+  }
+  return [...prev, { id: prod.id, name: prod.name, quantity: qty, unitPrice: prod.unitPrice, image: prod.image, stock: effectiveStock, category: prod.category }]
+}
+
 function usePdvCartManager(
   catalogProducts: MockProduct[],
   initialItems?: CartItemType[]
@@ -274,22 +307,14 @@ function usePdvCartManager(
   const handleAddProduct = (prod: MockProduct) => {
     const catalogItem = catalogProducts.find((p) => p.id === prod.id)
     const effectiveStock = catalogItem?.stock ?? prod.stock
-
-    setCartItems((prev) => {
-      const existing = prev.find((item) => item.id === prod.id)
-      const currentQty = existing ? existing.quantity : 0
-      const newQty = currentQty + quantityMultiplier
-      if (effectiveStock !== undefined && effectiveStock !== Infinity && newQty > effectiveStock) {
-        return prev
-      }
-      if (existing) {
-        return prev.map((item) =>
-          item.id === prod.id ? { ...item, quantity: item.quantity + quantityMultiplier } : item
-        )
-      }
-      return [...prev, { id: prod.id, name: prod.name, quantity: quantityMultiplier, unitPrice: prod.unitPrice, image: prod.image, stock: effectiveStock }]
-    })
+    setCartItems((prev) => addProductToCart(prev, prod, quantityMultiplier, effectiveStock))
     setQuantityMultiplier(1)
+  }
+
+  const handleAddProductWithQuantity = (prod: MockProduct, qty: number) => {
+    const catalogItem = catalogProducts.find((p) => p.id === prod.id)
+    const effectiveStock = catalogItem?.stock ?? prod.stock
+    setCartItems((prev) => addProductToCart(prev, prod, qty, effectiveStock))
   }
 
   const handleIncrease = (id: string) => {
@@ -297,13 +322,11 @@ function usePdvCartManager(
     const effectiveStock = catalogItem?.stock
     setCartItems((prev) =>
       prev.map((item) => {
-        if (item.id === id) {
-          if (effectiveStock !== undefined && effectiveStock !== Infinity && item.quantity + 1 > effectiveStock) {
-            return item
-          }
-          return { ...item, quantity: item.quantity + 1 }
+        if (item.id !== id) return item
+        if (effectiveStock !== undefined && effectiveStock !== Infinity && item.quantity + 1 > effectiveStock) {
+          return item
         }
-        return item
+        return { ...item, quantity: item.quantity + 1 }
       })
     )
   }
@@ -333,7 +356,7 @@ function usePdvCartManager(
 
   return {
     cartItems, setCartItems, enrichedCartItems,
-    handleAddProduct, handleIncrease, handleDecrease, handleRemove, handleDuplicateToCart,
+    handleAddProduct, handleAddProductWithQuantity, handleIncrease, handleDecrease, handleRemove, handleDuplicateToCart,
   }
 }
 
@@ -374,13 +397,7 @@ function renderPdvDeliverySubViews(opts: RenderPdvDeliverySubViewsOptions) {
   return null
 }
 
-function PdvSubViewRouter({
-  subView, setSubView, setCustomBack, setCustomTitle, setCustomActions,
-  negociacoesClientFilter, setNegociacoesClientFilter, isSelectingClientForNegociacoes,
-  setIsSelectingClientForNegociacoes, isSelectingClientForRecebimentos,
-  setIsSelectingClientForRecebimentos, selectedCustomerName, setSelectedCustomerName,
-  handleDuplicateToCart, setSelectedRate, setSelectedRider,
-}: {
+interface PdvSubViewRouterProps {
   subView: PdvSubView
   setSubView: (v: PdvSubView) => void
   setCustomBack?: (cb: (() => void) | null) => void
@@ -397,57 +414,72 @@ function PdvSubViewRouter({
   handleDuplicateToCart: (items: CartItemType[]) => void
   setSelectedRate: (r: DeliveryRate | null) => void
   setSelectedRider: (r: Rider | null) => void
-}) {
-  const deliveryView = renderPdvDeliverySubViews({ subView, setSubView, setSelectedRate, setSelectedRider, setCustomBack, setCustomTitle, setCustomActions })
-  if (deliveryView) return deliveryView
+}
 
-  if (subView === "negociacoes") {
+function renderPdvClientSubViews(p: PdvSubViewRouterProps) {
+  if (p.subView === "negociacoes") {
     return (
       <NegociacoesSection
-        setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions}
-        onBack={() => { setNegociacoesClientFilter(null); setSubView("none") }}
-        initialClientFilter={negociacoesClientFilter || undefined}
-        onDuplicateToCart={(items) => { handleDuplicateToCart(items); setNegociacoesClientFilter(null); setSubView("none") }}
+        setCustomBack={p.setCustomBack} setCustomTitle={p.setCustomTitle} setCustomActions={p.setCustomActions}
+        onBack={() => { p.setNegociacoesClientFilter(null); p.setSubView("none") }}
+        initialClientFilter={p.negociacoesClientFilter || undefined}
+        onDuplicateToCart={(items) => { p.handleDuplicateToCart(items); p.setNegociacoesClientFilter(null); p.setSubView("none") }}
       />
     )
   }
-  if (subView === "clientes") {
+  if (p.subView === "clientes") {
     return (
       <ClientesSection
-        setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions}
+        setCustomBack={p.setCustomBack} setCustomTitle={p.setCustomTitle} setCustomActions={p.setCustomActions}
         onBack={() => {
-          setIsSelectingClientForNegociacoes(false)
-          setIsSelectingClientForRecebimentos(false)
-          setSubView("none")
+          p.setIsSelectingClientForNegociacoes(false)
+          p.setIsSelectingClientForRecebimentos(false)
+          p.setSubView("none")
         }}
         onSelectClient={(client) => {
-          setSelectedCustomerName(client.name)
-          if (isSelectingClientForNegociacoes) {
-            setIsSelectingClientForNegociacoes(false); setNegociacoesClientFilter(client.name); setSubView("negociacoes")
-          } else if (isSelectingClientForRecebimentos) {
-            setIsSelectingClientForRecebimentos(false); setSubView("recebimentos")
+          p.setSelectedCustomerName(client.name)
+          if (p.isSelectingClientForNegociacoes) {
+            p.setIsSelectingClientForNegociacoes(false); p.setNegociacoesClientFilter(client.name); p.setSubView("negociacoes")
+          } else if (p.isSelectingClientForRecebimentos) {
+            p.setIsSelectingClientForRecebimentos(false); p.setSubView("recebimentos")
           } else {
-            setSubView("none")
+            p.setSubView("none")
           }
         }}
       />
     )
   }
-  if (subView === "devolucao") return <DevolucaoSection setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} onBack={() => setSubView("none")} />
-  if (subView === "totais-em-caixa") return <TotaisEmCaixaSection setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} onBack={() => setSubView("none")} />
-  if (subView === "recebimentos") {
+  if (p.subView === "recebimentos") {
     return (
       <RecebimentosSection
-        clientName={selectedCustomerName || "Cliente"}
-        onBack={() => setSubView("none")}
-        setCustomBack={setCustomBack}
-        setCustomTitle={setCustomTitle}
-        setCustomActions={setCustomActions}
+        clientName={p.selectedCustomerName || "Cliente"}
+        onBack={() => p.setSubView("none")}
+        setCustomBack={p.setCustomBack}
+        setCustomTitle={p.setCustomTitle}
+        setCustomActions={p.setCustomActions}
       />
     )
   }
-  if (subView === "sangrias-suprimentos") return <SangriasSuprimentosSection setCustomBack={setCustomBack} setCustomTitle={setCustomTitle} setCustomActions={setCustomActions} onBack={() => setSubView("none")} />
   return null
+}
+
+function renderPdvStandardSubViews(p: PdvSubViewRouterProps) {
+  const chrome = { setCustomBack: p.setCustomBack, setCustomTitle: p.setCustomTitle, setCustomActions: p.setCustomActions, onBack: () => p.setSubView("none") }
+  if (p.subView === "devolucao") return <DevolucaoSection {...chrome} />
+  if (p.subView === "totais-em-caixa") return <TotaisEmCaixaSection {...chrome} />
+  if (p.subView === "sangrias-suprimentos") return <SangriasSuprimentosSection {...chrome} />
+  if (p.subView === "pdv-customizacao") return <PdvCustomizacaoSection {...chrome} />
+  if (p.subView === "numero-atendimento") return <NumeroAtendimentoSection {...chrome} />
+  return null
+}
+
+function PdvSubViewRouter(p: PdvSubViewRouterProps) {
+  const deliveryView = renderPdvDeliverySubViews({
+    subView: p.subView, setSubView: p.setSubView, setSelectedRate: p.setSelectedRate, setSelectedRider: p.setSelectedRider,
+    setCustomBack: p.setCustomBack, setCustomTitle: p.setCustomTitle, setCustomActions: p.setCustomActions,
+  })
+  if (deliveryView) return deliveryView
+  return renderPdvClientSubViews(p) || renderPdvStandardSubViews(p)
 }
 
 async function updateProductStocks(cartItems: CartItemType[]) {
@@ -530,75 +562,127 @@ interface PdvHeaderSyncParams {
   subView: PdvSubView
   cartItemsLength: number
   activeClientOrTitle: string
-  searchQuery: string
-  setSearchQuery: (q: string) => void
   onBackToDashboardRef: React.MutableRefObject<() => void>
-  setIsExitConfirmOpen: (v: boolean) => void
-  setIsSidebarOpen: (v: boolean) => void
-  setIsDiscountModalOpen: (v: boolean) => void
+  setIsExitConfirmOpen: (o: boolean) => void
+  setIsDiscountModalOpen: (o: boolean) => void
   setStep: (s: "negociacao" | "pagamento" | "recibo" | "delivery-confirm") => void
   setExitConfirmMode?: (mode: "save-and-exit" | "cancel-operation") => void
   setCustomBack?: (cb: (() => void) | null) => void
   setCustomTitle?: (title: string | null) => void
   setCustomActions?: (actions: React.ReactNode | null) => void
+  canApplyDiscount: boolean
+  goBack: (fallback?: string) => void
+  searchQuery: string
+  setSearchQuery: (q: string) => void
+  setIsSidebarOpen: (o: boolean) => void
 }
 
 function usePdvHeaderSync(params: PdvHeaderSyncParams) {
   const {
-    step, subView, cartItemsLength, activeClientOrTitle, searchQuery,
-    setSearchQuery, onBackToDashboardRef, setIsExitConfirmOpen, setIsSidebarOpen,
+    step, subView, cartItemsLength, activeClientOrTitle,
+    onBackToDashboardRef, setIsExitConfirmOpen,
     setIsDiscountModalOpen, setStep, setExitConfirmMode, setCustomBack, setCustomTitle, setCustomActions,
+    canApplyDiscount, goBack,
+    searchQuery, setSearchQuery, setIsSidebarOpen,
   } = params
 
+  const cartItemsLengthRef = React.useRef(cartItemsLength)
+  const setExitConfirmModeRef = React.useRef(setExitConfirmMode)
+  const setIsExitConfirmOpenRef = React.useRef(setIsExitConfirmOpen)
+  const setStepRef = React.useRef(setStep)
+  const stepRef = React.useRef(step)
+  const setIsDiscountModalOpenRef = React.useRef(setIsDiscountModalOpen)
+
+  React.useEffect(() => {
+    cartItemsLengthRef.current = cartItemsLength
+    setExitConfirmModeRef.current = setExitConfirmMode
+    setIsExitConfirmOpenRef.current = setIsExitConfirmOpen
+    setStepRef.current = setStep
+    stepRef.current = step
+    setIsDiscountModalOpenRef.current = setIsDiscountModalOpen
+  })
+
+  // 1. Título do PDV (só atualiza se o valor textual for alterado)
+  const lastTitleRef = React.useRef<string | null>(null)
   React.useEffect(() => {
     if (subView !== "none") return
     const title = activeClientOrTitle === "Nao selecionado" || !activeClientOrTitle ? "Caixa" : activeClientOrTitle
-    setCustomTitle?.(title)
+    if (lastTitleRef.current !== title) {
+      lastTitleRef.current = title
+      setCustomTitle?.(title)
+    }
+  }, [subView, activeClientOrTitle, setCustomTitle])
 
-    if (step === "negociacao") {
-      setCustomBack?.(() => () => {
-        setExitConfirmMode?.("save-and-exit")
-        if (cartItemsLength === 0) onBackToDashboardRef.current(); else setIsExitConfirmOpen(true)
-      })
-      return
+  // 2. Botão Voltar do PDV (função estável única)
+  const handlePdvBack = React.useCallback(() => {
+    const currentStep = stepRef.current
+    if (currentStep === "negociacao") {
+      setExitConfirmModeRef.current?.("save-and-exit")
+      if (cartItemsLengthRef.current === 0) {
+        onBackToDashboardRef.current?.()
+      } else {
+        setIsExitConfirmOpenRef.current?.(true)
+      }
+    } else if (currentStep === "recibo") {
+      goBack("#pagamento")
+    } else {
+      goBack("#caixa")
     }
-    if (step === "recibo") {
-      setCustomBack?.(() => () => setStep("pagamento"))
-      return
-    }
-    setCustomBack?.(() => () => setStep("negociacao"))
-  }, [step, subView, setCustomBack, setCustomTitle, cartItemsLength, activeClientOrTitle, onBackToDashboardRef, setIsExitConfirmOpen, setStep, setExitConfirmMode])
+  }, [onBackToDashboardRef, goBack])
 
   React.useEffect(() => {
     if (subView !== "none") return
-    if (step === "negociacao") {
+    setCustomBack?.(handlePdvBack)
+  }, [subView, setCustomBack, handlePdvBack])
+
+  // 3. Ações do cabeçalho
+  React.useEffect(() => {
+    if (subView !== "none") return
+
+    if (step === "pagamento" && canApplyDiscount) {
       setCustomActions?.(
-        <MobileHeaderSearch searchQuery={searchQuery} onSearchQueryChange={setSearchQuery} placeholder={UI_STRINGS.pdv.searchPlaceholder}>
-          <Button variant="primary-pill-icon" icon={Menu} onClick={() => setIsSidebarOpen(true)} />
+        <Button
+          variant="ghost-primary"
+          label={UI_STRINGS.pdv.discountShortcutLabel}
+          onClick={() => setIsDiscountModalOpenRef.current?.(true)}
+        />
+      )
+    } else if (step === "negociacao") {
+      setCustomActions?.(
+        <MobileHeaderSearch
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          placeholder={UI_STRINGS.pdv.catalog.searchProductsPlaceholder}
+        >
+          <Button
+            variant="primary-pill-icon"
+            icon={Menu}
+            onClick={() => setIsSidebarOpen(true)}
+          />
         </MobileHeaderSearch>
       )
-      return
+    } else {
+      setCustomActions?.(null)
     }
-    if (step === "pagamento") {
-      setCustomActions?.(<Button variant="ghost-primary" label={UI_STRINGS.pdv.discountShortcutLabel} onClick={() => setIsDiscountModalOpen(true)} />)
-      return
+  }, [step, subView, canApplyDiscount, searchQuery, setSearchQuery, setIsSidebarOpen, setCustomActions])
+
+  React.useEffect(() => {
+    return () => {
+      lastTitleRef.current = null
     }
-    setCustomActions?.(null)
-  }, [step, subView, searchQuery, setCustomActions, setIsSidebarOpen, setIsDiscountModalOpen, setSearchQuery])
+  }, [])
 }
 
 function PdvCatalogLayout({
-  searchQuery, setSearchQuery, viewMode, setViewModeState,
-  setIsCartDrawerOpen, catalogProducts, handleAddProduct, activeCategory,
+  viewMode, setViewModeState,
+  handleAddProduct, activeCategory,
   setActiveCategory, filteredProducts, categories, enrichedCartItems,
   handleIncrease, handleDecrease, handleRemove, discount, total,
   onGoToPayment, activeComandaId, handleSaveComandaAndExit, deliveryContext,
-  cartItems, subtotal,
+  cartItems, subtotal, onOpenCart, onOpenScanner,
 }: {
-  searchQuery: string; setSearchQuery: (q: string) => void
   viewMode: "grade" | "lista"; setViewModeState: (m: "grade" | "lista") => void
-  setIsCartDrawerOpen: (v: boolean) => void
-  catalogProducts: MockProduct[]; handleAddProduct: (p: MockProduct) => void
+  handleAddProduct: (p: MockProduct) => void
   activeCategory: string; setActiveCategory: (c: string) => void
   filteredProducts: MockProduct[]; categories: string[]
   enrichedCartItems: CartItemType[]
@@ -607,20 +691,20 @@ function PdvCatalogLayout({
   onGoToPayment: () => void; activeComandaId?: string | null
   handleSaveComandaAndExit: () => void; deliveryContext?: DeliveryContextData | null
   cartItems: CartItemType[]; subtotal: number
+  onOpenCart?: () => void
+  onOpenScanner?: () => void
 }) {
   return (
-    <Stack gap={5} w="full" flex="1" minH="0">
-      <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" minH="0">
-        <Box display="flex" flex="1" w="full" direction="col" minH="0">
+    <Stack gap={5} w="full" flex="1" minH="0" overflow="hidden">
+      <Stack direction="col" mobileDirection="row" gap={5} w="full" align="stretch" flex="1" minH="0" overflow="hidden">
+        <Box display="flex" flex="1" minW="0" w="full" direction="col" minH="0" overflow="hidden">
           <Stack gap={5} w="full" flex="1" minH="0" overflow="hidden">
             <Box w="full">
               <PdvCatalogToolbar
-                searchQuery={searchQuery} onSearchQueryChange={setSearchQuery} viewMode={viewMode} onViewModeChange={setViewModeState}
-                onOpenCart={() => setIsCartDrawerOpen(true)}
-                onBarcodeScanned={(code: string) => {
-                  const prod = catalogProducts.find((p) => p.barcode === code || p.id === code)
-                  if (prod) handleAddProduct(prod)
-                }}
+                viewMode={viewMode}
+                onViewModeChange={setViewModeState}
+                onOpenCart={onOpenCart}
+                onOpenScanner={onOpenScanner}
               />
             </Box>
             <PdvCatalog
@@ -632,7 +716,7 @@ function PdvCatalogLayout({
             <Box display="block md:hidden" h="h-16" shrink="0" />
           </Stack>
         </Box>
-        <Box display="hidden md:flex" w="1/4" direction="col" minH="0">
+        <Box display="hidden md:flex" w="w-[320px] xl:w-[350px]" shrink="0" direction="col" minH="0" h="full" overflow="hidden">
           <PdvCheckoutSidebar
             cartItems={enrichedCartItems} discount={discount} total={total} formatPrice={formatPrice}
             onIncrease={handleIncrease} onDecrease={handleDecrease} onRemove={handleRemove}
@@ -711,10 +795,9 @@ interface PdvModalsManagerProps {
   setIsDiscountModalOpen: (v: boolean) => void; setDiscount: (d: number) => void
   isSidebarOpen: boolean; setIsSidebarOpen: (v: boolean) => void
   onBackToDashboard: () => void; launchAmount: number; subtotal: number
-  handleSidebarNavigate: (v: "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos" | "ultimas-negociacoes") => void
+  handleSidebarNavigate: (v: "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos" | "ultimas-negociacoes" | "pdv-customizacao" | "numero-atendimento") => void
   setIsObservationModalOpen: (v: boolean) => void; setSangriaModalMode: (m: "sangria" | "suprimento") => void
   setIsSangriaModalOpen: (v: boolean) => void; activeClientOrTitle: string
-  showOutOfStockProducts: boolean; handleToggleShowOutOfStock: (v: boolean) => void
   cartItems: CartItemType[]; onBackToDashboardRef: React.MutableRefObject<() => void>
   setIsExitConfirmOpen: (v: boolean) => void; isObservationModalOpen: boolean
   observationText: string; setObservationText: (o: string) => void
@@ -726,6 +809,13 @@ interface PdvModalsManagerProps {
   lastCompletedSaleData: { total: number; change: number; paymentMethod: string; customerName: string } | null
   setStep: (s: "negociacao" | "pagamento" | "recibo" | "delivery-confirm") => void
   onCancelOperationClick?: () => void
+  isGavetaModalOpen: boolean; setIsGavetaModalOpen: (v: boolean) => void
+  isKgModalOpen?: boolean; onCloseKgModal?: () => void
+  selectedKgProduct?: MockProduct | null
+  onConfirmKgProduct?: (product: MockProduct, quantity: number) => void
+  isScannerOpen?: boolean
+  setIsScannerOpen?: (v: boolean) => void
+  onBarcodeScanned?: (code: string) => void
 }
 
 function PdvModalsManager({
@@ -736,13 +826,16 @@ function PdvModalsManager({
   isDiscountModalOpen, setIsDiscountModalOpen, setDiscount, isSidebarOpen,
   setIsSidebarOpen, onBackToDashboard, launchAmount, subtotal, handleSidebarNavigate,
   setIsObservationModalOpen, setSangriaModalMode, setIsSangriaModalOpen,
-  activeClientOrTitle, showOutOfStockProducts, handleToggleShowOutOfStock,
+  activeClientOrTitle,
   cartItems, onBackToDashboardRef, setIsExitConfirmOpen, isObservationModalOpen,
   observationText, setObservationText, isSangriaModalOpen, sangriaModalMode,
   setPendingSangriaAmount, setIsSangriaObsModalOpen, isSangriaObsModalOpen,
   pendingSangriaAmount, handleSaveSangriaMovement, isSuccessModalOpen,
   setIsSuccessModalOpen, handleResetCaixaState, lastCompletedSaleData, setStep,
   onCancelOperationClick,
+  isGavetaModalOpen, setIsGavetaModalOpen,
+  isKgModalOpen, onCloseKgModal, selectedKgProduct, onConfirmKgProduct,
+  isScannerOpen, setIsScannerOpen, onBarcodeScanned,
 }: PdvModalsManagerProps) {
   return (
     <>
@@ -765,10 +858,15 @@ function PdvModalsManager({
         onOpenSangriaModal={(mode = "sangria") => { setSangriaModalMode(mode); setIsSangriaModalOpen(true) }}
         customerName={activeClientOrTitle}
         observationText={observationText}
-        showOutOfStockProducts={showOutOfStockProducts}
-        onToggleShowOutOfStock={handleToggleShowOutOfStock}
         hasCartItems={cartItems.length > 0}
         onCancelOperation={onCancelOperationClick || (() => { setIsSidebarOpen(false); if (cartItems.length === 0) onBackToDashboardRef.current(); else setIsExitConfirmOpen(true) })}
+        isGavetaModalOpen={isGavetaModalOpen}
+        onOpenGavetaModal={() => setIsGavetaModalOpen(true)}
+        onCloseGavetaModal={() => setIsGavetaModalOpen(false)}
+        isKgModalOpen={isKgModalOpen}
+        onCloseKgModal={onCloseKgModal}
+        selectedKgProduct={selectedKgProduct}
+        onConfirmKgProduct={onConfirmKgProduct}
       />
       <PdvCashModals
         isObservationModalOpen={isObservationModalOpen} setIsObservationModalOpen={setIsObservationModalOpen}
@@ -781,6 +879,13 @@ function PdvModalsManager({
         setIsSuccessModalOpen={setIsSuccessModalOpen} handleResetCaixaState={handleResetCaixaState}
         lastCompletedSaleData={lastCompletedSaleData} setStep={setStep}
       />
+      {isScannerOpen !== undefined && setIsScannerOpen && (
+        <ProductBarcodeScannerModal
+          isOpen={isScannerOpen}
+          onClose={() => setIsScannerOpen(false)}
+          onScan={onBarcodeScanned || (() => {})}
+        />
+      )}
     </>
   )
 }
@@ -879,20 +984,20 @@ function getDefaultDueDate(): string {
 }
 
 function PdvStepContentRouter({
-  step, setStep, deliveryContext, searchQuery, setSearchQuery, viewMode, setViewModeState,
-  setIsCartDrawerOpen, catalogProducts, handleAddProduct, activeCategory, setActiveCategory,
+  step, setStep, deliveryContext, viewMode, setViewModeState,
+  handleAddProduct, activeCategory, setActiveCategory,
   filteredProducts, categories, enrichedCartItems, handleIncrease, handleDecrease, handleRemove,
   discount, total, onGoToPayment, activeComandaId, handleSaveComandaAndExit, cartItems,
   subtotal, selectedRider, selectedRate, setSubView, setSelectedRider, setSelectedRate,
   setPendingDeliveryData, payments, totalPaid, amountDue, setIsDiscountModalOpen,
   handleLaunchPayment, handleRemovePayment, handleEditPayment, setIsChangeModalOpen,
   setIsCardModalOpen, handleFinalizeSale, paymentAmountInput, setPaymentAmountInput, launchAmount,
+  onOpenCart, onOpenScanner,
 }: {
   step: "negociacao" | "pagamento" | "recibo" | "delivery-confirm"
   setStep: (s: "negociacao" | "pagamento" | "recibo" | "delivery-confirm") => void
-  deliveryContext?: DeliveryContextData | null; searchQuery: string; setSearchQuery: (q: string) => void
+  deliveryContext?: DeliveryContextData | null
   viewMode: "grade" | "lista"; setViewModeState: (m: "grade" | "lista") => void
-  setIsCartDrawerOpen: (v: boolean) => void; catalogProducts: MockProduct[]
   handleAddProduct: (p: MockProduct) => void; activeCategory: string; setActiveCategory: (c: string) => void
   filteredProducts: MockProduct[]; categories: string[]
   enrichedCartItems: CartItemType[]; handleIncrease: (id: string) => void
@@ -912,17 +1017,20 @@ function PdvStepContentRouter({
   setIsChangeModalOpen: (v: boolean) => void; setIsCardModalOpen: (v: boolean) => void
   handleFinalizeSale: () => void; paymentAmountInput: string
   setPaymentAmountInput: (v: string) => void; launchAmount: number
+  onOpenCart?: () => void
+  onOpenScanner?: () => void
 }) {
   if (step === "negociacao") {
     return (
       <PdvCatalogLayout
-        searchQuery={searchQuery} setSearchQuery={setSearchQuery} viewMode={viewMode} setViewModeState={setViewModeState}
-        setIsCartDrawerOpen={setIsCartDrawerOpen} catalogProducts={catalogProducts} handleAddProduct={handleAddProduct}
+        viewMode={viewMode} setViewModeState={setViewModeState}
+        handleAddProduct={handleAddProduct}
         activeCategory={activeCategory} setActiveCategory={setActiveCategory} filteredProducts={filteredProducts}
         categories={categories} enrichedCartItems={enrichedCartItems} handleIncrease={handleIncrease}
         handleDecrease={handleDecrease} handleRemove={handleRemove} discount={discount} total={total}
         onGoToPayment={onGoToPayment} activeComandaId={activeComandaId} handleSaveComandaAndExit={handleSaveComandaAndExit}
         deliveryContext={deliveryContext} cartItems={cartItems} subtotal={subtotal}
+        onOpenCart={onOpenCart} onOpenScanner={onOpenScanner}
       />
     )
   }
@@ -974,6 +1082,10 @@ function usePdvPaymentStateManager(deliveryContext?: DeliveryContextData | null)
   const [isSuccessModalOpen, setIsSuccessModalOpen] = React.useState(false)
   const [exitConfirmMode, setExitConfirmMode] = React.useState<"save-and-exit" | "cancel-operation">("save-and-exit")
   const [lastCompletedSaleData, setLastCompletedSaleData] = React.useState<{ total: number; change: number; paymentMethod: string; customerName: string } | null>(null)
+  const [isGavetaModalOpen, setIsGavetaModalOpen] = React.useState(false)
+  const [isKgModalOpen, setIsKgModalOpen] = React.useState(false)
+  const [selectedKgProduct, setSelectedKgProduct] = React.useState<MockProduct | null>(null)
+  const [isScannerOpen, setIsScannerOpen] = React.useState(false)
 
   return {
     pendingDeliveryData, setPendingDeliveryData, payments, setPayments, discount, setDiscount,
@@ -985,6 +1097,10 @@ function usePdvPaymentStateManager(deliveryContext?: DeliveryContextData | null)
     sangriaModalMode, setSangriaModalMode, pendingSangriaAmount, setPendingSangriaAmount,
     isSuccessModalOpen, setIsSuccessModalOpen, lastCompletedSaleData, setLastCompletedSaleData,
     exitConfirmMode, setExitConfirmMode,
+    isGavetaModalOpen, setIsGavetaModalOpen,
+    isKgModalOpen, setIsKgModalOpen,
+    selectedKgProduct, setSelectedKgProduct,
+    isScannerOpen, setIsScannerOpen,
   }
 }
 
@@ -1136,16 +1252,12 @@ function usePdvProductsData(tenantId: string, activeComandaId?: string | null) {
 
   const { getEffectiveAvailableStock } = useCommittedStockCalculator(dbTabs, dbDeliveryOrders, activeComandaId)
   const { catalogProducts } = usePdvCatalogData(dbProducts, dbCategories, getEffectiveAvailableStock)
+  const pdvConfig = usePdvCustomization()
 
-  const [showOutOfStockProducts, setShowOutOfStockProducts] = React.useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("pdv_show_out_of_stock_products")
-      if (saved !== null) return saved === "true"
-    }
-    return true
-  })
-
-  const availableProducts = React.useMemo(() => catalogProducts.filter((p: MockProduct) => showOutOfStockProducts || (p.stock ?? 0) >= 1), [catalogProducts, showOutOfStockProducts])
+  const availableProducts = React.useMemo(
+    () => catalogProducts.filter((p: MockProduct) => !pdvConfig.onlyStock || (p.stock ?? 0) >= 1),
+    [catalogProducts, pdvConfig.onlyStock]
+  )
   const categories = React.useMemo(() => {
     const set = new Set<string>()
     availableProducts.forEach((p: MockProduct) => { if (p.category && p.category !== "Geral") set.add(p.category); if (p.subgroup) set.add(p.subgroup) })
@@ -1153,12 +1265,43 @@ function usePdvProductsData(tenantId: string, activeComandaId?: string | null) {
     return catList.length === 0 ? (availableProducts.some((p: MockProduct) => p.category === "Geral") ? ["Todos", "Geral"] : ["Todos"]) : ["Todos", ...catList]
   }, [availableProducts])
 
-  return { dbTabs, dbCompany, catalogProducts, availableProducts, categories, showOutOfStockProducts, setShowOutOfStockProducts }
+  return { dbTabs, dbCompany, catalogProducts, availableProducts, categories }
 }
 
 function usePdvNavigationState() {
-  const [step, setStep] = React.useState<"negociacao" | "pagamento" | "recibo" | "delivery-confirm">("negociacao")
-  const [subView, setSubView] = React.useState<PdvSubView>("none")
+  const { currentRoute, navigate, goBack } = useAppNavigation()
+
+  const currentTarget = (currentRoute.view === "caixa" && currentRoute.subView) ? currentRoute.subView : currentRoute.view
+  const step: "negociacao" | "pagamento" | "recibo" | "delivery-confirm" =
+    currentTarget === "pagamento"
+      ? "pagamento"
+      : currentTarget === "recibo"
+      ? "recibo"
+      : currentTarget === "delivery-confirm"
+      ? "delivery-confirm"
+      : "negociacao"
+
+  const knownSubViews: PdvSubView[] = ["negociacoes", "clientes", "devolucao", "totais-em-caixa", "recebimentos", "sangrias-suprimentos", "rates-screen", "riders-screen", "pdv-customizacao", "numero-atendimento"]
+  const subView: PdvSubView = (knownSubViews as string[]).includes(currentTarget)
+    ? (currentTarget as PdvSubView)
+    : "none"
+
+  const setStep = (s: "negociacao" | "pagamento" | "recibo" | "delivery-confirm") => {
+    if (s === "negociacao") {
+      goBack("#caixa")
+    } else {
+      navigate(`#${s}`)
+    }
+  }
+
+  const setSubView = (v: PdvSubView) => {
+    if (v === "none") {
+      goBack("#caixa")
+    } else {
+      navigate(`#${v}`)
+    }
+  }
+
   const [negociacoesClientFilter, setNegociacoesClientFilter] = React.useState<string | null>(null)
   const [isSelectingClientForNegociacoes, setIsSelectingClientForNegociacoes] = React.useState<boolean>(false)
   const [isSelectingClientForRecebimentos, setIsSelectingClientForRecebimentos] = React.useState<boolean>(false)
@@ -1173,6 +1316,7 @@ function usePdvNavigationState() {
     isSelectingClientForRecebimentos, setIsSelectingClientForRecebimentos,
     selectedRider, setSelectedRider, selectedRate, setSelectedRate,
     observationText, setObservationText, selectedCustomerName, setSelectedCustomerName,
+    goBack,
   }
 }
 
@@ -1214,7 +1358,7 @@ function navigateWithClientCheck(
 }
 
 function usePdvSidebarNavigate(nav: ReturnType<typeof usePdvNavigationState>) {
-  const handleSidebarNavigate = (view: "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos" | "ultimas-negociacoes") => {
+  const handleSidebarNavigate = (view: "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos" | "ultimas-negociacoes" | "pdv-customizacao" | "numero-atendimento") => {
     if (view === "ultimas-negociacoes") {
       navigateWithClientCheck(nav, "negociacoes")
       return
@@ -1274,13 +1418,70 @@ function PdvMobileBottomBar({
   )
 }
 
+function usePdvSupervisorGuards({
+  tenantCtx,
+  restrictions,
+  cartItems,
+  handleDiscardOperationAndExit,
+  handleRemove,
+}: {
+  tenantCtx?: ReturnType<typeof useTenant>
+  restrictions?: ReturnType<typeof useTenantRestrictions>
+  cartItems: CartItemType[]
+  handleDiscardOperationAndExit: () => void
+  handleRemove: (id: string) => void
+}) {
+  const isSupervisorOrAdmin = React.useMemo(() => {
+    const role = (tenantCtx?.currentUser?.role || "").toUpperCase()
+    return role.includes("ADMIN") || role.includes("SUPERVISOR") || role.includes("GERENTE")
+  }, [tenantCtx?.currentUser?.role])
+
+  const [isSupervisorAuthOpen, setIsSupervisorAuthOpen] = React.useState(false)
+  const [pendingSupervisorAction, setPendingSupervisorAction] = React.useState<{ action: () => void; title: string } | null>(null)
+
+  const handleGuardedDiscard = () => {
+    if (restrictions?.cancelamento && !isSupervisorOrAdmin) {
+      setPendingSupervisorAction({ action: handleDiscardOperationAndExit, title: "Cancelar operação" })
+      setIsSupervisorAuthOpen(true)
+      return
+    }
+    handleDiscardOperationAndExit()
+  }
+
+  const handleGuardedRemove = (id: string) => {
+    const item = cartItems.find((i) => i.id === id)
+    const itemName = item?.name || "item"
+    if (restrictions?.cancelamento && !isSupervisorOrAdmin) {
+      setPendingSupervisorAction({ action: () => handleRemove(id), title: `Remover item "${itemName}"` })
+      setIsSupervisorAuthOpen(true)
+      return
+    }
+    handleRemove(id)
+  }
+
+  const handleAuthorized = () => {
+    if (pendingSupervisorAction) pendingSupervisorAction.action()
+    setIsSupervisorAuthOpen(false)
+    setPendingSupervisorAction(null)
+  }
+
+  const handleClose = () => {
+    setIsSupervisorAuthOpen(false)
+    setPendingSupervisorAction(null)
+  }
+
+  return { isSupervisorAuthOpen, pendingSupervisorAction, handleGuardedDiscard, handleGuardedRemove, handleAuthorized, handleClose }
+}
+
 function PdvModalsBundle({
   pm, enrichedCartItems, total, handleIncrease, handleDecrease, handleRemove,
   handleGoToPayment, activeComandaId, handleSaveComandaAndExit, handleDiscardOperationAndExit,
   amountDue, onBackToDashboard, launchAmount, subtotal, handleSidebarNavigate,
-  activeClientOrTitle, prodData, cartItems, onBackToDashboardRef,
+  activeClientOrTitle, cartItems, onBackToDashboardRef,
   observationText, setObservationText, handleSaveSangriaMovement,
   handleResetCaixaState, setStep,
+  onConfirmKgProduct, tenantId, tenantCtx, restrictions,
+  onBarcodeScanned,
 }: {
   pm: ReturnType<typeof usePdvPaymentStateManager>
   enrichedCartItems: CartItemType[]; total: number
@@ -1290,22 +1491,24 @@ function PdvModalsBundle({
   handleDiscardOperationAndExit: () => void
   amountDue: number; onBackToDashboard: () => void; launchAmount: number
   subtotal: number
-  handleSidebarNavigate: (v: "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos" | "ultimas-negociacoes") => void
+  handleSidebarNavigate: (v: "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos" | "ultimas-negociacoes" | "pdv-customizacao" | "numero-atendimento") => void
   activeClientOrTitle: string
-  prodData: ReturnType<typeof usePdvProductsData>
   cartItems: CartItemType[]; onBackToDashboardRef: React.MutableRefObject<() => void>
   observationText: string; setObservationText: (o: string) => void
   handleSaveSangriaMovement: (obs: string) => void; handleResetCaixaState: () => void
   setStep: (s: "negociacao" | "pagamento" | "recibo" | "delivery-confirm") => void
+  onConfirmKgProduct?: (product: MockProduct, quantity: number) => void
+  tenantId?: string
+  tenantCtx?: ReturnType<typeof useTenant>
+  restrictions?: ReturnType<typeof useTenantRestrictions>
+  onBarcodeScanned?: (code: string) => void
 }) {
+  const guards = usePdvSupervisorGuards({ tenantCtx, restrictions, cartItems, handleDiscardOperationAndExit, handleRemove })
+
   const handleCancelOperationClick = () => {
     pm.setIsSidebarOpen(false)
     pm.setExitConfirmMode("cancel-operation")
-    if (cartItems.length === 0 && !activeComandaId) {
-      onBackToDashboardRef.current()
-    } else {
-      pm.setIsExitConfirmOpen(true)
-    }
+    if (cartItems.length === 0 && !activeComandaId) onBackToDashboardRef.current(); else pm.setIsExitConfirmOpen(true)
   }
 
   return (
@@ -1313,7 +1516,7 @@ function PdvModalsBundle({
       <PdvModalsManager
         isCartDrawerOpen={pm.isCartDrawerOpen} setIsCartDrawerOpen={pm.setIsCartDrawerOpen}
         enrichedCartItems={enrichedCartItems} discount={pm.discount} total={total}
-        handleIncrease={handleIncrease} handleDecrease={handleDecrease} handleRemove={handleRemove}
+        handleIncrease={handleIncrease} handleDecrease={handleDecrease} handleRemove={guards.handleGuardedRemove}
         onGoToPayment={handleGoToPayment} activeComandaId={activeComandaId}
         handleSaveComandaAndExit={handleSaveComandaAndExit} isChangeModalOpen={pm.isChangeModalOpen}
         setIsChangeModalOpen={pm.setIsChangeModalOpen} amountDue={amountDue} setPayments={pm.setPayments}
@@ -1324,41 +1527,36 @@ function PdvModalsBundle({
         onBackToDashboard={onBackToDashboard} launchAmount={launchAmount} subtotal={subtotal}
         handleSidebarNavigate={handleSidebarNavigate} setIsObservationModalOpen={pm.setIsObservationModalOpen}
         setSangriaModalMode={pm.setSangriaModalMode} setIsSangriaModalOpen={pm.setIsSangriaModalOpen}
-        activeClientOrTitle={activeClientOrTitle} showOutOfStockProducts={prodData.showOutOfStockProducts}
-        handleToggleShowOutOfStock={(show) => { prodData.setShowOutOfStockProducts(show); if (typeof window !== "undefined") localStorage.setItem("pdv_show_out_of_stock_products", String(show)) }}
-        cartItems={cartItems} onBackToDashboardRef={onBackToDashboardRef}
+        activeClientOrTitle={activeClientOrTitle} cartItems={cartItems} onBackToDashboardRef={onBackToDashboardRef}
         setIsExitConfirmOpen={pm.setIsExitConfirmOpen} isObservationModalOpen={pm.isObservationModalOpen}
         observationText={observationText} setObservationText={setObservationText}
         isSangriaModalOpen={pm.isSangriaModalOpen} sangriaModalMode={pm.sangriaModalMode}
         setPendingSangriaAmount={pm.setPendingSangriaAmount} setIsSangriaObsModalOpen={pm.setIsSangriaObsModalOpen}
         isSangriaObsModalOpen={pm.isSangriaObsModalOpen} pendingSangriaAmount={pm.pendingSangriaAmount}
         handleSaveSangriaMovement={handleSaveSangriaMovement} isSuccessModalOpen={pm.isSuccessModalOpen}
-        setIsSuccessModalOpen={pm.setIsSuccessModalOpen}
-        handleResetCaixaState={handleResetCaixaState} lastCompletedSaleData={pm.lastCompletedSaleData} setStep={setStep}
-        onCancelOperationClick={handleCancelOperationClick}
+        setIsSuccessModalOpen={pm.setIsSuccessModalOpen} handleResetCaixaState={handleResetCaixaState}
+        lastCompletedSaleData={pm.lastCompletedSaleData} setStep={setStep} onCancelOperationClick={handleCancelOperationClick}
+        isGavetaModalOpen={pm.isGavetaModalOpen} setIsGavetaModalOpen={pm.setIsGavetaModalOpen} isKgModalOpen={pm.isKgModalOpen}
+        onCloseKgModal={() => pm.setIsKgModalOpen(false)} selectedKgProduct={pm.selectedKgProduct} onConfirmKgProduct={onConfirmKgProduct}
+        isScannerOpen={pm.isScannerOpen} setIsScannerOpen={pm.setIsScannerOpen} onBarcodeScanned={onBarcodeScanned}
       />
-      <ExitConfirmModal
-        isOpen={pm.isExitConfirmOpen} onClose={() => pm.setIsExitConfirmOpen(false)}
-        onConfirm={handleDiscardOperationAndExit}
-        isComanda={Boolean(activeComandaId && !activeComandaId.startsWith("avulso-"))} onSave={handleSaveComandaAndExit}
-        mode={pm.exitConfirmMode}
-      />
+      <ExitConfirmModal isOpen={pm.isExitConfirmOpen} onClose={() => pm.setIsExitConfirmOpen(false)} onConfirm={guards.handleGuardedDiscard} isComanda={Boolean(activeComandaId && !activeComandaId.startsWith("avulso-"))} onSave={handleSaveComandaAndExit} mode={pm.exitConfirmMode} />
+      <SupervisorAuthModal isOpen={guards.isSupervisorAuthOpen} onClose={guards.handleClose} onAuthorized={guards.handleAuthorized} tenantId={tenantId} operatorName={tenantCtx?.currentUser?.name || "Operador"} actionTitle={guards.pendingSupervisorAction?.title || "Autorização de Supervisor"} resource="PDV" />
     </>
   )
 }
 
 function PdvViewBody({
-  nav, deliveryContext, searchQuery, setSearchQuery, viewMode, setViewModeState,
+  nav, deliveryContext, viewMode, setViewModeState,
   pm, prodData, enrichedCartItems, handleIncrease, handleDecrease, handleRemove,
   total, handleGoToPayment, activeComandaId, handleSaveComandaAndExit, handleDiscardOperationAndExit, cartItems,
   subtotal, handleAddProduct, activeCategory, setActiveCategory, filteredProducts,
   onBackToDashboard, activeClientOrTitle, handleSidebarNavigate, handleSaveSangriaMovement,
   handleResetCaixaState, onBackToDashboardRef, totalPaid, amountDue, launchAmount,
-  handleFinalizeSale,
+  handleFinalizeSale, onConfirmKgProduct, tenantId, tenantCtx, restrictions,
 }: {
   nav: ReturnType<typeof usePdvNavigationState>
   deliveryContext?: DeliveryContextData | null
-  searchQuery: string; setSearchQuery: (q: string) => void
   viewMode: "grade" | "lista"; setViewModeState: (m: "grade" | "lista") => void
   pm: ReturnType<typeof usePdvPaymentStateManager>
   prodData: ReturnType<typeof usePdvProductsData>
@@ -1371,19 +1569,28 @@ function PdvViewBody({
   activeCategory: string; setActiveCategory: (c: string) => void
   filteredProducts: MockProduct[]; onBackToDashboard: () => void
   activeClientOrTitle: string
-  handleSidebarNavigate: (v: "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos" | "ultimas-negociacoes") => void
+  handleSidebarNavigate: (v: "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos" | "ultimas-negociacoes" | "pdv-customizacao" | "numero-atendimento") => void
   handleSaveSangriaMovement: (obs: string) => void
   handleResetCaixaState: () => void
   onBackToDashboardRef: React.MutableRefObject<() => void>
   totalPaid: number; amountDue: number; launchAmount: number
   handleFinalizeSale: () => void
+  onConfirmKgProduct?: (product: MockProduct, quantity: number) => void
+  tenantId?: string
+  tenantCtx?: ReturnType<typeof useTenant>
+  restrictions?: ReturnType<typeof useTenantRestrictions>
 }) {
+  const handleBarcodeScanned = (code: string) => {
+    const prod = prodData.availableProducts.find((p) => p.barcode === code || p.id === code)
+    if (prod) handleAddProduct(prod)
+  }
+
   return (
     <Stack gap={5} w="full" flex="1" minH="0" overflow="hidden">
       <ViewTransition viewKey={nav.step} flex="1" direction="col" minH="0" overflow="hidden">
         <PdvStepContentRouter
-          step={nav.step} setStep={nav.setStep} deliveryContext={deliveryContext} searchQuery={searchQuery} setSearchQuery={setSearchQuery}
-          viewMode={viewMode} setViewModeState={setViewModeState} setIsCartDrawerOpen={pm.setIsCartDrawerOpen} catalogProducts={prodData.catalogProducts}
+          step={nav.step} setStep={nav.setStep} deliveryContext={deliveryContext}
+          viewMode={viewMode} setViewModeState={setViewModeState}
           handleAddProduct={handleAddProduct} activeCategory={activeCategory} setActiveCategory={setActiveCategory}
           filteredProducts={filteredProducts} categories={prodData.categories} enrichedCartItems={enrichedCartItems} handleIncrease={handleIncrease}
           handleDecrease={handleDecrease} handleRemove={handleRemove} discount={pm.discount} total={total} onGoToPayment={handleGoToPayment}
@@ -1396,6 +1603,7 @@ function PdvViewBody({
           handleEditPayment={(idx: number, newAmount: number, newDueDate?: string) => pm.setPayments((prev) => prev.map((p, i) => i === idx ? { ...p, amount: newAmount, dueDate: newDueDate !== undefined ? newDueDate : p.dueDate } : p))}
           setIsChangeModalOpen={pm.setIsChangeModalOpen} setIsCardModalOpen={pm.setIsCardModalOpen} handleFinalizeSale={handleFinalizeSale}
           paymentAmountInput={pm.paymentAmountInput} setPaymentAmountInput={pm.setPaymentAmountInput} launchAmount={launchAmount}
+          onOpenCart={() => pm.setIsCartDrawerOpen(true)} onOpenScanner={() => pm.setIsScannerOpen(true)}
         />
       </ViewTransition>
 
@@ -1412,12 +1620,45 @@ function PdvViewBody({
         amountDue={amountDue}
         onBackToDashboard={onBackToDashboard} launchAmount={launchAmount} subtotal={subtotal}
         handleSidebarNavigate={handleSidebarNavigate} activeClientOrTitle={activeClientOrTitle}
-        prodData={prodData} cartItems={cartItems} onBackToDashboardRef={onBackToDashboardRef}
+        cartItems={cartItems} onBackToDashboardRef={onBackToDashboardRef}
         observationText={nav.observationText} setObservationText={nav.setObservationText}
         handleSaveSangriaMovement={handleSaveSangriaMovement} handleResetCaixaState={handleResetCaixaState} setStep={nav.setStep}
+        onConfirmKgProduct={onConfirmKgProduct}
+        tenantId={tenantId}
+        tenantCtx={tenantCtx}
+        restrictions={restrictions}
+        onBarcodeScanned={handleBarcodeScanned}
       />
     </Stack>
   )
+}
+
+function usePdvMainFlowActions(p: {
+  deliveryContext?: DeliveryContextData | null
+  nav: ReturnType<typeof usePdvNavigationState>
+  pm: ReturnType<typeof usePdvPaymentStateManager>
+  handleAddProduct: (prod: MockProduct) => void
+  handleAddProductWithQuantity: (prod: MockProduct, qty: number) => void
+  activeComandaId?: string | null
+  onCloseComanda?: (id: string) => void
+  setCartItems: React.Dispatch<React.SetStateAction<CartItemType[]>>
+  onBackToDashboard: () => void
+}) {
+  const handleGoToPayment = () => { if (p.deliveryContext) p.nav.setStep("delivery-confirm"); else p.nav.setStep("pagamento") }
+  const handleProductSelect = (prod: MockProduct) => {
+    if (isKgProduct(prod)) { p.pm.setSelectedKgProduct(prod); p.pm.setIsKgModalOpen(true); return }
+    p.handleAddProduct(prod)
+  }
+  const handleConfirmKgProduct = (prod: MockProduct, qty: number) => {
+    p.handleAddProductWithQuantity(prod, qty)
+    p.pm.setIsKgModalOpen(false)
+    p.pm.setSelectedKgProduct(null)
+  }
+  const handleCloseReceipt = () => {
+    if (p.activeComandaId && p.onCloseComanda) p.onCloseComanda(p.activeComandaId)
+    p.setCartItems([]); p.pm.setPayments([]); p.pm.setDiscount(0); p.nav.setStep("negociacao"); p.onBackToDashboard()
+  }
+  return { handleGoToPayment, handleProductSelect, handleConfirmKgProduct, handleCloseReceipt }
 }
 
 export const PdvSection: React.FC<PdvSectionProps> = ({
@@ -1426,11 +1667,12 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
 }) => {
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id || "default"
+  const restrictions = useTenantRestrictions(tenantId)
   const prodData = usePdvProductsData(tenantId, activeComandaId)
   const nav = usePdvNavigationState()
   const pm = usePdvPaymentStateManager(deliveryContext)
   const { activeCategory, setActiveCategory, searchQuery, setSearchQuery, viewMode, setViewModeState, filteredProducts } = usePdvCatalogState(prodData.availableProducts, prodData.categories)
-  const { cartItems, setCartItems, enrichedCartItems, handleAddProduct, handleIncrease, handleDecrease, handleRemove, handleDuplicateToCart } = usePdvCartManager(prodData.catalogProducts, deliveryContext?.initialItems)
+  const { cartItems, setCartItems, enrichedCartItems, handleAddProduct, handleAddProductWithQuantity, handleIncrease, handleDecrease, handleRemove, handleDuplicateToCart } = usePdvCartManager(prodData.catalogProducts, deliveryContext?.initialItems)
 
   usePdvComandaTabSync({
     activeComandaId,
@@ -1457,9 +1699,17 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
 
   usePdvHeaderSync({
     step: nav.step, subView: nav.subView, cartItemsLength: cartItems.length, activeClientOrTitle,
-    searchQuery, setSearchQuery, onBackToDashboardRef, setIsExitConfirmOpen: pm.setIsExitConfirmOpen,
-    setIsSidebarOpen: pm.setIsSidebarOpen, setIsDiscountModalOpen: pm.setIsDiscountModalOpen, setStep: nav.setStep,
+    onBackToDashboardRef, setIsExitConfirmOpen: pm.setIsExitConfirmOpen,
+    setIsDiscountModalOpen: pm.setIsDiscountModalOpen, setStep: nav.setStep,
     setExitConfirmMode: pm.setExitConfirmMode, setCustomBack, setCustomTitle, setCustomActions,
+    canApplyDiscount: Boolean(restrictions.descontos),
+    goBack: nav.goBack,
+    searchQuery, setSearchQuery,
+    setIsSidebarOpen: pm.setIsSidebarOpen,
+  })
+
+  const { handleGoToPayment, handleProductSelect, handleConfirmKgProduct, handleCloseReceipt } = usePdvMainFlowActions({
+    deliveryContext, nav, pm, handleAddProduct, handleAddProductWithQuantity, activeComandaId, onCloseComanda, setCartItems, onBackToDashboard,
   })
 
   if (nav.subView !== "none") {
@@ -1478,31 +1728,27 @@ export const PdvSection: React.FC<PdvSectionProps> = ({
   if (nav.step === "recibo") {
     return (
       <ViewTransition viewKey={nav.step}>
-        <PdvCheckoutReceipt
-          cartItems={cartItems} payments={pm.payments}
-          onCloseReceipt={() => {
-            if (activeComandaId && onCloseComanda) onCloseComanda(activeComandaId)
-            setCartItems([]); pm.setPayments([]); pm.setDiscount(0); nav.setStep("negociacao"); onBackToDashboard()
-          }}
-        />
+        <PdvCheckoutReceipt cartItems={cartItems} payments={pm.payments} onCloseReceipt={handleCloseReceipt} />
       </ViewTransition>
     )
   }
 
-  const handleGoToPayment = () => { if (deliveryContext) nav.setStep("delivery-confirm"); else nav.setStep("pagamento") }
-
   return (
     <PdvViewBody
-      nav={nav} deliveryContext={deliveryContext} searchQuery={searchQuery} setSearchQuery={setSearchQuery}
+      nav={nav} deliveryContext={deliveryContext}
       viewMode={viewMode} setViewModeState={setViewModeState} pm={pm} prodData={prodData}
       enrichedCartItems={enrichedCartItems} handleIncrease={handleIncrease} handleDecrease={handleDecrease}
       handleRemove={handleRemove} total={total} handleGoToPayment={handleGoToPayment} activeComandaId={activeComandaId}
       handleSaveComandaAndExit={handleSaveComandaAndExit} handleDiscardOperationAndExit={handleDiscardOperationAndExit} cartItems={cartItems} subtotal={subtotal}
-      handleAddProduct={handleAddProduct} activeCategory={activeCategory} setActiveCategory={setActiveCategory}
+      handleAddProduct={handleProductSelect} activeCategory={activeCategory} setActiveCategory={setActiveCategory}
       filteredProducts={filteredProducts} onBackToDashboard={onBackToDashboard} activeClientOrTitle={activeClientOrTitle}
       handleSidebarNavigate={handleSidebarNavigate} handleSaveSangriaMovement={handleSaveSangriaMovement}
       handleResetCaixaState={handleResetCaixaState} onBackToDashboardRef={onBackToDashboardRef} totalPaid={totalPaid}
       amountDue={amountDue} launchAmount={launchAmount} handleFinalizeSale={handleFinalizeSale}
+      onConfirmKgProduct={handleConfirmKgProduct}
+      tenantId={tenantId}
+      tenantCtx={tenantCtx}
+      restrictions={restrictions}
     />
   )
 }

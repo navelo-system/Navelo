@@ -587,6 +587,54 @@ ALTER TABLE IF EXISTS receivables ALTER COLUMN id TYPE text USING id::text;
 ALTER TABLE IF EXISTS receivables ALTER COLUMN company_id TYPE text USING company_id::text;
 ALTER TABLE IF EXISTS receivables ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
 
+-- 21. TABELA INVENTORY_AUDITS (BALANÇO DE ESTOQUE)
+CREATE TABLE IF NOT EXISTS inventory_audits (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  date text,
+  groups text,
+  status text DEFAULT 'Pendente',
+  items jsonb DEFAULT '[]'::jsonb,
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS inventory_audits ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS inventory_audits ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS inventory_audits ADD COLUMN IF NOT EXISTS date text;
+ALTER TABLE IF EXISTS inventory_audits ADD COLUMN IF NOT EXISTS groups text;
+ALTER TABLE IF EXISTS inventory_audits ADD COLUMN IF NOT EXISTS status text DEFAULT 'Pendente';
+ALTER TABLE IF EXISTS inventory_audits ADD COLUMN IF NOT EXISTS items jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE IF EXISTS inventory_audits ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE IF EXISTS inventory_audits ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS inventory_audits ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS inventory_audits ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+
+-- 22. TABELA MANUAL_STOCK_ENTRIES (ENTRADA MANUAL DE ESTOQUE)
+CREATE TABLE IF NOT EXISTS manual_stock_entries (
+  id text PRIMARY KEY,
+  company_id text,
+  tenant_id text,
+  date text,
+  supplier_id text,
+  supplier_name text,
+  total numeric DEFAULT 0,
+  status text DEFAULT 'Pendente',
+  items jsonb DEFAULT '[]'::jsonb,
+  created_at timestamp with time zone DEFAULT now()
+);
+ALTER TABLE IF EXISTS manual_stock_entries ADD COLUMN IF NOT EXISTS company_id text;
+ALTER TABLE IF EXISTS manual_stock_entries ADD COLUMN IF NOT EXISTS tenant_id text;
+ALTER TABLE IF EXISTS manual_stock_entries ADD COLUMN IF NOT EXISTS date text;
+ALTER TABLE IF EXISTS manual_stock_entries ADD COLUMN IF NOT EXISTS supplier_id text;
+ALTER TABLE IF EXISTS manual_stock_entries ADD COLUMN IF NOT EXISTS supplier_name text;
+ALTER TABLE IF EXISTS manual_stock_entries ADD COLUMN IF NOT EXISTS total numeric DEFAULT 0;
+ALTER TABLE IF EXISTS manual_stock_entries ADD COLUMN IF NOT EXISTS status text DEFAULT 'Pendente';
+ALTER TABLE IF EXISTS manual_stock_entries ADD COLUMN IF NOT EXISTS items jsonb DEFAULT '[]'::jsonb;
+ALTER TABLE IF EXISTS manual_stock_entries ADD COLUMN IF NOT EXISTS created_at timestamp with time zone DEFAULT now();
+ALTER TABLE IF EXISTS manual_stock_entries ALTER COLUMN id TYPE text USING id::text;
+ALTER TABLE IF EXISTS manual_stock_entries ALTER COLUMN company_id TYPE text USING company_id::text;
+ALTER TABLE IF EXISTS manual_stock_entries ALTER COLUMN tenant_id TYPE text USING tenant_id::text;
+
 -- ====================================================================
 -- HABILITAÇÃO E POLÍTICAS DE ROW LEVEL SECURITY (RLS) PARA A CHAVE ANON
 -- ====================================================================
@@ -610,6 +658,8 @@ ALTER TABLE IF EXISTS riders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS delivery_rates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS restaurant_tables ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS receivables ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS inventory_audits ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS manual_stock_entries ENABLE ROW LEVEL SECURITY;
 
 DO $$
 BEGIN
@@ -673,6 +723,12 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon receivables') THEN
     CREATE POLICY "Allow all for anon receivables" ON receivables FOR ALL USING (true) WITH CHECK (true);
   END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon inventory_audits') THEN
+    CREATE POLICY "Allow all for anon inventory_audits" ON inventory_audits FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all for anon manual_stock_entries') THEN
+    CREATE POLICY "Allow all for anon manual_stock_entries" ON manual_stock_entries FOR ALL USING (true) WITH CHECK (true);
+  END IF;
 END $$;
 
 -- ====================================================================
@@ -685,7 +741,7 @@ DECLARE
     'products', 'categories', 'sales', 'sale_items', 'customers', 'users',
     'cash_registers', 'cash_movements', 'restaurant_tables', 'tabs',
     'suppliers', 'units', 'print_points', 'riders', 'delivery_rates',
-    'delivery_orders', 'companies', 'receivables'
+    'delivery_orders', 'companies', 'receivables', 'inventory_audits', 'manual_stock_entries'
   ];
 BEGIN
   FOREACH t IN ARRAY tbls LOOP

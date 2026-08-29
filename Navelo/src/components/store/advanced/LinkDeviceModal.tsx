@@ -45,10 +45,9 @@ export const LinkDeviceModal: React.FC<LinkDeviceModalProps> = ({
       isOpen={isOpen}
       onClose={handleClose}
       title={appName || pl.defaultModalTitle}
-      subtitle={pl.modalSubtitle}
-      icon={appIcon}
       successText={pl.linkButton}
       onSuccess={handleConfirm}
+      showCancelButton={true}
     >
       <Stack gap={5} w="full">
         <Stack gap={2.5} w="full">

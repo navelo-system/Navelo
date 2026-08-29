@@ -113,7 +113,7 @@ function NewAdminUserModal({
 
   return (
     <Form onSubmit={handleSubmit}>
-      <Modal isOpen={isOpen} onClose={onClose} title={uStrings.newUserModalTitle} subtitle={uStrings.newUserModalSubtitle} icon={Users} successText={uStrings.saveUserButton} isSubmit>
+      <Modal isOpen={isOpen} onClose={onClose} title={uStrings.newUserModalTitle} successText={uStrings.saveUserButton} isSubmit>
         <Stack gap={5}>
           <Input label={uStrings.fullNameLabel} placeholder={uStrings.fullNamePlaceholder} icon={UserIcon} value={newName} onChange={(e) => setNewName(e.target.value)} required />
           <Input label={uStrings.emailAddressLabel} placeholder={uStrings.emailAddressPlaceholder} icon={Mail} type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} required />

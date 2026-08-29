@@ -5,7 +5,7 @@ import { Box } from "@/components/store/base/Box"
 import { Stack } from "@/components/store/base/Stack"
 import { Icon } from "@/components/store/base/Icon"
 import { Font } from "@/components/store/base/Font"
-import { ROLE_ALLOWED_VIEWS } from "@/lib/permissions"
+import { ROLE_ALLOWED_VIEWS, normalizeUserRole } from "@/lib/permissions"
 import {
   ShoppingBag,
   Receipt,
@@ -36,7 +36,8 @@ const ALL_MODULES = [
 ]
 
 export const BentoPDVModulesGrid: React.FC<BentoPDVModulesGridProps> = ({ onNavigate, userRole }) => {
-  const allowedViews = userRole ? (ROLE_ALLOWED_VIEWS[userRole] || []) : ALL_MODULES.map(m => m.id)
+  const normalizedRole = userRole ? normalizeUserRole(userRole) : undefined
+  const allowedViews = normalizedRole ? (ROLE_ALLOWED_VIEWS[normalizedRole] || []) : ALL_MODULES.map(m => m.id)
   const modules = ALL_MODULES.filter(m => allowedViews.includes(m.id))
 
   return (

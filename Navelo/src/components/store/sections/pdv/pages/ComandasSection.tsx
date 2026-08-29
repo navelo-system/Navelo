@@ -111,6 +111,8 @@ function ComandasGridContent({
   )
 }
 
+import { useAppNavigation } from "@/lib/navigation/NavigationContext"
+
 export const ComandasSection: React.FC<ComandasSectionProps> = ({
   onSelectComanda,
   comandas,
@@ -121,7 +123,11 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
   setCustomBack,
   setCustomActions,
 }) => {
-  const [viewMode, setViewMode] = React.useState<"grid" | "finish-all">("grid")
+  const { currentRoute, navigate, goBack } = useAppNavigation()
+  const isFinishAll =
+    currentRoute.view === "finalizar-atendimentos" ||
+    (currentRoute.view === "comandas" && currentRoute.subView === "finalizar-atendimentos")
+
   const [searchQuery, setSearchQuery] = React.useState("")
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false)
@@ -136,20 +142,20 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
   }
 
   React.useEffect(() => {
-    if (viewMode === "finish-all") return
+    if (isFinishAll) return
     setCustomActions?.(
       <MobileHeaderSearch searchQuery={searchQuery} onSearchQueryChange={setSearchQuery} placeholder={s.searchComandaPlaceholder}>
         <Button variant="primary-pill-icon" icon={Menu} onClick={() => setIsSidebarOpen(true)} />
       </MobileHeaderSearch>
     )
     return () => setCustomActions?.(null)
-  }, [viewMode, setCustomActions, searchQuery, s.searchComandaPlaceholder])
+  }, [isFinishAll, setCustomActions, searchQuery, s.searchComandaPlaceholder])
 
-  if (viewMode === "finish-all") {
+  if (isFinishAll) {
     return (
       <FinalizarAtendimentosSection
         comandas={comandas}
-        onBack={() => setViewMode("grid")}
+        onBack={() => goBack("#comandas")}
         onFinalize={(selectedIds) => onBatchCheckoutComandas?.(selectedIds)}
         setCustomTitle={setCustomTitle}
         setCustomBack={setCustomBack}
@@ -173,9 +179,13 @@ export const ComandasSection: React.FC<ComandasSectionProps> = ({
           onClose={() => setIsSidebarOpen(false)}
           onNewComanda={() => setIsCreateModalOpen(true)}
           onStartAvulsoService={onStartAvulsoService}
-          onFinishAll={() => setViewMode("finish-all")}
+          onFinishAll={() => navigate("#finalizar-atendimentos")}
         />
-        <CreateComandaModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} onSubmit={handleCreate} />
+        <CreateComandaModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSubmit={handleCreate}
+        />
       </Stack>
     </Box>
   )

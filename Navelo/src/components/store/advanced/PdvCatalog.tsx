@@ -7,11 +7,13 @@ import { Grid } from "@/components/store/base/Grid"
 import { Font } from "@/components/store/base/Font"
 import { Tabs, TabsTrigger } from "@/components/store/base/Tabs"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
+import { Avatar } from "@/components/store/base/Avatar"
 import { ProductCard } from "@/components/store/advanced/ProductCard"
 import { Product, ProductType, UnitType } from "@/src/types/domain"
 import { Package } from "lucide-react"
 import { QuantityControl } from "@/components/store/intermediary/QuantityControl"
 import { CartItemType } from "@/components/store/sections/pdv/pages/PdvSection"
+import { usePdvCustomization } from "@/lib/sync/pdvCustomizationSettings"
 import { UI_STRINGS } from "@/constants/strings"
 
 export interface MockProduct {
@@ -86,7 +88,7 @@ const adaptProduct = (prod: MockProduct): Product => ({
   name: prod.name,
   type: ProductType.SIMPLE,
   mainImage: prod.image,
-  unitType: prod.unit === "UN" ? UnitType.UN : UnitType.KG,
+  unitType: (Object.values(UnitType) as string[]).includes(prod.unit ?? "") ? (prod.unit as UnitType) : UnitType.UN,
   categoryId: "1",
   stock: prod.stock ?? 0,
   minStock: 0,
@@ -109,6 +111,94 @@ interface PdvCatalogListItemProps {
   onRemove?: (id: string) => void
 }
 
+function ListItemThumbnail({
+  image,
+  name,
+  isPulsing,
+  pulseListKey,
+}: {
+  image?: string
+  name: string
+  isPulsing: boolean
+  pulseListKey: number
+}) {
+  return (
+    <Box position="relative" w="w-10" h="h-10" shrink="0">
+      <Avatar image={image} icon={Package} fallback={name.substring(0, 2)} />
+      {isPulsing && (
+        <Box
+          key={pulseListKey}
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          w="full"
+          h="full"
+          zIndex="30"
+          display="flex"
+          align="center"
+          justify="center"
+          radius="full"
+          pointerEvents="none"
+          animation="zero-stock-pulse"
+        >
+          <Font variant="body-bold" color="white" text="0" align="center" />
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+function ListItemBottomRow({
+  hasStockText,
+  stock,
+  unitLabel,
+  hasQuantityControl,
+  qty,
+  id,
+  onIncrease,
+  onDecrease,
+  onRemove,
+}: {
+  hasStockText: boolean
+  stock?: number
+  unitLabel: string
+  hasQuantityControl: boolean
+  qty: number
+  id: string
+  onIncrease?: (id: string) => void
+  onDecrease?: (id: string) => void
+  onRemove?: (id: string) => void
+}) {
+  if (!hasStockText && !hasQuantityControl) return null
+
+  return (
+    <Stack direction="row" align="center" justify="between" gap={2.5} w="full">
+      <Box flex="1" minW="0">
+        {hasStockText && (
+          <Font
+            variant="auxiliary"
+            color="muted"
+            text={`Estoque: ${stock} ${unitLabel}`}
+            align="left"
+          />
+        )}
+      </Box>
+      {hasQuantityControl && (
+        <QuantityControl
+          quantity={qty}
+          stock={stock}
+          onIncrease={() => onIncrease?.(id)}
+          onDecrease={() => onDecrease?.(id)}
+          onRemove={() => onRemove?.(id)}
+          stopPropagation={true}
+        />
+      )}
+    </Stack>
+  )
+}
+
 function PdvCatalogListItem({
   prod,
   qty,
@@ -121,6 +211,12 @@ function PdvCatalogListItem({
   onRemove,
 }: PdvCatalogListItemProps) {
   const formattedPrice = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(prod.unitPrice)
+  const isKg = (prod.unit || "").trim().toUpperCase() === "KG"
+  const pdvConfig = usePdvCustomization()
+  const unitLabel = prod.unit || "UN"
+  const hasStockText = pdvConfig.stockQty && prod.stock !== undefined
+  const hasQuantityControl = qty > 0 && !isKg
+
   return (
     <Box>
       <Box
@@ -132,56 +228,38 @@ function PdvCatalogListItem({
         }}
         cursor={qty === 0 ? "pointer" : undefined}
       >
-        <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="between" gap={2.5} w="full">
-          <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
-            <Box position="relative" w="w-10" h="h-10" bg="bg-surface-sunken" radius="default" overflow="hidden" shrink="0">
-              {prod.image ? (
-                <Box as="img" src={prod.image} alt={prod.name} w="full" h="full" objectFit="cover" />
-              ) : (
-                <Stack align="center" justify="center" w="full" h="full">
-                  <Font variant="auxiliary" color="muted" text={UI_STRINGS.common.dash} />
-                </Stack>
-              )}
-              {pulsingListId === prod.id && (
-                <Box
-                  key={pulseListKey}
-                  position="absolute"
-                  top={0}
-                  left={0}
-                  right={0}
-                  bottom={0}
-                  w="full"
-                  h="full"
-                  zIndex="30"
-                  display="flex"
-                  align="center"
-                  justify="center"
-                  radius="default"
-                  pointerEvents="none"
-                  animation="zero-stock-pulse"
-                >
-                  <Font variant="body-bold" color="white" text="0" align="center" />
-                </Box>
-              )}
-            </Box>
-            <Font variant="body-sm-medium" text={prod.name.toUpperCase()} align="left" />
-          </Stack>
-          <Stack direction="row" align="center" gap={2.5} justify="end" w="w-full md:w-auto">
-            {qty > 0 && (
-              <QuantityControl
-                quantity={qty}
-                stock={prod.stock}
-                onIncrease={() => onIncrease?.(prod.id)}
-                onDecrease={() => onDecrease?.(prod.id)}
-                onRemove={() => onRemove?.(prod.id)}
-                stopPropagation={true}
+        <Stack direction="col" gap={2.5} w="full">
+          {/* Linha Superior: Imagem + Nome à esquerda | Preço à direita */}
+          <Stack direction="row" align="center" justify="between" gap={2.5} w="full">
+            <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
+              <ListItemThumbnail
+                image={prod.image}
+                name={prod.name}
+                isPulsing={pulsingListId === prod.id}
+                pulseListKey={pulseListKey}
               />
-            )}
-            <Stack direction="row" align="baseline" gap={1} justify="end" w="min-w-[85px]">
-              <Font variant="body-sm-semibold" text={formattedPrice} align="right" />
-              <Font variant="auxiliary" color="muted" text={prod.unit || "UN"} />
+              <Font variant="body-sm-medium" text={prod.name.toUpperCase()} align="left" lineClamp={2} />
             </Stack>
+            <Box shrink="0">
+              <Stack direction="row" align="baseline" gap={1} justify="end">
+                <Font variant="body-sm-semibold" text={formattedPrice} align="right" />
+                <Font variant="auxiliary" color="muted" text={unitLabel} />
+              </Stack>
+            </Box>
           </Stack>
+
+          {/* Linha Inferior: Quantidade em Estoque à esquerda | Controles +/- à direita */}
+          <ListItemBottomRow
+            hasStockText={hasStockText}
+            stock={prod.stock}
+            unitLabel={unitLabel}
+            hasQuantityControl={hasQuantityControl}
+            qty={qty}
+            id={prod.id}
+            onIncrease={onIncrease}
+            onDecrease={onDecrease}
+            onRemove={onRemove}
+          />
         </Stack>
       </Box>
       {!isLast && <Box h="h-[1px]" w="full" bg="bg-border" />}

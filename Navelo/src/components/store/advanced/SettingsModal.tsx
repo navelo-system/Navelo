@@ -137,8 +137,6 @@ export function SettingsModal({ isOpen, onClose, onSave }: SettingsModalProps) {
       isOpen={isOpen}
       onClose={onClose}
       title={tc.systemSettingsTitle}
-      subtitle={tc.systemSettingsSubtitle}
-      icon={Settings}
       successText={tc.savePreferencesButton}
       onSuccess={handleSave}
     >

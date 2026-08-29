@@ -8,6 +8,7 @@ import { Avatar } from "@/components/store/base/Avatar"
 import { UserX } from "lucide-react"
 import { useCustomers, Customer } from "@/lib/dal"
 import { useTenant } from "@/lib/context/TenantContext"
+import { useAppNavigation } from "@/lib/navigation/NavigationContext"
 import { DeliveryClientFormScreen } from "@/components/store/advanced/DeliveryClientFormScreen"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
 import { ListSectionLayout } from "@/components/store/intermediary/ListSectionLayout"
@@ -52,32 +53,26 @@ function ClientListItem({
   )
 }
 
-function useClientesSectionState(tenantId?: string) {
-  const dbCustomers = useCustomers(tenantId)
-  const clients = React.useMemo(() => (Array.isArray(dbCustomers) ? dbCustomers : []), [dbCustomers])
-  const [modeHistory, setModeHistory] = React.useState<("list" | "form")[]>(["list"])
-  const mode = modeHistory[modeHistory.length - 1] || "list"
-  const [editingClient, setEditingClient] = React.useState<Customer | null>(null)
-
-  const pushMode = React.useCallback((newMode: "list" | "form") => {
-    setModeHistory((prev) => [...prev, newMode])
-  }, [])
-
-  const popMode = React.useCallback(() => {
-    setEditingClient(null)
-    setModeHistory((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev))
-  }, [])
-
-  return { clients, mode, editingClient, setEditingClient, pushMode, popMode }
-}
-
 export const ClientesSection: React.FC<ClientesSectionProps> = ({
   onBackToDashboard, setCustomBack, setCustomTitle, setCustomActions, onBack, onSelectClient,
 }) => {
   const tenantCtx = useTenant()
+  const { currentRoute, navigate, goBack } = useAppNavigation()
   const tenantId = tenantCtx?.currentTenant?.id
   const s = UI_STRINGS.customers
-  const state = useClientesSectionState(tenantId)
+  const dbCustomers = useCustomers(tenantId)
+  const clients = React.useMemo(() => (Array.isArray(dbCustomers) ? dbCustomers : []), [dbCustomers])
+
+  const isClientRoute = currentRoute.view === "clientes" || currentRoute.view === "novo-cliente"
+  const isCreateMode =
+    currentRoute.view === "novo-cliente" ||
+    (currentRoute.view === "clientes" && (currentRoute.params.action === "new" || currentRoute.action === "new"))
+  const editingClientId = isClientRoute ? (currentRoute.params.id || currentRoute.entityId) : undefined
+  const editingClient = React.useMemo(
+    () => (editingClientId ? clients.find((c) => c.id === editingClientId) || null : null),
+    [clients, editingClientId]
+  )
+  const mode: "list" | "form" = isCreateMode || Boolean(editingClientId) ? "form" : "list"
 
   const handleSelect = (c: { customerId?: string; name: string; phone?: string; document?: string }) => {
     if (onSelectClient) {
@@ -89,17 +84,19 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
         company_id: tenantId || "11111111-1111-1111-1111-111111111111",
         tenant_id: tenantId || "11111111-1111-1111-1111-111111111111",
       })
-    } else state.popMode()
+    } else {
+      goBack("#clientes")
+    }
   }
 
   return (
     <Box flex="1" minH="0" h="full" overflowY="auto" w="full">
-      <ViewTransition viewKey={state.mode} flex="1" minH="0">
+      <ViewTransition viewKey={mode} flex="1" minH="0">
         <Stack gap={5} w="full" h="full">
-          {state.mode === "list" && (
+          {mode === "list" && (
             <ListSectionLayout<Customer>
               title={s.title}
-              items={state.clients}
+              items={clients}
               searchPlaceholder={s.searchPlaceholder}
               searchFilterFn={(c, query) => {
                 const q = query.toLowerCase()
@@ -108,7 +105,7 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
               emptyIcon={UserX}
               emptyTitle={s.emptyTitle}
               emptySubtitle={s.emptySubtitle}
-              onAdd={() => { state.setEditingClient(null); state.pushMode("form") }}
+              onAdd={() => navigate("#clientes?action=new")}
               getItemKey={(c) => c.id}
               setCustomBack={setCustomBack}
               setCustomTitle={setCustomTitle}
@@ -119,17 +116,17 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
                   client={client}
                   onClick={() => {
                     if (onSelectClient) onSelectClient(client)
-                    else { state.setEditingClient(client); state.pushMode("form") }
+                    else navigate(`#clientes?id=${client.id}&action=edit`)
                   }}
                 />
               )}
             />
           )}
 
-          {state.mode === "form" && (
+          {mode === "form" && (
             <DeliveryClientFormScreen
-              initialCustomer={state.editingClient || undefined}
-              onBack={state.popMode}
+              initialCustomer={editingClient || undefined}
+              onBack={() => goBack("#clientes")}
               onSelectClient={handleSelect}
               setCustomTitle={setCustomTitle}
               setCustomBack={setCustomBack}
@@ -137,7 +134,7 @@ export const ClientesSection: React.FC<ClientesSectionProps> = ({
               showSkip={false}
               showSaveSwitch={false}
               showSearchInHeader={false}
-              title={state.editingClient ? "Editar Cliente" : "Novo Cliente"}
+              title={editingClient ? "Editar Cliente" : "Novo Cliente"}
             />
           )}
         </Stack>

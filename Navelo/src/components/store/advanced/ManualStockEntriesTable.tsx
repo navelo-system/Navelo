@@ -14,9 +14,7 @@ import { FilterPanel } from "@/components/store/intermediary/FilterPanel"
 import { Numpad } from "@/components/store/intermediary/Numpad"
 import { Modal } from "@/components/store/base/Modal"
 import { DiscardChangesModal } from "@/components/store/advanced/DiscardChangesModal"
-import { FornecedoresSection } from "@/components/store/sections/pdv/pages/FornecedoresSection"
-import { GruposSubgruposSection } from "@/components/store/sections/pdv/pages/GruposSubgruposSection"
-import { UnidadesSection } from "@/components/store/sections/pdv/pages/UnidadesSection"
+import { FornecedoresSection, GruposSubgruposSection, UnidadesSection } from "@/components/store/sections/pdv/settings"
 import { Plus, Minus, Trash2, Package, X, Filter, ChevronRight, Disc, Circle } from "lucide-react"
 import { UI_STRINGS } from "@/constants/strings"
 import { useTenant } from "@/lib/context/TenantContext"
@@ -295,29 +293,13 @@ function ProductQuantityStepper({
 }) {
   const inv = UI_STRINGS.inventory
   return (
-    <Stack direction="row" align="center" gap={2.5} w="full">
-      <Button
-        variant="secondary-pill-icon"
-        icon={Minus}
-        title={inv.decreaseTooltip}
-        onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-      />
-      <Box flex="1">
-        <Input
-          variant="outlined-label-centered"
-          label={inv.quantityFieldLabel}
-          type="number"
-          value={quantity.toString()}
-          onChange={(e) => setQuantity(parseInt(e.target.value, 10) || 1)}
-        />
-      </Box>
-      <Button
-        variant="secondary-pill-icon"
-        icon={Plus}
-        title={inv.increaseTooltip}
-        onClick={() => setQuantity((q) => q + 1)}
-      />
-    </Stack>
+    <Input
+      variant="outlined-counter"
+      label={inv.quantityFieldLabel}
+      value={quantity}
+      onDecrement={() => setQuantity((q) => Math.max(1, q - 1))}
+      onIncrement={() => setQuantity((q) => q + 1)}
+    />
   )
 }
 
@@ -917,34 +899,41 @@ function MobileCostEditContent({ item, onClose, onConfirm }: MobileCostEditConte
   const marginFormatted = `${margin.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`
 
   return (
-    <Modal
-      isOpen
-      onClose={onClose}
-      title={item.productName}
-      subtitle={`${inv.costPricePrefix}${formatBRL(item.costPrice)}`}
-      variant="default"
-      showCancelButton
-      cancelText={UI_STRINGS.common.cancel}
-      successText={UI_STRINGS.common.confirm}
-      onSuccess={handleSave}
-    >
-      <Stack gap={5} w="full">
-        <Stack gap={2.5} w="full">
-          <MobileCostOptionCard
-            isSelected={fieldMode === "price"}
-            onClick={() => handleModeChange("price")}
-            label={inv.salePriceOptionLabel}
-            value={formatBRL(salePrice)}
-          />
-          <MobileCostOptionCard
-            isSelected={fieldMode === "margin"}
-            onClick={() => handleModeChange("margin")}
-            label={inv.marginOptionLabel}
-            value={marginFormatted}
-          />
+    <Modal isOpen onClose={onClose} variant="numpad">
+      <Box padding={5} w="full">
+        <Stack gap={5} w="full">
+          {/* Cabeçalho */}
+          <Stack gap={1}>
+            <Font variant="body-bold" text={item.productName} />
+            <Font variant="description" color="muted" text={`${inv.costPricePrefix}${formatBRL(item.costPrice)}`} />
+          </Stack>
+
+          {/* Cards de seleção */}
+          <Stack gap={2.5} w="full">
+            <MobileCostOptionCard
+              isSelected={fieldMode === "price"}
+              onClick={() => handleModeChange("price")}
+              label={inv.salePriceOptionLabel}
+              value={formatBRL(salePrice)}
+            />
+            <MobileCostOptionCard
+              isSelected={fieldMode === "margin"}
+              onClick={() => handleModeChange("margin")}
+              label={inv.marginOptionLabel}
+              value={marginFormatted}
+            />
+          </Stack>
+
+          {/* Teclado */}
+          <Numpad onKeyPress={handleKeyPress} variant="ghost" />
+
+          {/* Rodapé */}
+          <Stack direction="row" justify="end" align="center" gap={2.5} w="full">
+            <Button variant="ghost" label={UI_STRINGS.common.cancel} onClick={onClose} />
+            <Button variant="ghost-primary" label={UI_STRINGS.common.confirm} onClick={handleSave} />
+          </Stack>
         </Stack>
-        <Numpad onKeyPress={handleKeyPress} variant="ghost" />
-      </Stack>
+      </Box>
     </Modal>
   )
 }
@@ -1271,7 +1260,7 @@ function renderManualStockSubView(props: ManualStockSubViewRouterProps) {
     return (
       <FornecedoresSection
         onCancel={() => setMode("novo")}
-        onSelectSupplier={(s) => { setSelectedSupplier(s); setMode("novo") }}
+        onSelectSupplier={(s: { id?: string; name: string }) => { setSelectedSupplier(s as Supplier); setMode("novo") }}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
         setCustomActions={setCustomActions}
@@ -1282,7 +1271,7 @@ function renderManualStockSubView(props: ManualStockSubViewRouterProps) {
     return (
       <GruposSubgruposSection
         onCancel={() => { setIsQuickRegisterOpen(true); setMode("novo") }}
-        onSelectGroup={(g) => { setQuickProdForm((p) => ({ ...p, group: g.name })); setIsQuickRegisterOpen(true); setMode("novo") }}
+        onSelectGroup={(g: { id?: string; name: string }) => { setQuickProdForm((p) => ({ ...p, group: g.name })); setIsQuickRegisterOpen(true); setMode("novo") }}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
         setCustomActions={setCustomActions}
@@ -1293,7 +1282,7 @@ function renderManualStockSubView(props: ManualStockSubViewRouterProps) {
     return (
       <GruposSubgruposSection
         onCancel={() => { setIsQuickRegisterOpen(true); setMode("novo") }}
-        onSelectSubgroup={(sub, g) => { setQuickProdForm((p) => ({ ...p, subgroup: sub, group: p.group || g.name })); setIsQuickRegisterOpen(true); setMode("novo") }}
+        onSelectSubgroup={(sub: string, g: { id?: string; name: string }) => { setQuickProdForm((p) => ({ ...p, subgroup: sub, group: p.group || g.name })); setIsQuickRegisterOpen(true); setMode("novo") }}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
         setCustomActions={setCustomActions}
@@ -1304,7 +1293,7 @@ function renderManualStockSubView(props: ManualStockSubViewRouterProps) {
     return (
       <UnidadesSection
         onCancel={() => { setIsQuickRegisterOpen(true); setMode("novo") }}
-        onSelectUnit={(u) => { setQuickProdForm((p) => ({ ...p, unit: u.name })); setIsQuickRegisterOpen(true); setMode("novo") }}
+        onSelectUnit={(u: { id?: string; name: string }) => { setQuickProdForm((p) => ({ ...p, unit: u.name })); setIsQuickRegisterOpen(true); setMode("novo") }}
         setCustomBack={setCustomBack}
         setCustomTitle={setCustomTitle}
         setCustomActions={setCustomActions}

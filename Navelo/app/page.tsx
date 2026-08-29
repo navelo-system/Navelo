@@ -23,9 +23,15 @@ import { Button } from "@/components/store/base/Button"
 import { ViewTransition } from "@/components/store/base/ViewTransition"
 import { ThemeCustomizerModal, applyThemeColors, loadSavedTheme } from "@/components/store/sections/pdv/modals/ThemeCustomizerModal"
 import { TenantProvider, useTenant } from "@/lib/context/TenantContext"
-import { canAccessView } from "@/lib/permissions"
+import { NavigationProvider, useAppNavigation } from "@/lib/navigation/NavigationContext"
+import { normalizeUserRole } from "@/lib/permissions"
+import { UserRole } from "@/types/domain"
+import { ConsultaPrecoTerminalScreen } from "@/components/store/advanced/ConsultaPrecoTerminalScreen"
+import { loadConsultaPrecoSettings } from "@/components/store/sections/pdv/settings/catalog/ConsultaPrecoSection"
 import { useTabs, useSyncStatus, dal } from "@/lib/dal"
 import { initialSync, processSyncQueue, subscribeToRealtimeSync } from "@/lib/dal/sync"
+import { DEVICE_SYNC_SETTINGS_EVENT, isDeviceSyncEnabled, isLanSyncConfigured } from "@/lib/sync/deviceSyncSettings"
+import { startLanHubWatchdog } from "@/lib/sync/lanDiscovery"
 import { db, TabEntity } from "@/lib/dal/db"
 import { useLiveQuery } from "dexie-react-hooks"
 import {
@@ -41,8 +47,6 @@ import {
   LucideIcon
 } from "lucide-react"
 
-const PDV_VIEWS = ["dashboard", "caixa", "comandas", "delivery", "estoque", "produtos", "clientes", "relatorios", "configuracoes"]
-
 const viewIconMap: Record<string, LucideIcon> = {
   dashboard: Terminal,
   caixa: ShoppingBag,
@@ -57,61 +61,51 @@ const viewIconMap: Record<string, LucideIcon> = {
 
 function HomeContent() {
   const tenantCtx = useTenant()
+  const nav = useAppNavigation()
   const [isMounted, setIsMounted] = React.useState(false)
   const [operator, setOperator] = React.useState<string | null>(null)
 
-  const getViewFromHash = React.useCallback((): string => {
-    if (typeof window === "undefined") return "login"
-    const hash = window.location.hash.replace("#", "")
-    const targetView = PDV_VIEWS.includes(hash) ? hash : "dashboard"
-    if (targetView !== "dashboard" && targetView !== "login") {
-      const userRole = tenantCtx?.currentUser?.role
-      if (!canAccessView(userRole, targetView)) {
-        return "dashboard"
-      }
-    }
-    return targetView
-  }, [tenantCtx?.currentUser?.role])
-
-  const [currentView, setCurrentViewState] = React.useState<string>("login")
+  const currentView = nav.currentRoute.view
   const [customBack, setCustomBack] = React.useState<(() => void) | null>(null)
   const [customTitle, setCustomTitle] = React.useState<string | null>(null)
   const [customActions, setCustomActions] = React.useState<React.ReactNode | null>(null)
+  const [activeComandaId, setActiveComandaId] = React.useState<string | null>(null)
   const [isThemeModalOpen, setIsThemeModalOpen] = React.useState<boolean>(false)
 
-  // Armazena posições de scroll por view
-  const scrollPositions = React.useRef<Record<string, number>>({})
-  const isBackNavigation = React.useRef<boolean>(false)
+  const handleSetCustomBack = React.useCallback((cb: (() => void) | null) => {
+    setCustomBack(() => cb)
+  }, [])
 
-  // Função de navegação que sincroniza estado + hash do browser e salva scroll
-  const setCurrentView = React.useCallback((view: string, isBack = false) => {
-    isBackNavigation.current = isBack
+  const handleSetCustomTitle = React.useCallback((title: string | null) => {
+    setCustomTitle((prev) => (prev === title ? prev : title))
+  }, [])
 
-    // Validação de permissões de acesso por perfil
-    let targetView = view
-    if (targetView !== "dashboard" && targetView !== "login" && targetView !== "acesso-empresa") {
-      const userRole = tenantCtx?.currentUser?.role
-      if (!canAccessView(userRole, targetView)) {
-        targetView = "dashboard"
-      }
-    }
+  const handleSetCustomActions = React.useCallback((actions: React.ReactNode | null) => {
+    setCustomActions(actions)
+  }, [])
 
-    setCurrentViewState(prev => {
-      if (typeof window !== "undefined") {
-        scrollPositions.current[prev] = window.scrollY
-      }
-      return targetView
-    })
+  const setCurrentView = React.useCallback((target: string, isBack = false) => {
     setCustomTitle(null)
     setCustomActions(null)
     setCustomBack(null)
-    if (typeof window !== "undefined") {
-      const newHash = targetView === "login" ? "" : `#${targetView}`
-      if (window.location.hash !== newHash) {
-        window.history.pushState(null, "", newHash || window.location.pathname)
-      }
+    if (isBack) {
+      nav.goBack(target)
+    } else {
+      nav.navigate(target)
     }
-  }, [tenantCtx?.currentUser?.role])
+  }, [nav])
+
+  const handleRegistryBack = React.useCallback(() => {
+    if (customBack) {
+      let currentFn: unknown = customBack
+      while (typeof currentFn === "function") {
+        currentFn = (currentFn as () => unknown)()
+      }
+    } else {
+      setActiveComandaId(null)
+      setCurrentView("dashboard", true)
+    }
+  }, [customBack, setCurrentView])
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -120,18 +114,12 @@ function HomeContent() {
       const savedOperator = sessionStorage.getItem("pdv-operator")
       if (savedOperator) {
         setOperator(savedOperator)
-        const hash = window.location.hash.replace("#", "")
-        const rawView = PDV_VIEWS.includes(hash) ? hash : "dashboard"
-        const allowedView = (rawView !== "dashboard" && rawView !== "login" && !canAccessView(tenantCtx?.currentUser?.role, rawView))
-          ? "dashboard"
-          : rawView
-        setCurrentViewState(allowedView)
       } else {
-        setCurrentViewState("login")
+        nav.navigate("#login", { replace: true })
       }
     }, 0)
     return () => clearTimeout(timer)
-  }, [tenantCtx?.currentUser?.role])
+  }, [nav])
 
   // Persiste o operador no sessionStorage ao alterar (apenas logout do usuário, preservando o tenant)
   React.useEffect(() => {
@@ -141,46 +129,9 @@ function HomeContent() {
     } else {
       sessionStorage.removeItem("pdv-operator")
       tenantCtx.logoutUserSession()
-      // Limpa a hash sem criar entrada no histórico
-      window.history.replaceState(null, "", window.location.pathname)
+      nav.navigate("#login", { replace: true })
     }
-  }, [operator, isMounted, tenantCtx])
-
-  // Escuta o botão Voltar/Avançar do browser (popstate)
-  React.useEffect(() => {
-    if (!isMounted) return
-    const handlePopState = () => {
-      isBackNavigation.current = true
-      const savedOp = sessionStorage.getItem("pdv-operator")
-      if (!savedOp) {
-        setCurrentViewState(prev => {
-          scrollPositions.current[prev] = window.scrollY
-          return "login"
-        })
-        return
-      }
-      setCurrentViewState(prev => {
-        scrollPositions.current[prev] = window.scrollY
-        return getViewFromHash()
-      })
-    }
-
-    window.addEventListener("popstate", handlePopState)
-    return () => window.removeEventListener("popstate", handlePopState)
-  }, [isMounted, getViewFromHash])
-
-  // Restaura o scroll ao trocar de view
-  React.useEffect(() => {
-    if (typeof window === "undefined" || !isMounted) return
-    const savedScroll = isBackNavigation.current ? (scrollPositions.current[currentView] || 0) : 0
-    isBackNavigation.current = false // reset for next navigation
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: savedScroll, behavior: "instant" })
-      })
-    })
-  }, [currentView, isMounted])
+  }, [operator, isMounted, tenantCtx, nav])
 
   // Comandas reativas e status de sincronização do IndexedDB local (Dexie)
   const tenantId = tenantCtx?.currentTenant?.id || "tenant-11111111111111"
@@ -201,23 +152,27 @@ function HomeContent() {
     "Navelo - PDV"
 
   // Sincronização contínua e em tempo real da Fonte Primária (Supabase)
+  const [syncEpoch, setSyncEpoch] = React.useState(0)
   React.useEffect(() => {
-    if (!tenantId) return
+    const onSettingsChange = () => setSyncEpoch((n) => n + 1)
+    window.addEventListener(DEVICE_SYNC_SETTINGS_EVENT, onSettingsChange)
+    return () => window.removeEventListener(DEVICE_SYNC_SETTINGS_EVENT, onSettingsChange)
+  }, [])
 
-    // Sincronização imediata
+  React.useEffect(() => {
+    if (!tenantId || !isDeviceSyncEnabled()) return
+
+    const stopLanWatchdog = isLanSyncConfigured() ? startLanHubWatchdog() : () => {}
     initialSync(tenantId)
     processSyncQueue()
 
-    // Subscrição a eventos em tempo real do Supabase
     const unsubscribe = subscribeToRealtimeSync(tenantId)
 
-    // Gatilho ao voltar a ficar online
     const handleOnline = () => {
       initialSync(tenantId)
       processSyncQueue()
     }
 
-    // Gatilho ao focar a aba/janela do navegador
     const handleFocus = () => {
       initialSync(tenantId)
       processSyncQueue()
@@ -226,19 +181,19 @@ function HomeContent() {
     window.addEventListener("online", handleOnline)
     window.addEventListener("focus", handleFocus)
 
-    // Intervalo de sincronização periódica a cada 20 segundos em background
     const interval = setInterval(() => {
       initialSync(tenantId)
       processSyncQueue()
     }, 20000)
 
     return () => {
+      stopLanWatchdog()
       unsubscribe()
       window.removeEventListener("online", handleOnline)
       window.removeEventListener("focus", handleFocus)
       clearInterval(interval)
     }
-  }, [tenantId])
+  }, [tenantId, syncEpoch])
 
   const comandas = React.useMemo(() => {
     if (dbTabs && dbTabs.length > 0) {
@@ -254,42 +209,61 @@ function HomeContent() {
     return []
   }, [dbTabs])
 
-  const [activeComandaId, setActiveComandaId] = React.useState<string | null>(null)
+  const isCaixaFlow = [
+    "caixa", "pagamento", "recibo", "delivery-confirm", "devolucao",
+    "recebimentos", "sangrias-suprimentos", "pdv-customizacao", "numero-atendimento"
+  ].includes(currentView)
+
+  const isComandasFlow = ["comandas", "finalizar-atendimentos"].includes(currentView)
+  const isDeliveryFlow = ["delivery", "novo-delivery", "entregadores", "taxas-entrega"].includes(currentView)
+  const isEstoqueFlow = ["estoque", "auditoria", "notas", "entradas"].includes(currentView)
+  const isProdutosFlow = ["produtos", "novo-produto"].includes(currentView)
+  const isClientesFlow = ["clientes", "novo-cliente"].includes(currentView)
+  const isRelatoriosFlow = [
+    "relatorios", "comissoes", "deliveries", "evolucao", "extrato", "margem", "taxas",
+    "vendas-produto", "relatorio-crediario", "caixa-totais", "caixa-pagamentos", "xml-export", "nf-sales"
+  ].includes(currentView)
+  const isConfiguracoesFlow = [
+    "configuracoes", "dados-empresa", "sincronizacao", "usuarios", "novo-usuario",
+    "restricoes", "autorizacoes", "nota-fiscal", "nota-fiscal-config", "pagamento-integrado",
+    "ordem-pagamento", "pix", "crediario", "catalogo-online", "identificacao",
+    "catalogo-produtos", "horario-atendimento", "formas-pagamento", "whatsapp",
+    "opcao-entrega", "opcao-pedido", "opcao-pedido-menu-digital", "ifood", "taxa-entrega",
+    "consulta-preco", "pesagem-automatica", "menu-digital", "mesas-comandas",
+    "configurar-comandas", "taxas-servico", "autoatendimento", "autoatendimento-cartao",
+    "autoatendimento-pix", "autoatendimento-customizacao", "autoatendimento-numero",
+    "grupos-subgrupos", "unidades", "fornecedores", "cidades", "impressora",
+    "pontos-impressao", "comprovantes", "balanca-checkout", "balanca-etiquetadora", "backup"
+  ].includes(currentView)
 
   const handleLoginSuccess = (operatorName: string) => {
     setOperator(operatorName)
-    // Limpa o histórico anterior antes de entrar no dashboard
-    if (typeof window !== "undefined") {
-      window.history.replaceState(null, "", "#dashboard")
-    }
-    setCurrentViewState("dashboard")
+    nav.navigate("#dashboard", { replace: true })
   }
 
   const handleSelectComanda = (id: string) => {
     setActiveComandaId(id)
-    setCurrentView("caixa")
+    nav.navigate("#caixa")
   }
 
-
   const handleAddComanda = async (label: string) => {
-    const comandaId = Math.floor(100 + Math.random() * 900).toString()
     await dal.tabs.create({
-      id: comandaId,
-      code: label,
+      id: crypto.randomUUID(),
       label: label,
       time: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
       total: 0.00,
       status: "OPEN",
       created_at: new Date().toISOString(),
       company_id: tenantId || "demo-tenant",
-      tenant_id: tenantId || "demo-tenant"
+      tenant_id: tenantId || "demo-tenant",
     })
   }
 
   const handleBatchCheckoutComandas = (comandaIds: string[]) => {
     if (comandaIds.length === 0) return
-    setActiveComandaId(`batch:${comandaIds.join(",")}`)
-    setCurrentView("caixa")
+    const batchId = `batch:${comandaIds.join(",")}`
+    setActiveComandaId(batchId)
+    nav.navigate("#caixa")
   }
 
   const handleCloseComanda = async (id: string) => {
@@ -328,7 +302,7 @@ function HomeContent() {
 
   if (!isMounted) {
     // Renderiza uma casca com fundo idêntico ao do login para evitar flash/hydration mismatch
-    return <div className="w-full h-screen bg-slate-900" />
+    return <Box w="full" h="screen" bg="bg-surface-sunken" />
   }
 
   if (!tenantCtx?.currentTenant) {
@@ -347,8 +321,24 @@ function HomeContent() {
     )
   }
 
+  const isTotemUser = normalizeUserRole(tenantCtx?.currentUser?.role) === UserRole.TOTEM
+
+  if (isTotemUser) {
+    return (
+      <ConsultaPrecoTerminalScreen
+        configuredPassword={loadConsultaPrecoSettings().password}
+        onExit={() => {
+          setOperator(null)
+          tenantCtx.logoutUserSession()
+          setCurrentView("login")
+          setActiveComandaId(null)
+        }}
+      />
+    )
+  }
+
   return (
-    <Box w="full" h="screen" display="flex" direction="col" className="min-h-screen bg-slate-200 overflow-hidden">
+    <Box w="full" h="screen" minH="screen" display="flex" direction="col" bg="bg-app" overflow="hidden">
       {/* Header full width (only for dashboard) */}
       {currentView === "dashboard" && (
         <Box w="full" shrink="0">
@@ -378,14 +368,14 @@ function HomeContent() {
         </Box>
       )}
       {/* Main content area */}
-      <Box flex="1" w="full" className="flex flex-col min-h-0 overflow-hidden">
+      <Box flex="1" w="full" display="flex" direction="col" minH="0" overflow="hidden">
         <RegistryMain
           title={
             customTitle
               ? customTitle
               : currentView === "dashboard"
                 ? undefined
-                : currentView === "caixa" && activeComandaId
+                : isCaixaFlow && activeComandaId
                   ? comandas.find((c: { id: string; label: string; time: string; total: number }) => c.id === activeComandaId)?.label || "Caixa"
                   : currentView.charAt(0).toUpperCase() + currentView.slice(1)
           }
@@ -402,28 +392,22 @@ function HomeContent() {
           onBack={
             currentView === "dashboard"
               ? undefined
-              : customBack
-                ? customBack
-                : () => {
-                  setActiveComandaId(null)
-                  setCurrentView("dashboard", true)
-                }
+              : handleRegistryBack
           }
           customActions={currentView === "dashboard" ? undefined : customActions}
-          className="flex-1 flex flex-col min-h-0"
         >
           {/* Container centralizado com largura limitada para o conteúdo (apenas no dashboard) */}
-          <Box display="flex" justify="center" w="full" flex="1" className="min-h-0">
-            <Box w="full" flex="1" display="flex" direction="col" className={`min-h-0 ${currentView === "dashboard" ? "max-w-[820px]" : ""}`}>
-              <ViewTransition viewKey={currentView} className="flex-1 flex flex-col min-h-0">
+          <Box display="flex" justify="center" w="full" flex="1" minH="0" h="full">
+            <Box w="full" flex="1" display="flex" direction="col" minH="0" h="full" maxW={currentView === "dashboard" ? "820" : undefined}>
+              <ViewTransition viewKey={currentView} flex="1" direction="col" minH="0">
                 {currentView === "dashboard" && (
-                  <Box w="full" flex="1" className="min-h-0">
+                  <Box w="full" flex="1" minH="0">
                     <DashboardSection onNavigate={setCurrentView} />
                   </Box>
                 )}
 
-                {currentView === "caixa" && (
-                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                {isCaixaFlow && (
+                  <Box w="full" flex="1" minH="0" h="full" display="flex" direction="col">
                     <PdvSection
                       onBackToDashboard={() => {
                         setActiveComandaId(null)
@@ -431,132 +415,133 @@ function HomeContent() {
                       }}
                       activeComandaId={activeComandaId}
                       onCloseComanda={handleCloseComanda}
-                      setCustomBack={setCustomBack}
-                      setCustomTitle={setCustomTitle}
-                      setCustomActions={setCustomActions}
+                      setCustomBack={handleSetCustomBack}
+                      setCustomTitle={handleSetCustomTitle}
+                      setCustomActions={handleSetCustomActions}
                     />
                   </Box>
                 )}
 
-                {currentView === "comandas" && (
-                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                {isComandasFlow && (
+                  <Box w="full" flex="1" minH="0" display="flex" direction="col">
                     <ComandasSection
                       onSelectComanda={handleSelectComanda}
                       comandas={comandas}
                       onAddComanda={handleAddComanda}
                       onBatchCheckoutComandas={handleBatchCheckoutComandas}
-                      setCustomTitle={setCustomTitle}
-                      setCustomBack={setCustomBack}
-                      setCustomActions={setCustomActions}
+                      setCustomTitle={handleSetCustomTitle}
+                      setCustomBack={handleSetCustomBack}
+                      setCustomActions={handleSetCustomActions}
                     />
                   </Box>
                 )}
 
-                {currentView === "delivery" && (
-                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                {isDeliveryFlow && (
+                  <Box w="full" flex="1" minH="0" display="flex" direction="col">
                     <DeliverySection
                       onBackToDashboard={() => setCurrentView("dashboard", true)}
-                      setCustomBack={setCustomBack}
-                      setCustomTitle={setCustomTitle}
-                      setCustomActions={setCustomActions}
+                      setCustomBack={handleSetCustomBack}
+                      setCustomTitle={handleSetCustomTitle}
+                      setCustomActions={handleSetCustomActions}
                     />
                   </Box>
                 )}
 
-                {currentView === "estoque" && (
-                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                {isEstoqueFlow && (
+                  <Box w="full" flex="1" minH="0" display="flex" direction="col">
                     <EstoqueSection
                       onBackToDashboard={() => setCurrentView("dashboard", true)}
-                      setCustomBack={setCustomBack}
-                      setCustomTitle={setCustomTitle}
-                      setCustomActions={setCustomActions}
+                      setCustomBack={handleSetCustomBack}
+                      setCustomTitle={handleSetCustomTitle}
+                      setCustomActions={handleSetCustomActions}
                     />
                   </Box>
                 )}
 
-                {currentView === "produtos" && (
-                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                {isProdutosFlow && (
+                  <Box w="full" flex="1" minH="0" display="flex" direction="col">
                     <ProdutosSection
                       onBackToDashboard={() => setCurrentView("dashboard", true)}
-                      setCustomBack={setCustomBack}
-                      setCustomTitle={setCustomTitle}
-                      setCustomActions={setCustomActions}
+                      setCustomBack={handleSetCustomBack}
+                      setCustomTitle={handleSetCustomTitle}
+                      setCustomActions={handleSetCustomActions}
                     />
                   </Box>
                 )}
 
-                {currentView === "clientes" && (
-                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                {isClientesFlow && (
+                  <Box w="full" flex="1" minH="0" display="flex" direction="col">
                     <ClientesSection
                       onBackToDashboard={() => setCurrentView("dashboard", true)}
-                      setCustomBack={setCustomBack}
-                      setCustomTitle={setCustomTitle}
-                      setCustomActions={setCustomActions}
+                      setCustomBack={handleSetCustomBack}
+                      setCustomTitle={handleSetCustomTitle}
+                      setCustomActions={handleSetCustomActions}
                     />
                   </Box>
                 )}
 
-                {currentView === "relatorios" && (
-                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                {isRelatoriosFlow && (
+                  <Box w="full" flex="1" minH="0" display="flex" direction="col">
                     <RelatoriosSection
                       onBackToDashboard={() => setCurrentView("dashboard", true)}
-                      setCustomBack={setCustomBack}
-                      setCustomTitle={setCustomTitle}
-                      setCustomActions={setCustomActions}
+                      setCustomBack={handleSetCustomBack}
+                      setCustomTitle={handleSetCustomTitle}
+                      setCustomActions={handleSetCustomActions}
                     />
                   </Box>
                 )}
 
-                {currentView === "configuracoes" && (
-                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                {isConfiguracoesFlow && (
+                  <Box w="full" flex="1" minH="0" display="flex" direction="col">
                     <ConfiguracoesSection
                       onBackToDashboard={() => setCurrentView("dashboard", true)}
-                      setCustomBack={setCustomBack}
-                      setCustomTitle={setCustomTitle}
-                      setCustomActions={setCustomActions}
+                      setCustomBack={handleSetCustomBack}
+                      setCustomTitle={handleSetCustomTitle}
+                      setCustomActions={handleSetCustomActions}
                     />
                   </Box>
                 )}
 
                 {currentView === "vendas" && (
-                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                  <Box w="full" flex="1" minH="0" display="flex" direction="col">
                     <VendasSection
                       onBackToDashboard={() => setCurrentView("dashboard", true)}
-                      setCustomBack={setCustomBack}
-                      setCustomTitle={setCustomTitle}
-                      setCustomActions={setCustomActions}
+                      setCustomBack={handleSetCustomBack}
+                      setCustomTitle={handleSetCustomTitle}
+                      setCustomActions={handleSetCustomActions}
                     />
                   </Box>
                 )}
 
                 {currentView === "totais-em-caixa" && (
-                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                  <Box w="full" flex="1" minH="0" display="flex" direction="col">
                     <TotaisEmCaixaSection
                       onBackToDashboard={() => setCurrentView("dashboard", true)}
-                      setCustomBack={setCustomBack}
-                      setCustomTitle={setCustomTitle}
-                      setCustomActions={setCustomActions}
+                      setCustomBack={handleSetCustomBack}
+                      setCustomTitle={handleSetCustomTitle}
+                      setCustomActions={handleSetCustomActions}
                     />
                   </Box>
                 )}
 
                 {currentView === "contas-a-receber" && (
-                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                  <Box w="full" flex="1" minH="0" display="flex" direction="col">
                     <ContasAReceberSection
                       onBackToDashboard={() => setCurrentView("dashboard", true)}
-                      setCustomBack={setCustomBack}
-                      setCustomTitle={setCustomTitle}
-                      setCustomActions={setCustomActions}
+                      setCustomBack={handleSetCustomBack}
+                      setCustomTitle={handleSetCustomTitle}
+                      setCustomActions={handleSetCustomActions}
                     />
                   </Box>
                 )}
 
                 {currentView === "conta-digital" && (
-                  <Box w="full" flex="1" className="min-h-0 flex flex-col">
+                  <Box w="full" flex="1" minH="0" display="flex" direction="col">
                     <ContaDigitalSection
                       onCancel={() => setCurrentView("dashboard", true)}
-                      setCustomBack={setCustomBack}
-                      setCustomTitle={setCustomTitle}
+                      setCustomBack={handleSetCustomBack}
+                      setCustomTitle={handleSetCustomTitle}
+                      setCustomActions={handleSetCustomActions}
                     />
                   </Box>
                 )}
@@ -586,7 +571,9 @@ function HomeContent() {
 export default function Home() {
   return (
     <TenantProvider>
-      <HomeContent />
+      <NavigationProvider>
+        <HomeContent />
+      </NavigationProvider>
     </TenantProvider>
   )
 }

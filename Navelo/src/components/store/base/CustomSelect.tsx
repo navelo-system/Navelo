@@ -6,7 +6,7 @@ import { UI_STRINGS } from "@/constants/strings"
 export interface CustomSelectItemProps {
   value: string
   text: string
-  icon: LucideIcon
+  icon?: LucideIcon
   onClick?: () => void
 }
 
@@ -45,7 +45,7 @@ export const CustomSelectItem: React.FC<CustomSelectItemProps> = ({
         isActive && "bg-brand-primary/10 text-brand-primary font-semibold"
       )}
     >
-      <IconComponent size={16} className="shrink-0" />
+      {IconComponent && <IconComponent size={16} className="shrink-0" />}
       <span>{text}</span>
     </button>
   )
@@ -62,6 +62,8 @@ export interface CustomSelectProps {
   id?: string
   emptyText?: string
   emptyIcon?: LucideIcon
+  variant?: "default" | "outlined-label"
+  label?: string
 }
 
 export const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
@@ -76,6 +78,8 @@ export const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
       id,
       emptyText,
       emptyIcon: EmptyIcon,
+      variant = "default",
+      label,
     },
     ref
   ) => {
@@ -100,14 +104,46 @@ export const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
 
     const childrenArray = React.Children.toArray(children) as React.ReactElement<CustomSelectItemProps>[]
 
-    // Validation removed because it conflicts with Next.js Fast Refresh and .map() fragments
-
     const selectedChild = childrenArray.find(
       (child) => React.isValidElement(child) && child.props.value === value
     )
 
     const SelectedIcon = selectedChild ? selectedChild.props.icon : null
     const selectedLabel = selectedChild ? selectedChild.props.text : placeholder
+
+    const isOutlined = variant === "outlined-label"
+
+    const triggerNode = (
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        onClick={() => setIsOpen((prev) => !prev)}
+        className={cn(
+          "flex w-full items-center justify-between text-sm text-foreground transition-colors focus:outline-none",
+          isOutlined
+            ? "px-2.5 py-1 min-h-[36px] bg-transparent border-none shadow-none"
+            : "min-h-[40px] rounded-[5px] border-2 border-border bg-surface px-5 py-2 focus:border-brand-primary",
+          !isOutlined && hasError && "border-brand-danger focus:border-brand-danger",
+          !isOutlined && isOpen && "border-brand-primary"
+        )}
+      >
+        <span className="flex items-center gap-2.5 text-left">
+          {SelectedIcon && <SelectedIcon size={16} className="text-brand-primary shrink-0" />}
+          <span className={cn(!selectedChild && "text-text-muted")}>
+            {selectedLabel}
+          </span>
+        </span>
+        <span
+          className={cn(
+            "ml-2.5 transition-transform duration-200",
+            isOpen && "rotate-180"
+          )}
+        >
+          <ChevronDown size={16} />
+        </span>
+      </button>
+    )
 
     return (
       <CustomSelectContext.Provider value={{ selectedValue: value, onSelect: handleSelect }}>
@@ -124,32 +160,23 @@ export const CustomSelect = React.forwardRef<HTMLDivElement, CustomSelectProps>(
           )}
         >
           {/* Trigger */}
-          <button
-            type="button"
-            aria-haspopup="listbox"
-            aria-expanded={isOpen}
-            onClick={() => setIsOpen((prev) => !prev)}
-            className={cn(
-              "flex min-h-[40px] w-full items-center justify-between rounded-[5px] border-2 border-border bg-surface px-5 py-2 text-sm text-foreground transition-colors focus:outline-none focus:border-brand-primary",
-              hasError && "border-brand-danger focus:border-brand-danger",
-              isOpen && "border-brand-primary"
-            )}
-          >
-            <span className="flex items-center gap-2.5 text-left">
-              {SelectedIcon && <SelectedIcon size={16} className="text-brand-primary shrink-0" />}
-              <span className={cn(!selectedChild && "text-text-muted")}>
-                {selectedLabel}
-              </span>
-            </span>
-            <span
+          {isOutlined ? (
+            <div
               className={cn(
-                "ml-2.5 transition-transform duration-200",
-                isOpen && "rotate-180"
+                "relative flex items-center w-full rounded-[5px] border-2 bg-white px-3 py-1.5 mt-2 transition-colors focus-within:border-brand-primary",
+                hasError ? "border-brand-danger" : isOpen ? "border-brand-primary" : "border-border"
               )}
             >
-              <ChevronDown size={16} />
-            </span>
-          </button>
+              {label && (
+                <span className="absolute -top-2.5 left-2.5 px-1 bg-white text-xs font-normal text-text-muted z-10 leading-none pointer-events-none select-none">
+                  {label}
+                </span>
+              )}
+              {triggerNode}
+            </div>
+          ) : (
+            triggerNode
+          )}
 
           {/* Dropdown */}
           {isOpen && (

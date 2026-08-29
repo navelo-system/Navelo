@@ -8,23 +8,24 @@ import { Icon } from "@/components/store/base/Icon"
 import { Modal } from "@/components/store/base/Modal"
 import { Cloud, AlertTriangle } from "lucide-react"
 import { useSyncStatus } from "@/lib/dal/hooks"
+import { useTenant } from "@/lib/context/TenantContext"
+import { useTenantRestrictions } from "@/lib/sync/restrictionsSettings"
 import { UI_STRINGS, formatString } from "@/constants/strings"
 
 interface PdvSidebarDrawerProps {
   isOpen: boolean
   onClose: () => void
   onBackToDashboard: () => void
-  onNavigate: (view: "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos" | "ultimas-negociacoes") => void
+  onNavigate: (view: "negociacoes" | "clientes" | "devolucao" | "totais-em-caixa" | "recebimentos" | "sangrias-suprimentos" | "ultimas-negociacoes" | "pdv-customizacao" | "numero-atendimento") => void
   onOpenObservationModal: () => void
   onOpenSangriaModal: (mode?: "sangria" | "suprimento") => void
   onOpenDiscountModal: () => void
+  onOpenGavetaModal: () => void
   discount?: number
   subtotal?: number
   onSyncClick?: () => void
   customerName?: string
   observationText?: string
-  showOutOfStockProducts?: boolean
-  onToggleShowOutOfStock?: (val: boolean) => void
   hasCartItems?: boolean
   onCancelOperation?: () => void
 }
@@ -106,6 +107,12 @@ function DrawerNegotiationSection({
   )
 }
 
+function useCanApplyDiscount() {
+  const tenantCtx = useTenant()
+  const restrictions = useTenantRestrictions(tenantCtx?.currentTenant?.id)
+  return Boolean(restrictions.descontos)
+}
+
 function DrawerDetailsSection({
   customerName,
   observationText,
@@ -124,6 +131,8 @@ function DrawerDetailsSection({
   onOpenObservationModal: () => void
 }) {
   const d = UI_STRINGS.pdv.drawer
+  const canApplyDiscount = useCanApplyDiscount()
+
   return (
     <Stack gap={2.5}>
       <Box display="flex" direction="col" bg="bg-surface" border={true} borderColor="border-border" radius="default" overflow="hidden">
@@ -137,13 +146,17 @@ function DrawerDetailsSection({
             </Box>
           </Stack>
         </Box>
-        <Box h="h-[1px]" w="full" bg="bg-border" />
-        <Box padding={2.5} w="full" cursor="pointer" hoverBg="secondary/10" onClick={() => { onClose(); onOpenDiscountModal() }}>
-          <Stack direction="row" align="center" justify="between" w="full">
-            <Font variant="body-sm-semibold" text={d.discountOnSale} align="left" />
-            <Font variant="body-sm-medium" color="muted" text={discountPercentFormatted} />
-          </Stack>
-        </Box>
+        {canApplyDiscount && (
+          <>
+            <Box h="h-[1px]" w="full" bg="bg-border" />
+            <Box padding={2.5} w="full" cursor="pointer" hoverBg="secondary/10" onClick={() => { onClose(); onOpenDiscountModal() }}>
+              <Stack direction="row" align="center" justify="between" w="full">
+                <Font variant="body-sm-semibold" text={d.discountOnSale} align="left" />
+                <Font variant="body-sm-medium" color="muted" text={discountPercentFormatted} />
+              </Stack>
+            </Box>
+          </>
+        )}
         <Box h="h-[1px]" w="full" bg="bg-border" />
         <Box padding={2.5} w="full" cursor="pointer" hoverBg="secondary/10" onClick={() => { onClose(); onOpenObservationModal() }}>
           <Stack direction="row" align="center" justify="between" w="full" gap={2.5}>
@@ -212,13 +225,12 @@ export function PdvSidebarDrawer({
   onOpenObservationModal,
   onOpenSangriaModal,
   onOpenDiscountModal,
+  onOpenGavetaModal,
   discount = 0,
   subtotal = 0,
   onSyncClick,
   customerName,
   observationText,
-  showOutOfStockProducts = true,
-  onToggleShowOutOfStock,
   hasCartItems = false,
   onCancelOperation,
 }: PdvSidebarDrawerProps) {
@@ -258,21 +270,20 @@ export function PdvSidebarDrawer({
         <Stack gap={2.5}>
           <Font variant="body-xs-bold" color="muted" text={d.optionsHeader} />
           <Box display="flex" direction="col" bg="bg-surface" border={true} borderColor="border-border" radius="default" overflow="hidden">
-            <Box
-              padding={2.5}
-              w="full"
-              cursor="pointer"
-              hoverBg="secondary/10"
-              onClick={() => onToggleShowOutOfStock?.(!showOutOfStockProducts)}
-            >
-              <Stack direction="row" align="center" justify="between" w="full">
-                <Font variant="body-sm-semibold" text={d.showOutOfStockProducts} align="left" />
-                <Font variant="body-sm-medium" color={showOutOfStockProducts ? "success" : "muted"} text={showOutOfStockProducts ? "Sim" : "Não"} />
-              </Stack>
+            <Box padding={2.5} w="full" cursor="pointer" hoverBg="secondary/10" onClick={() => { onClose(); onNavigate("pdv-customizacao") }}>
+              <Font variant="body-sm-semibold" text={d.pdvCustomization} align="left" />
             </Box>
             <Box h="h-[1px]" w="full" bg="bg-border" />
-            <Box padding={2.5} w="full" cursor="pointer" hoverBg="secondary/10" onClick={onBackToDashboard}>
-              <Font variant="body-sm-semibold" text={UI_STRINGS.pdv.drawer.backToDashboard} align="left" />
+            <Box padding={2.5} w="full" cursor="pointer" hoverBg="secondary/10" onClick={() => { onClose(); onNavigate("numero-atendimento") }}>
+              <Font variant="body-sm-semibold" text={d.orderNumber} align="left" />
+            </Box>
+            <Box h="h-[1px]" w="full" bg="bg-border" />
+            <Box padding={2.5} w="full" cursor="pointer" hoverBg="secondary/10" onClick={() => { onClose(); onOpenGavetaModal() }}>
+              <Font variant="body-sm-semibold" text={d.openDrawer} align="left" />
+            </Box>
+            <Box h="h-[1px]" w="full" bg="bg-border" />
+            <Box padding={2.5} w="full" cursor="pointer" hoverBg="secondary/10" onClick={() => { onClose(); onBackToDashboard() }}>
+              <Font variant="body-sm-semibold" color="danger" text={d.exitPdv} align="left" />
             </Box>
           </Box>
         </Stack>

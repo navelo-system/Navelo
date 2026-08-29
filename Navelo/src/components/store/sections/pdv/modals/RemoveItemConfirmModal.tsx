@@ -3,7 +3,6 @@
 import * as React from "react"
 import { Modal } from "@/components/store/base/Modal"
 import { Font } from "@/components/store/base/Font"
-import { Trash2 } from "lucide-react"
 import { UI_STRINGS } from "@/constants/strings"
 
 interface RemoveItemConfirmModalProps {
@@ -27,12 +26,10 @@ export const RemoveItemConfirmModal: React.FC<RemoveItemConfirmModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={m.removeItemTitle}
-      subtitle={`Deseja realmente remover o produto "${productName}" do carrinho?`}
-      icon={Trash2}
       successText={c.delete}
       onSuccess={onConfirm}
     >
-      <Font variant="description" text={m.removeItemDesc} />
+      <Font variant="description" text={`Deseja realmente remover o produto "${productName}" do carrinho?`} />
     </Modal>
   )
 }

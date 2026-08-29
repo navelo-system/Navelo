@@ -194,8 +194,6 @@ export function ClientAddressFormModal({
         isOpen={isOpen}
         onClose={onClose}
         title={initialData ? cust.addressModalTitleEdit : cust.addressModalTitleNew}
-        subtitle={cust.addressModalSubtitle}
-        icon={MapPin}
         successText={initialData ? common.save : cust.addButton}
         isSubmit={true}
         onSuccess={handleSubmit}

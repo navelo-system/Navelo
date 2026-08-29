@@ -14,7 +14,7 @@ import { FilterPanel } from "@/components/store/intermediary/FilterPanel"
 import { Modal } from "@/components/store/base/Modal"
 import { Warning } from "@/components/store/base/Warning"
 import { Numpad } from "@/components/store/intermediary/Numpad"
-import { Plus, Minus, ClipboardList, Trash2, Check, Package, Filter, AlertTriangle } from "lucide-react"
+import { Plus, Minus, ClipboardList, Trash2, Check, Package, Filter, AlertTriangle, X } from "lucide-react"
 import { MobileHeaderSearch } from "@/components/store/intermediary/PdvCatalogToolbar"
 import { UI_STRINGS } from "@/constants/strings"
 import { useTenant } from "@/lib/context/TenantContext"
@@ -209,39 +209,21 @@ function AuditQuantityAdjuster({
   countQuantity,
   setCountQuantity,
   label,
-  decreaseTitle,
-  increaseTitle,
 }: {
   countQuantity: number
   setCountQuantity: React.Dispatch<React.SetStateAction<number>>
   label: string
-  decreaseTitle: string
-  increaseTitle: string
+  decreaseTitle?: string
+  increaseTitle?: string
 }) {
   return (
-    <Stack direction="row" align="center" gap={2.5} w="full">
-      <Button
-        variant="secondary-pill-icon"
-        icon={Minus}
-        title={decreaseTitle}
-        onClick={() => setCountQuantity((prev) => prev - 1)}
-      />
-      <Box flex="1">
-        <Input
-          variant="outlined-label-centered"
-          label={label}
-          type="number"
-          value={countQuantity.toString()}
-          onChange={(e) => setCountQuantity(parseInt(e.target.value, 10) || 0)}
-        />
-      </Box>
-      <Button
-        variant="secondary-pill-icon"
-        icon={Plus}
-        title={increaseTitle}
-        onClick={() => setCountQuantity((prev) => prev + 1)}
-      />
-    </Stack>
+    <Input
+      variant="outlined-counter"
+      label={label}
+      value={countQuantity}
+      onDecrement={() => setCountQuantity((prev) => prev - 1)}
+      onIncrement={() => setCountQuantity((prev) => prev + 1)}
+    />
   )
 }
 
@@ -258,7 +240,6 @@ function AuditNovoProductSelector({
   onSearchQueryChange: (q: string) => void
 }) {
   const inv = UI_STRINGS.inventory
-  const common = UI_STRINGS.common
   const [isOpen, setIsOpen] = React.useState(false)
   const containerRef = React.useRef<HTMLDivElement>(null)
 
@@ -292,16 +273,21 @@ function AuditNovoProductSelector({
     <Box ref={containerRef} position="relative" bg="bg-white" padding={5} radius="default" h="fit-content" w="full">
       <Stack gap={5} w="full">
         <Stack gap={1} w="full">
-          <Font variant="body-sm-semibold" text={inv.productFieldLabel} />
           <Box position="relative" w="full">
             <Input
-              variant="bordered"
+              variant="outlined-label"
+              label={inv.productFieldLabel}
               placeholder={inv.searchProductPlaceholder}
               value={searchQuery}
               onFocus={() => setIsOpen(true)}
               onChange={(e) => {
                 onSearchQueryChange(e.target.value)
                 setIsOpen(true)
+              }}
+              iconRight={searchQuery ? X : undefined}
+              onIconRightClick={() => {
+                onSearchQueryChange("")
+                setIsOpen(false)
               }}
             />
 
@@ -315,6 +301,29 @@ function AuditNovoProductSelector({
           <Font variant="auxiliary" color="muted" text={inv.searchProductHelp} />
         </Stack>
 
+        <AuditNovoAddRow
+          countQuantity={countQuantity}
+          setCountQuantity={setCountQuantity}
+          selectedProduct={selectedProduct}
+          onAddItem={onAddItem}
+        />
+      </Stack>
+    </Box>
+  )
+}
+
+function AuditNovoAddRow({
+  countQuantity, setCountQuantity, selectedProduct, onAddItem,
+}: {
+  countQuantity: number
+  setCountQuantity: React.Dispatch<React.SetStateAction<number>>
+  selectedProduct: { id: string } | null
+  onAddItem: () => void
+}) {
+  const inv = UI_STRINGS.inventory
+  return (
+    <Stack direction="row" align="end" gap={2.5} w="full">
+      <Box w="w-[30%]" shrink="0">
         <AuditQuantityAdjuster
           countQuantity={countQuantity}
           setCountQuantity={setCountQuantity}
@@ -322,10 +331,11 @@ function AuditNovoProductSelector({
           decreaseTitle={inv.decreaseQuantity}
           increaseTitle={inv.increaseQuantity}
         />
-
-        <Button variant="primary" label={common.add} fullWidth disabled={!selectedProduct} onClick={onAddItem} />
-      </Stack>
-    </Box>
+      </Box>
+      <Box w="w-[70%]">
+        <Button variant="primary" label={UI_STRINGS.common.add} fullWidth disabled={!selectedProduct} onClick={onAddItem} />
+      </Box>
+    </Stack>
   )
 }
 
@@ -341,48 +351,46 @@ function AuditNovoItemsList({
   const inv = UI_STRINGS.inventory
 
   return (
-    <Box flex="1" position="relative" display="flex" direction="col" justify="between" h="full" w="full">
-      <Stack gap={5} w="full">
-        <Stack gap={1} align="start" w="full">
-          <Stack direction="row" gap={2.5} align="center">
-            <Font variant="body-bold" text={inv.groupsLabel} />
-            <Button variant="ghost" label={inv.changeGroup} onClick={onOpenGrupos} />
-          </Stack>
-          <Font variant="auxiliary" color="muted" text={groupsSummary} />
+    <Stack gap={5} w="full" h="full" flex="1" minH="0">
+      <Stack gap={1} align="start" w="full">
+        <Stack direction="row" gap={2.5} align="center">
+          <Font variant="body-bold" text={inv.groupsLabel} />
+          <Button variant="ghost" label={inv.changeGroup} onClick={onOpenGrupos} />
         </Stack>
+        <Font variant="auxiliary" color="muted" text={groupsSummary} />
+      </Stack>
 
-        <Font variant="body-bold" text={inv.productsSectionTitle} />
+      <Font variant="body-bold" text={inv.productsSectionTitle} />
 
+      <Box flex="1" minH="0" overflow="x-hidden y-auto" w="full">
         {addedItems.length === 0 ? (
           <EmptyState icon={ClipboardList} title={inv.noProductsAddedTitle} subtitle={inv.noProductsAddedSubtitle} />
         ) : (
-          <Box w="full" maxH="96" overflow="x-hidden y-auto">
-            <Box display="flex" direction="col" w="full">
-              {addedItems.map((item, idx) => {
-                const isNeg = item.diff < 0
-                const isPos = item.diff > 0
-                return (
-                  <Box key={item.productId}>
-                    <Box padding={2.5} w="full">
-                      <Stack direction="row" align="center" justify="between" w="full">
-                        <Stack gap={0} align="start" flex="1" minW="0">
-                          <Font variant="body-sm-medium" text={item.productName.toUpperCase()} />
-                          <Font variant="auxiliary" color="muted" text={`Estoque atual: ${item.systemStock} → Contagem: ${item.countedStock}`} />
-                        </Stack>
-                        <Stack direction="row" gap={2.5} align="center">
-                          <Font variant="body-bold" color={isNeg ? "danger" : isPos ? "primary" : "muted"} text={`${isPos ? "+" : ""}${item.diff} UN`} />
-                          <Button variant="danger-icon-xs" icon={Trash2} title={inv.removeItemTitle} onClick={() => onRemoveItem(item.productId)} />
-                        </Stack>
+          <Box display="flex" direction="col" w="full">
+            {addedItems.map((item, idx) => {
+              const isNeg = item.diff < 0
+              const isPos = item.diff > 0
+              return (
+                <Box key={item.productId}>
+                  <Box padding={2.5} w="full">
+                    <Stack direction="row" align="center" justify="between" w="full">
+                      <Stack gap={0} align="start" flex="1" minW="0">
+                        <Font variant="body-sm-medium" text={item.productName.toUpperCase()} />
+                        <Font variant="auxiliary" color="muted" text={`Estoque atual: ${item.systemStock} → Contagem: ${item.countedStock}`} />
                       </Stack>
-                    </Box>
-                    {idx < addedItems.length - 1 && <Box borderBottom borderColor="border-border" w="full" />}
+                      <Stack direction="row" gap={2.5} align="center">
+                        <Font variant="body-bold" color={isNeg ? "danger" : isPos ? "primary" : "muted"} text={`${isPos ? "+" : ""}${item.diff} UN`} />
+                        <Button variant="danger-icon-xs" icon={Trash2} title={inv.removeItemTitle} onClick={() => onRemoveItem(item.productId)} />
+                      </Stack>
+                    </Stack>
                   </Box>
-                )
-              })}
-            </Box>
+                  {idx < addedItems.length - 1 && <Box borderBottom borderColor="border-border" w="full" />}
+                </Box>
+              )
+            })}
           </Box>
         )}
-      </Stack>
+      </Box>
 
       <Button
         variant="primary"
@@ -390,7 +398,7 @@ function AuditNovoItemsList({
         fullWidth
         onClick={onContinue}
       />
-    </Box>
+    </Stack>
   )
 }
 
@@ -412,8 +420,8 @@ function AuditNovoView({
   onSearchQueryChange: (q: string) => void
 }) {
   return (
-    <Stack direction="col" mobileDirection="row" gap={5} w="full" h="full" align="stretch" flex="1" minH="0">
-      <Box order="2" mdOrder="1" mdFlex="1" position="relative" display="flex" direction="col" w="full">
+    <Stack direction="col" mobileDirection="row" gap={5} w="full" h="full" align="stretch" flex="1" minH="0" overflow="hidden">
+      <Box order="2" mdOrder="1" flex="1" minH="0" display="flex" direction="col" w="full" overflow="hidden">
         <AuditNovoItemsList
           addedItems={addedItems}
           onRemoveItem={onRemoveItem}
@@ -422,7 +430,7 @@ function AuditNovoView({
           groupsSummary={groupsSummary}
         />
       </Box>
-      <Box order="1" mdOrder="2" mdFlex="1" position="relative" w="full">
+      <Box order="1" mdOrder="2" mdFlex="1" shrink="0" position="relative" w="full">
         <AuditNovoProductSelector
           countQuantity={countQuantity} setCountQuantity={setCountQuantity}
           availableProducts={availableProducts} selectedProduct={selectedProduct}
@@ -768,31 +776,35 @@ function AuditQuantityKeypadModal({
   const displayVal = `${isNegative && rawDigits !== "0" ? "-" : ""}${rawDigits}`
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      title={product.name.toUpperCase()}
-      variant="default"
-      showCancelButton={true}
-      successText={inv.modalAddButton}
-      onSuccess={handleConfirm}
-    >
-      <Stack gap={5} w="full">
-        <Stack gap={0} align="start" w="full">
-          <Font variant="auxiliary" color="muted" text={product.category || inv.noSubgroupLabel} />
-          <Font variant="auxiliary" color="muted" text={`Estoque: ${product.stock ?? 0} ${product.unit || "UN"}`} />
+    <Modal isOpen={isOpen} onClose={handleClose} variant="numpad">
+      <Box padding={5} w="full">
+        <Stack gap={5} w="full">
+          {/* Cabeçalho */}
+          <Stack gap={1}>
+            <Font variant="body-bold" text={product.name.toUpperCase()} />
+            <Font variant="auxiliary" color="muted" text={product.category || inv.noSubgroupLabel} />
+            <Font variant="auxiliary" color="muted" text={`Estoque: ${product.stock ?? 0} ${product.unit || "UN"}`} />
+          </Stack>
+
+          {/* Seletor de quantidade */}
+          <AuditQuantityValueDisplay
+            label={inv.modalQuantityLabel}
+            displayVal={displayVal}
+            isDanger={isNegative && rawDigits !== "0"}
+            onIncrement={() => handleStep(1)}
+            onDecrement={() => handleStep(-1)}
+          />
+
+          {/* Teclado */}
+          <Numpad onKeyPress={handleKeyPress} variant="ghost" />
+
+          {/* Rodapé */}
+          <Stack direction="row" justify="end" align="center" gap={2.5} w="full">
+            <Button variant="ghost" label={UI_STRINGS.common.cancel} onClick={handleClose} />
+            <Button variant="ghost-primary" label={inv.modalAddButton} onClick={handleConfirm} />
+          </Stack>
         </Stack>
-
-        <AuditQuantityValueDisplay
-          label={inv.modalQuantityLabel}
-          displayVal={displayVal}
-          isDanger={isNegative && rawDigits !== "0"}
-          onIncrement={() => handleStep(1)}
-          onDecrement={() => handleStep(-1)}
-        />
-
-        <Numpad onKeyPress={handleKeyPress} variant="ghost" />
-      </Stack>
+      </Box>
     </Modal>
   )
 }

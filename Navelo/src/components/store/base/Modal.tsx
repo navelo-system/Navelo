@@ -14,8 +14,6 @@ export type ModalProps =
     isOpen: boolean
     onClose: () => void
     title: string
-    subtitle?: string
-    icon?: LucideIcon
     successText?: string
     onSuccess?: () => void
     isSubmit?: boolean
@@ -23,7 +21,7 @@ export type ModalProps =
     cancelText?: string
     cancelVariant?: ButtonVariant
     zIndex?: number
-    variant?: "default" | "bottom" | "sidebar"
+    variant?: "default" | "bottom" | "sidebar" | "numpad"
     children: React.ReactNode
     footer?: React.ReactNode
     customActions?: React.ReactNode
@@ -32,8 +30,6 @@ export type ModalProps =
     isOpen: boolean
     onClose: () => void
     title?: never
-    subtitle?: never
-    icon?: never
     successText?: never
     onSuccess?: never
     isSubmit?: never
@@ -41,7 +37,7 @@ export type ModalProps =
     cancelText?: string
     cancelVariant?: never
     zIndex?: number
-    variant?: "default" | "bottom" | "sidebar"
+    variant?: "default" | "bottom" | "sidebar" | "numpad"
     children: React.ReactNode
     footer?: React.ReactNode
     customActions?: React.ReactNode
@@ -192,8 +188,6 @@ interface DefaultContentProps {
   backdropStyle: React.CSSProperties
   dialogStyle: React.CSSProperties
   title?: string
-  subtitle?: string
-  icon?: LucideIcon
   showCancelButton: boolean
   cancelText: string
   cancelVariant: ButtonVariant
@@ -209,8 +203,6 @@ function DefaultModalContent({
   backdropStyle,
   dialogStyle,
   title,
-  subtitle,
-  icon,
   showCancelButton,
   cancelText,
   cancelVariant,
@@ -238,7 +230,7 @@ function DefaultModalContent({
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-lg rounded-[5px] border-2 border-border bg-surface shadow-lg sm:rounded-[8px]"
       >
-        <ModalHeader title={title ?? ""} subtitle={subtitle} icon={icon} />
+        <ModalHeader title={title ?? ""} />
         <div className="h-[2px] bg-border w-full" />
         <ModalBody>{children}</ModalBody>
         {(showCancelButton || successText) && (
@@ -316,6 +308,37 @@ function CompoundModalContent({
   )
 }
 
+function NumpadModalContent({
+  zIndex,
+  backdropStyle,
+  dialogStyle,
+  children,
+  onClose,
+}: CompoundContentProps) {
+  return (
+    <div className="fixed inset-0 flex items-center justify-center p-4" style={{ zIndex }}>
+      <div
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
+        style={backdropStyle}
+        onClick={(e) => {
+          e.stopPropagation()
+          onClose()
+        }}
+        aria-hidden="true"
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        style={{ ...dialogStyle, zIndex: zIndex + 1 }}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-sm rounded-[8px] border-2 border-border bg-surface shadow-lg overflow-hidden"
+      >
+        {children}
+      </div>
+    </div>
+  )
+}
+
 function getDialogStyle(isSidebar: boolean, isBottom: boolean, isActive: boolean): React.CSSProperties {
   if (isSidebar) {
     return {
@@ -339,8 +362,6 @@ export function Modal(props: ModalProps) {
     isOpen,
     onClose,
     title,
-    subtitle,
-    icon,
     successText,
     onSuccess,
     isSubmit = false,
@@ -439,8 +460,6 @@ export function Modal(props: ModalProps) {
         backdropStyle={backdropStyle}
         dialogStyle={dialogStyle}
         title={title}
-        subtitle={subtitle}
-        icon={icon}
         showCancelButton={showCancelButton}
         cancelText={cancelText}
         cancelVariant={cancelVariant}
@@ -451,6 +470,17 @@ export function Modal(props: ModalProps) {
       >
         {children}
       </DefaultModalContent>
+    )
+  } else if (variant === "numpad") {
+    modalContent = (
+      <NumpadModalContent
+        zIndex={zIndex}
+        backdropStyle={backdropStyle}
+        dialogStyle={dialogStyle}
+        onClose={handleClose}
+      >
+        {children}
+      </NumpadModalContent>
     )
   } else {
     modalContent = (
@@ -471,28 +501,12 @@ export function Modal(props: ModalProps) {
 
 export interface ModalHeaderProps {
   title: string
-  subtitle?: string
-  icon?: LucideIcon
 }
 
-export function ModalHeader({ title, subtitle, icon: IconComp }: ModalHeaderProps) {
+export function ModalHeader({ title }: ModalHeaderProps) {
   return (
     <div className="flex flex-col space-y-1.5 p-5">
-      <div className="flex flex-col items-start gap-2.5 md:flex-row md:items-center md:gap-5">
-        {IconComp && (
-          <CircularIcon
-            icon={IconComp}
-            size={20}
-            variant="solid"
-            solidColor="secondary"
-            solidRadius="default"
-          />
-        )}
-        <Stack gap={1}>
-          <Font variant="body-bold" text={title} />
-          {subtitle && <Font variant="description" text={subtitle} />}
-        </Stack>
-      </div>
+      <Font variant="body-bold" text={title} />
     </div>
   )
 }

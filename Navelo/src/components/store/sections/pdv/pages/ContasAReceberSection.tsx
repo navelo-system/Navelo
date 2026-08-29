@@ -12,12 +12,14 @@ import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { FilterPanel } from "@/components/store/intermediary/FilterPanel"
 import { SaleExportModal } from "@/components/store/sections/pdv/modals/SaleExportModal"
 import { generateReceivablesReportPdf } from "@/lib/pdf/generateReceivablesReportPdf"
-import { useSales, Sale, TabEntity, Customer } from "@/lib/dal"
+import { useSales, useDeliveryOrders, Sale, TabEntity, Customer, DeliveryOrder } from "@/lib/dal"
 import { db } from "@/lib/dal/db"
 import { useLiveQuery } from "dexie-react-hooks"
 import { useTenant } from "@/lib/context/TenantContext"
 import { PackageSearch, Filter, Calendar, FileText, FileSpreadsheet } from "lucide-react"
 import { UI_STRINGS } from "@/constants/strings"
+import { calculateReceivableOverdueCharges } from "@/lib/payments/crediarioCalculator"
+import { loadCrediarioSettings, CREDIARIO_SETTINGS_EVENT, CrediarioSettings } from "@/lib/sync/crediarioSettings"
 
 export interface ContasAReceberSectionProps {
   onBackToDashboard: () => void
@@ -29,7 +31,7 @@ export interface ContasAReceberSectionProps {
 interface ReceivableAccount {
   id: string
   saleId?: string
-  type: "TAB" | "CREDIARIO"
+  type: "TAB" | "CREDIARIO" | "DELIVERY"
   client: string
   docNumber?: string
   issueDate: Date
@@ -167,6 +169,20 @@ function resolveReceivableDocAndClient(p: ResolveReceivableDocParams) {
   return { docNum, clientName }
 }
 
+function useCrediarioSettings(): CrediarioSettings {
+  const [settings, setSettings] = React.useState<CrediarioSettings>(() => loadCrediarioSettings())
+  React.useEffect(() => {
+    const handleUpdate = () => setSettings(loadCrediarioSettings())
+    window.addEventListener(CREDIARIO_SETTINGS_EVENT, handleUpdate)
+    window.addEventListener("storage", handleUpdate)
+    return () => {
+      window.removeEventListener(CREDIARIO_SETTINGS_EVENT, handleUpdate)
+      window.removeEventListener("storage", handleUpdate)
+    }
+  }, [])
+  return settings
+}
+
 function resolveReceivableSettlementDisplay(settlement: Date | null, isSettled: boolean, total: number) {
   const settlementDateFormatted = settlement ? formatDateBr(settlement) : undefined
   const toSettle = isSettled ? 0 : total
@@ -178,14 +194,26 @@ function mapSaleToReceivable(
   sale: Sale,
   idx: number,
   totalCount: number,
-  customerMap?: Map<string, Customer>
+  customerMap?: Map<string, Customer>,
+  crediarioSettings?: CrediarioSettings
 ): ReceivableAccount | null {
   if (!isSaleReceivable(sale)) return null
 
   const extra = sale as unknown as SaleExtraData
   const { issue, due, isSettled, settlement } = resolveReceivableDates(sale, extra)
   const { docNum, clientName } = resolveReceivableDocAndClient({ sale, extra, idx, totalCount, customerMap })
-  const { settlementDateFormatted, toSettle, status } = resolveReceivableSettlementDisplay(settlement, isSettled, sale.total || 0)
+  const { settlementDateFormatted, toSettle: baseToSettle, status } = resolveReceivableSettlementDisplay(settlement, isSettled, sale.total || 0)
+
+  let fine = extra.fine || 0
+  let interest = extra.interest || 0
+  let toSettle = baseToSettle
+
+  if (status === "PENDING" && due && crediarioSettings) {
+    const calc = calculateReceivableOverdueCharges(sale.total || 0, due, new Date(), crediarioSettings)
+    fine = calc.fine
+    interest = calc.interest
+    toSettle = calc.toSettle
+  }
 
   return {
     id: sale.id,
@@ -200,8 +228,8 @@ function mapSaleToReceivable(
     settlementDate: settlement,
     settlementDateFormatted,
     value: sale.total || 0,
-    fine: extra.fine || 0,
-    interest: extra.interest || 0,
+    fine,
+    interest,
     toSettle,
     status,
     device: extra.device || extra.terminal || "",
@@ -294,7 +322,36 @@ function mapTabToReceivable(tab: TabEntity): ReceivableAccount {
   }
 }
 
-function useReceivablesData(dbSales?: Sale[], dbTabs?: TabEntity[], dbCustomers?: Customer[]) {
+function mapDeliveryToReceivable(order: DeliveryOrder): ReceivableAccount {
+  const issue = order.created_at ? new Date(order.created_at) : new Date()
+  const issueDateFormatted = formatDateBr(issue)
+  const clientName = order.client_name ? `Delivery • ${order.client_name}` : `Delivery #${order.id}`
+  const docNum = order.client_document || `Ped #${order.id}`
+
+  return {
+    id: `delivery-${order.id}`,
+    saleId: `delivery-${order.id}`,
+    type: "DELIVERY",
+    client: clientName,
+    docNumber: docNum,
+    issueDate: issue,
+    issueDateFormatted,
+    value: order.total || 0,
+    fine: 0,
+    interest: 0,
+    toSettle: order.total || 0,
+    status: "PENDING",
+    device: order.origin || "Pedido Delivery",
+  }
+}
+
+function useReceivablesData(
+  dbSales?: Sale[],
+  dbTabs?: TabEntity[],
+  dbCustomers?: Customer[],
+  dbDeliveryOrders?: DeliveryOrder[],
+  crediarioSettings?: CrediarioSettings
+) {
   const customerMap = React.useMemo(() => {
     const map = new Map<string, Customer>()
     if (dbCustomers) {
@@ -307,7 +364,7 @@ function useReceivablesData(dbSales?: Sale[], dbTabs?: TabEntity[], dbCustomers?
     const list: ReceivableAccount[] = []
     if (dbSales && dbSales.length > 0) {
       dbSales.forEach((sale, idx) => {
-        const mapped = mapSaleToReceivable(sale, idx, dbSales.length, customerMap)
+        const mapped = mapSaleToReceivable(sale, idx, dbSales.length, customerMap, crediarioSettings)
         if (mapped) list.push(mapped)
       })
     }
@@ -318,8 +375,19 @@ function useReceivablesData(dbSales?: Sale[], dbTabs?: TabEntity[], dbCustomers?
         }
       })
     }
+    if (dbDeliveryOrders && dbDeliveryOrders.length > 0) {
+      dbDeliveryOrders.forEach((o) => {
+        const isPendingOnDelivery =
+          o.payment_moment !== "advance" &&
+          o.status !== "delivered" &&
+          o.status !== "canceled"
+        if (isPendingOnDelivery && (o.total || 0) > 0) {
+          list.push(mapDeliveryToReceivable(o))
+        }
+      })
+    }
     return list
-  }, [dbSales, dbTabs, customerMap])
+  }, [dbSales, dbTabs, customerMap, dbDeliveryOrders, crediarioSettings])
 
   return { allAccounts }
 }
@@ -327,7 +395,7 @@ function useReceivablesData(dbSales?: Sale[], dbTabs?: TabEntity[], dbCustomers?
 function ReceivableRowItem({ acc }: { acc: ReceivableAccount }) {
   const s = UI_STRINGS.receivables
 
-  if (acc.type === "TAB") {
+  if (acc.type === "TAB" || acc.type === "DELIVERY") {
     return (
       <Box padding={2.5} w="full">
         <Stack direction="row" justify="between" align="start" w="full">
@@ -572,6 +640,7 @@ export const ContasAReceberSection: React.FC<ContasAReceberSectionProps> = ({
   const tenantCtx = useTenant()
   const tenantId = tenantCtx?.currentTenant?.id || "default"
   const dbSales = useSales(tenantId)
+  const dbDeliveryOrders = useDeliveryOrders(tenantId)
   const dbTabs = useLiveQuery(async () => (tenantId ? await db.tabs.where("tenant_id").equals(tenantId).toArray() : []), [tenantId])
   const dbCustomers = useLiveQuery(async () => (tenantId ? await db.customers.where("tenant_id").equals(tenantId).toArray() : []), [tenantId])
   const dbCompany = useLiveQuery(async () => (tenantId ? await db.companies.get(tenantId) : null), [tenantId])
@@ -597,7 +666,8 @@ export const ContasAReceberSection: React.FC<ContasAReceberSectionProps> = ({
     return () => { setCustomBack?.(null); setCustomTitle?.(null); setCustomActions?.(null) }
   }, [setCustomBack, setCustomTitle, setCustomActions, s.title])
 
-  const { allAccounts } = useReceivablesData(dbSales, dbTabs, dbCustomers)
+  const crediarioSettings = useCrediarioSettings()
+  const { allAccounts } = useReceivablesData(dbSales, dbTabs, dbCustomers, dbDeliveryOrders, crediarioSettings)
 
   const filteredAccounts = React.useMemo(() => {
     const clientTerm = f.appliedFilters.cliente.trim().toLowerCase()

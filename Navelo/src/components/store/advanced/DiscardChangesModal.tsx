@@ -33,7 +33,6 @@ export const DiscardChangesModal: React.FC<DiscardChangesModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title={title || c.discardTitle}
-      icon={AlertCircle}
       successText={confirmText || c.discardConfirm}
       onSuccess={onConfirmDiscard}
       showCancelButton

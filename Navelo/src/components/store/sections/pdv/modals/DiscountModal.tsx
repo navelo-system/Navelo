@@ -7,9 +7,12 @@ import { Stack } from "@/components/store/base/Stack"
 import { Box } from "@/components/store/base/Box"
 import { Font } from "@/components/store/base/Font"
 import { Icon } from "@/components/store/base/Icon"
-import { AlertTriangle } from "lucide-react"
-import { UI_STRINGS } from "@/constants/strings"
+import { Warning } from "@/components/store/base/Warning"
+import { AlertTriangle, Lock } from "lucide-react"
+import { UI_STRINGS, formatString } from "@/constants/strings"
 import { maskCurrency, maskPercent } from "@/lib/masks"
+import { useTenant } from "@/lib/context/TenantContext"
+import { useTenantRestrictions } from "@/lib/sync/restrictionsSettings"
 
 export interface DiscountModalProps {
   isOpen: boolean
@@ -59,6 +62,7 @@ function DiscountSummary({ subtotal, discountPercent, calculatedTotal }: Discoun
 interface DiscountInputsProps {
   percentInput: string
   reaisInput: string
+  disabled?: boolean
   onPercentChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   onReaisChange: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
@@ -66,6 +70,7 @@ interface DiscountInputsProps {
 function DiscountInputs({
   percentInput,
   reaisInput,
+  disabled,
   onPercentChange,
   onReaisChange,
 }: DiscountInputsProps) {
@@ -79,6 +84,7 @@ function DiscountInputs({
         placeholder={UI_STRINGS.common.percentPlaceholder}
         value={percentInput}
         onChange={onPercentChange}
+        disabled={disabled}
       />
       <Input
         variant="outlined-label"
@@ -87,6 +93,7 @@ function DiscountInputs({
         placeholder={UI_STRINGS.common.currencyPlaceholder}
         value={reaisInput}
         onChange={onReaisChange}
+        disabled={disabled}
       />
     </Stack>
   )
@@ -161,6 +168,79 @@ function useDiscountState(isOpen: boolean, subtotal: number, discount: number) {
   }
 }
 
+function parseMaxDiscount(rawLimit?: string): number {
+  const raw = (rawLimit || "100").replace("%", "").replace(",", ".").trim()
+  const num = parseFloat(raw)
+  return isNaN(num) ? 100 : num
+}
+
+function checkDiscountBlocked(
+  descontosAllowed: boolean,
+  discountPercent: number,
+  maxLimit: number
+) {
+  const isDiscountsDisabled = !descontosAllowed
+  const isLimitExceeded = descontosAllowed && discountPercent > maxLimit
+  return {
+    isDiscountsDisabled,
+    isLimitExceeded,
+    isBlocked: isDiscountsDisabled || isLimitExceeded,
+  }
+}
+
+function useDiscountRestrictions(discountPercent: number) {
+  const tenantCtx = useTenant()
+  const restrictions = useTenantRestrictions(tenantCtx?.currentTenant?.id)
+  const parsedMaxLimit = parseMaxDiscount(restrictions.descontoLimite)
+  const status = checkDiscountBlocked(restrictions.descontos, discountPercent, parsedMaxLimit)
+
+  return {
+    ...status,
+    parsedMaxLimit,
+  }
+}
+
+function DiscountValidationNotice({
+  isDiscountsDisabled,
+  isLimitExceeded,
+  discountPercent,
+  parsedMaxLimit,
+}: {
+  isDiscountsDisabled: boolean
+  isLimitExceeded: boolean
+  discountPercent: number
+  parsedMaxLimit: number
+}) {
+  const m = UI_STRINGS.pdv.modals
+  const r = UI_STRINGS.restrictions
+
+  if (isDiscountsDisabled) {
+    return <Warning variant="danger" icon={Lock} title={r.discountsDisabledNotice} />
+  }
+
+  if (isLimitExceeded) {
+    return (
+      <Warning
+        variant="warning"
+        icon={AlertTriangle}
+        title={formatString(r.discountExceededNotice, {
+          applied: formatPercent(discountPercent),
+          max: formatPercent(parsedMaxLimit),
+        })}
+      />
+    )
+  }
+
+  return (
+    <Box bg="bg-brand-warning/10" border borderColor="border-brand-warning/20" padding={2.5} radius="default" w="full">
+      <Stack direction="row" gap={2.5} align="center">
+        <Icon icon={AlertTriangle} color="warning" size={16} />
+        <Font variant="body-xs" color="warning" text={m.discountNotice} />
+      </Stack>
+    </Box>
+  )
+}
+
 export function DiscountModal({
   isOpen,
   onClose,
@@ -169,16 +249,9 @@ export function DiscountModal({
   onChangeDiscount,
 }: DiscountModalProps) {
   const m = UI_STRINGS.pdv.modals
-  const {
-    discountReais,
-    discountPercent,
-    percentInput,
-    reaisInput,
-    handlePercentChange,
-    handleReaisChange,
-  } = useDiscountState(isOpen, subtotal, discount)
-
-  const calculatedTotal = Math.max(0, subtotal - discountReais)
+  const state = useDiscountState(isOpen, subtotal, discount)
+  const restr = useDiscountRestrictions(state.discountPercent)
+  const calculatedTotal = Math.max(0, subtotal - state.discountReais)
 
   return (
     <Modal
@@ -189,19 +262,30 @@ export function DiscountModal({
       cancelText={m.cancelAction}
       successText={m.confirmDiscountButton}
       onSuccess={() => {
-        onChangeDiscount(discountReais)
+        if (restr.isBlocked) return
+        onChangeDiscount(state.discountReais)
         onClose()
       }}
     >
       <Stack gap={5} w="full">
-        <DiscountSummary subtotal={subtotal} discountPercent={discountPercent} calculatedTotal={calculatedTotal} />
-        <DiscountInputs percentInput={percentInput} reaisInput={reaisInput} onPercentChange={handlePercentChange} onReaisChange={handleReaisChange} />
-        <Box bg="bg-brand-warning/10" border borderColor="border-brand-warning/20" padding={2.5} radius="default" w="full">
-          <Stack direction="row" gap={2.5} align="center">
-            <Icon icon={AlertTriangle} color="warning" size={16} />
-            <Font variant="body-xs" color="warning" text={m.discountNotice} />
-          </Stack>
-        </Box>
+        <DiscountSummary
+          subtotal={subtotal}
+          discountPercent={state.discountPercent}
+          calculatedTotal={calculatedTotal}
+        />
+        <DiscountInputs
+          percentInput={state.percentInput}
+          reaisInput={state.reaisInput}
+          disabled={restr.isDiscountsDisabled}
+          onPercentChange={state.handlePercentChange}
+          onReaisChange={state.handleReaisChange}
+        />
+        <DiscountValidationNotice
+          isDiscountsDisabled={restr.isDiscountsDisabled}
+          isLimitExceeded={restr.isLimitExceeded}
+          discountPercent={state.discountPercent}
+          parsedMaxLimit={restr.parsedMaxLimit}
+        />
       </Stack>
     </Modal>
   )

@@ -117,8 +117,6 @@ function NewClientModal({
         isOpen={isOpen}
         onClose={onClose}
         title={c.newClientModalTitle}
-        subtitle={c.newClientModalSubtitle}
-        icon={Users}
         successText={c.saveTenantButton}
         isSubmit
       >

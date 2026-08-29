@@ -41,8 +41,6 @@ export function ChangeCalculatorModal({
       isOpen={isOpen}
       onClose={onClose}
       title={m.changeCalculatorTitle}
-      subtitle={m.changeCalculatorSubtitle}
-      icon={DollarSign}
       successText={m.confirmPaymentButton}
       onSuccess={handleConfirm}
     >

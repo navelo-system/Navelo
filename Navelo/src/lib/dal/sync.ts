@@ -1,5 +1,7 @@
 import { db } from './db';
 import { supabase } from '../supabase/client';
+import { isDeviceSyncEnabled, patchDeviceSyncSettings } from '../sync/deviceSyncSettings';
+import { canFlushSyncQueue, getSyncBackend } from '../sync/getSyncBackend';
 
 export const SYNC_TABLES = [
   'categories',
@@ -20,6 +22,8 @@ export const SYNC_TABLES = [
   'delivery_rates',
   'restaurant_tables',
   'receivables',
+  'inventory_audits',
+  'manual_stock_entries',
 ] as const;
 
 export interface SyncQueueItem {
@@ -152,6 +156,8 @@ const TABLE_SANITIZERS: Record<string, (p: Record<string, unknown>) => Record<st
   customers: sanitizeCustomersPayload,
   delivery_orders: sanitizeJsonItemsPayload,
   sales: sanitizeJsonItemsPayload,
+  inventory_audits: sanitizeJsonItemsPayload,
+  manual_stock_entries: sanitizeJsonItemsPayload,
 };
 
 export function sanitizePayloadForSupabase(table: string, rawPayload: Record<string, unknown>): Record<string, unknown> {
@@ -182,10 +188,11 @@ async function syncLocalTableToCloud(table: string, activeTenant: string) {
     if (!localRecords || localRecords.length === 0) return;
 
     const updatedLocals = localRecords.map((rec) => enrichRecordTenant(rec as Record<string, unknown>, activeTenant));
+    const backend = getSyncBackend();
     await Promise.all(
       updatedLocals.map((rec) => {
         const cleanPayload = sanitizePayloadForSupabase(table, rec);
-        return supabase.from(table).upsert(cleanPayload);
+        return backend.upsert(table, cleanPayload);
       })
     );
     await db.table(table).bulkPut(updatedLocals);
@@ -195,7 +202,7 @@ async function syncLocalTableToCloud(table: string, activeTenant: string) {
 }
 
 export async function pushLocalDataToCloud(tenantId?: string) {
-  if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+  if (!canFlushSyncQueue()) return;
   const activeTenant = tenantId || 'tenant-11111111111111';
   await Promise.all(SYNC_TABLES.map((t) => syncLocalTableToCloud(t, activeTenant)));
 }
@@ -250,15 +257,12 @@ async function preserveCustomerAddressesIfNeeded(record: Record<string, unknown>
   return record;
 }
 
-async function fetchAndMergeTable(table: string, activeTenant: string) {
-  const { data, error } = await supabase
-    .from(table)
-    .select('*')
-    .or(`company_id.eq.${activeTenant},tenant_id.eq.${activeTenant},company_id.eq.tenant-36383365000190,tenant_id.eq.tenant-36383365000190,company_id.eq.tenant-11111111111111,tenant_id.eq.tenant-11111111111111,company_id.is.null`);
+async function fetchAndMergeTable(table: string, activeTenant: string): Promise<boolean> {
+  const { data, error } = await getSyncBackend().fetchTable(table, activeTenant);
 
   if (error) {
     console.warn(`[Sync] Aviso ao buscar tabela ${table}:`, error.message);
-    return;
+    return false;
   }
   if (data && data.length > 0) {
     const normalized = await Promise.all(
@@ -271,18 +275,21 @@ async function fetchAndMergeTable(table: string, activeTenant: string) {
       })
     );
     await db.table(table).bulkPut(normalized);
+    return true;
   }
+  return false;
 }
 
 async function syncTenantCompanyRecord(activeTenant: string) {
-  const { data: company, error: cErr } = await supabase.from('companies').select('*').eq('id', activeTenant).maybeSingle();
+  const backend = getSyncBackend();
+  const { data: company, error: cErr } = await backend.fetchById('companies', activeTenant);
   if (!cErr && company) {
-    await db.companies.put(company);
+    await db.companies.put(company as never);
     return;
   }
   const localCompany = await db.companies.get(activeTenant);
   if (localCompany) {
-    await supabase.from('companies').upsert({
+    await backend.upsert('companies', {
       id: activeTenant,
       name: localCompany.name,
       document: localCompany.document,
@@ -296,20 +303,29 @@ async function syncTenantCompanyRecord(activeTenant: string) {
 
 export async function initialSync(tenantId?: string) {
   try {
+    if (!isDeviceSyncEnabled()) return;
     const activeTenant = tenantId || 'tenant-11111111111111';
+    patchDeviceSyncSettings({ lastCheckAt: new Date().toISOString() });
 
-    await processSyncQueue();
+    const queueUpdated = await processSyncQueue();
     await pushLocalDataToCloud(activeTenant);
 
-    const { data: platformSettings, error: pErr } = await supabase.from('platform_settings').select('*').maybeSingle();
-    if (!pErr && platformSettings) {
-      await db.platform_settings.put(platformSettings);
+    const platFetch = await getSyncBackend().fetchTable('platform_settings', activeTenant);
+    if (!platFetch.error && platFetch.data && platFetch.data[0]) {
+      await db.platform_settings.put(platFetch.data[0] as never);
     }
 
     await syncTenantCompanyRecord(activeTenant);
-    await Promise.all(SYNC_TABLES.map((table) => fetchAndMergeTable(table, activeTenant).catch((err) => console.warn(`[Sync] Exceção na tabela ${table}:`, err))));
+    const mergedFlags = await Promise.all(SYNC_TABLES.map((table) => fetchAndMergeTable(table, activeTenant).catch((err) => {
+      console.warn(`[Sync] Exceção na tabela ${table}:`, err);
+      return false;
+    })));
 
-    console.warn(`[Sync] Sincronização inicial da fonte primária (Supabase) concluída com sucesso para o tenant ${activeTenant}.`);
+    if (queueUpdated || mergedFlags.some(Boolean)) {
+      patchDeviceSyncSettings({ lastDataUpdateAt: new Date().toISOString() });
+    }
+
+    console.warn(`[Sync] Sincronização inicial concluída para o tenant ${activeTenant}.`);
   } catch (err) {
     console.error('[Sync] Falha na sincronização inicial:', err);
   }
@@ -356,35 +372,41 @@ async function handleQueueItemError(item: SyncQueueItem): Promise<void> {
   }
 }
 
-async function processSingleQueueItem(item: SyncQueueItem): Promise<void> {
+async function processSingleQueueItem(item: SyncQueueItem): Promise<boolean> {
   try {
+    const backend = getSyncBackend();
     const isDelete = item.action === 'DELETE';
     const result = isDelete
-      ? await supabase.from(item.table).delete().eq('id', (item.payload.id as string) || item.id)
-      : await supabase.from(item.table).upsert(sanitizePayloadForSupabase(item.table, item.payload));
+      ? await backend.remove(item.table, (item.payload.id as string) || item.id)
+      : await backend.upsert(item.table, sanitizePayloadForSupabase(item.table, item.payload));
 
     if (result.error) {
-      console.warn(`[Sync] Erro Supabase (${item.table}):`, result.error.message);
+      console.warn(`[Sync] Erro no backend (${item.table}):`, result.error.message);
       await handleQueueItemError(item);
-      return;
+      return false;
     }
 
     await db.sync_queue.delete(item.id);
+    return true;
   } catch (err) {
     console.warn(`[Sync] Falha temporária ao sincronizar item ${item.id}:`, err);
+    return false;
   }
 }
 
-export async function processSyncQueue() {
-  if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+export async function processSyncQueue(): Promise<boolean> {
+  if (!isDeviceSyncEnabled()) return false;
+  if (!canFlushSyncQueue()) return false;
 
   try {
     const queue = await db.sync_queue.orderBy('created_at').toArray();
-    if (!queue || queue.length === 0) return;
+    if (!queue || queue.length === 0) return false;
 
-    await Promise.all(queue.map((item) => processSingleQueueItem(item as SyncQueueItem)));
+    const results = await Promise.all(queue.map((item) => processSingleQueueItem(item as SyncQueueItem)));
+    return results.some(Boolean);
   } catch (err) {
     console.warn('[Sync] Erro ao ler fila de sincronização:', err);
+    return false;
   }
 }
 
@@ -413,6 +435,7 @@ async function handleRealtimePayload(
 export function subscribeToRealtimeSync(tenantId?: string) {
   const activeTenant = tenantId || 'tenant-11111111111111';
   if (typeof window === 'undefined') return () => {};
+  if (getSyncBackend().kind === 'local') return () => {};
 
   const channel = supabase
     .channel(`navelo-realtime-${activeTenant}`)

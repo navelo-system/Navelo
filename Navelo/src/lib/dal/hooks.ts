@@ -36,13 +36,11 @@ export function useSyncStatus() {
   };
 }
 
-const LEGACY_TENANT_IDS = new Set(['tenant-11111111111111', 'tenant-demo-001', 'demo-tenant']);
-
 function matchesTenant(item: { company_id?: string; tenant_id?: string }, tenantId?: string): boolean {
   if (!tenantId) return true;
-  const isDirectMatch = item.company_id === tenantId || item.tenant_id === tenantId;
-  const isLegacy = !item.company_id || LEGACY_TENANT_IDS.has(item.company_id) || LEGACY_TENANT_IDS.has(tenantId);
-  return isDirectMatch || isLegacy;
+  const itemTenant = item.company_id || item.tenant_id;
+  if (!itemTenant) return true;
+  return itemTenant === tenantId;
 }
 
 // Hooks de leitura reativos por Tenant/Company
