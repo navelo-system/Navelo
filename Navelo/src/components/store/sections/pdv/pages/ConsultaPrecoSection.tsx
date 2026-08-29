@@ -6,23 +6,42 @@ import { Stack } from "@/components/store/base/Stack"
 import { Font } from "@/components/store/base/Font"
 import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
-import { FormActions } from "@/components/store/intermediary/FormActions"
-import { EmptyState } from "@/components/store/intermediary/EmptyState"
-import { Icon } from "@/components/store/base/Icon"
-import { LinkDeviceModal } from "@/components/store/advanced/LinkDeviceModal"
-import { Barcode, Monitor, Plus, Trash2 } from "lucide-react"
-import { UI_STRINGS, formatString } from "@/constants/strings"
+import { CircularIcon } from "@/components/store/intermediary/CircularIcon"
+import { DiscardChangesModal } from "@/components/store/advanced/DiscardChangesModal"
+import { UserCheck, Tablet, Scan, Check } from "lucide-react"
+import { UI_STRINGS } from "@/constants/strings"
 
-interface LinkedDevice {
-  id: string
-  name: string
-  code: string
+export interface ConsultaPrecoSettings {
+  password: string
+}
+
+const STORAGE_KEY = "navelo_consulta_preco_settings"
+
+export function loadConsultaPrecoSettings(): ConsultaPrecoSettings {
+  if (typeof window === "undefined") return { password: "" }
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return { password: "" }
+    return JSON.parse(raw)
+  } catch {
+    return { password: "" }
+  }
+}
+
+export function saveConsultaPrecoSettings(settings: ConsultaPrecoSettings): void {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
+  } catch {
+    // ignore
+  }
 }
 
 export interface ConsultaPrecoSectionProps {
   onCancel: () => void
   setCustomBack?: (cb: (() => void) | null) => void
   setCustomTitle?: (title: string | null) => void
+  setCustomActions?: (actions: React.ReactNode | null) => void
 }
 
 function ConsultaPrecoAuthCard({
@@ -38,7 +57,13 @@ function ConsultaPrecoAuthCard({
       <Stack gap={5} w="full">
         <Font variant="body-bold" text={s.authTitle} />
         <Stack gap={2.5} w="full">
-          <Input label={s.passwordLabel} type="password" placeholder={s.passwordPlaceholder} value={password} onChange={(e) => setPassword(e.target.value)} />
+          <Input
+            label={s.passwordLabel}
+            type="password"
+            placeholder={s.passwordPlaceholder}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
           <Font variant="description" text={s.authDesc} />
         </Stack>
       </Stack>
@@ -46,48 +71,47 @@ function ConsultaPrecoAuthCard({
   )
 }
 
-function ConsultaPrecoDevicesCard({
-  devices,
-  onOpenModal,
-  onRemoveDevice,
-}: {
-  devices: LinkedDevice[]
-  onOpenModal: () => void
-  onRemoveDevice: (id: string) => void
-}) {
+function ConsultaPrecoGuideCard() {
   const s = UI_STRINGS.priceCheck
+
+  const steps = [
+    {
+      icon: UserCheck,
+      title: s.step1Title,
+      desc: s.step1Desc,
+    },
+    {
+      icon: Tablet,
+      title: s.step2Title,
+      desc: s.step2Desc,
+    },
+    {
+      icon: Scan,
+      title: s.step3Title,
+      desc: s.step3Desc,
+    },
+  ]
+
   return (
     <Box bg="bg-white" border borderColor="border-border" radius="default" padding={5} w="full">
       <Stack gap={5} w="full">
-        <Stack direction="col" mobileDirection="row" align="stretch" mobileAlign="center" justify="start" mobileJustify="between" w="full" gap={2.5}>
-          <Font variant="body-bold" text={s.linkedDevicesTitle} />
-          <Button variant="primary" label={s.linkDeviceButton} icon={Plus} onClick={onOpenModal} />
-        </Stack>
-        {devices.length === 0 ? (
-          <EmptyState icon={Monitor} title={s.emptyTitle} subtitle={s.emptySubtitle} />
-        ) : (
-          <Stack gap={0} w="full">
-            {devices.map((device, idx) => (
-              <React.Fragment key={device.id}>
-                {idx > 0 && <Box h="h-[1px]" w="full" bg="bg-border" />}
-                <Box padding={2.5} w="full">
-                  <Stack direction="row" align="center" justify="between" w="full" gap={5}>
-                    <Stack direction="row" align="center" gap={2.5}>
-                      <Icon icon={Monitor} size={16} color="muted" />
-                      <Stack gap={1}>
-                        <Font variant="body-bold" text={device.name} />
-                        <Font variant="description" text={formatString(s.deviceCodeTemplate, { code: device.code })} />
-                      </Stack>
-                    </Stack>
-                    <Box cursor="pointer" onClick={() => onRemoveDevice(device.id)}>
-                      <Icon icon={Trash2} size={16} color="danger" />
-                    </Box>
+        <Font variant="body-bold" text={s.howToActivateTitle} />
+        <Stack gap={2.5} w="full">
+          {steps.map((step, idx) => (
+            <React.Fragment key={step.title}>
+              {idx > 0 && <Box h="h-[1px]" w="full" bg="bg-border" />}
+              <Box padding={2.5} w="full">
+                <Stack direction="row" align="center" gap={5} w="full">
+                  <CircularIcon variant="secondary" icon={step.icon} size={20} />
+                  <Stack gap={0} flex="1">
+                    <Font variant="body-bold" text={step.title} />
+                    <Font variant="description" text={step.desc} />
                   </Stack>
-                </Box>
-              </React.Fragment>
-            ))}
-          </Stack>
-        )}
+                </Stack>
+              </Box>
+            </React.Fragment>
+          ))}
+        </Stack>
       </Stack>
     </Box>
   )
@@ -97,37 +121,75 @@ export const ConsultaPrecoSection: React.FC<ConsultaPrecoSectionProps> = ({
   onCancel,
   setCustomBack,
   setCustomTitle,
+  setCustomActions,
 }) => {
-  const [password, setPassword] = React.useState("")
-  const [devices, setDevices] = React.useState<LinkedDevice[]>([])
-  const [isModalOpen, setIsModalOpen] = React.useState(false)
+  const [initial, setInitial] = React.useState<ConsultaPrecoSettings>(() => loadConsultaPrecoSettings())
+  const [draft, setDraft] = React.useState<ConsultaPrecoSettings>(() => loadConsultaPrecoSettings())
+  const [isDiscardModalOpen, setIsDiscardModalOpen] = React.useState(false)
   const s = UI_STRINGS.priceCheck
 
+  const isDirty = React.useMemo(
+    () => JSON.stringify(draft) !== JSON.stringify(initial),
+    [draft, initial]
+  )
+
+  const handleBack = React.useCallback(() => {
+    if (isDirty) {
+      setIsDiscardModalOpen(true)
+    } else {
+      onCancel()
+    }
+  }, [isDirty, onCancel])
+
+  const handleSave = React.useCallback(() => {
+    saveConsultaPrecoSettings(draft)
+    setInitial(draft)
+    onCancel()
+  }, [draft, onCancel])
+
+  const handleBackRef = React.useRef(handleBack)
+  const handleSaveRef = React.useRef(handleSave)
+
   React.useEffect(() => {
-    setCustomBack?.(() => () => onCancel())
+    handleBackRef.current = handleBack
+    handleSaveRef.current = handleSave
+  }, [handleBack, handleSave])
+
+  React.useEffect(() => {
+    setCustomBack?.(() => () => handleBackRef.current())
     setCustomTitle?.(s.title)
+    setCustomActions?.(
+      <Button
+        variant="primary-pill-icon"
+        icon={Check}
+        onClick={() => handleSaveRef.current()}
+      />
+    )
     return () => {
       setCustomBack?.(null)
       setCustomTitle?.(null)
+      setCustomActions?.(null)
     }
-  }, [setCustomBack, setCustomTitle, onCancel, s.title])
+  }, [setCustomBack, setCustomTitle, setCustomActions, s.title])
 
   return (
-    <Stack gap={5} w="full">
-      <ConsultaPrecoAuthCard password={password} setPassword={setPassword} />
-      <ConsultaPrecoDevicesCard
-        devices={devices}
-        onOpenModal={() => setIsModalOpen(true)}
-        onRemoveDevice={(id) => setDevices((prev) => prev.filter((d) => d.id !== id))}
+    <>
+      <Stack gap={5} w="full">
+        <ConsultaPrecoAuthCard
+          password={draft.password}
+          setPassword={(password) => setDraft((prev) => ({ ...prev, password }))}
+        />
+        <ConsultaPrecoGuideCard />
+      </Stack>
+
+      <DiscardChangesModal
+        isOpen={isDiscardModalOpen}
+        onClose={() => setIsDiscardModalOpen(false)}
+        onConfirmDiscard={() => {
+          setIsDiscardModalOpen(false)
+          onCancel()
+        }}
       />
-      <FormActions confirmLabel={UI_STRINGS.common.save} onConfirm={onCancel} onCancel={onCancel} />
-      <LinkDeviceModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onConfirm={(code, name) => setDevices((prev) => [...prev, { id: Date.now().toString(), name, code }])}
-        appName={s.title}
-        appIcon={Barcode}
-      />
-    </Stack>
+    </>
   )
 }

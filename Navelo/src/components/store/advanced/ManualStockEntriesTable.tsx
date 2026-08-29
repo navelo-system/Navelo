@@ -501,8 +501,6 @@ function QuickProductCreateModal({
       isOpen={isOpen}
       onClose={onClose}
       title={inv.registerProductTitle}
-      subtitle={inv.registerProductSubtitle}
-      icon={Package}
       showCancelButton={true}
       cancelText={UI_STRINGS.common.cancel}
       cancelVariant="secondary"

@@ -417,8 +417,6 @@ export function DeliveryTimeline(props: DeliveryTimelineProps) {
         isOpen={isMotoboyWarningOpen}
         onClose={() => setIsMotoboyWarningOpen(false)}
         title={d.motoboyWarningTitle}
-        subtitle={d.motoboyWarningSubtitle}
-        icon={Bike}
         successText={d.motoboyWarningSuccess}
         onSuccess={() => {
           setIsMotoboyWarningOpen(false)

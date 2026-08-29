@@ -186,7 +186,7 @@ function useFilteredAuditLogs(
 
       if (applied.device.trim()) {
         const q = applied.device.toLowerCase().trim()
-        const dev = (log.device_id || "").toLowerCase()
+        const dev = (log.resource || "").toLowerCase()
         if (!dev.includes(q)) return false
       }
 
