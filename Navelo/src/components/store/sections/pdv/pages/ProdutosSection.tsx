@@ -27,6 +27,12 @@ interface ProdutosSectionProps {
   setCustomBack?: (cb: (() => void) | null) => void
   setCustomTitle?: (title: string | null) => void
   setCustomActions?: (actions: React.ReactNode | null) => void
+  /** Picker mode: when provided, clicking a product calls this instead of opening the edit form */
+  onSelectProduct?: (product: { id: string; name: string }) => void
+  /** Title override for picker mode */
+  pickerTitle?: string
+  /** ID of the currently selected product (highlighted) */
+  selectedProductId?: string
 }
 
 interface ExtractedFiscal {
@@ -158,12 +164,14 @@ function formatCategoryHierarchy(prod: ProductItem) {
 function ProductListItemRow({
   prod,
   onClick,
+  selected,
 }: {
   prod: ProductItem
   onClick: () => void
+  selected?: boolean
 }) {
   return (
-    <Box w="full" padding={2.5} radius="none" hoverBg="secondary/10" cursor="pointer" onClick={onClick}>
+    <Box w="full" padding={2.5} radius="none" hoverBg="secondary/10" cursor="pointer" onClick={onClick} bg={selected ? "secondary/10" : undefined}>
       <Stack direction="row" align="center" justify="between" w="full">
         <Stack direction="row" align="center" gap={2.5} flex="1" minW="0">
           <Avatar image={prod.image} icon={Package} fallback={prod.name.substring(0, 2)} />
@@ -203,17 +211,36 @@ function useProductHeaderSync(props: ProductHeaderSyncProps) {
   } = props
   const s = UI_STRINGS.productsCatalog
 
+  // Stabilize callbacks in refs to avoid stale closure loops
+  const setCustomBackRef = React.useRef(setCustomBack)
+  const setCustomTitleRef = React.useRef(setCustomTitle)
+  const setCustomActionsRef = React.useRef(setCustomActions)
+  const onCancelFormRef = React.useRef(onCancelForm)
+  const handleDeleteRef = React.useRef(handleDelete)
+  const handleSaveTriggerRef = React.useRef(handleSaveTrigger)
+  const setSearchQueryRef = React.useRef(setSearchQuery)
+
+  React.useEffect(() => {
+    setCustomBackRef.current = setCustomBack
+    setCustomTitleRef.current = setCustomTitle
+    setCustomActionsRef.current = setCustomActions
+    onCancelFormRef.current = onCancelForm
+    handleDeleteRef.current = handleDelete
+    handleSaveTriggerRef.current = handleSaveTrigger
+    setSearchQueryRef.current = setSearchQuery
+  })
+
   React.useEffect(() => {
     if (mode === "form" || mode === "fiscal-config") {
-      setCustomBack?.(() => onCancelForm)
-      setCustomTitle?.(
+      setCustomBackRef.current?.(() => onCancelFormRef.current)
+      setCustomTitleRef.current?.(
         mode === "fiscal-config"
           ? s.fiscalConfigTitle
           : editingProduct
             ? s.editProductTitle
             : s.newProductTitle
       )
-      setCustomActions?.(
+      setCustomActionsRef.current?.(
         <Stack direction="row" align="center" gap={2.5}>
           {editingProduct && mode === "form" && (
             <Button
@@ -227,40 +254,37 @@ function useProductHeaderSync(props: ProductHeaderSyncProps) {
                 icon: Trash2,
                 successText: "Confirmar Exclusão",
               }}
-              onConfirm={handleDelete}
+              onConfirm={() => handleDeleteRef.current()}
             />
           )}
           <Button
             type="button"
             variant="primary-icon"
             icon={Check}
-            onClick={handleSaveTrigger}
+            onClick={() => handleSaveTriggerRef.current()}
           />
         </Stack>
       )
     } else {
-      setCustomBack?.(null)
-      setCustomTitle?.(s.title)
-      setCustomActions?.(
+      setCustomBackRef.current?.(null)
+      setCustomTitleRef.current?.(s.title)
+      setCustomActionsRef.current?.(
         <MobileHeaderSearch
           searchQuery={searchQuery}
-          onSearchQueryChange={setSearchQuery}
+          onSearchQueryChange={(q) => setSearchQueryRef.current(q)}
           placeholder={s.searchPlaceholder}
         />
       )
     }
-  }, [
-    mode, editingProduct, searchQuery, s.fiscalConfigTitle, s.editProductTitle,
-    s.newProductTitle, s.title, s.searchPlaceholder, handleDelete, handleSaveTrigger,
-    onCancelForm, setCustomBack, setCustomTitle, setCustomActions, setSearchQuery,
-  ])
+  }, [mode, editingProduct, searchQuery, s.fiscalConfigTitle, s.editProductTitle, s.newProductTitle, s.title, s.searchPlaceholder])
 
   React.useEffect(() => () => {
-    setCustomBack?.(null)
-    setCustomTitle?.(null)
-    setCustomActions?.(null)
-  }, [setCustomBack, setCustomTitle, setCustomActions])
+    setCustomBackRef.current?.(null)
+    setCustomTitleRef.current?.(null)
+    setCustomActionsRef.current?.(null)
+  }, [])
 }
+
 
 function useProductFormManager(opts: {
   tenantId?: string
@@ -313,7 +337,11 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
   setCustomBack,
   setCustomTitle,
   setCustomActions,
+  onSelectProduct,
+  pickerTitle,
+  selectedProductId,
 }) => {
+  const isPickerMode = Boolean(onSelectProduct)
   const tenantCtx = useTenant()
   const { currentRoute, navigate, goBack } = useAppNavigation()
   const tenantId = tenantCtx?.currentTenant?.id
@@ -359,7 +387,7 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
         <Stack gap={5} w="full">
           {mode === "list" && (
             <ListSectionLayout<ProductItem>
-              title={s.title}
+              title={pickerTitle ?? s.title}
               items={products}
               searchPlaceholder={s.searchPlaceholder}
               searchFilterFn={(prod: ProductItem, query: string) => {
@@ -371,7 +399,7 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
               emptyIcon={PackageX}
               emptyTitle={s.emptyTitle}
               emptySubtitle={s.emptySubtitle}
-              onAdd={() => {
+              onAdd={isPickerMode ? undefined : () => {
                 formMgr.setIsDirty(false)
                 navigate("#produtos?action=new")
               }}
@@ -382,9 +410,14 @@ export const ProdutosSection: React.FC<ProdutosSectionProps> = ({
               renderItem={(prod: ProductItem) => (
                 <ProductListItemRow
                   prod={prod}
+                  selected={prod.id === selectedProductId}
                   onClick={() => {
-                    formMgr.setIsDirty(false)
-                    navigate(`#produtos?id=${prod.id}&action=edit`)
+                    if (isPickerMode) {
+                      onSelectProduct?.({ id: prod.id, name: prod.name })
+                    } else {
+                      formMgr.setIsDirty(false)
+                      navigate(`#produtos?id=${prod.id}&action=edit`)
+                    }
                   }}
                 />
               )}

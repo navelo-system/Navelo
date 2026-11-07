@@ -190,17 +190,37 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     })
   }, [platformSettings, themeCtrl])
 
+  const contextValue = React.useMemo<TenantContextType>(
+    () => ({
+      platformSettings,
+      currentTenant,
+      currentUser,
+      activeThemeMode: themeCtrl.activeThemeMode,
+      setCurrentTenant,
+      setCurrentUser,
+      updatePlatformTheme: themeCtrl.updatePlatformTheme,
+      updateTenantTheme: themeCtrl.updateTenantTheme,
+      switchThemeMode: themeCtrl.switchThemeMode,
+      loginTenantSession,
+      logoutTenantSession,
+      logoutUserSession,
+    }),
+    [
+      platformSettings,
+      currentTenant,
+      currentUser,
+      themeCtrl.activeThemeMode,
+      themeCtrl.updatePlatformTheme,
+      themeCtrl.updateTenantTheme,
+      themeCtrl.switchThemeMode,
+      loginTenantSession,
+      logoutTenantSession,
+      logoutUserSession,
+    ]
+  )
+
   return (
-    <TenantContext.Provider
-      value={{
-        platformSettings, currentTenant, currentUser, activeThemeMode: themeCtrl.activeThemeMode,
-        setCurrentTenant, setCurrentUser,
-        updatePlatformTheme: themeCtrl.updatePlatformTheme,
-        updateTenantTheme: themeCtrl.updateTenantTheme,
-        switchThemeMode: themeCtrl.switchThemeMode,
-        loginTenantSession, logoutTenantSession, logoutUserSession,
-      }}
-    >
+    <TenantContext.Provider value={contextValue}>
       {children}
     </TenantContext.Provider>
   )

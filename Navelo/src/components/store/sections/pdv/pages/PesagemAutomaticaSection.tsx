@@ -8,9 +8,11 @@ import { Input } from "@/components/store/base/Input"
 import { Button } from "@/components/store/base/Button"
 import { Switch } from "@/components/store/base/Switch"
 import { Icon } from "@/components/store/base/Icon"
+import { CircularIcon } from "@/components/store/intermediary/CircularIcon"
 import { EmptyState } from "@/components/store/intermediary/EmptyState"
 import { LinkDeviceModal } from "@/components/store/advanced/LinkDeviceModal"
 import { DiscardChangesModal } from "@/components/store/advanced/DiscardChangesModal"
+import { ProdutosSection } from "@/components/store/sections/pdv/pages/ProdutosSection"
 import { Scale, Monitor, ChevronRight, LayoutGrid, Plus, Check } from "lucide-react"
 import { UI_STRINGS } from "@/constants/strings"
 
@@ -18,6 +20,11 @@ interface LinkedDevice {
   id: string
   name: string
   code: string
+}
+
+interface SelectedProduct {
+  id: string
+  name: string
 }
 
 export interface PesagemAutomaticaSectionProps {
@@ -51,20 +58,29 @@ function PesagemAuthCard({
 function PesagemProductSettingsCard({
   buffetEnabled,
   setBuffetEnabled,
+  mainProduct,
+  buffetProduct,
+  onSelectMain,
+  onSelectBuffet,
 }: {
   buffetEnabled: boolean
   setBuffetEnabled: (v: boolean) => void
+  mainProduct: SelectedProduct | null
+  buffetProduct: SelectedProduct | null
+  onSelectMain: () => void
+  onSelectBuffet: () => void
 }) {
   const w = UI_STRINGS.weighing
   return (
     <Box bg="bg-white" border borderColor="border-border" radius="default" overflow="hidden" w="full">
-      <Box padding={5} cursor="pointer" hoverBg="secondary/10" w="full">
+      {/* Produto Principal */}
+      <Box padding={5} cursor="pointer" hoverBg="secondary/10" w="full" onClick={onSelectMain}>
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={5}>
-            <Icon icon={LayoutGrid} size={20} color="primary" />
+            <CircularIcon icon={LayoutGrid} size={20} variant="secondary" />
             <Stack gap={1}>
               <Font variant="body-bold" text={w.mainProductTitle} />
-              <Font variant="description" text={w.selectProductPlaceholder} color="muted" />
+              <Font variant="description" text={mainProduct ? mainProduct.name : w.selectProductPlaceholder} color={mainProduct ? "foreground" : "muted"} />
             </Stack>
           </Stack>
           <Icon icon={ChevronRight} size={16} color="muted" />
@@ -73,6 +89,7 @@ function PesagemProductSettingsCard({
 
       <Box h="h-[1px]" w="full" bg="bg-border" />
 
+      {/* Toggle buffet */}
       <Box padding={5} w="full">
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Font variant="body" text={w.enableBuffetToggle} />
@@ -82,13 +99,21 @@ function PesagemProductSettingsCard({
 
       <Box h="h-[1px]" w="full" bg="bg-border" />
 
-      <Box padding={5} cursor={buffetEnabled ? "pointer" : undefined} hoverBg={buffetEnabled ? "secondary/10" : undefined} w="full" opacity={buffetEnabled ? "100" : "50"}>
+      {/* Buffet Livre */}
+      <Box
+        padding={5}
+        cursor={buffetEnabled ? "pointer" : undefined}
+        hoverBg={buffetEnabled ? "secondary/10" : undefined}
+        w="full"
+        opacity={buffetEnabled ? "100" : "50"}
+        onClick={buffetEnabled ? onSelectBuffet : undefined}
+      >
         <Stack direction="row" align="center" justify="between" w="full" gap={5}>
           <Stack direction="row" align="center" gap={5}>
-            <Icon icon={LayoutGrid} size={20} color={buffetEnabled ? "primary" : "muted"} />
+            <CircularIcon icon={LayoutGrid} size={20} variant={buffetEnabled ? "secondary" : "primary"} />
             <Stack gap={1}>
               <Font variant="body-bold" text={w.buffetFreeTitle} />
-              <Font variant="description" text={w.selectProductPlaceholder} color="muted" />
+              <Font variant="description" text={buffetProduct ? buffetProduct.name : w.selectProductPlaceholder} color={buffetProduct ? "foreground" : "muted"} />
             </Stack>
           </Stack>
           <Icon icon={ChevronRight} size={16} color="muted" />
@@ -152,7 +177,7 @@ function PesagemDevicesCard({
               </Stack>
             )}
             <Box>
-              <Button variant="primary" label={w.linkDeviceButton} icon={Plus} onClick={onOpenModal} />
+              <Button variant="primary" label={w.linkDeviceButton} icon={Plus} onClick={onOpenModal} fullWidth={true} />
             </Box>
           </Stack>
         ) : (
@@ -173,70 +198,82 @@ export const PesagemAutomaticaSection: React.FC<PesagemAutomaticaSectionProps> =
   const [buffetEnabled, setBuffetEnabled] = React.useState(false)
   const [devicesEnabled, setDevicesEnabled] = React.useState(false)
   const [devices, setDevices] = React.useState<LinkedDevice[]>([])
+  const [mainProduct, setMainProduct] = React.useState<SelectedProduct | null>(null)
+  const [buffetProduct, setBuffetProduct] = React.useState<SelectedProduct | null>(null)
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [isDiscardModalOpen, setIsDiscardModalOpen] = React.useState(false)
-  const s = UI_STRINGS.weighing
+  const [pickerMode, setPickerMode] = React.useState<null | "main" | "buffet">(null)
+  const w = UI_STRINGS.weighing
 
-  // Track original state to detect dirty
   const [savedPassword] = React.useState("")
   const [savedBuffet] = React.useState(false)
   const isDirty = password !== savedPassword || buffetEnabled !== savedBuffet
 
   const onCancelRef = React.useRef(onCancel)
-  const setCustomBackRef = React.useRef(setCustomBack)
-  const setCustomTitleRef = React.useRef(setCustomTitle)
-  const setCustomActionsRef = React.useRef(setCustomActions)
+  React.useEffect(() => { onCancelRef.current = onCancel })
 
-  React.useEffect(() => {
-    onCancelRef.current = onCancel
-    setCustomBackRef.current = setCustomBack
-    setCustomTitleRef.current = setCustomTitle
-    setCustomActionsRef.current = setCustomActions
+  const handleSaveRef = React.useRef(() => { onCancelRef.current() })
+  const handleRequestBackRef = React.useRef(() => {
+    if (isDirty) setIsDiscardModalOpen(true)
+    else onCancelRef.current()
   })
 
-  const handleSave = React.useCallback(() => {
-    // TODO: persist settings
-    onCancelRef.current()
-  }, [])
-
-  const handleRequestBack = React.useCallback(() => {
-    if (isDirty) {
-      setIsDiscardModalOpen(true)
-    } else {
-      onCancelRef.current()
+  React.useEffect(() => {
+    handleRequestBackRef.current = () => {
+      if (isDirty) setIsDiscardModalOpen(true)
+      else onCancelRef.current()
     }
   }, [isDirty])
 
-  const handleRequestBackRef = React.useRef(handleRequestBack)
   React.useEffect(() => {
-    handleRequestBackRef.current = handleRequestBack
-  })
+    if (pickerMode) return
+    setCustomBack?.(() => () => handleRequestBackRef.current())
+    setCustomTitle?.(w.title)
+    setCustomActions?.(
+      <Button variant="primary-pill-icon" icon={Check} onClick={() => handleSaveRef.current()} />
+    )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickerMode])
 
   React.useEffect(() => {
-    setCustomBackRef.current?.(() => () => handleRequestBackRef.current())
-    setCustomTitleRef.current?.(s.title)
-    setCustomActionsRef.current?.(
-      <Button
-        type="button"
-        variant="primary-pill-icon"
-        icon={Check}
-        title={UI_STRINGS.common.save}
-        onClick={handleSave}
-      />
-    )
     return () => {
-      setCustomBackRef.current?.(null)
-      setCustomTitleRef.current?.(null)
-      setCustomActionsRef.current?.(null)
+      setCustomBack?.(null)
+      setCustomTitle?.(null)
+      setCustomActions?.(null)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Picker mode — reutiliza ProdutosSection com prop onSelectProduct
+  if (pickerMode) {
+    return (
+      <ProdutosSection
+        pickerTitle={pickerMode === "main" ? w.mainProductTitle : w.buffetFreeTitle}
+        selectedProductId={pickerMode === "main" ? mainProduct?.id : buffetProduct?.id}
+        setCustomBack={setCustomBack}
+        setCustomTitle={setCustomTitle}
+        setCustomActions={setCustomActions}
+        onSelectProduct={(prod) => {
+          if (pickerMode === "main") setMainProduct(prod)
+          else setBuffetProduct(prod)
+          setPickerMode(null)
+        }}
+      />
+    )
+  }
 
   return (
     <>
       <Stack gap={5} w="full">
         <PesagemAuthCard password={password} setPassword={setPassword} />
-        <PesagemProductSettingsCard buffetEnabled={buffetEnabled} setBuffetEnabled={setBuffetEnabled} />
+        <PesagemProductSettingsCard
+          buffetEnabled={buffetEnabled}
+          setBuffetEnabled={setBuffetEnabled}
+          mainProduct={mainProduct}
+          buffetProduct={buffetProduct}
+          onSelectMain={() => setPickerMode("main")}
+          onSelectBuffet={() => setPickerMode("buffet")}
+        />
         <PesagemDevicesCard
           devicesEnabled={devicesEnabled}
           setDevicesEnabled={setDevicesEnabled}
@@ -248,7 +285,7 @@ export const PesagemAutomaticaSection: React.FC<PesagemAutomaticaSectionProps> =
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onConfirm={(code, name) => setDevices((prev) => [...prev, { id: Date.now().toString(), name, code }])}
-          appName={s.title}
+          appName={w.title}
           appIcon={Scale}
         />
       </Stack>

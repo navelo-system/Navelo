@@ -114,24 +114,35 @@ function HomeContent() {
       const savedOperator = sessionStorage.getItem("pdv-operator")
       if (savedOperator) {
         setOperator(savedOperator)
-      } else {
-        nav.navigate("#login", { replace: true })
       }
+      // Não navegar aqui: a renderização condicional (!operator) já exibe LoginSection.
+      // Chamar nav.navigate → replaceState é interceptado pelo App Router do Next.js,
+      // causando remount e loop infinito de renderização.
     }, 0)
     return () => clearTimeout(timer)
-  }, [nav])
+  }, [])
 
   // Persiste o operador no sessionStorage ao alterar (apenas logout do usuário, preservando o tenant)
+  const logoutUserSessionRef = React.useRef(tenantCtx.logoutUserSession)
+  React.useEffect(() => {
+    logoutUserSessionRef.current = tenantCtx.logoutUserSession
+  })
+
   React.useEffect(() => {
     if (!isMounted) return
     if (operator) {
       sessionStorage.setItem("pdv-operator", operator)
     } else {
       sessionStorage.removeItem("pdv-operator")
-      tenantCtx.logoutUserSession()
-      nav.navigate("#login", { replace: true })
+      logoutUserSessionRef.current()
+      // Usar assignment direto de hash em vez de nav.navigate: evita passar por
+      // window.history.replaceState, que o App Router do Next.js intercepta e causa
+      // remount do componente de página → loop infinito.
+      if (typeof window !== "undefined") {
+        window.location.hash = "#login"
+      }
     }
-  }, [operator, isMounted, tenantCtx, nav])
+  }, [operator, isMounted])
 
   // Comandas reativas e status de sincronização do IndexedDB local (Dexie)
   const tenantId = tenantCtx?.currentTenant?.id || "tenant-11111111111111"

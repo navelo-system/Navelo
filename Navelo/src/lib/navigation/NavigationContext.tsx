@@ -45,6 +45,12 @@ function useNavigationController(userRole?: string) {
     historyStackRef.current = historyStack
   }, [historyStack])
 
+  // Ref para acessar currentRoute dentro de callbacks sem torná-los dependentes dele
+  const currentRouteRef = React.useRef<ParsedRoute>(currentRoute)
+  React.useEffect(() => {
+    currentRouteRef.current = currentRoute
+  }, [currentRoute])
+
   const scrollPositions = React.useRef<Record<string, number>>({})
 
   const navigate = React.useCallback(
@@ -52,10 +58,10 @@ function useNavigationController(userRole?: string) {
       const targetHash = typeof target === "string" ? (target.startsWith("#") ? target : `#${target}`) : formatRoute(target)
       const allowed = resolveAllowedRoute(parseHash(targetHash), userRole)
       const allowedHash = formatRoute(allowed)
-      const currentHash = formatRoute(currentRoute)
+      const currentHash = formatRoute(currentRouteRef.current)
 
       if (typeof window !== "undefined") {
-        scrollPositions.current[currentRoute.raw || currentRoute.view] = window.scrollY
+        scrollPositions.current[currentRouteRef.current.raw || currentRouteRef.current.view] = window.scrollY
         if (options?.replace) {
           window.history.replaceState(null, "", allowedHash)
         } else if (currentHash !== allowedHash) {
@@ -65,13 +71,13 @@ function useNavigationController(userRole?: string) {
       }
       setCurrentRoute(allowed)
     },
-    [currentRoute, userRole]
+    [userRole]
   )
 
   const goBack = React.useCallback(
     (fallback?: string) => {
       const currentStack = historyStackRef.current
-      const currentHash = formatRoute(currentRoute)
+      const currentHash = formatRoute(currentRouteRef.current)
       const nextStack = [...currentStack]
       let targetHash: string | undefined
 
@@ -100,7 +106,7 @@ function useNavigationController(userRole?: string) {
       setHistoryStack(nextStack)
       setCurrentRoute(allowed)
     },
-    [currentRoute, userRole]
+    [userRole]
   )
 
   const handlePopStateCallback = React.useCallback((allowed: ParsedRoute) => {
